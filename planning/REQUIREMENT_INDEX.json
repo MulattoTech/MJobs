@@ -2650,7 +2650,7 @@
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-204.N03",
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 86,
-    "PASS": 203,
-    "NOT_RUN": 136
+    "PASS": 204,
+    "NOT_RUN": 135
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

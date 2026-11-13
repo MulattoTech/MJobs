@@ -4612,10 +4612,26 @@
       "depends_on": [
         "MJ-PR-055"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-141-mj-req-204-n02-notification-provider-ntfy",
-      "draft_until_verified": true,
-      "notes": "Independent provider PR. Declare only capabilities actually verified."
+      "status": "INTEGRATED_PASS",
+      "branch": "web/20261113-2d4f/ntfy-provider",
+      "draft_until_verified": false,
+      "notes": "Source delivery is integrated through protected PR1021 at aa94183 after actual d0 hosted qualification. The scoped child has evidence for its five literal criteria; canonical acceptance, protected acceptance publication and actual post-refresh Mission Control comparison remain separate pending gates. Dependency055 and its QUEUED status remain traceability; parent204 stays NOT_RUN. Original source/test/runtime/failure records are preserved. Historical FUTURE/OPTIONAL wording does not defer this task: master section8 explicitly activates P6 implementation.",
+      "previous_planned_branch": "codex/mj-pr-141-mj-req-204-n02-notification-provider-ntfy",
+      "candidate": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "pr_number": 1021,
+      "pr_state": "MERGED",
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/1021",
+      "integrated_at": "2026-11-13T11:19:09Z",
+      "integration_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "integration_method": "PROTECTED_PULL_REQUEST",
+      "scope_complete": true,
+      "scope_result": "PASS",
+      "evidence_path": "docs/evidence/2026-11-13-ntfy-delivery.json",
+      "acceptance_preparation_branch": "web/20261113-2d4f/ntfy-n02-canonical",
+      "acceptance_commit": null,
+      "acceptance_publication_status": "PROPOSED_PASS_PENDING_PROTECTED_PUBLICATION",
+      "acceptance_publication_receipt": null,
+      "actual_post_acceptance_view_receipt": null
     },
     {
       "id": "MJ-PR-142",

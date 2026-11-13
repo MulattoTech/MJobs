@@ -3,37 +3,41 @@
   "task_id": "MJ-REQ-204.N02",
   "objective": "Deliver and verify opt-in ntfy activity notifications with honest capabilities, durable delivery state and owned event scope",
   "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
-  "branch": "web/20261113-2d4f/ntfy-provider",
-  "head_sha": "88e4f292e6e4d0c670e3081d4e4740794f04ab48",
+  "branch": "web/20261113-2d4f/ntfy-n02-canonical",
+  "head_sha": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
   "routing_state": "VERIFY",
-  "next_action": "Review final evidence/composition, obtain fresh native publication admission, publish one coherent PR, pass exact-head hosted gates and protected integration; canonicalacceptance stays separate",
+  "next_action": "Validate the actual bound N02-only canonical candidate and complete its protected acceptance publication, primary refresh and actual Mission Control comparison. Preserve source40e/runtime462707 attribution and parent204 NOT_RUN.",
   "created_at": "2026-11-13T03:21:03.498083+00:00",
   "requirements": [
     "MJ-REQ-204.N02"
   ],
   "tests": [
     {
-      "command": "40eec0a5e73ed5ed64f4c90446a15d08245567b7: python -m pytest -q tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/integration/test_notification_delivery.py tests/integration/test_ntfy_live.py; 92 passed, zero failures/errors/skips; actual owned PostgreSQL17.11 and ntfy2.37.2; docs/evidence/2026-11-13-ntfy-delivery.json",
+      "command": "Historical exact40e provider suite:92 PASS, zero failures/errors/skips, actual owned PostgreSQL17.11 and official local ntfy2.37.2; source identity unchanged.",
       "result": "PASS"
     },
     {
-      "command": "Fresh named /data volume: UID/GID10001 write and second-start persistence PASS using cached runtime image; owned test resources removed and absence verified; evidence manifest records image and instance IDs",
+      "command": "Historical exact462707 stock Dockerfile/Compose worker, normal guarded migration/restricted role, UID10001, one acknowledgement/attempt across restart, health and exact cleanup.",
       "result": "PASS"
     },
     {
-      "command": "Independent provider/transport review and post-repair event/journal actual-producer rereview PASS; generic outcomes preserve external-submission truth",
+      "command": "Read-only mapping to protected aa94183:15 notification blobs and22/23 selected package inputs unchanged, explicitly reviewed Store PR1016 exception; requirements.txt additionally equal.",
       "result": "PASS"
     },
     {
-      "command": "462707: actual Dockerfile/Compose image,23in-imagehashes, migration, restrictedmjobs_runtime, UID10001/0600, historicaleventexclusion, actuallocalntfyacknowledgement, workerrestartoneattemptdedup, Dockerhealth and exactcleanup; source-bound manifest",
+      "command": "Actual d0 hosted15-success/five-required qualification and protected PR1021 merge at aa94183 on2026-11-13T11:19:09Z.",
       "result": "PASS"
     },
     {
-      "command": "88e: all15notificationblobs unchanged from40e/462707;22/23packagingmanifestblobs unchanged; only Store AI-settings fix adopted from separatelyqualified protectedmain5b2e; originalproofattributionpreserved",
-      "result": "PASS"
+      "command": "Actual bound canonical writer and seven validators at the eventual operating checkpoint.",
+      "result": "NOT_RUN"
     },
     {
-      "command": "Final published-head hosted gates, protected integration, productiondeployedworkflow and formalacceptance",
+      "command": "Protected N02 canonical acceptance publication, completed primary refresh and actual Mission Control area/priority/reference comparison.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Production deployment, public authenticated/TLS ntfy account and device-display validation.",
       "result": "NOT_RUN"
     }
   ],
@@ -45,22 +49,22 @@
   "delivery_state": {
     "implemented": true,
     "local_tests": "92 PASS;0 failures/errors/skips",
-    "published": false,
-    "hosted_checks": "NOT_RUN",
-    "integrated": false,
+    "published": true,
+    "hosted_checks": "PASS_AT_SOURCE_HEAD_D0",
+    "integrated": true,
     "deployed": false,
     "formally_accepted": false,
     "candidate_container": "PASS at462707"
   },
   "continuation": {
-    "state": "READY_FOR_FINAL_REVIEW_AND_PUBLICATION",
-    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-2d4f",
+    "state": "SOURCE_INTEGRATED_CANONICAL_VALIDATION_PENDING",
+    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-n02-canonical-2d4f",
     "last_checkpoint_author": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
     "claim_authority": "Native shared coordinator; this handoff is context, not an ownership lease",
     "live_jobs": [],
-    "canonical_acceptance_changed": false,
-    "publication_notes": "Exact resumedsteward/canonicalownership resolved by authorizedtransfer. Heavyproofclaimreleased. Requery allpages, inspect nonduplicate/currentbacklog, acquire all3admissionaliases for onePR, verify finalsource/ref/metadata and do normalpush/readback. Branchclaimedseparately; no newserver-sideprovider or fullparentacceptance fabricated.",
-    "desktop_peer": "Separate browser implementation pending corrected frozen candidate; no backend sender or integrated descriptor fabricated."
+    "canonical_acceptance_changed": true,
+    "publication_notes": "PR1021 source delivery is protected-integrated at aa94183. N02 canonical acceptance is a separate root-owned reviewed change with fresh source/owner bindings and protected publication; prior source-publication ownership history remains intact.",
+    "desktop_peer": "N05 Desktop is separately integrated and accepted at aa94183. No new Desktop backend sender or other provider acceptance is inferred."
   },
   "checkpoint_history": [
     {
@@ -71,9 +75,86 @@
       "blockers": [
         "Exact Nov9 resumed steward and canonical claims remain ACTIVE without matching release; preserve their ownership"
       ]
+    },
+    {
+      "archive_created_at_utc": "2026-11-13T13:54:32.089277+00:00",
+      "source_preimage_sha256": "e991b66d36996cef447a5879ded3a4289e5c2e4637a6ef74082992486146871a",
+      "previous_active_fields": {
+        "branch": "web/20261113-2d4f/ntfy-provider",
+        "head_sha": "88e4f292e6e4d0c670e3081d4e4740794f04ab48",
+        "updated_at": "2026-11-13T05:23:42.534911+00:00",
+        "routing_state": "VERIFY",
+        "next_action": "Review final evidence/composition, obtain fresh native publication admission, publish one coherent PR, pass exact-head hosted gates and protected integration; canonicalacceptance stays separate",
+        "tests": [
+          {
+            "command": "40eec0a5e73ed5ed64f4c90446a15d08245567b7: python -m pytest -q tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/integration/test_notification_delivery.py tests/integration/test_ntfy_live.py; 92 passed, zero failures/errors/skips; actual owned PostgreSQL17.11 and ntfy2.37.2; docs/evidence/2026-11-13-ntfy-delivery.json",
+            "result": "PASS"
+          },
+          {
+            "command": "Fresh named /data volume: UID/GID10001 write and second-start persistence PASS using cached runtime image; owned test resources removed and absence verified; evidence manifest records image and instance IDs",
+            "result": "PASS"
+          },
+          {
+            "command": "Independent provider/transport review and post-repair event/journal actual-producer rereview PASS; generic outcomes preserve external-submission truth",
+            "result": "PASS"
+          },
+          {
+            "command": "462707: actual Dockerfile/Compose image,23in-imagehashes, migration, restrictedmjobs_runtime, UID10001/0600, historicaleventexclusion, actuallocalntfyacknowledgement, workerrestartoneattemptdedup, Dockerhealth and exactcleanup; source-bound manifest",
+            "result": "PASS"
+          },
+          {
+            "command": "88e: all15notificationblobs unchanged from40e/462707;22/23packagingmanifestblobs unchanged; only Store AI-settings fix adopted from separatelyqualified protectedmain5b2e; originalproofattributionpreserved",
+            "result": "PASS"
+          },
+          {
+            "command": "Final published-head hosted gates, protected integration, productiondeployedworkflow and formalacceptance",
+            "result": "NOT_RUN"
+          }
+        ],
+        "delivery_state": {
+          "implemented": true,
+          "local_tests": "92 PASS;0 failures/errors/skips",
+          "published": false,
+          "hosted_checks": "NOT_RUN",
+          "integrated": false,
+          "deployed": false,
+          "formally_accepted": false,
+          "candidate_container": "PASS at462707"
+        },
+        "continuation": {
+          "state": "READY_FOR_FINAL_REVIEW_AND_PUBLICATION",
+          "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-2d4f",
+          "last_checkpoint_author": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+          "claim_authority": "Native shared coordinator; this handoff is context, not an ownership lease",
+          "live_jobs": [],
+          "canonical_acceptance_changed": false,
+          "publication_notes": "Exact resumedsteward/canonicalownership resolved by authorizedtransfer. Heavyproofclaimreleased. Requery allpages, inspect nonduplicate/currentbacklog, acquire all3admissionaliases for onePR, verify finalsource/ref/metadata and do normalpush/readback. Branchclaimedseparately; no newserver-sideprovider or fullparentacceptance fabricated.",
+          "desktop_peer": "Separate browser implementation pending corrected frozen candidate; no backend sender or integrated descriptor fabricated."
+        }
+      },
+      "stock_transfer_checkpoint": {
+        "preimage_sha256": "5a776ede2eca8b378ccc64ac4780408cfa27f875b9a63bc871efdaebc91d470b",
+        "retained_updated_at": "2026-11-13T05:23:42.534911+00:00",
+        "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+        "branch": "web/20261113-2d4f/ntfy-n02-canonical",
+        "head_sha": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+        "next_action": "Bind the actual stock handoff and transfer history for the reviewed N02 canonical materialization; independently review bound payloads before designated-writer updates, stock validators, protected publication and actual Mission Control readback. Parent204 and all canonical acceptance are unchanged by this preparation.",
+        "transfer_history": [
+          {
+            "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+            "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+            "reason": "Prepare the isolated N02 canonical worktree from protected main aa94183 after reviewed branch and source contexts; preserve historical runtime/source evidence. Canonical acceptance payloads remain unapplied.",
+            "transferred_at": "2026-11-13T13:36:32.421959+00:00"
+          }
+        ],
+        "preparation_receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\attempt-01\\preparation-receipt.json",
+          "sha256": "bdb7cc0525701fc27510f3648effcd5620818c3e50a41981b3db4914d23a70a3"
+        }
+      }
     }
   ],
-  "updated_at": "2026-11-13T05:23:42.534911+00:00",
+  "updated_at": "2026-11-13T13:54:32.089277+00:00",
   "ownership_resolution": {
     "resolved_at": "2026-11-13T04:25:53.757174Z",
     "transaction_id": "05c3941245414035b80185d84b2b05c1",
@@ -81,5 +162,116 @@
     "journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6843931256",
     "receipt_sha256": "6b7808fd11fd70afe0a1a1e2289e17f157425c4b820656ecde7b19173e322458",
     "scope": "Exactly3oldclaims released with preserved history;3newownedidentities acquired atomically; unrelated records retained"
+  },
+  "transfer_history": [
+    {
+      "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "reason": "Prepare the isolated N02 canonical worktree from protected main aa94183 after reviewed branch and source contexts; preserve historical runtime/source evidence. Canonical acceptance payloads remain unapplied.",
+      "transferred_at": "2026-11-13T13:36:32.421959+00:00"
+    }
+  ],
+  "operational_source_note": "The stock-transferred head_sha identifies the actual owned operating checkpoint; it never relabels historical tested source40e or packaged source462707.",
+  "current_source_integration": {
+    "source_head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+    "source_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+    "protected_merge_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+    "protected_merge_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+    "pr_number": 1021,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/1021",
+    "merged_at_utc": "2026-11-13T11:19:09Z",
+    "hosted_checks": {
+      "head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "count": 15,
+      "result": "ALL_COMPLETED_SUCCESS",
+      "readback": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-independent-review\\d0-check-runs-readback.json",
+        "sha256": "a2a85492d4e64a80bd8ee4117c8672bd7e636f385c1fac4514cf1f0923877acc"
+      }
+    },
+    "required_checks": {
+      "head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "count": 5,
+      "qualifying_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\qualification-d33d72482a83421992f1538b729c94b3.json",
+        "sha256": "d3f232b01ade91a8c7f08de96f73025a4c69df084dbc126184b69790a802d53c"
+      }
+    },
+    "protected_merge_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\supervision-54e48689b6d744c4b797d2f51cae6965\\root-merge-result.json",
+      "sha256": "48e18bd23edd774125dc47c45a4afd5bfff02ad9aa10ea5107fd3d02fa36a2f6"
+    },
+    "source_publication_mutex_release": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\supervision-54e48689b6d744c4b797d2f51cae6965\\root-mutex-release.json",
+      "sha256": "de59e9c7a82cf32062942578f74402e88ad9778f2ac5dd4ee5b0111031c4235d"
+    },
+    "source_mapping": {
+      "receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-independent-review\\source-and-artifact-readback.json",
+        "sha256": "713e01fc5d170f672b5f8e7a86e08f9fcb2fbcb18bbdaff04eea1edac7d1fd71"
+      },
+      "notification_blobs_unchanged": 15,
+      "selected_packaging_inputs_unchanged": 22,
+      "selected_packaging_inputs_total": 23,
+      "approved_difference": "packages/persistence/store.py: only Store.save_ai_task_settings natural-key upsert adopted from protected PR1016/5b2; operation/event queries and schema are unchanged.",
+      "additional_input": "requirements.txt was additionally checked equal through aa94183; it was not part of the historical 23-input runtime manifest.",
+      "limitation": "Selected input equivalence is not an exhaustive whole-image dependency proof. No new aa94183 build or runtime is claimed."
+    },
+    "actual_execution_sources": {
+      "focused_92_tests": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "stock_packaged_worker": "4627073607b86f26596b33c5d046e12d64b6331a"
+    },
+    "scope": "Actual source delivery only. Later canonical validation, protected acceptance publication, primary refresh and actual view verification are separate pending gates."
+  },
+  "canonical_acceptance": {
+    "state": "PROPOSED_PENDING_ACTUAL_VALIDATION_AND_PROTECTED_PUBLICATION",
+    "materialized_at_utc": "2026-11-13T13:54:32.089277+00:00",
+    "milestone_id": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
+    "validation_receipt": null,
+    "protected_publication_receipt": null,
+    "actual_post_acceptance_view_receipt": null,
+    "timestamp_scope": "This is the observed UTC materialization of the reviewed private payload bytes. Tracked application, milestone recording and validators are future operations and have separate runtime timestamps/receipts; this time is not a claimed execution time.",
+    "actual_preparation": {
+      "actual_preparation": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\attempt-01\\preparation-receipt.json",
+        "sha256": "bdb7cc0525701fc27510f3648effcd5620818c3e50a41981b3db4914d23a70a3"
+      },
+      "controller": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\supervision-01\\controller-result.json",
+        "sha256": "c2647378689362e601c3d16ebca13d7dc0dd67fd91ad7dc53d05664f02f7ecfe"
+      },
+      "root_reconciliation": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\root-readback-02\\root-reconciliation.json",
+        "sha256": "e686dcf9bc9076fe92080b50718318b9653d064f848312c49c2b165eabd135a7"
+      },
+      "light_release": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\light-release.json",
+        "sha256": "c0e75d597d2bcfc9ff05d96edf8f0b3b2725713585001f91ed4bb77b309ef4ea"
+      },
+      "independent_actual_review": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\independent-actual-readback-01\\independent-execution-review.json",
+        "sha256": "2bb2903639a871fd92bf6ba709ee1c045c70960687696e029a75ac737491eed4"
+      },
+      "result": "ACTUAL_WORKTREE_CONTEXTS_AND_STOCK_TRANSFER_VERIFIED",
+      "head": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+      "stock_handoff_sha256": "5a776ede2eca8b378ccc64ac4780408cfa27f875b9a63bc871efdaebc91d470b",
+      "stock_updated_at_retained": "2026-11-13T05:23:42.534911+00:00",
+      "stock_transfer_history": [
+        {
+          "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+          "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+          "reason": "Prepare the isolated N02 canonical worktree from protected main aa94183 after reviewed branch and source contexts; preserve historical runtime/source evidence. Canonical acceptance payloads remain unapplied.",
+          "transferred_at": "2026-11-13T13:36:32.421959+00:00"
+        }
+      ],
+      "scope": "Worktree/context preparation and same-owner handoff only; it did not apply canonical payloads or run the new validators."
+    },
+    "tracked_application": {
+      "result": "NOT_RUN",
+      "started_at_utc": null,
+      "completed_at_utc": null,
+      "receipt": null
+    }
   }
 }

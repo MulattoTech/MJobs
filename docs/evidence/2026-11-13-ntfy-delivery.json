@@ -3,7 +3,7 @@
   "requirement_id": "MJ-REQ-204.N02",
   "parent_requirement": "MJ-REQ-204",
   "issue": "https://github.com/MulattoTech/MJobs/issues/363",
-  "recorded_at_utc": "2026-11-13T05:23:42.534911+00:00",
+  "recorded_at_utc": "2026-11-13T13:54:32.089277+00:00",
   "run_id": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
   "source": {
     "repository": "MulattoTech/MJobs",
@@ -222,12 +222,12 @@
   "delivery_state": {
     "implemented": true,
     "locally_verified": true,
-    "published": false,
-    "hosted_checks": "NOT_RUN",
-    "integrated": false,
+    "published": true,
+    "hosted_checks": "PASS_AT_SOURCE_HEAD_D0",
+    "integrated": true,
     "deployed": false,
     "formally_accepted": false,
-    "canonical_changes": false,
+    "canonical_changes": true,
     "candidate_container_verified": true
   },
   "capabilities": {
@@ -641,8 +641,8 @@
     "No guaranteed device display, background mobile push, exactly-once transport delivery or reconstruction of transitions entirely between polling observations.",
     "Real external job applications remain off. Supported fixture/dry-run/review outcomes do not confirm external submission.",
     "No third-party notification sent; public hosted ntfy/TLS/authenticated account live validation was not run. Authentication and TLS policy have deterministic coverage.",
-    "Candidate Compose image build/startup PASS at462707; final composed-head hosted checks, protected integration, production deployed workflow and formal acceptance remain NOT_RUN.",
-    "Desktop is a separate browser implementation; its pending peer descriptor does not create a backend sender or an integrated capability here."
+    "Candidate Compose image build/startup PASS remains attributed to462707. Source d0 hosted checks and protected PR1021 integration at aa94183 are actual. New canonical validation, protected acceptance publication and post-refresh Mission Control comparison remain pending; production deployment is NOT_RUN.",
+    "Desktop N05 is separately integrated and accepted at the protected aa94183 baseline. This ntfy child does not create a Desktop backend sender or accept any additional notification provider."
   ],
   "ownership_blocker": {
     "owner_run": "web-20261109T132018Z-0d9f5a0511ab",
@@ -691,13 +691,41 @@
       "postrun_verified_at": "2026-11-13T05:19:36.555653+00:00"
     }
   },
-  "next_action": "Acquire all3nativepublicationadmissionaliases, refresh complete live inventory/duplicate/backlog review, publish one coherent ntfy PR from currentmain composition, pass required exact-head gates, protected merge, then canonicalwriter assesses all5childcriteria. Parent204 remainsNOT_RUN.",
+  "next_action": "Apply these independently reviewed exact N02-only payloads under fresh root authority, run the stock generators, record the actual milestone once and run the seven validators. Then independently review the final generated diff, complete protected acceptance publication, refresh the primary and verify the actual Mission Control view. Parent204 remains NOT_RUN.",
   "checkpoint_history": [
     {
       "recorded_at_utc": "2026-11-13T03:20:45.700678+00:00",
       "manifest_revision": "fdbc5cfd0730993a229fb544b2e21b1e2f5ec334",
       "state": "Local92-test proof with cached-image volume proof; exact resumed ownership then blocked publication",
       "preservation": "Original source execution, failures and ownership blocker remain in this document and Git history"
+    },
+    {
+      "archive_created_at_utc": "2026-11-13T13:54:32.089277+00:00",
+      "source_preimage_sha256": "0e01963f372a338a2a665562df4e8a4987b8ee1fed985d4c2ba9c7b40f346284",
+      "state": "Historical active checkpoint preserved before recording protected source integration and a proposed N02 canonical checkpoint.",
+      "previous_active_fields": {
+        "recorded_at_utc": "2026-11-13T05:23:42.534911+00:00",
+        "delivery_state": {
+          "implemented": true,
+          "locally_verified": true,
+          "published": false,
+          "hosted_checks": "NOT_RUN",
+          "integrated": false,
+          "deployed": false,
+          "formally_accepted": false,
+          "canonical_changes": false,
+          "candidate_container_verified": true
+        },
+        "limits_and_not_run": [
+          "No claim of full parent MJ-REQ-204 event coverage: excellent match, authentication expiry, source degradation and new-employer discovery are not implemented by this slice.",
+          "No guaranteed device display, background mobile push, exactly-once transport delivery or reconstruction of transitions entirely between polling observations.",
+          "Real external job applications remain off. Supported fixture/dry-run/review outcomes do not confirm external submission.",
+          "No third-party notification sent; public hosted ntfy/TLS/authenticated account live validation was not run. Authentication and TLS policy have deterministic coverage.",
+          "Candidate Compose image build/startup PASS at462707; final composed-head hosted checks, protected integration, production deployed workflow and formal acceptance remain NOT_RUN.",
+          "Desktop is a separate browser implementation; its pending peer descriptor does not create a backend sender or an integrated capability here."
+        ],
+        "next_action": "Acquire all3nativepublicationadmissionaliases, refresh complete live inventory/duplicate/backlog review, publish one coherent ntfy PR from currentmain composition, pass required exact-head gates, protected merge, then canonicalwriter assesses all5childcriteria. Parent204 remainsNOT_RUN."
+      }
     }
   ],
   "execution_records": [
@@ -710,5 +738,217 @@
       "role": "provider_author_and_runtime_executor",
       "independent": false
     }
-  ]
+  ],
+  "current_source_integration": {
+    "source_head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+    "source_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+    "protected_merge_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+    "protected_merge_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+    "pr_number": 1021,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/1021",
+    "merged_at_utc": "2026-11-13T11:19:09Z",
+    "hosted_checks": {
+      "head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "count": 15,
+      "result": "ALL_COMPLETED_SUCCESS",
+      "readback": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-independent-review\\d0-check-runs-readback.json",
+        "sha256": "a2a85492d4e64a80bd8ee4117c8672bd7e636f385c1fac4514cf1f0923877acc"
+      }
+    },
+    "required_checks": {
+      "head": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "count": 5,
+      "qualifying_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\qualification-d33d72482a83421992f1538b729c94b3.json",
+        "sha256": "d3f232b01ade91a8c7f08de96f73025a4c69df084dbc126184b69790a802d53c"
+      }
+    },
+    "protected_merge_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\supervision-54e48689b6d744c4b797d2f51cae6965\\root-merge-result.json",
+      "sha256": "48e18bd23edd774125dc47c45a4afd5bfff02ad9aa10ea5107fd3d02fa36a2f6"
+    },
+    "source_publication_mutex_release": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\pr1021-final-gate-d0a64-preparation\\supervision-54e48689b6d744c4b797d2f51cae6965\\root-mutex-release.json",
+      "sha256": "de59e9c7a82cf32062942578f74402e88ad9778f2ac5dd4ee5b0111031c4235d"
+    },
+    "source_mapping": {
+      "receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-independent-review\\source-and-artifact-readback.json",
+        "sha256": "713e01fc5d170f672b5f8e7a86e08f9fcb2fbcb18bbdaff04eea1edac7d1fd71"
+      },
+      "notification_blobs_unchanged": 15,
+      "selected_packaging_inputs_unchanged": 22,
+      "selected_packaging_inputs_total": 23,
+      "approved_difference": "packages/persistence/store.py: only Store.save_ai_task_settings natural-key upsert adopted from protected PR1016/5b2; operation/event queries and schema are unchanged.",
+      "additional_input": "requirements.txt was additionally checked equal through aa94183; it was not part of the historical 23-input runtime manifest.",
+      "limitation": "Selected input equivalence is not an exhaustive whole-image dependency proof. No new aa94183 build or runtime is claimed."
+    },
+    "actual_execution_sources": {
+      "focused_92_tests": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "stock_packaged_worker": "4627073607b86f26596b33c5d046e12d64b6331a"
+    },
+    "scope": "Actual source delivery only. Later canonical validation, protected acceptance publication, primary refresh and actual view verification are separate pending gates."
+  },
+  "canonical_acceptance_candidate": {
+    "state": "BOUND_PRIVATE_N02_ONLY_PAYLOADS_AWAITING_TRACKED_APPLICATION",
+    "canonical_base_sha": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+    "canonical_base_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+    "operating_head": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+    "branch": "web/20261113-2d4f/ntfy-n02-canonical",
+    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-n02-canonical-2d4f",
+    "materialized_at_utc": "2026-11-13T13:54:32.089277+00:00",
+    "milestone_id": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
+    "counts_before": {
+      "PARTIAL": 82,
+      "PASS": 184,
+      "NOT_RUN": 100
+    },
+    "proposed_counts_after": {
+      "PARTIAL": 82,
+      "PASS": 185,
+      "NOT_RUN": 99
+    },
+    "p6_before": {
+      "NOT_RUN": 11,
+      "PASS": 1
+    },
+    "p6_proposed_after": {
+      "NOT_RUN": 10,
+      "PASS": 2
+    },
+    "criteria": [
+      {
+        "assessment": "EVIDENCE_SUFFICIENT_FOR_SCOPED_CHILD",
+        "id": "N02-C1",
+        "literal": "Declare exact capabilities supported rather than implying unsupported behavior.",
+        "reason": "Capabilities and documentation accurately scope the opt-in backend provider to generic owned terminal-operation notifications, bounded JSON publish and optional bearer authorization; no claimed device delivery, exactly-once transport, attachments, confirmed application submission or complete parent event coverage."
+      },
+      {
+        "assessment": "EVIDENCE_SUFFICIENT_FOR_SCOPED_CHILD",
+        "id": "N02-C2",
+        "literal": "Add deterministic fixtures/contract tests.",
+        "reason": "Raw XML has 92 tests, zero failures/errors/skips at actual40e. The four modules cover configuration, deterministic provider/ACK/failure bounds, ownership and actual producer shapes, durable journal/retry/cooldown/concurrency/dedupe, real owned PostgreSQL and official local ntfy. All15 notification blobs and both HTTP helpers remain source-equivalent through aa94183."
+      },
+      {
+        "assessment": "EVIDENCE_SUFFICIENT_FOR_AUTHORIZED_LOCAL_SINK",
+        "id": "N02-C3",
+        "literal": "Perform bounded live read-only validation where appropriate and safe.",
+        "reason": "Master section8 expressly permits a local notification sink. The actual462707 stock worker performed one authorized synthetic local publication and bounded readback; publication itself is truthfully a write. Normal restricted DB wrapper/guarded migration exit0, UID/GID10001, disabled-path proof, healthy activation, one message/one attempt, same event/message after restart, exact resource cleanup and private credential cleanup are recorded. No external recipient, public hosted account, authenticated/TLS live server or device-display proof is inferred."
+      },
+      {
+        "assessment": "EVIDENCE_SUFFICIENT_WITH_REQUIRED_BOUND_CHECKPOINT_APPEND",
+        "id": "N02-C4",
+        "literal": "Record limitations and last-tested evidence.",
+        "reason": "Historical40e suite and462707 image/runtime receipts, dates, immutable source, limitations, prior failures and cleanup remain intact. Root must append the actual protected source and eventual canonical acceptance checkpoint without rewriting either execution SHA or the historical progress baseline."
+      },
+      {
+        "assessment": "EVIDENCE_SUFFICIENT_FOR_SCOPED_CHILD",
+        "id": "N02-C5",
+        "literal": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+        "reason": "Reviewed source uses the documented ntfy protocol, explicit user credentials, ordinary verified HTTPS or explicit literal-loopback HTTP, blocked redirects/environment proxies, bounded output and timeout handling. No access-control bypass, external recipient or public-topic probing was added or executed."
+      }
+    ],
+    "criterion_scope": "Evidence supports only MJ-REQ-204.N02 under its five literal criteria. Master section8 activates current P6 delivery without changing historical catalogue IDs, priorities or criteria.",
+    "canonical_execution": {
+      "result": "NOT_RUN",
+      "receipt": null,
+      "head": null,
+      "tree": null,
+      "completed_at_utc": null
+    },
+    "protected_canonical_acceptance": {
+      "state": "PENDING",
+      "commit": null,
+      "tree": null,
+      "merged_at_utc": null,
+      "receipt": null
+    },
+    "actual_post_acceptance_view": {
+      "result": "NOT_RUN",
+      "primary_refresh_receipt": null,
+      "api_response_receipt": null,
+      "canonical_comparison_receipt": null,
+      "root_review_receipt": null
+    },
+    "required_view_addendum": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-canonical-addendum-01\\addendum.json",
+      "sha256": "6e44c535a701edc03515077be54c1ae7672e9902fbe683bd3cea1fd66966a610"
+    },
+    "addendum_root_review": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-canonical-addendum-01\\root-plan-review.json",
+      "sha256": "d3cc93f63c9b8eafff5ab164f00d18f63c557fec8c7ca48a9d6cddbd34d6734f"
+    },
+    "known_baseline_only": {
+      "head": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "original": {
+        "PASS": 184,
+        "PARTIAL": 82,
+        "NOT_RUN": 100
+      },
+      "api": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\primary-refresh-aa94183-proposal\\attempt-01\\live-progress-api.json",
+        "sha256": "59de5a1cfa676990c35625a72ca66f9857d54e66b3db9d766284ad51b0da9e8c"
+      },
+      "comparison": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\primary-refresh-aa94183-proposal\\attempt-01\\root-mission-control-canonical-comparison.json",
+        "sha256": "047f77cdcff6bf2206d71fba791c1cab4448d3a2ae7b5bca30c7c9ec97e1e000"
+      },
+      "use": "N05 baseline only; never the future N02 acceptance/view result."
+    },
+    "original_total": 366,
+    "reference_total": 59,
+    "reference_counts": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "parent204": "NOT_RUN",
+    "queue055": "QUEUED",
+    "production": "NOT_DEPLOYED_NOT_VERIFIED",
+    "count_policy": "Derive before/after totals and all area/priority groups from the actual bound base. Do not force185 or apply these whole-file templates after any intervening base change.",
+    "timestamp_scope": "This is the observed UTC materialization of the reviewed private payload bytes. Tracked application, milestone recording and validators are future operations and have separate runtime timestamps/receipts; this time is not a claimed execution time.",
+    "actual_preparation": {
+      "actual_preparation": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\attempt-01\\preparation-receipt.json",
+        "sha256": "bdb7cc0525701fc27510f3648effcd5620818c3e50a41981b3db4914d23a70a3"
+      },
+      "controller": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\supervision-01\\controller-result.json",
+        "sha256": "c2647378689362e601c3d16ebca13d7dc0dd67fd91ad7dc53d05664f02f7ecfe"
+      },
+      "root_reconciliation": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\root-readback-02\\root-reconciliation.json",
+        "sha256": "e686dcf9bc9076fe92080b50718318b9653d064f848312c49c2b165eabd135a7"
+      },
+      "light_release": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\light-release.json",
+        "sha256": "c0e75d597d2bcfc9ff05d96edf8f0b3b2725713585001f91ed4bb77b309ef4ea"
+      },
+      "independent_actual_review": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-n02-worktree-handoff-preparation-01\\independent-actual-readback-01\\independent-execution-review.json",
+        "sha256": "2bb2903639a871fd92bf6ba709ee1c045c70960687696e029a75ac737491eed4"
+      },
+      "result": "ACTUAL_WORKTREE_CONTEXTS_AND_STOCK_TRANSFER_VERIFIED",
+      "head": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+      "stock_handoff_sha256": "5a776ede2eca8b378ccc64ac4780408cfa27f875b9a63bc871efdaebc91d470b",
+      "stock_updated_at_retained": "2026-11-13T05:23:42.534911+00:00",
+      "stock_transfer_history": [
+        {
+          "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+          "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+          "reason": "Prepare the isolated N02 canonical worktree from protected main aa94183 after reviewed branch and source contexts; preserve historical runtime/source evidence. Canonical acceptance payloads remain unapplied.",
+          "transferred_at": "2026-11-13T13:36:32.421959+00:00"
+        }
+      ],
+      "scope": "Worktree/context preparation and same-owner handoff only; it did not apply canonical payloads or run the new validators."
+    },
+    "tracked_application": {
+      "result": "NOT_RUN",
+      "started_at_utc": null,
+      "completed_at_utc": null,
+      "receipt": null
+    }
+  }
 }
