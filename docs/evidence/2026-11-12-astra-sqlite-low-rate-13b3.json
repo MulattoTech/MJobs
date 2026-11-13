@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "task": "MJ-REQ-004",
+  "scope": "Public-company monitoring effective concurrency; current-main preparation only",
+  "owner": "GPT6-ASTRA-PRO-20261112T165932Z-FLEET-WATCHDOG-13b3-MJOBS-PREP",
+  "observed_at": "2026-11-12T17:04:54.5242611Z",
+  "base_sha": "75b2393d11b73c36dc3da984588669563eb0b760",
+  "source_history": {
+    "original": "46d7ceab6473e954d7fc632fcefe03aa4469194b",
+    "repeated_candidate": "46944cd12c8ced008d8e610777aa03cee542b33c",
+    "comparison": "The two affected file blobs are identical between historical candidates. Current main has no changes to either file since c6ee6502862ad45b006bdb414a012e3bb872cd61; the mitigation remains absent."
+  },
+  "behavior": {
+    "effective_concurrency": "min(configured concurrency, max(1, ceil(request timeout / max(1 second, 60 / rate_limit))))",
+    "examples": [
+      {
+        "rate_per_minute": 15,
+        "request_timeout_seconds": 2,
+        "configured": 8,
+        "effective": 1
+      },
+      {
+        "rate_per_minute": 30,
+        "request_timeout_seconds": 2,
+        "configured": 8,
+        "effective": 1
+      },
+      {
+        "rate_per_minute": 60,
+        "request_timeout_seconds": 2,
+        "configured": 8,
+        "effective": 2
+      },
+      {
+        "rate_per_minute": 15,
+        "request_timeout_seconds": 10,
+        "configured": 8,
+        "effective": 3
+      }
+    ],
+    "persisted_policy": "unchanged",
+    "no_policy_default": "unchanged at one"
+  },
+  "tested_source_blobs": {
+    "services/company_discovery/public_client.py": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+    "tests/unit/test_public_company_client.py": "1e04f3531637067130b6f02ea07b73b8a1a619f8"
+  },
+  "verification": [
+    {
+      "kind": "baseline regression",
+      "revision": "main source 75b2393d with the candidate unit test only",
+      "command": "python -B -m pytest -q -p no:cacheprovider --tb=short tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_rate_spacing_caps_only_effective_probe_concurrency",
+      "result": "EXPECTED_FAIL",
+      "exit_code": 1,
+      "failed_subcases": 4,
+      "framework_report": "4 failed, 1 passed in 0.33s",
+      "detail": "Observed concurrency remains 8 on all four baseline cases instead of expected 1, 1, 2, 3."
+    },
+    {
+      "kind": "candidate working-tree verification",
+      "revision": "The exact two blobs above on base75b2393d; executed before the final commit",
+      "command": "python -B -m pytest -q -p no:cacheprovider -o faulthandler_timeout=60 --tb=short tests/unit/test_public_company_client.py tests/unit/test_operation_control_reads.py tests/integration/test_company_monitoring_policy_transport.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests": 39,
+      "subtests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pytest_seconds": 63.96,
+      "started_at": "2026-11-12T17:03:49.8094877Z",
+      "completed_at": "2026-11-12T17:04:54.5242611Z",
+      "environment": "Windows, Python 3.12.10, pytest 9.1.1; existing development interpreter; imports verified from the isolated worktree"
+    }
+  ],
+  "coverage": [
+    "15 RPM real loopback TLS refresh with exactly five sampled links, receipt replay without refetch and durable reopened state",
+    "60 RPM real loopback TLS preserves two simultaneous sampled requests",
+    "Persisted configured concurrency and rate remain unchanged",
+    "Real SQLite exclusive-lock refusal remains bounded and sanitized",
+    "Existing stricter 20 ms SQLite connection timeout remains unchanged",
+    "Shared-memory control checks do not roll back another caller's transaction",
+    "Control failures persist BLOCKED without claiming user cancellation or damaging provider health",
+    "TLS handshake cancellation closes owned sockets",
+    "Two-second header/body stall deadline and TLS 1.2 floor remain enforced",
+    "Private DNS, unsafe redirects, oversized responses, robots denial, request lifetime, and cancellation error identity"
+  ],
+  "overlap_review": {
+    "open_pr": 968,
+    "path": "services/company_discovery/public_client.py",
+    "result": "Its request-exception retry classification hunk is disjoint from this constructor/import change. No other open PR in the 49-PR inventory changes the affected unit-test path."
+  },
+  "safety_unchanged": [
+    "workers/operations.py and its 100 ms control-read budget",
+    "SQLite journal/WAL settings",
+    "Persisted monitoring policy",
+    "Durable rate reservation",
+    "Request and operation deadlines",
+    "Fail-closed control errors",
+    "Canonical acceptance matrices",
+    "Main, existing PR branches, production, and live job dispatch"
+  ],
+  "limits": [
+    "A successful isolated run verifies this bounded mitigation; it does not prove all SQLITE_BUSY causes are eliminated.",
+    "No current-base hosted CI, PostgreSQL qualification, full integration shard, real public employer/provider request, deployment, or full MJ-REQ-004 acceptance is claimed.",
+    "Source blobs match the earlier mitigation; historical timing/poll-count claims were not promoted to fresh measurements.",
+    "Exact final-commit qualification and independent review are recorded separately by the owner after publication of the local candidate."
+  ],
+  "next_action": "Confirmed single MJobs integration owner reviews the local current-base candidate, reconciles other PRs and required exact-head hosted checks, then decides protected integration. This preparation claim does not hold MJobs-INTEGRATION-OWNER.",
+  "rollback": "Discard only this isolated candidate branch if unneeded, or use a protected revert after authorized integration; original historical worktrees and branches remain intact."
+}
