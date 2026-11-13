@@ -156,7 +156,7 @@ def test_known_blocked_child_can_release_without_discovery_success(joined):
     assert not any(method == 'PUT' for method, _, _ in joined['api'].calls)
 
 
-@pytest.mark.parametrize('joined', [False, True], indirect=True)
+@pytest.mark.parametrize('joined', [False], indirect=True)
 def test_actual_enrollment_is_disabled_by_exact_audit_before_release(joined):
     owner, worker = joined['owner'], joined['worker']
     owner('poll', joined['context'])
@@ -189,6 +189,93 @@ def test_actual_enrollment_is_disabled_by_exact_audit_before_release(joined):
     assert company['enabled'] is False and collector['enabled'] is False
     assert primary['enabled'] is (not joined['new_primary'])
     assert joined['boundary'].docker.unpause_calls == ['b' * 64]
+
+
+@pytest.mark.parametrize('joined', [True], indirect=True)
+def test_new_primary_budget_block_preserves_exact_child_and_releases(joined):
+    # Newly created acceptance sources must remain at one request per minute.
+    # Their V1 bootstrap cannot complete inside the preserved 30-second budget;
+    # the compatible pre-existing source above retains the actual enrollment case.
+    owner, worker = joined['owner'], joined['worker']
+    owner('poll', joined['context'])
+    finish_parent(joined)
+    with worker.case.store.engine.connect() as connection:
+        primary_before = dict(connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == worker.case.source_id)).mappings().one())
+    assert primary_before['rate_limit'] == 1
+    with patch('tests.integration.test_aggregator_bootstrap_worker.BudgetedPublicClient') as client_factory:
+        outcome = worker._execute()
+    client_factory.assert_not_called()
+    assert outcome['status'] == 'BLOCKED', outcome
+    assert outcome['error_category'] == 'BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE', outcome
+    assert worker.network == []  # No bootstrap wire activity after the controlled parent collection.
+    with worker.case.store.engine.connect() as connection:
+        operation = dict(connection.execute(select(m.operations).where(
+            m.operations.c.id == worker.request['operation_id'])).mappings().one())
+        request = dict(connection.execute(select(m.company_discovery_requests).where(
+            m.company_discovery_requests.c.id == worker.request['id'])).mappings().one())
+        primary_after = dict(connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == worker.case.source_id)).mappings().one())
+        assert list(connection.execute(select(m.company_domains)).mappings()) == []
+        assert list(connection.execute(select(m.company_sources).where(
+            m.company_sources.c.provider == 'greenhouse')).mappings()) == []
+        assert list(connection.execute(select(m.audit).where(m.audit.c.action.in_([
+            'COMPANY_DISCOVERY_AGGREGATOR_BOOTSTRAP_VERIFIED', 'COMPANY_DOMAIN_ACQUIRED',
+            'COMPANY_SOURCE_DISCOVERED']))).mappings()) == []
+    assert primary_after == primary_before
+    assert operation['state'] == 'BLOCKED'
+    assert operation['error'] == 'BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE'
+    assert operation['attempt_count'] == 1 and operation['retry_count'] == 0
+    assert operation['next_attempt_at'] is None
+    assert request['authorization'] == 'AGGREGATOR_BOOTSTRAP_PENDING'
+    assert request['domain_evidence'] == worker.request['domain_evidence']
+    lineage = worker.parent_lineage
+    path = '/profiles/fixture/sources/' + worker.case.source_id
+    path += '/collections/' + lineage['parent_operation_id'] + '/children'
+    readback = joined['api'].request('GET', path, params={'attempt': lineage['parent_operation_attempt']})
+    assert readback['complete'] is True and readback['limit'] == 2
+    assert readback['parent_request_id'] == joined['context']['collection_request_id']
+    assert len(readback['children']) == 1
+    child = readback['children'][0]
+    binding = worker.request['domain_evidence'][0]['binding']
+    for key in ('request_id', 'company_id', 'company_source_id', 'candidate_id', 'trigger_job_id',
+                'profile_id', 'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt'):
+        assert child[key] == binding[key]
+    assert child['revision'] == binding['request_revision']
+    assert child['snapshot_id'] == binding['posting_snapshot_id']
+    assert child['snapshot_sha256'] == binding['raw_sha256']
+    assert child['operation_id'] == worker.request['operation_id']
+    assert child['operation_attempt'] == operation['attempt_count']
+    assert child['state'] == 'BLOCKED'
+    assert child['reason'] == 'BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE'
+    assert child['authorization'] == 'AGGREGATOR_BOOTSTRAP_PENDING'
+    assert readback['enrolled_sources'] == []
+    context = current_context(joined)
+    assert context['owned_child_operation_ids'] == [child['operation_id']]
+    assert context['owned_child_request_ids'] == [child['request_id']]
+    assert context['owned_child_lineage_sha256'] == readback['lineage_sha256']
+    assert context['owned_child_sources'] == []
+    owner('poll', context)
+    owner('finalize', context)
+    owner('cleanup', context)
+    owner('cleanup', context)
+    disabled_policy = {**joined['primary_policy'], 'enabled': False}
+    joined['api'].request('PUT', '/sources', json=disabled_policy)
+    receipt = owner('release', {**context, 'cleanup_status': 'RESTORED_DISABLED'})
+    assert receipt['released'] is True
+    assert receipt['child_acceptance_result'] == 'PARTIAL'
+    assert receipt['child_acceptance_success'] is False
+    with worker.case.store.engine.connect() as connection:
+        restored = dict(connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == worker.case.source_id)).mappings().one())
+    assert restored['id'] == primary_before['id']
+    assert all(restored[key] == value for key, value in disabled_policy.items())
+    assert restored['strategy'] == primary_before['strategy']
+    assert restored['capabilities'] == primary_before['capabilities']
+    writes = [(path, kwargs['json']) for method, path, kwargs in joined['api'].calls if method == 'PUT']
+    assert writes == [('/sources', joined['primary_policy']), ('/sources', disabled_policy)]
+    assert joined['boundary'].docker.unpause_calls == ['b' * 64]
+    assert not owner.claim_path.exists()
 
 
 def test_child_policy_drift_after_cleanup_retains_pause_and_claim(joined):
