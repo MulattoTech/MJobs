@@ -347,3 +347,8 @@ aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structu
 08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json:generic-api-key:32
 08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json:generic-api-key:164
 5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41
+
+# PR1017 historical public requirement ID; independently verified noncredential.
+# Peer disposition: e32f0b2687172402455e44ea07a79a26597300b7.
+# Review: docs/evidence/2026-11-13-web-e49a-scanner-identifier-disposition.json.
+60dd9d4a50506cabedddeb1cf12610d6240e1ec2:docs/evidence/2026-11-13-desktop-notifications-ca95.json:generic-api-key:4
