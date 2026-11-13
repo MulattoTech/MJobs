@@ -4,9 +4,9 @@
   "objective": "Deliver and verify opt-in ntfy activity notifications with honest capabilities, durable delivery state and owned event scope",
   "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
   "branch": "web/20261113-2d4f/ntfy-provider",
-  "head_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
-  "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Resolve exact resumed steward coordination; acquire fresh publication admission, publish one reviewed candidate and obtain hosted gates; canonical acceptance requires separate writer authority",
+  "head_sha": "88e4f292e6e4d0c670e3081d4e4740794f04ab48",
+  "routing_state": "VERIFY",
+  "next_action": "Review final evidence/composition, obtain fresh native publication admission, publish one coherent PR, pass exact-head hosted gates and protected integration; canonicalacceptance stays separate",
   "created_at": "2026-11-13T03:21:03.498083+00:00",
   "requirements": [
     "MJ-REQ-204.N02"
@@ -25,13 +25,19 @@
       "result": "PASS"
     },
     {
-      "command": "Candidate Compose image startup, hosted CI, protected integration, deployed workflow, canonical acceptance; no third-party notifications or external applications sent",
+      "command": "462707: actual Dockerfile/Compose image,23in-imagehashes, migration, restrictedmjobs_runtime, UID10001/0600, historicaleventexclusion, actuallocalntfyacknowledgement, workerrestartoneattemptdedup, Dockerhealth and exactcleanup; source-bound manifest",
+      "result": "PASS"
+    },
+    {
+      "command": "88e: all15notificationblobs unchanged from40e/462707;22/23packagingmanifestblobs unchanged; only Store AI-settings fix adopted from separatelyqualified protectedmain5b2e; originalproofattributionpreserved",
+      "result": "PASS"
+    },
+    {
+      "command": "Final published-head hosted gates, protected integration, productiondeployedworkflow and formalacceptance",
       "result": "NOT_RUN"
     }
   ],
-  "blockers": [
-    "Exact Nov9 resumed steward and canonical claims remain ACTIVE without matching release; preserve their ownership"
-  ],
+  "blockers": [],
   "source_test_revision": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
   "evidence": [
     "docs/evidence/2026-11-13-ntfy-delivery.json"
@@ -43,16 +49,37 @@
     "hosted_checks": "NOT_RUN",
     "integrated": false,
     "deployed": false,
-    "formally_accepted": false
+    "formally_accepted": false,
+    "candidate_container": "PASS at462707"
   },
   "continuation": {
-    "state": "QUEUED_PENDING_EXACT_STEWARD_COORDINATION",
+    "state": "READY_FOR_FINAL_REVIEW_AND_PUBLICATION",
     "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-2d4f",
     "last_checkpoint_author": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
     "claim_authority": "Native shared coordinator; this handoff is context, not an ownership lease",
     "live_jobs": [],
     "canonical_acceptance_changed": false,
-    "publication_notes": "Private run directory contains prepared PR body and candidate preflight inputs. Requery all pages and acquire all three admission aliases only after exact steward coordination. Recheck source/ownership before any mutation.",
+    "publication_notes": "Exact resumedsteward/canonicalownership resolved by authorizedtransfer. Heavyproofclaimreleased. Requery allpages, inspect nonduplicate/currentbacklog, acquire all3admissionaliases for onePR, verify finalsource/ref/metadata and do normalpush/readback. Branchclaimedseparately; no newserver-sideprovider or fullparentacceptance fabricated.",
     "desktop_peer": "Separate browser implementation pending corrected frozen candidate; no backend sender or integrated descriptor fabricated."
+  },
+  "checkpoint_history": [
+    {
+      "head_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "routing_state": "PARTIALLY_BLOCKED",
+      "next_action": "Resolve exact resumed steward coordination; acquire fresh publication admission, publish one reviewed candidate and obtain hosted gates; canonical acceptance requires separate writer authority",
+      "created_at": "2026-11-13T03:21:03.498083+00:00",
+      "blockers": [
+        "Exact Nov9 resumed steward and canonical claims remain ACTIVE without matching release; preserve their ownership"
+      ]
+    }
+  ],
+  "updated_at": "2026-11-13T05:23:42.534911+00:00",
+  "ownership_resolution": {
+    "resolved_at": "2026-11-13T04:25:53.757174Z",
+    "transaction_id": "05c3941245414035b80185d84b2b05c1",
+    "authorization": "User explicitly authorized exact-generation transfer of the3resumedsteward/canonical claims",
+    "journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6843931256",
+    "receipt_sha256": "6b7808fd11fd70afe0a1a1e2289e17f157425c4b820656ecde7b19173e322458",
+    "scope": "Exactly3oldclaims released with preserved history;3newownedidentities acquired atomically; unrelated records retained"
   }
 }
