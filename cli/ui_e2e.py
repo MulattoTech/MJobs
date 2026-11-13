@@ -914,8 +914,171 @@ def _source_binding():
         return {"commit": None, "tree": None, "state": "UNAVAILABLE"}
 
 
+_EMPLOYER_OPT_IN_CHECKS = (
+    "default_disabled", "unsaved_checkbox_did_not_activate", "normal_save_observed",
+    "expected_version_matched", "client_activation_absent", "response_and_readback_matched",
+    "saved_control_checked", "same_activation_at_baseline", "baseline_version_matched",
+)
+
+
+def _employer_opt_in_digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+
+
+def observe_employer_verification_opt_in(page, get_json, save_profile, profile_id):
+    """Observe the normal UI save; never construct or submit a grant directly."""
+    from packages.domain.employer_verification import verification_policy_snapshot
+
+    def discovery_preferences(value):
+        preferences = value.get("preferences") if isinstance(value, dict) else None
+        discovery = preferences.get("company_discovery") if isinstance(preferences, dict) else None
+        return discovery if isinstance(discovery, dict) else {}
+
+    if not EvidenceJournal._lineage_id(profile_id):
+        raise ValueError("Employer verification requires a valid same-profile identity")
+    before = get_json("/profiles/" + profile_id)
+    disabled = {"version": 1, "mode": "DISABLED", "activation_id": None}
+    discovery = discovery_preferences(before)
+    if (not isinstance(before, dict) or before.get("id") != profile_id
+            or not isinstance(before.get("version"), str)
+            or not re.fullmatch(r"[a-f0-9]{64}", before["version"])
+            or discovery.get("company_discovery_enabled") is not True
+            or discovery.get("employer_verification") != disabled
+            or type(discovery["employer_verification"]["version"]) is not int):
+        raise ValueError("Employer verification requires the exact fresh disabled profile")
+    control = page.get_by_label("Verify employer links from imported jobs", exact=True)
+    expect(control).not_to_be_checked()
+    expect(control).to_be_enabled()
+    control.check()
+    unsaved = get_json("/profiles/" + profile_id)
+    unsaved_discovery = discovery_preferences(unsaved)
+    if (not isinstance(unsaved, dict) or unsaved.get("id") != profile_id
+            or unsaved.get("version") != before["version"]
+            or unsaved_discovery.get("employer_verification") != disabled
+            or type(unsaved_discovery["employer_verification"]["version"]) is not int):
+        raise ValueError("Unsaved employer-verification checkbox changed persisted authority")
+    page_origin = urlsplit(page.url)
+    with page.expect_response(lambda response: response.request.method == "PUT"
+                              and urlsplit(response.url).path == "/profiles"
+                              and (urlsplit(response.url).scheme, urlsplit(response.url).netloc)
+                                  == (page_origin.scheme, page_origin.netloc)) as saved:
+        save_profile()
+    response = saved.value
+    if response.status != 200:
+        raise ValueError("Normal employer-verification profile save failed")
+    payload = response.request.post_data_json
+    requested = discovery_preferences(payload)
+    incoming = requested.get("employer_verification")
+    if (not isinstance(payload, dict) or payload.get("id") != profile_id
+            or payload.get("expected_version") != before["version"]
+            or requested.get("company_discovery_enabled") is not True
+            or incoming != {"version": 1, "mode": "GREENHOUSE_RECIPROCAL_V1", "activation_id": None}
+            or type(incoming["version"]) is not int):
+        raise ValueError("Normal UI opt-in did not use the current version and an absent client activation")
+    after, acknowledgement = get_json("/profiles/" + profile_id), response.json()
+    policy = verification_policy_snapshot(after)
+    if (not isinstance(after, dict) or not isinstance(acknowledgement, dict)
+            or acknowledgement.get("id") != profile_id
+            or after.get("id") != profile_id or policy is None
+            or acknowledgement.get("version") != after.get("version")
+            or after.get("version") == before["version"]):
+        raise ValueError("Saved employer-verification readback differs from the normal UI response")
+    expect(control).to_be_checked()
+    return {"schema_version": 1, "scope": "PROFILE_UI_SAVE_ONLY",
+        "result": "SAVED_PENDING_BASELINE", "profile_id": profile_id,
+        "before_profile_version": before["version"], "saved_profile_version": after["version"],
+        "activation_id_sha256": _employer_opt_in_digest(policy["activation_id"]),
+        "saved_policy_sha256": _employer_opt_in_digest(policy),
+        "saved_at_utc": datetime.now(timezone.utc).isoformat(),
+        "checks": {name: True for name in _EMPLOYER_OPT_IN_CHECKS[:7]}}
+
+
+def bind_employer_verification_baseline(witness, profile, inventory):
+    """Bind the later content version while retaining the actual saved activation."""
+    from packages.domain.employer_verification import verification_policy_snapshot
+
+    if not all(isinstance(value, dict) for value in (witness, profile, inventory)):
+        raise ValueError("Employer-verification baseline must contain object readbacks")
+    policy = verification_policy_snapshot(profile)
+    if (policy is None or profile.get("id") != witness["profile_id"]
+            or inventory.get("profile_id") != profile["id"]
+            or inventory.get("profile_version") != profile["version"]
+            or _employer_opt_in_digest(policy["activation_id"]) != witness["activation_id_sha256"]):
+        raise ValueError("Employer verification changed before UI baseline capture")
+    return {**witness, "result": "BOUND_TO_UI_BASELINE", "profile_version": profile["version"],
+        "policy_sha256": _employer_opt_in_digest(policy),
+        "baseline_bound_at_utc": datetime.now(timezone.utc).isoformat(),
+        "checks": {**witness["checks"], "same_activation_at_baseline": True,
+                   "baseline_version_matched": True}}
+
+
+def validate_employer_verification_witness(artifact, requested, *, current_profile=None):
+    """Validate a UI-save witness, not public corroboration or numbered acceptance."""
+    if type(requested) is not bool:
+        raise ValueError("Employer-verification opt-in must be boolean")
+    if not isinstance(artifact, dict):
+        raise ValueError("Employer-verification UI artifact must be an object")
+    witness = artifact.get("employer_verification_opt_in")
+    if not requested:
+        if witness is not None:
+            raise ValueError("Employer-verification witness lacks explicit campaign opt-in")
+        return
+    expected = {"schema_version", "scope", "result", "profile_id", "before_profile_version",
+        "saved_profile_version", "activation_id_sha256", "saved_policy_sha256", "saved_at_utc",
+        "checks", "profile_version", "policy_sha256", "baseline_bound_at_utc",
+        "source", "acceptance_run_id", "target_origin"}
+    inventory = artifact.get("job_inventory")
+    if (not isinstance(witness, dict) or set(witness) != expected
+            or not isinstance(inventory, dict) or not isinstance(witness["checks"], dict)
+            or not isinstance(artifact.get("source"), dict)
+            or not EvidenceJournal._lineage_id(witness["profile_id"])
+            or not isinstance(artifact.get("target_origin"), str) or not artifact["target_origin"]
+            or type(witness["schema_version"]) is not int or witness["schema_version"] != 1
+            or witness["scope"] != "PROFILE_UI_SAVE_ONLY" or witness["result"] != "BOUND_TO_UI_BASELINE"
+            or witness["profile_id"] != artifact.get("profile_id")
+            or witness["source"] != artifact.get("source")
+            or witness["acceptance_run_id"] != artifact.get("acceptance_run_id")
+            or witness["target_origin"] != artifact.get("target_origin")
+            or artifact.get("mode") != "ONBOARDING_FIXTURE"
+            or not EvidenceJournal._lineage_id(artifact.get("acceptance_run_id"))
+            or artifact.get("external_submission_enabled") is not False
+            or witness["profile_version"] != inventory.get("profile_version")
+            or inventory.get("profile_id") != witness["profile_id"]
+            or witness["checks"] != {name: True for name in _EMPLOYER_OPT_IN_CHECKS}
+            or any(type(value) is not bool for value in witness["checks"].values())
+            or any(type(witness[key]) is not str or not re.fullmatch(r"[a-f0-9]{64}", witness[key])
+                   for key in ("before_profile_version", "saved_profile_version", "profile_version",
+                               "activation_id_sha256", "saved_policy_sha256", "policy_sha256"))
+            or witness["before_profile_version"] == witness["saved_profile_version"]):
+        raise ValueError("Employer-verification UI baseline witness is incomplete or mismatched")
+    validate_run_id(artifact["acceptance_run_id"])
+    try:
+        saved, bound, finished = (datetime.fromisoformat(value) for value in (
+            witness["saved_at_utc"], witness["baseline_bound_at_utc"], artifact["timestamp"]))
+        if any(value.tzinfo is None for value in (saved, bound, finished)) or not saved <= bound <= finished:
+            raise ValueError
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("Employer-verification witness chronology changed") from error
+    if current_profile is not None:
+        from packages.domain.employer_verification import verification_policy_snapshot
+
+        policy = verification_policy_snapshot(current_profile)
+        if (policy is None or current_profile.get("id") != witness["profile_id"]
+                or current_profile.get("version") != witness["profile_version"]
+                or _employer_opt_in_digest(policy) != witness["policy_sha256"]
+                or _employer_opt_in_digest(policy["activation_id"]) != witness["activation_id_sha256"]):
+            raise ValueError("Current employer-verification profile differs from the sealed UI baseline")
+
+
 def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
-        runtime_identity=None):
+        runtime_identity=None, employer_verification=False):
+    if type(employer_verification) is not bool:
+        raise ValueError("Employer-verification opt-in must be boolean")
+    if employer_verification and (onboarding is not True or acceptance_run_id is None):
+        raise ValueError("Employer-verification opt-in requires a run-bound onboarding fixture")
+    if employer_verification:
+        validate_run_id(acceptance_run_id)
     if onboarding:
         # This read-only gate runs before output creation, Chromium launch, or any UI write.
         _onboarding_preflight(base_url)
@@ -1138,6 +1301,13 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         continuity={"profile_id": profile_id},
                     )
                 actions.append({"action": "UI created a new synthetic profile without replacing existing profiles", "result": "PASS"})
+
+                if employer_verification:
+                    witness = observe_employer_verification_opt_in(page, request, save_profile, profile_id)
+                    journal.binding["employer_verification_opt_in"] = {**witness,
+                        "source": journal.binding["source"], "acceptance_run_id": acceptance_run_id,
+                        "target_origin": journal.binding["target_origin"]}
+                    journal.persist()
 
                 page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
                     "name": "synthetic-onboarding.pdf", "mimeType": "application/pdf",
@@ -2734,6 +2904,11 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 # baseline while the Playwright API request context is open. The
                 # connected recovery workflow compares this exact inventory after restart.
                 job_inventory = collect_onboarding_job_inventory(request, profile_id)
+                if employer_verification:
+                    journal.binding["employer_verification_opt_in"] = bind_employer_verification_baseline(
+                        journal.binding["employer_verification_opt_in"],
+                        request("/profiles/" + profile_id), job_inventory)
+                    journal.persist()
         except BaseException as error:
             try:
                 journal.fail(error)
@@ -2755,7 +2930,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             context.close()
             browser.close()
     evidence = {"result": "PARTIAL" if onboarding else "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
-        "command": "python -m cli.ui_e2e --base-url " + base_url + (" --onboarding" if onboarding else ""), "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+        "command": "python -m cli.ui_e2e --base-url " + base_url + (" --onboarding" if onboarding else "")
+            + (" --employer-verification" if employer_verification else ""), "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
         "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "request_id": intent['requestId'], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
         "local_persistence": local_persistence,
@@ -2770,6 +2946,9 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         "actions": actions,
         **journal.acceptance_binding(),
         "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
+    if employer_verification:
+        evidence["employer_verification_opt_in"] = journal.binding["employer_verification_opt_in"]
+        validate_employer_verification_witness({**journal.binding, **evidence}, True)
     journal.finish(evidence)
     print(json.dumps(evidence, indent=2))
 
@@ -2782,6 +2961,8 @@ if __name__ == "__main__":
                         help="Run the connected UI acceptance from a new synthetic profile in ready FIXTURE mode")
     parser.add_argument("--acceptance-run-id",
                         help="Attach numbered UI acceptance observations to the matching runner invocation")
+    parser.add_argument("--employer-verification", action="store_true",
+                        help="Explicitly save the employer-verification checkbox before the onboarding baseline")
     options = parser.parse_args()
     run(options.base_url, options.evidence, onboarding=options.onboarding,
-        acceptance_run_id=options.acceptance_run_id)
+        acceptance_run_id=options.acceptance_run_id, employer_verification=options.employer_verification)

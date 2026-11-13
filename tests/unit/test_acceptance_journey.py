@@ -1708,3 +1708,234 @@ def test_controlled_source_setup_does_not_replace_prior_ui_partial(tmp_path):
     checkpoint.binding["steps"][8] = copy.deepcopy(original)
     checkpoint.record_source_setup(state, public)
     assert checkpoint.binding["steps"][8] == original
+
+
+def _employer_opt_in_baseline():
+    from packages.persistence.job_inventory import digest, snapshot_digest
+    from tests.unit.test_acceptance_employer_verification_opt_in import (
+        _controlled_profile, _controlled_ui_artifact,
+    )
+
+    state = baseline()
+    full = complete_inventory(1)
+    full["jobs"][0]["job_id"] = "mock-job-1"
+    full["sha256"] = digest(full["jobs"])
+    full["snapshot_sha256"] = snapshot_digest(full["profile_id"], full["profile_version"], full["jobs"])
+    profile = _controlled_profile(profile_id=IDENTITY["profile_id"], version=full["profile_version"])
+    state.update(_controlled_ui_artifact(profile=profile, source=SOURCE, run_id=RUN_ID,
+                                        origin=TARGET["base_url"], inventory=full))
+    return state
+
+
+def _emit_opt_in_ui(url, path, *, onboarding=False, acceptance_run_id=None,
+                    runtime_identity=None, employer_verification=False):
+    assert url == TARGET["base_url"] and onboarding is True
+    assert acceptance_run_id == RUN_ID and employer_verification is True
+    assert runtime_identity == {key: RUNTIME[key] for key in ("source_manifest_sha256", "images")}
+    emit(path, _employer_opt_in_baseline())
+
+
+def test_default_journey_keeps_legacy_ui_signature_without_opt_in_keyword(tmp_path):
+    calls = []
+
+    def legacy_ui(url, path, onboarding=False, acceptance_run_id=None):
+        calls.append((url, onboarding, acceptance_run_id))
+        emit(path, baseline())
+
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", new=legacy_ui), \
+            patch.object(journey, "_public_source_module") as public_module:
+        report = invoke(tmp_path, stop_after_ui=True)
+    assert calls == [(TARGET["base_url"], True, RUN_ID)]
+    assert report["employer_verification"] is False
+    assert "employer_verification_opt_in" not in json.loads((tmp_path / "ui.json").read_text())
+    assert report["steps"][3]["status"] == "PASS"
+    assert report["steps"][10]["status"] == "NOT_RUN"
+    public_module.assert_not_called()
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "true", [], {}])
+def test_journey_rejects_non_boolean_opt_in_before_source_or_runtime(tmp_path, value):
+    with patch.object(journey, "current_source") as source, \
+            patch.object(journey, "preflight") as runtime, \
+            patch.object(journey.ui_e2e, "run") as ui, \
+            patch.object(journey, "_public_source_module") as public:
+        with pytest.raises(ValueError, match="boolean"):
+            invoke(tmp_path, employer_verification=value)
+    source.assert_not_called()
+    runtime.assert_not_called()
+    ui.assert_not_called()
+    public.assert_not_called()
+
+
+@pytest.mark.parametrize("provider,callback", [(None, None), ("wwr", None), ("remoteok", None)])
+def test_true_opt_in_requires_explicit_supported_public_plan_before_runtime(tmp_path, provider, callback):
+    with patch.object(journey, "current_source") as source, \
+            patch.object(journey, "preflight") as runtime, \
+            patch.object(journey.ui_e2e, "run") as ui, \
+            patch.object(journey, "_public_source_module") as public:
+        with pytest.raises(ValueError):
+            invoke(tmp_path, employer_verification=True, public_source_provider=provider,
+                   public_source_preflight=callback)
+    source.assert_not_called()
+    runtime.assert_not_called()
+    ui.assert_not_called()
+    public.assert_not_called()
+
+
+@pytest.mark.parametrize("saved,requested", [
+    (True, False), (False, True), (1, True), (0, False), ("true", True), (None, False),
+])
+def test_checkpoint_opt_in_identity_rejects_toggles_and_boolean_lookalikes(tmp_path, saved, requested):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET,
+        public_source_provider="wwr", employer_verification=True)
+    checkpoint.binding["employer_verification"] = saved
+    checkpoint.persist()
+    with pytest.raises(ValueError, match="identity mismatch"):
+        journey.JourneyCheckpoint.resume(checkpoint.path, RUN_ID, SOURCE, TARGET,
+            public_source_provider="wwr", employer_verification=requested)
+
+
+def test_historical_missing_opt_in_is_compatible_only_with_false(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET,
+                                                  public_source_provider="wwr")
+    checkpoint.binding.pop("employer_verification")
+    checkpoint.persist()
+    restored = journey.JourneyCheckpoint.resume(checkpoint.path, RUN_ID, SOURCE, TARGET,
+                                                public_source_provider="wwr")
+    assert restored.binding["employer_verification"] is False
+    with pytest.raises(ValueError, match="identity mismatch"):
+        journey.JourneyCheckpoint.resume(checkpoint.path, RUN_ID, SOURCE, TARGET,
+            public_source_provider="wwr", employer_verification=True)
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_opted_in_ui_segment_binds_option_without_running_public_or_adding_acceptance(tmp_path, provider):
+    from unittest.mock import Mock
+
+    public = Mock()
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", new=_emit_opt_in_ui), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public)), \
+            patch.object(journey.recovery, "run") as recovery:
+        report = invoke(tmp_path, employer_verification=True, public_source_provider=provider,
+                        public_source_preflight=lambda *_: None, stop_after_ui=True)
+    assert report["employer_verification"] is True
+    assert report["segments"]["ui"]["status"] == "COMPLETE"
+    assert report["segments"]["public"]["status"] == report["segments"]["recovery"]["status"] == "NOT_RUN"
+    assert report["scoreboard"]["observed_PASS"] == 1
+    assert report["scoreboard"]["NOT_RUN"] == 59
+    assert all(row["status"] == "NOT_RUN" for row in report["steps"][22:31])
+    assert "--employer-verification" in report["steps"][3]["verification"]["command"]
+    public.assert_not_called()
+    recovery.assert_not_called()
+    restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET,
+        public_source_provider=provider, employer_verification=True).payload()
+    assert restored["segments"]["ui"] == report["segments"]["ui"]
+    assert restored["steps"][3]["verification"]["resume_imported"] is True
+    assert restored["review_status"] == "NOT_RUN"
+
+
+@pytest.mark.parametrize("requested,emitted", [(True, False), (False, True)])
+def test_ui_witness_option_mismatch_stops_before_public_or_recovery(tmp_path, requested, emitted):
+    from unittest.mock import Mock
+
+    public = Mock()
+
+    def ui(url, path, **kwargs):
+        emit(path, _employer_opt_in_baseline() if emitted else baseline())
+
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", side_effect=ui), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public)), \
+            patch.object(journey.recovery, "run") as recovery:
+        with pytest.raises(ValueError):
+            invoke(tmp_path, employer_verification=requested, public_source_provider="wwr",
+                   public_source_preflight=lambda *_: None)
+    saved = json.loads((tmp_path / "journey.json").read_text())
+    assert saved["segments"]["ui"]["status"] == "FAIL"
+    assert saved["segments"]["public"]["status"] == saved["segments"]["recovery"]["status"] == "NOT_RUN"
+    public.assert_not_called()
+    recovery.assert_not_called()
+
+
+@pytest.mark.parametrize("change", ["activation-digest", "saved-policy-digest", "source", "run", "timestamp", "profile"])
+def test_resume_rejects_modified_opt_in_witness_bytes_before_any_producer(tmp_path, change):
+    from unittest.mock import Mock
+
+    public = Mock()
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", new=_emit_opt_in_ui), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public)):
+        invoke(tmp_path, employer_verification=True, public_source_provider="wwr",
+               public_source_preflight=lambda *_: None, stop_after_ui=True)
+    path = tmp_path / "ui.json"
+    artifact = json.loads(path.read_text())
+    witness = artifact["employer_verification_opt_in"]
+    if change == "activation-digest": witness["activation_id_sha256"] = "f" * 64
+    elif change == "saved-policy-digest": witness["saved_policy_sha256"] = "f" * 64
+    elif change == "source": witness["source"]["commit"] = "f" * 40
+    elif change == "run": witness["acceptance_run_id"] = "another-run"
+    elif change == "timestamp": witness["saved_at_utc"] = "2020-01-01T00:00:00+00:00"
+    elif change == "profile": witness["profile_id"] = "another-profile"
+    emit(path, artifact)  # Keep the previously sealed outer artifact hash unchanged.
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight") as runtime, \
+            patch.object(journey.ui_e2e, "run") as ui, \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public)), \
+            patch.object(journey.recovery, "run") as recovery:
+        with pytest.raises(ValueError, match="hash mismatch"):
+            invoke(tmp_path, employer_verification=True, public_source_provider="wwr",
+                   public_source_preflight=lambda *_: None, resume=True)
+    runtime.assert_not_called()
+    ui.assert_not_called()
+    public.assert_not_called()
+    recovery.assert_not_called()
+
+
+def test_resume_rechecks_witness_semantics_even_when_outer_bytes_are_rebound(tmp_path):
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", new=_emit_opt_in_ui):
+        invoke(tmp_path, employer_verification=True, public_source_provider="wwr",
+               public_source_preflight=lambda *_: None, stop_after_ui=True)
+    path = tmp_path / "ui.json"
+    artifact = json.loads(path.read_text())
+    artifact["employer_verification_opt_in"]["checks"]["normal_save_observed"] = False
+    emit(path, artifact)
+    checkpoint_path = tmp_path / "journey.json"
+    saved = json.loads(checkpoint_path.read_text())
+    saved["segments"]["ui"]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    emit(checkpoint_path, saved)
+    with pytest.raises(ValueError, match="witness"):
+        journey.JourneyCheckpoint.resume(checkpoint_path, RUN_ID, SOURCE, TARGET,
+            public_source_provider="wwr", employer_verification=True)
+
+
+def test_ui_save_witness_alone_never_creates_any_numbered_pass(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET,
+        public_source_provider="wwr", employer_verification=True)
+    state = _employer_opt_in_baseline()
+    state["acceptance_observations"] = []
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", state, "f" * 64)
+    assert len(checkpoint.binding["steps"]) == 60
+    assert [row["number"] for row in checkpoint.binding["steps"]] == list(range(1, 61))
+    assert {row["status"] for row in checkpoint.binding["steps"]} == {"NOT_RUN"}
+    assert checkpoint.binding["scoreboard"]["observed_PASS"] == 0
+    assert checkpoint.binding["result"] == "PARTIAL"
+
+
+def test_ui_save_witness_cannot_predate_the_actual_journey_start(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET,
+        public_source_provider="wwr", employer_verification=True)
+    state = _employer_opt_in_baseline()
+    state["employer_verification_opt_in"]["saved_at_utc"] = (
+        datetime.fromisoformat(checkpoint.binding["started_at_utc"]) - timedelta(seconds=1)).isoformat()
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    with pytest.raises(ValueError, match="predates"):
+        checkpoint.complete_segment("ui", state, "f" * 64)

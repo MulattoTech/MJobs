@@ -426,3 +426,190 @@ def test_validate_plan_rejects_bypassed_parser_provider_before_receipt_or_runtim
     args.public_source_provider = provider
     with pytest.raises(ValueError, match="Unsupported public source provider"):
         campaign.validate_plan(args, journey=FakeJourney({}, {}))
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_employer_opt_in_is_explicit_and_validate_only_has_no_runtime_actions(
+        tmp_path, monkeypatch, capsys, enabled, provider):
+    flags = ["--validate-only", "--public-source-provider", provider]
+    if enabled:
+        flags.append("--employer-verification")
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch, flags=tuple(flags))
+    assert args.employer_verification is enabled
+    assert plan["employer_verification"] is enabled
+    assert plan["public_source_provider"] == provider
+    touched = []
+
+    def forbidden(*args, **kwargs):
+        touched.append(True)
+        raise AssertionError("Validate-only must not construct runtime containment")
+
+    monkeypatch.setattr(campaign, "_lazy_containment", forbidden)
+    assert campaign.run_campaign(args, journey=journey) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["launch"]["employer_verification"] is enabled
+    assert result["launch"]["public_source_provider"] == provider
+    assert result["live_runtime"] == result["ui"] == result["public_operations"] == "NOT_RUN"
+    assert touched == journey.run_calls == []
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "true", [], {}])
+def test_non_boolean_employer_opt_in_is_rejected_before_missing_receipts(tmp_path, value):
+    args = _args(tmp_path, tmp_path / "missing-startup", tmp_path / "missing-build")
+    args.employer_verification = value
+    with pytest.raises(ValueError, match="boolean"):
+        campaign.validate_plan(args, journey=FakeJourney({}, {}))
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_campaign_forwards_the_exact_employer_opt_in_boolean_once(
+        tmp_path, monkeypatch, capsys, enabled):
+    for name in ("COMPOSE_FILE", "COMPOSE_PROFILES", "COMPOSE_PROJECT_NAME", "MJOBS_PORT",
+                 "MJOBS_OPERATION_MODE", "MJOBS_COMPOSE_MOCK", "MJOBS_IMAGE"):
+        monkeypatch.setenv(name, "")
+    flags = ("--employer-verification",) if enabled else ()
+    args, journey, _ = _prepared_plan(tmp_path, monkeypatch, flags=flags)
+    callback = object()
+    construction = []
+
+    def lazy(*args):
+        construction.append(True)
+        return callback
+
+    monkeypatch.setattr(campaign, "_lazy_containment", lazy)
+    assert campaign.run_campaign(args, journey=journey) == 2
+    assert construction == [True]
+    assert len(journey.run_calls) == 1
+    assert journey.run_calls[0]["employer_verification"] is enabled
+    assert journey.run_calls[0]["public_source_preflight"] is callback
+    launch, result = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert launch["launch"]["employer_verification"] is enabled
+    assert result["result"] == "PARTIAL"
+
+
+def _bind_employer_opt_in_artifacts(journey, plan):
+    from tests.unit.test_acceptance_employer_verification_opt_in import (
+        _controlled_profile, _controlled_ui_artifact,
+    )
+
+    runtime, application = _bind_public_artifacts(journey, plan)
+    profile = _controlled_profile()
+    journey.baseline.update(_controlled_ui_artifact(
+        profile=profile, source=plan["source"], run_id=plan["run_id"], origin=plan["origin"]))
+    journey.report["employer_verification"] = True
+    return runtime, application, profile
+
+
+def _patch_employer_opt_in_boundaries(monkeypatch, application, profile, *, status=200):
+    import httpx
+
+    real_client = httpx.Client
+    calls = _patch_public_boundaries(monkeypatch, application)
+    calls["paths"] = []
+
+    def handle(request):
+        assert request.method == "GET"
+        calls["paths"].append(request.url.path)
+        if request.url.path == "/profiles/profile-1/applications/application-1":
+            return httpx.Response(200, json=application)
+        assert request.url.path == "/profiles/profile-1"
+        headers = {"content-type": "application/json"}
+        if status == 302:
+            headers["location"] = "https://example.invalid/must-not-follow"
+        return httpx.Response(status, content=json.dumps(profile).encode(), headers=headers)
+
+    def client(**kwargs):
+        calls["http"] += 1
+        assert kwargs["trust_env"] is False and kwargs["follow_redirects"] is False
+        return real_client(transport=httpx.MockTransport(handle), **kwargs)
+
+    monkeypatch.setattr(httpx, "Client", client)
+    return calls
+
+
+@pytest.mark.parametrize("requested,saved", [
+    (False, True), (False, 0), (False, "false"),
+    (True, False), (True, 1), (True, "true"), (True, None), (True, "missing"),
+])
+def test_saved_employer_opt_in_mismatch_stops_before_any_admission_read(
+        tmp_path, monkeypatch, requested, saved):
+    flags = ("--employer-verification",) if requested else ()
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch, flags=flags)
+    _, application, profile = _bind_employer_opt_in_artifacts(journey, plan)
+    if saved == "missing":
+        journey.report.pop("employer_verification")
+    else:
+        journey.report["employer_verification"] = saved
+    calls = _patch_employer_opt_in_boundaries(monkeypatch, application, profile)
+    callback = campaign._lazy_containment(plan, args, journey, None)
+    with pytest.raises(ValueError, match="same-run UI baseline"):
+        callback("preflight", {"provider": "wwr", "acceptance_run_id": plan["run_id"],
+                               "base_url": plan["origin"]})
+    assert calls["http"] == calls["docker"] == 0
+    assert calls["paths"] == calls["constructed"] == []
+
+
+def test_default_admission_keeps_legacy_missing_flag_and_adds_no_profile_read(tmp_path, monkeypatch):
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch)
+    _, application = _bind_public_artifacts(journey, plan)
+    assert "employer_verification" not in journey.report
+    calls = _patch_employer_opt_in_boundaries(monkeypatch, application, None)
+    callback = campaign._lazy_containment(plan, args, journey, None)
+    callback("preflight", {"provider": "wwr", "acceptance_run_id": plan["run_id"],
+                           "base_url": plan["origin"]})
+    assert calls["paths"] == ["/profiles/profile-1/applications/application-1"]
+    assert calls["http"] == calls["docker"] == len(calls["constructed"]) == 1
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_opt_in_admission_reads_exact_current_profile_before_owner_construction(
+        tmp_path, monkeypatch, provider):
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch,
+        flags=("--employer-verification", "--public-source-provider", provider))
+    _, application, profile = _bind_employer_opt_in_artifacts(journey, plan)
+    calls = _patch_employer_opt_in_boundaries(monkeypatch, application, profile)
+    callback = campaign._lazy_containment(plan, args, journey, None)
+    assert calls["paths"] == calls["constructed"] == []
+    context = {"provider": provider, "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
+    assert callback("preflight", context) == {"released": True}
+    assert calls["paths"] == ["/profiles/profile-1/applications/application-1", "/profiles/profile-1"]
+    assert calls["http"] == calls["docker"] == len(calls["constructed"]) == 1
+    assert calls["owned_calls"] == [("preflight", context)]
+    assert calls["constructed"][0]["baseline"]["employer_verification_opt_in"] == (
+        journey.baseline["employer_verification_opt_in"])
+
+
+@pytest.mark.parametrize("change", [
+    "null", "list", "foreign", "version", "activation", "disabled", "parent-disabled",
+    "malformed-version", "policy-override", "unavailable", "redirect",
+])
+def test_opt_in_admission_rejects_current_profile_drift_before_docker_or_pause(
+        tmp_path, monkeypatch, change):
+    import copy
+    import httpx
+
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch, flags=("--employer-verification",))
+    _, application, baseline_profile = _bind_employer_opt_in_artifacts(journey, plan)
+    profile = copy.deepcopy(baseline_profile)
+    preferences = profile["preferences"]["company_discovery"]
+    status = 200
+    if change == "null": profile = None
+    elif change == "list": profile = []
+    elif change == "foreign": profile["id"] = "another-profile"
+    elif change == "version": profile["version"] = "4" * 64
+    elif change == "activation": preferences["employer_verification"]["activation_id"] = "b" * 32
+    elif change == "disabled": preferences["employer_verification"] = {"version": 1, "mode": "DISABLED", "activation_id": None}
+    elif change == "parent-disabled": preferences["company_discovery_enabled"] = False
+    elif change == "malformed-version": preferences["employer_verification"]["version"] = True
+    elif change == "policy-override": preferences["employer_verification"]["rate_limit"] = 1000
+    elif change == "unavailable": status = 503
+    elif change == "redirect": status = 302
+    calls = _patch_employer_opt_in_boundaries(monkeypatch, application, profile, status=status)
+    callback = campaign._lazy_containment(plan, args, journey, None)
+    with pytest.raises((ValueError, httpx.HTTPStatusError)):
+        callback("preflight", {"provider": "wwr", "acceptance_run_id": plan["run_id"],
+                               "base_url": plan["origin"]})
+    assert calls["paths"] == ["/profiles/profile-1/applications/application-1", "/profiles/profile-1"]
+    assert calls["http"] == 1 and calls["docker"] == 0
+    assert calls["constructed"] == []

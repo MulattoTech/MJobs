@@ -1204,9 +1204,14 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
     """Reuse the existing fsync + replace journal for bounded resumable state."""
 
     @classmethod
-    def create(cls, path, run_id, source, target, public_source_provider=None, monitoring=False):
+    def create(cls, path, run_id, source, target, public_source_provider=None, monitoring=False,
+               employer_verification=False):
         if not isinstance(run_id, str) or not SAFE_ID.fullmatch(run_id):
             raise ValueError("Invalid journey run identity")
+        if type(employer_verification) is not bool:
+            raise ValueError("Employer-verification opt-in must be boolean")
+        if employer_verification and public_source_provider not in {"wwr", "remotive"}:
+            raise ValueError("Employer verification requires an explicitly selected public provider")
         return cls(path, {"schema_version": 1, "requirement_id": REQUIREMENT,
                          "run_id": run_id, "source": validate_clean_source(source),
                          "target": target, "started_at_utc": utc_now(), "result": "PARTIAL",
@@ -1214,6 +1219,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                          "trust_boundary": "Reviewed exact-source producers and operator-owned local artifacts; observed PASS is not independent review or ledger acceptance.",
                          "public_source_provider": public_source_provider,
                          "monitoring": monitoring,
+                         "employer_verification": employer_verification,
                          "segments": {name: {"status": "NOT_RUN"} for name in _segment_names(public_source_provider, monitoring)},
                          "steps": [{"number": number, "status": "NOT_RUN"} for number in range(1, 61)],
                          "limitations": [
@@ -1222,13 +1228,17 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                              "Frontend bundle build provenance requires a separate build receipt."]})
 
     @classmethod
-    def resume(cls, path, run_id, source, target, public_source_provider=None, monitoring=False):
+    def resume(cls, path, run_id, source, target, public_source_provider=None, monitoring=False,
+               employer_verification=False):
+        if type(employer_verification) is not bool:
+            raise ValueError("Employer-verification opt-in must be boolean")
         saved, _ = _read_artifact(path)
         if (type(saved.get("schema_version")) is not int or saved.get("schema_version") != 1
                 or saved.get("requirement_id") != REQUIREMENT
                 or saved.get("run_id") != run_id or saved.get("source") != validate_clean_source(source)
                 or saved.get("target") != target or saved.get("public_source_provider") != public_source_provider
-                or saved.get("monitoring", False) is not monitoring):
+                or saved.get("monitoring", False) is not monitoring
+                or saved.get("employer_verification", False) is not employer_verification):
             raise ValueError("Checkpoint run, source or target identity mismatch")
         segments = saved.get("segments")
         names = _segment_names(public_source_provider, monitoring)
@@ -1236,7 +1246,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
             raise ValueError("Invalid checkpoint segments")
         if any(segment.get("status") not in {"COMPLETE", "NOT_RUN"} for segment in segments.values()):
             raise ValueError("Cannot resume an interrupted or failed segment; reconcile and start a new run")
-        restored = cls.create(path, run_id, source, target, public_source_provider, monitoring)
+        restored = cls.create(path, run_id, source, target, public_source_provider, monitoring,
+                              employer_verification)
         restored.binding["started_at_utc"] = saved["started_at_utc"]
         restored.binding["runtime"] = saved.get("runtime")
         restored.binding["runtime_checks"] = saved.get("runtime_checks", {})
@@ -1357,6 +1368,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 raise ValueError("Connected UI origin binding mismatch")
             if artifact.get("mode") != "ONBOARDING_FIXTURE" or artifact.get("result") not in {"PASS", "PARTIAL"}:
                 raise ValueError("Connected UI baseline is incomplete")
+            ui_e2e.validate_employer_verification_witness(
+                artifact, self.binding.get("employer_verification", False))
+            if (self.binding.get("employer_verification", False)
+                    and _instant(artifact["employer_verification_opt_in"]["saved_at_utc"]) < started):
+                raise ValueError("Employer-verification UI save predates this journey")
             identity = _identity(artifact)
             self.binding["continuity"] = identity
             if "employer_discovery_lineage" in identity:
@@ -1435,7 +1451,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 "verification": {"tested_commit": self.binding["source"]["commit"],
                                  "evidence_artifact": evidence_name, "evidence_sha256": sha,
                                  "run_id": self.binding["run_id"], "evidence_kind": row["evidence_kind"],
-                                 "command": {"ui": "python -m cli.ui_e2e --onboarding",
+                                 "command": {"ui": "python -m cli.ui_e2e --onboarding"
+                                             + (" --employer-verification" if self.binding.get("employer_verification", False) else ""),
                                              "public": "cli.acceptance_public_source.run (explicit contained opt-in)",
                                              "monitor_prepare": "cli.acceptance_monitoring.prepare (explicit opt-in)",
                                              "monitor_after": "cli.acceptance_monitoring.after_restart (explicit opt-in)",
@@ -1491,7 +1508,7 @@ def _invoke(producer, args, run_id, *, runtime_identity=None, **kwargs):
 
 def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, stop_after_ui=False,
         build_receipt=None, public_source_provider=None, public_source_preflight=None, monitoring=False,
-        startup_receipt=None):
+        startup_receipt=None, employer_verification=False):
     """Execute the fixture flow, optionally one explicit contained public segment.
 
     Public opt-in is programmatic only. The root-owned callback enforces exclusive
@@ -1499,6 +1516,10 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
     receives a final ``release`` stage to restore its own scheduler containment;
     failures retain containment for the operator and never continue recovery.
     """
+    if type(employer_verification) is not bool:
+        raise ValueError("Employer-verification opt-in must be boolean")
+    if employer_verification and public_source_provider not in {"wwr", "remotive"}:
+        raise ValueError("Employer verification requires an explicitly selected public provider")
     if public_source_provider is not None and (
             public_source_provider not in {"wwr", "remotive"} or not callable(public_source_preflight)):
         raise ValueError("Public source opt-in requires an explicit supported provider and ownership containment callback")
@@ -1516,8 +1537,10 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
     path = directory / "journey.json"
     if not resume and directory.exists() and any(directory.iterdir()):
         raise ValueError("New journey requires an empty evidence directory")
-    checkpoint = (JourneyCheckpoint.resume(path, run_id, source, target, public_source_provider, monitoring) if resume
-                  else JourneyCheckpoint.create(path, run_id, source, target, public_source_provider, monitoring))
+    checkpoint = (JourneyCheckpoint.resume(path, run_id, source, target, public_source_provider, monitoring,
+                                          employer_verification) if resume
+                  else JourneyCheckpoint.create(path, run_id, source, target, public_source_provider, monitoring,
+                                                employer_verification))
     runtime = preflight(target, source)
     previous = checkpoint.binding.get("runtime")
     if previous is not None and _runtime_identity(previous) != _runtime_identity(runtime):
@@ -1571,7 +1594,8 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
             checkpoint.begin(name)
             if name == "ui":
                 _invoke(ui_e2e.run, (target["base_url"], artifact_path), run_id, onboarding=True,
-                        runtime_identity={key: latest[key] for key in ("source_manifest_sha256", "images")})
+                        runtime_identity={key: latest[key] for key in ("source_manifest_sha256", "images")},
+                        **({"employer_verification": True} if employer_verification else {}))
             elif name == "public":
                 baseline, ui_sha = _read_artifact(directory / "ui.json")
                 if ui_sha != checkpoint.binding["segments"]["ui"]["sha256"]:

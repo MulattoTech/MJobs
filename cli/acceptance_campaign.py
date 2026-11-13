@@ -42,6 +42,8 @@ def build_parser():
                         help="Observe step 9 with the other supported source, then disable it before primary collection")
     parser.add_argument("--monitoring", action="store_true",
                         help="Explicitly include same-profile natural fixture monitoring and restart observations")
+    parser.add_argument("--employer-verification", action="store_true",
+                        help="Explicitly save the profile's employer-verification checkbox during the UI segment")
     parser.add_argument("--validate-only", action="store_true",
                         help="Validate receipts and checkout bindings without Docker, API or journey execution")
     return parser
@@ -64,6 +66,9 @@ def _inside(path, parent):
 
 def validate_plan(args, *, journey=None, root=None):
     """Validate exact local inputs only; this function makes no runtime calls."""
+    employer_verification = getattr(args, "employer_verification", False)
+    if type(employer_verification) is not bool:
+        raise ValueError("Employer-verification opt-in must be boolean")
     if args.public_source_provider not in {"wwr", "remotive"}:
         raise ValueError("Unsupported public source provider")
     if journey is None:
@@ -144,6 +149,7 @@ def validate_plan(args, *, journey=None, root=None):
         "run_id": run_id, "target": target, "project": project,
         "port": port, "origin": origin, "image_id": image_id,
         "compose_files": compose_files, "public_source_provider": args.public_source_provider,
+        "employer_verification": employer_verification,
     }
 
 
@@ -166,11 +172,13 @@ def _lazy_containment(plan, args, journey, source_setup):
     import httpx
     from cli.acceptance_containment import DockerCLI
     from cli.acceptance_source_containment import OwnedPublicSourceContainment
+    from cli.ui_e2e import validate_employer_verification_witness
 
     root, directory = plan["root"], plan["evidence_dir"]
     source, run_id, target = plan["source"], plan["run_id"], plan["target"]
     project, origin, compose_files = plan["project"], plan["origin"], plan["compose_files"]
     provider = plan["public_source_provider"]
+    employer_verification = plan["employer_verification"]
 
     class LazyOwnedContainment:
         def __init__(self):
@@ -194,12 +202,14 @@ def _lazy_containment(plan, args, journey, source_setup):
                         or report.get("target") != target
                         or report.get("public_source_provider") != provider
                         or report.get("monitoring") is not bool(args.monitoring)
+                        or report.get("employer_verification", False) is not employer_verification
                         or baseline.get("source") != source
                         or baseline.get("acceptance_run_id") != run_id
                         or baseline.get("target_origin") != origin
                         or journey.current_source() != source):
                     raise ValueError("Public admission requires the verified same-run UI baseline")
                 journey._identity(baseline)
+                validate_employer_verification_witness(baseline, employer_verification)
                 runtime = report["runtime_checks"]["ui"]["after"]
                 journey.validate_frontend_build_receipt(plan["build"], source, runtime)
                 if runtime["compose_files"] != [str(path) for path in compose_files]:
@@ -214,6 +224,14 @@ def _lazy_containment(plan, args, journey, source_setup):
                         + "/applications/" + baseline["application_id"])
                     response.raise_for_status()
                     app = response.json()
+                    if employer_verification:
+                        response = client.get("/profiles/" + baseline["profile_id"])
+                        response.raise_for_status()
+                        current_profile = response.json()
+                        if not isinstance(current_profile, dict):
+                            raise ValueError("Current employer-verification profile readback is invalid")
+                        validate_employer_verification_witness(
+                            baseline, True, current_profile=current_profile)
                 if (app.get("id") != baseline["application_id"]
                         or app.get("profile_id") != baseline["profile_id"]
                         or app.get("target") != "MOCK" or app.get("state") != "CONFIRMED"
@@ -262,6 +280,7 @@ def run_campaign(args, *, journey=None):
         "command": [sys.executable, "-m", "cli.acceptance_campaign", *sys.argv[1:]],
         "source_setup": args.source_setup,
         "monitoring": args.monitoring,
+        "employer_verification": plan["employer_verification"],
         "public_source_provider": plan["public_source_provider"],
         "source_commit": plan["source"]["commit"],
         "run_id": plan["run_id"], "image_id": plan["image_id"],
@@ -299,6 +318,7 @@ def run_campaign(args, *, journey=None):
         startup_receipt=plan["startup_path"], build_receipt=plan["build_path"],
         public_source_provider=plan["public_source_provider"], public_source_preflight=preflight,
         monitoring=args.monitoring,
+        employer_verification=plan["employer_verification"],
     )
     print(json.dumps({
         "result": report["result"], "run_id": report["run_id"],
