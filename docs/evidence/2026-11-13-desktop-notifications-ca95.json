@@ -1,0 +1,382 @@
+{
+  "schema_version": 1,
+  "run_id": "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
+  "work_key": "MJ-REQ-204.N05",
+  "parent_requirement": "MJ-REQ-204",
+  "issue": 366,
+  "priority": "P6",
+  "area": "web_api_analytics",
+  "repository": "MulattoTech/MJobs",
+  "based_on_main": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+  "scope": "Opt-in open-page Desktop activity notifications with profile-isolated snapshots, native permission, bounded coordinated receipts and private-safe fixed content.",
+  "source_test_revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+  "source_tree": "6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9",
+  "source_binding": "Later evidence/handoff-only commits do not change tested application/test blobs; exact published-head hosted gates remain required.",
+  "environment": {
+    "host": "MULATTOTECHBOX",
+    "os": "Windows",
+    "python": "3.12.10",
+    "pytest": "9.1.1",
+    "playwright": "1.63.0",
+    "vite": "8.3.3",
+    "browser": "Chromium 153.0.8010.12",
+    "launch_channel": "chromium",
+    "headless": true,
+    "api": "Owned loopback FastAPI/Uvicorn with synthetic SQLite profiles/operations",
+    "poll_seconds": 15,
+    "external_requests": 0,
+    "api_writes_from_browser": 0,
+    "page_errors": 0
+  },
+  "criteria": [
+    {
+      "criterion": "Declare exact capabilities supported rather than implying unsupported behavior.",
+      "local_state": "IMPLEMENTED_AND_REVIEWED",
+      "evidence": [
+        "docs/DESKTOP_NOTIFICATIONS.md",
+        "apps/web/src/desktop-notification-provider.ts"
+      ],
+      "scope": "Explicit per-profile origin/browser opt-in, generic terminal outcomes, fixed-content native browser handoff while page is open."
+    },
+    {
+      "criterion": "Add deterministic fixtures/contract tests.",
+      "local_state": "VERIFIED",
+      "evidence": [
+        "apps/web/src/desktop-notification-provider.test.ts",
+        "apps/web/src/desktop-notifications.test.tsx"
+      ],
+      "details": "23 new Desktop cases plus5 existing Activity unit cases passed on the corrected source."
+    },
+    {
+      "criterion": "Perform bounded live read-only validation where appropriate and safe.",
+      "local_state": "VERIFIED_WITH_DOCUMENTED_LIMITS",
+      "evidence": [
+        "tests/browser/test_desktop_notifications.py",
+        "tests/browser/test_operation_notifications.py"
+      ],
+      "details": "5 real mounted API/browser cases with owned synthetic SQLite and actual native Chromium Notification constructor; no third-party requests or API writes. Test fixture state changes are isolated synthetic DB operations. OS-visible toast remains unverified."
+    },
+    {
+      "criterion": "Record limitations and last-tested evidence.",
+      "local_state": "RECORDED",
+      "evidence": [
+        "docs/DESKTOP_NOTIFICATIONS.md",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+      ],
+      "last_tested_source": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "last_tested_at": "2026-11-13T03:29:29.966576+00:00"
+    },
+    {
+      "criterion": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+      "local_state": "REVIEWED",
+      "details": "Native secure-context, permission and Web Lock gates remain enforced; no external service or access bypass. Isolated browser permission grant is test setup, not application behavior."
+    }
+  ],
+  "verification": [
+    {
+      "command": "npm --prefix apps/web test -- src/desktop-notification-provider.test.ts src/desktop-notifications.test.tsx src/operation-notifications.test.tsx --maxWorkers=1 --coverage.enabled=false",
+      "result": "PASS",
+      "revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": {
+        "label": "frontend",
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "npm",
+          "--prefix",
+          "apps/web",
+          "test",
+          "--",
+          "src/desktop-notification-provider.test.ts",
+          "src/desktop-notifications.test.tsx",
+          "src/operation-notifications.test.tsx",
+          "--maxWorkers=1",
+          "--coverage.enabled=false"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-11-13T03:25:22.702147+00:00",
+        "finished_at": "2026-11-13T03:25:24.673037+00:00",
+        "log_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0\\desktop-a0de7db56eaf-frontend.log",
+        "log_sha256": "b0a10319c173c69eb1ff1a244e15e6348603d4798b124c3f1f3b3175db510fda"
+      }
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "details": "TypeScript and locked Vite 8.3.3 production build; existing large-chunk advisory retained.",
+      "receipt": {
+        "label": "build",
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "npm",
+          "--prefix",
+          "apps/web",
+          "run",
+          "build"
+        ],
+        "exit_code": 0,
+        "started_at": "2026-11-13T03:25:24.674540+00:00",
+        "finished_at": "2026-11-13T03:25:26.381361+00:00",
+        "log_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0\\desktop-a0de7db56eaf-build.log",
+        "log_sha256": "9201a8ecab7b9df643828f9ae6efbd0c894ac4eec421768f8a11b5f98f729785"
+      }
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q -s tests/browser/test_desktop_notifications.py tests/browser/test_operation_notifications.py --junitxml=<owned-run>/desktop-browser-a0de7db56eaf-attempt2.junit.xml",
+      "result": "PASS",
+      "revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "passed": 5,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 155.41,
+      "started_at": "2026-11-13T03:26:53.413352+00:00",
+      "finished_at": "2026-11-13T03:29:29.966576+00:00",
+      "receipt": {
+        "file": "desktop-browser-a0de7db56eaf-attempt2.receipt.json",
+        "sha256": "3171edd117b9ad66b68f12697efca315b969af504837ef3a770cbbe8fbd51171",
+        "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+      },
+      "junit": {
+        "file": "desktop-browser-a0de7db56eaf-attempt2.junit.xml",
+        "sha256": "f48db90e7489d9d8c84333be45d9115c438cd8b077a9f05256d37852d2f1459c",
+        "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+      },
+      "log": {
+        "file": "desktop-browser-a0de7db56eaf-attempt2.log",
+        "sha256": "3b58960296fcfb62dd8e9cb06c33c77d77ee432100f7377ee7acaee95a8d221b",
+        "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+      }
+    },
+    {
+      "command": "Independent immutable source review",
+      "result": "PASS",
+      "revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "details": "PASS_SCOPED_NO_BLOCKING_FINDINGS; no runtime execution by reviewer."
+    },
+    {
+      "command": "Protected hosted checks on eventual published metadata head",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "build_assets": [
+    {
+      "path": "apps/web/dist/assets/index-BOcTHF-U.js",
+      "sha256": "abd38e2ff1d176225854eb63309c1145bdc225e677db90ae9305d656200f7a3e",
+      "bytes": 1004030
+    },
+    {
+      "path": "apps/web/dist/assets/index-BYoKyum1.css",
+      "sha256": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539",
+      "bytes": 12090
+    },
+    {
+      "path": "apps/web/dist/index.html",
+      "sha256": "5e53b33121052d46555fb1017ab0c17f8483294dbca92358d7c3472b9da2122d",
+      "bytes": 411
+    }
+  ],
+  "native_browser_evidence": {
+    "source_sha": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "runs": [
+      {
+        "browser_version": "153.0.8010.12",
+        "capabilities": {
+          "notification": "function",
+          "permission": "granted",
+          "secure": true,
+          "web_locks": true
+        },
+        "constructor_handoffs": [],
+        "launch_channel": "chromium",
+        "observed_events": [],
+        "os_visible_toast_verified": false
+      },
+      {
+        "browser_version": "153.0.8010.12",
+        "capabilities": {
+          "notification": "function",
+          "permission": "granted",
+          "secure": true,
+          "web_locks": true
+        },
+        "constructor_handoffs": [
+          {
+            "body": "Job discovery completed.",
+            "native": true,
+            "phase": "construct",
+            "renotify": false,
+            "silent": true,
+            "tag": "mjobs-activity-31eaee532073a0f3",
+            "title": "MJobs activity"
+          },
+          {
+            "body": "Document preparation completed.",
+            "native": true,
+            "phase": "construct",
+            "renotify": false,
+            "silent": true,
+            "tag": "mjobs-activity-a7cb5ac8604f41de",
+            "title": "MJobs activity"
+          }
+        ],
+        "launch_channel": "chromium",
+        "observed_events": [
+          "show",
+          "show",
+          "close"
+        ],
+        "os_visible_toast_verified": false
+      },
+      {
+        "browser_version": "153.0.8010.12",
+        "capabilities": {
+          "notification": "function",
+          "permission": "granted",
+          "secure": true,
+          "web_locks": true
+        },
+        "constructor_handoffs": [
+          {
+            "body": "Document preparation completed.",
+            "native": true,
+            "phase": "construct",
+            "renotify": false,
+            "silent": true,
+            "tag": "mjobs-activity-b6ee7f7897d8087c",
+            "title": "MJobs activity"
+          }
+        ],
+        "launch_channel": "chromium",
+        "observed_events": [
+          "show"
+        ],
+        "os_visible_toast_verified": false
+      }
+    ],
+    "os_visible_toast_verified": false
+  },
+  "native_evidence_artifact": {
+    "file": "desktop-browser-a0de7db56eaf-attempt2.native.json",
+    "sha256": "bc00aee8ab856e7a725800474ba0a634390b2ddc31d67501833b3327857a710e",
+    "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+  },
+  "initial_failed_attempt": {
+    "source": "55922d546dc7d5f3532d565d6e156ade8913ad45",
+    "result": "FAIL",
+    "counts": {
+      "total": 5,
+      "passed": 1,
+      "failure": 4,
+      "error": 0,
+      "skipped": 0
+    },
+    "started_at": "2026-11-13T03:09:15.456190+00:00",
+    "finished_at": "2026-11-13T03:09:35.783777+00:00",
+    "failed_tests": [
+      "test_desktop_provider_respects_global_notification_configuration",
+      "test_native_desktop_polling_opt_in_deduplication_disable_and_profile_isolation",
+      "test_desktop_activity_failure_pauses_and_recovery_baselines_without_replay",
+      "test_notification_configuration_polling_dismissal_and_profile_isolation[True]"
+    ],
+    "junit": {
+      "file": "desktop-browser-55922d546dc7-attempt1.junit.xml",
+      "sha256": "b899c5b8c124ad9b18fa06229ac42944e936f2ad3753c55c9b0bc193dcb6462c",
+      "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+    },
+    "log": {
+      "file": "desktop-browser-55922d546dc7-attempt1.log",
+      "sha256": "082500c8a052c6f7ec24de98e3a3acf001aed4185148e5e547d1e1bb495b2bd2",
+      "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+    },
+    "causes": [
+      "Both notification sibling keys used the same raw profile identity, colliding with each other and the wizard; existing Activity test observed duplicate regions.",
+      "Lightweight Chromium headless shell native Notification.permission was denied while generic Permissions result was granted; both unwrapped native and forwarding-Proxy diagnostics reproduced it."
+    ],
+    "repair_commit": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "repair": "Namespaced Activity/Desktop keys and selected installed full Chromium channel. Full Chromium reported native granted permission; original capabilities/assertions remained intact.",
+    "diagnostics": [
+      {
+        "file": "desktop-capability-diagnostic-55922d546dc7.json",
+        "sha256": "143312f04aca74637e9bf29273b823ff5840be18fae80335a99e92ebbf7b2a91",
+        "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+      },
+      {
+        "file": "desktop-capability-diagnostic-full-chromium-55922d546dc7.json",
+        "sha256": "36357d997e5c8765e2036586f3413c27dffc6f92d281eb15c02cc75486d9afca",
+        "local_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0"
+      }
+    ]
+  },
+  "independent_review": {
+    "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+    "reviewer": "/root/coordination_recovery_review",
+    "source_commit": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "tree": "6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9",
+    "new_test_or_live_execution": false,
+    "reviewed_blobs": {
+      "apps/web/src/main.tsx": "0b5064aed9b10bda516379fe9ef3d6d6f9bfc122",
+      "apps/web/src/desktop-notification-provider.ts": "327703260b210d7b7d98ce6e5c7c0830169806c0",
+      "apps/web/src/desktop-notifications.tsx": "8d3a46952028401707bc00e6e24d6db82ecc0a30",
+      "apps/web/src/desktop-notification-provider.test.ts": "68317290cfb146412bd2a533735abb190c0a4a07",
+      "apps/web/src/desktop-notifications.test.tsx": "eb792e111b58a750cb7a09b2791c4f38da0baf54",
+      "tests/browser/test_desktop_notifications.py": "82ec7061a31cde7d2a64a7f9f00e1d9e0079b10c",
+      "tests/browser/test_operation_notifications.py": "4345215383904bf1147628c6e64afb302770e50d",
+      "docs/DESKTOP_NOTIFICATIONS.md": "0e26aefc31fa2d508e9507f93d8420e71ba50114"
+    },
+    "findings": [
+      "Namespaced Activity/Desktop keys preserve profile remount while fixing duplicate React identity.",
+      "Native full Chromium repair is backed by unwrapped and forwarding-Proxy capability diagnostics; original capability gates retained.",
+      "Three new and two existing browser cases cover open-page delivery and Activity regression with real API, native constructor, fixed natural polling and synthetic owned data."
+    ],
+    "limits": [
+      "OS-visible toast not verified.",
+      "No live simultaneous multi-tab race; deterministic Web Lock serialization coverage only.",
+      "Browser permission pregranted; permission gesture and stale results covered deterministically.",
+      "Open-page desktop Chromium only; no mobile/closed-page/server/cross-device claims.",
+      "Bounded at-most-once attempts; no exactly-once promise.",
+      "Generic operation outcomes only; parent potential events remain separate.",
+      "Canonical acceptance, hosted gates, integration and deployment separate."
+    ],
+    "recorded_at": "2026-11-13T03:27:34.687677Z"
+  },
+  "protections": [
+    "No new polling request or application submission.",
+    "No notification text from private source/profile/job/error data.",
+    "No production flag or host/browser global setting changed.",
+    "Native consent and capability checks fail closed.",
+    "Canonical original/reference matrices and planning projections unchanged."
+  ],
+  "limitations": [
+    "Native construction and browser show events were observed; OS-visible Windows toast was not inspected.",
+    "No live simultaneous two-tab race was run; native Web Lock use and deterministic serialization contracts were verified.",
+    "Browser permission was pregranted in the isolated browser context; gesture-only permission request and stale-result races were verified deterministically.",
+    "Open-page desktop Chromium 153.0.8010.12 only; other browsers, mobile, closed-page service-worker push and cross-device preferences are not claimed.",
+    "Receipts retain512 outcome identities and are persisted before native construction; at-most-once attempts are bounded, and delivery is not guaranteed or retried automatically.",
+    "An unsaved Disable is suppressed within this tab/module lifetime; other tabs or a reload cannot inherit a preference that failed to persist.",
+    "Only generic operation terminal outcomes are supported; the parent requirement potential match/authentication-expiry events remain separate.",
+    "This browser execution surface is implemented in apps/web; common server-provider catalogue metadata is coordinated with the independent ntfy lane. No server Desktop sender exists.",
+    "Global MJOBS_NOTIFICATIONS_ENABLED remains off by default; no production setting, migration or deployment changed.",
+    "Protected current-head hosted checks, verified integration stewardship and canonical acceptance ownership remain separate gates."
+  ],
+  "acceptance": {
+    "mj_req_204_n05": "NOT_RUN_IN_CANONICAL_MATRIX",
+    "local_candidate": "IMPLEMENTED_AND_LOCALLY_VERIFIED",
+    "hosted_ci": "NOT_RUN_AT_RECORD_CREATION",
+    "integration": "NOT_MERGED",
+    "production": "NOT_DEPLOYED",
+    "formal_acceptance": "PENDING_DESIGNATED_CANONICAL_WRITER"
+  },
+  "evidence_date_utc": "2026-11-13T03:31:45.369754Z"
+}
