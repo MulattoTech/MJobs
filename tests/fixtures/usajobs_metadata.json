@@ -1,0 +1,116 @@
+{
+  "_fixture": {
+    "kind": "synthetic",
+    "requirement": "MJ-REQ-017.F06",
+    "schema_observed_date": "2026-11-13",
+    "note": "Fictional agencies, control numbers and announcements; informed by official docs and the two-GET public schema probe. Not captured live-job evidence."
+  },
+  "data": [
+    {
+      "usajobsControlNumber": 990000101,
+      "hiringAgencyCode": "ZZIT",
+      "hiringAgencyName": "Synthetic Technology Agency",
+      "hiringDepartmentCode": "ZZ",
+      "hiringDepartmentName": "Synthetic Department",
+      "announcementNumber": "SYN-IT-2026-101",
+      "positionOpenDate": "2026-11-12",
+      "positionCloseDate": "2026-11-20",
+      "positionExpireDate": null,
+      "positionOpeningStatus": "Accepting applications",
+      "positionTitle": "Senior IT Specialist (Systems Administration)",
+      "workSchedule": "Full-time",
+      "appointmentType": "Permanent",
+      "teleworkEligible": "Y",
+      "minimumSalary": 90000,
+      "maximumSalary": 120000,
+      "salaryType": "Per Year",
+      "disableAppyOnline": "N",
+      "whoMayApply": null,
+      "jobcategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "hiringpaths": [
+        {
+          "hiringPath": "The public"
+        }
+      ],
+      "positionlocations": [
+        {
+          "positionLocationCity": "Dallas",
+          "positionLocationState": "TX",
+          "positionLocationCountry": "United States"
+        }
+      ]
+    },
+    {
+      "usajobsControlNumber": 990000102,
+      "hiringAgencyCode": "ZZIV",
+      "hiringAgencyName": null,
+      "hiringDepartmentCode": "ZZ",
+      "hiringDepartmentName": "Synthetic Department",
+      "announcementNumber": "SYN-IT-2026-102",
+      "positionOpenDate": "2026-11-10",
+      "positionCloseDate": "2026-11-12",
+      "positionExpireDate": "2026-11-11",
+      "positionOpeningStatus": "Applications under review",
+      "positionTitle": "IT Support Specialist",
+      "workSchedule": "Part-time",
+      "appointmentType": "Temporary",
+      "teleworkEligible": "N",
+      "minimumSalary": 25,
+      "maximumSalary": 35,
+      "salaryType": "Per Hour",
+      "disableAppyOnline": "N",
+      "whoMayApply": null,
+      "jobcategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "hiringpaths": [],
+      "positionlocations": [
+        {
+          "positionLocationCity": "Arlington",
+          "positionLocationState": "VA",
+          "positionLocationCountry": "United States"
+        }
+      ]
+    },
+    {
+      "usajobsControlNumber": 990000103,
+      "hiringAgencyCode": "ZZIT",
+      "hiringAgencyName": "A changed synthetic display label",
+      "hiringDepartmentCode": "ZZ",
+      "hiringDepartmentName": "Synthetic Department",
+      "announcementNumber": "SYN-IT-2026-103",
+      "positionOpenDate": "2026-11-13",
+      "positionCloseDate": "2026-11-20",
+      "positionExpireDate": null,
+      "positionOpeningStatus": null,
+      "positionTitle": "IT Specialist",
+      "workSchedule": "Full-time",
+      "appointmentType": "Permanent",
+      "teleworkEligible": "N",
+      "minimumSalary": 0,
+      "maximumSalary": 0,
+      "salaryType": "Per Year",
+      "disableAppyOnline": "N",
+      "whoMayApply": null,
+      "jobCategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "hiringPaths": [],
+      "positionLocations": [
+        {
+          "positionLocationCity": "Ottawa",
+          "positionLocationState": "Ontario",
+          "positionLocationCountry": "Canada"
+        }
+      ]
+    }
+  ]
+}

@@ -36,6 +36,7 @@ _BUILTINS = (
     ("wwr", _factory("services.discovery.sources.wwr", "WeWorkRemotely", default_tenant=True)),
     ("remoteok", _factory("services.discovery.sources.remoteok", "RemoteOK", default_tenant=True)),
     ("arbeitnow", _factory("services.discovery.sources.arbeitnow", "Arbeitnow", default_tenant=True)),
+    ("usajobs", _factory("services.discovery.sources.usajobs", "USAJobs", default_tenant=True)),
 )
 
 

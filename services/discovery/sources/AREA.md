@@ -10,7 +10,8 @@ SearchBatch contains per-posting SourceCompany attribution so a future global
 feed can persist multiple employers in one collection. `source_adapter` is a
 closed provider registry supporting Greenhouse and Lever (employer boards), Remotive
 (global JSON), We Work Remotely (global RSS feed), Remote OK (global JSON), and
-Arbeitnow (one latest public European feed page, incomplete inventory).
+Arbeitnow (one latest public European feed page), and USAJOBS (recent federal IT
+announcements through two public data endpoints). Both have incomplete inventory.
 The legacy Greenhouse.collect method delegates to search for compatibility.
 configure_source and collect_source own policy and provider-neutral persistence.
 Persist job_sources, company sources, canonical jobs/routes, raw postings and
@@ -59,3 +60,14 @@ is not an employer-domain assertion. Source links stay aggregator routes and do
 not acquire verified employer/ATS authority. API source credit, supported fields,
 unsupported capabilities and validation instructions are in
 `docs/sources/ARBEITNOW.md`.
+
+## USAJOBS public federal IT source — MJ-REQ-017.F06
+
+The default-only usajobs provider reads one recent series2210 metadata page and
+at most one selected-control-number announcement-text batch. Join every native
+identity field before yielding any posting. Keep raw records together, preserve
+calendar-date uncertainty, and never infer inventory closure or fully remote work.
+Native agency/department codes identify companies; the shared USAJOBS platform
+host does not establish employer or ATS authority. The exact public-access scope,
+two-request limits, manual routes and qualification state are documented in
+docs/sources/USAJOBS.md.
