@@ -1,10 +1,14 @@
 """Owned loopback sockets exercise MockClient before response ownership exists."""
-from contextlib import contextmanager
+from collections import deque
+from contextlib import ExitStack, contextmanager
+from pathlib import Path
 import select
 import socket
+import sys
 import threading
 import time
 
+import httpx
 import pytest
 
 from services.discovery.pipeline import MockClient
@@ -210,8 +214,178 @@ def test_pending_real_loopback_connect_observes_worker_stop(trigger, monkeypatch
             follow_on.close()
     assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
 
-@pytest.mark.parametrize('trigger', ['cancel', 'deadline'])
-def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigger, tmp_path, monkeypatch):
+
+class _PublicWorkerPhases:
+    """Bounded observations of the owned worker, without payloads or SQL values."""
+
+    def __init__(self, *, hold_terminal_commit=False):
+        self.started = time.monotonic()
+        self.records = deque(maxlen=128)
+        self.worker_store = None
+        self.http_client = None
+        self.watcher = None
+        self.sockets = []
+        self.operation_id = None
+        self.transport_unwound = False
+        self.hold_terminal_commit = hold_terminal_commit
+        self.terminal_held = threading.Event()
+        self.release_terminal = threading.Event()
+        self.failure_snapshot = None
+        self.worker_error_types = []
+        self.worker_result_count = 0
+
+    def record(self, label):
+        self.records.append((label, time.monotonic() - self.started,
+                             time.thread_time(), threading.current_thread().name))
+
+    def span(self, label, operation):
+        def observed(*args, **kwargs):
+            self.record(label + '_enter')
+            try:
+                return operation(*args, **kwargs)
+            except BaseException as error:
+                self.record(label + '_' + type(error).__name__)
+                raise
+            finally:
+                self.record(label + '_exit')
+        return observed
+
+    def budget(self, value):
+        self.record('deadline_budget')
+        return value
+
+    def observe(self, stack, database_url):
+        from unittest.mock import patch
+        from packages.persistence.store import Store
+        from services.discovery.sources.http_transport import _Backend
+        from workers import operations, tasks
+
+        original_init = Store.__init__
+        original_read = operations._read_operation_control
+        original_get = MockClient.get
+        original_http_close = httpx.Client.close
+
+        def observed_store_init(store, url):
+            if (url != database_url
+                    or threading.current_thread().name != 'mock004-public-worker'):
+                return original_init(store, url)
+            self.record('worker_store_enter')
+            try:
+                original_init(store, url)
+                self.worker_store = store
+                self.observe_engine(stack, store.engine)
+            finally:
+                self.record('worker_store_exit')
+
+        def observed_read(store, *args, **kwargs):
+            if store is not self.worker_store:
+                return original_read(store, *args, **kwargs)
+            if threading.current_thread().name == 'mjobs-fixture-discovery-cancellation':
+                self.watcher = threading.current_thread()
+            return self.span('control_read', original_read)(store, *args, **kwargs)
+
+        def observed_get(client, *args, **kwargs):
+            self.http_client = client.client
+            try:
+                return self.span('mock_get', original_get)(client, *args, **kwargs)
+            finally:
+                self.transport_unwound = True
+
+        def observed_http_close(client):
+            if client is self.http_client:
+                if threading.current_thread().name == 'mjobs-fixture-discovery-cancellation':
+                    self.watcher = threading.current_thread()
+                return self.span('http_close', original_http_close)(client)
+            return original_http_close(client)
+
+        stack.enter_context(patch.object(Store, '__init__', observed_store_init))
+        stack.enter_context(patch.object(operations, '_read_operation_control', observed_read))
+        stack.enter_context(patch.object(tasks, 'claim', self.span('claim', tasks.claim)))
+        stack.enter_context(patch.object(_Backend, 'connect_tcp',
+                                        self.span('backend_connect', _Backend.connect_tcp)))
+        stack.enter_context(patch.object(MockClient, 'get', observed_get))
+        stack.enter_context(patch.object(MockClient, 'close', self.span('mock_close', MockClient.close)))
+        stack.enter_context(patch.object(httpx.Client, 'close', observed_http_close))
+        stack.enter_context(patch.object(tasks, 'log_operation_finished',
+                                        self.span('log_finished', tasks.log_operation_finished)))
+
+    def observe_engine(self, stack, engine):
+        from unittest.mock import patch
+        from sqlalchemy import event
+        from packages.persistence import models as m
+
+        terminal_commit = [False]
+        original_commit = engine.dialect.do_commit
+
+        def sql_label(statement):
+            upper = statement.lstrip().upper()
+            verb = upper.split(None, 1)[0] if upper else 'EMPTY'
+            table = ('operations' if m.operations.name.upper() in upper else
+                     'audit' if m.audit.name.upper() in upper else 'other')
+            return verb + '_' + table
+
+        def before_sql(_connection, _cursor, statement, *_args):
+            if self.transport_unwound:
+                label = sql_label(statement)
+                self.record('sql_' + label + '_enter')
+                if label == 'UPDATE_operations':
+                    terminal_commit[0] = True
+
+        def after_sql(_connection, _cursor, statement, *_args):
+            if self.transport_unwound:
+                self.record('sql_' + sql_label(statement) + '_exit')
+
+        def observed_commit(connection):
+            label = 'terminal_commit' if terminal_commit[0] else 'dbapi_commit'
+            self.record(label + '_enter')
+            try:
+                if terminal_commit[0] and self.hold_terminal_commit:
+                    self.record('terminal_commit_held')
+                    self.terminal_held.set()
+                    if not self.release_terminal.wait(5):
+                        raise AssertionError('diagnostic terminal release watchdog expired')
+                    self.record('terminal_commit_released')
+                result = original_commit(connection)
+                self.record(label + '_returned')
+                terminal_commit[0] = False
+                return result
+            finally:
+                self.record(label + '_exit')
+
+        for name, observer in (('before_cursor_execute', before_sql),
+                               ('after_cursor_execute', after_sql)):
+            event.listen(engine, name, observer)
+            stack.callback(event.remove, engine, name, observer)
+        stack.enter_context(patch.object(engine.dialect, 'do_commit', observed_commit))
+        stack.enter_context(patch.object(engine, 'dispose', self.span('store_dispose', engine.dispose)))
+
+    def describe_failed_join(self, worker):
+        # Capture only our exact Thread objects; never retain frames or locals.
+        self.record('join_failed')
+        frames = sys._current_frames()
+        stacks = {}
+        try:
+            for thread in (worker, self.watcher):
+                if thread is None:
+                    continue
+                entries = []
+                frame = frames.get(thread.ident) if thread.is_alive() else None
+                while frame is not None and len(entries) < 16:
+                    entries.append((Path(frame.f_code.co_filename).name,
+                                    frame.f_code.co_name, frame.f_lineno))
+                    frame = frame.f_back
+                stacks[thread.name] = entries
+        finally:
+            frames.clear()
+        self.failure_snapshot = {
+            'records': tuple(self.records),
+            'stacks': stacks,
+            'open_connect_sockets': sum(sock.fileno() != -1 for sock in self.sockets),
+        }
+        return repr(self.failure_snapshot)
+
+
+def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=None):
     """Public admission/direct worker/SQLite reopen; no RQ or external provider."""
     import os
     from unittest.mock import patch
@@ -221,15 +395,19 @@ def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigge
     from tests.integration.test_spine import PROFILE
     from workers.tasks import execute_operation
 
+    phases = phases or _PublicWorkerPhases()
     store = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
     store.migrate()
     store.bind_workspace_mode('FIXTURE')
     store.save_profile(dict(PROFILE))
     worker = None
+    observers = ExitStack()
     try:
+        phases.observe(observers, store.url)
         with saturated_loopback_listener() as origin:
             connecting = threading.Event()
             sockets = []
+            phases.sockets = sockets
             real_socket = socket.socket
 
             class ObservedSocket(real_socket):
@@ -250,27 +428,37 @@ def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigge
             with TestClient(app) as api, patch.dict(os.environ, {
                 'MJOBS_DATABASE_URL': store.url, 'MJOBS_MOCK_ORIGIN': origin,
                 'MJOBS_OUTPUT_DIR': str(tmp_path), 'MJOBS_OPERATION_MODE': 'FIXTURE',
-            }), patch('workers.tasks.timeout', return_value=2 if trigger == 'cancel' else .8):
+            }), patch('workers.tasks.timeout', side_effect=lambda: phases.budget(2 if trigger == 'cancel' else .8)):
                 admitted = api.post('/discovery', json={'profile_id': 'fixture', 'request_id': 'mock004-' + trigger})
                 assert admitted.status_code == 202, admitted.text
                 identifier = admitted.json()['operation_id']
+                phases.operation_id = identifier
                 results, errors = [], []
 
                 def execute():
+                    phases.record('worker_enter')
                     try:
                         results.append(execute_operation(identifier))
+                        phases.worker_result_count = len(results)
                     except BaseException as error:
                         errors.append(error)
+                        phases.worker_error_types.append(type(error).__name__)
+                    finally:
+                        phases.record('worker_exit')
 
                 worker = threading.Thread(target=execute, name='mock004-public-worker')
                 worker.start()
                 assert connecting.wait(2), 'public worker did not attempt loopback connection'
                 time.sleep(.1)
                 assert sockets and not select.select([], [sockets[-1]], [], 0)[1], 'TCP connect not pending'
+                phases.record('pending_connect_confirmed')
                 if trigger == 'cancel':
                     assert api.post(f'/operations/{identifier}/cancel').status_code == 202
+                phases.record('join_enter')
                 worker.join(timeout=1.2)
-                assert not worker.is_alive(), 'public fixture worker remained blocked in connect'
+                phases.record('join_exit')
+                assert not worker.is_alive(), ('public fixture worker remained blocked in connect; phases='
+                                               + phases.describe_failed_join(worker))
                 assert not errors and len(results) == 1
                 saved = api.get(f'/operations/{identifier}').json()
                 expected = ('CANCELLED', 'CANCEL_REQUESTED') if trigger == 'cancel' else ('DEAD_LETTERED', 'OPERATION_TIMEOUT')
@@ -285,11 +473,58 @@ def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigge
             finally:
                 reopened.engine.dispose()
     finally:
-        if worker is not None:
-            worker.join(timeout=11)
-            assert not worker.is_alive(), 'public worker survived finite cleanup watchdog'
-        store.engine.dispose()
+        try:
+            phases.release_terminal.set()
+            if worker is not None:
+                worker.join(timeout=11)
+                assert not worker.is_alive(), 'public worker survived finite cleanup watchdog'
+            store.engine.dispose()
+        finally:
+            observers.close()
     assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
+
+
+@pytest.mark.parametrize('trigger', ['cancel', 'deadline'])
+def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigger, tmp_path, monkeypatch):
+    _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch)
+
+
+def test_public_worker_phase_diagnostic_separates_terminal_commit_delay(tmp_path, monkeypatch):
+    """A real pending connect stopped, but a held real terminal commit is late."""
+    from sqlalchemy import select
+    from packages.persistence import models as m
+    from packages.persistence.store import Store
+
+    phases = _PublicWorkerPhases(hold_terminal_commit=True)
+    with pytest.raises(AssertionError, match='^public fixture worker remained blocked in connect; phases='):
+        _exercise_public_fixture_worker('deadline', tmp_path, monkeypatch, phases=phases)
+
+    snapshot = phases.failure_snapshot
+    assert phases.terminal_held.is_set() and snapshot is not None
+    labels = [record[0] for record in snapshot['records']]
+    assert labels.count('backend_connect_OperationTimedOut') == 1, snapshot
+    assert labels.index('backend_connect_exit') < labels.index('mock_get_exit')
+    assert labels.index('mock_get_exit') < labels.index('terminal_commit_held') < labels.index('join_failed')
+    assert snapshot['open_connect_sockets'] == 0, snapshot
+    assert any(function == 'observed_commit'
+               for _file, function, _line in snapshot['stacks']['mock004-public-worker']), snapshot
+    completed = [record[0] for record in phases.records]
+    assert completed.count('terminal_commit_returned') == 1, completed
+    assert completed.index('terminal_commit_released') < completed.index('terminal_commit_returned'), completed
+    assert completed.index('terminal_commit_returned') < completed.index('worker_exit'), completed
+    assert not phases.worker_error_types and phases.worker_result_count == 1
+    assert phases.watcher is None or not phases.watcher.is_alive()
+
+    reopened = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
+    try:
+        with reopened.engine.connect() as connection:
+            row = connection.execute(select(
+                m.operations.c.state, m.operations.c.error, m.operations.c.attempt_count,
+            ).where(m.operations.c.id == phases.operation_id)).one()
+        assert tuple(row) == ('DEAD_LETTERED', 'OPERATION_TIMEOUT', 1)
+    finally:
+        reopened.engine.dispose()
+
 
 @pytest.mark.parametrize('origin', ['https://127.0.0.1', 'http://example.invalid', 'http://user:pass@localhost', 'http://localhost/path', 'http://mock'])
 def test_fixture_origin_remains_explicitly_allowlisted(origin, monkeypatch):
