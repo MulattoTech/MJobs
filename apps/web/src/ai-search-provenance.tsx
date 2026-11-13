@@ -12,13 +12,65 @@ export function AIJobSourceEvidence({value}:{value?:AIJobEvidence|null}) {
   return <section aria-label="Checked posting quotes"><p>These quotes match the posting text supplied for this evaluation. Only the quotations are verified; the AI rationale and applicant qualifications are not.</p>
     {value.quotes.map((item,index)=><blockquote key={index}><p>{item.quote}</p><footer>Source: captured job {item.field}</footer></blockquote>)}</section>;
 }
-export type AIProviderAccessInfo = {provider:string;credential_source:'SAVED_PROFILE'|'RUNTIME_CONFIGURATION'|'DISABLED';destination:string|null};
+export type AIJobScoringDataFlow =
+  | {status:'UNKNOWN'}
+  | {status:'DISABLED';contract:'JOB_SCORING_V1'}
+  | {status:'RECORDED';contract:'JOB_SCORING_V1';
+      prompt_fields:['job_title','company','job_description','deterministic_match_score'];
+      text_limits:{job_title:512;company:512;job_description:8000;prompt:12000};
+      local_records:['evaluation_input_snapshot','advisory_results'];provider_retention:'UNKNOWN'};
+export type AIProviderAccessInfo = {provider:string;credential_source:'SAVED_PROFILE'|'RUNTIME_CONFIGURATION'|'DISABLED';destination:string|null;data_flow?:AIJobScoringDataFlow};
+
+function hasExactKeys(value:unknown,keys:string[]):value is Record<string,unknown> {
+  return !!value&&typeof value==='object'&&!Array.isArray(value)&&
+    Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
+}
+
+function hasExactItems(value:unknown,items:string[]):boolean {
+  return Array.isArray(value)&&value.length===items.length&&items.every((item,index)=>value[index]===item);
+}
+
+function isKnownRuntimeProvider(value:unknown):value is string {
+  return typeof value==='string'&&['openai','ollama','openai-compatible','local','azure-openai','azure'].includes(value);
+}
+
+function jobScoringDisclosureStatus(value?:AIProviderAccessInfo|null):'UNKNOWN'|'DISABLED'|'RECORDED' {
+  const flow:unknown=value?.data_flow;
+  if(hasExactKeys(flow,['status','contract'])&&flow.status==='DISABLED'&&flow.contract==='JOB_SCORING_V1'&&
+      value?.provider==='disabled'&&value.credential_source==='DISABLED'&&value.destination===null)return 'DISABLED';
+  if(!hasExactKeys(flow,['status','contract','prompt_fields','text_limits','local_records','provider_retention'])||
+      flow.status!=='RECORDED'||flow.contract!=='JOB_SCORING_V1'||flow.provider_retention!=='UNKNOWN'||
+      !hasExactItems(flow.prompt_fields,['job_title','company','job_description','deterministic_match_score'])||
+      !hasExactItems(flow.local_records,['evaluation_input_snapshot','advisory_results'])||
+      !hasExactKeys(flow.text_limits,['job_title','company','job_description','prompt'])||
+      flow.text_limits.job_title!==512||flow.text_limits.company!==512||
+      flow.text_limits.job_description!==8000||flow.text_limits.prompt!==12000)return 'UNKNOWN';
+  if(value?.credential_source==='SAVED_PROFILE'&&value.provider==='openai'&&value.destination==='https://api.openai.com')return 'RECORDED';
+  if(value?.credential_source==='RUNTIME_CONFIGURATION'&&isKnownRuntimeProvider(value.provider)&&value.destination===null)return 'RECORDED';
+  return 'UNKNOWN';
+}
+
+function AIJobScoringDisclosure({value}:{value?:AIProviderAccessInfo|null}) {
+  const status=jobScoringDisclosureStatus(value);
+  if(status==='UNKNOWN')return <p className="muted">Data-flow details were not recorded or cannot be verified for this saved plan.</p>;
+  if(status==='DISABLED')return <p className="muted">Job-scoring AI is disabled for this plan. It authorizes no inference request.</p>;
+  return <details aria-label="Job scoring data flow"><summary>What job scoring shares and keeps</summary>
+    <p>Preview makes no model calls. Evaluation requires an explicit request; this disclosure does not prove a request was sent.</p>
+    <p>This job-scoring prompt can include the job title and company (up to 512 characters each), job description (up to 8,000 characters), and deterministic match score. The score is derived from profile information. The complete prompt, including instructions, is limited to 12,000 characters.</p>
+    <p>This job-scoring prompt does not add raw résumé text, contact details, career facts, or application answers. Job source text may itself contain sensitive information, so review it before evaluation.</p>
+    <p>MJobs stores the evaluation input snapshot and advisory results in its database. Provider retention and deletion are unknown; cleaning up MJobs data does not establish deletion at the provider.</p>
+    <p>This disclosure applies only to job scoring. Evaluation produces advisory results and does not submit an application; document preparation requires a separate review.</p>
+  </details>;
+}
 
 export function AIProviderAccess({value}:{value?:AIProviderAccessInfo|null}) {
-  if(!value)return <p className="muted">Credential source was not recorded for this saved plan.</p>;
-  if(value.credential_source==='DISABLED')return <p className="muted">AI provider disabled. This local preview makes no model calls.</p>;
-  if(value.credential_source==='SAVED_PROFILE')return <p className="muted">Uses this profile's saved OpenAI credential. Requests go only to {value.destination}. A key change requires a new plan.</p>;
-  return <p className="muted">Provider access: runtime configuration ({value.provider}). Review the configured service before requesting evaluation.</p>;
+  return <>
+    {!value?<p className="muted">Credential source was not recorded for this saved plan.</p>
+      :value.credential_source==='DISABLED'?<p className="muted">AI provider disabled. This preview makes no model calls.</p>
+      :value.credential_source==='SAVED_PROFILE'?<p className="muted">Uses this profile's saved OpenAI credential. Requests go only to {value.destination}. A key change requires a new plan.</p>
+      :<p className="muted">Provider access: runtime configuration ({isKnownRuntimeProvider(value.provider)?value.provider:'unknown provider'}). The destination was not recorded for this plan. Review the configured service before requesting evaluation.</p>}
+    <AIJobScoringDisclosure value={value}/>
+  </>;
 }
 
 export type AIScoreEvidence = {basis?:string;limitation?:string;base_score:number;score:number;scoring_profile:{selection:string;profile_version:string|null};
