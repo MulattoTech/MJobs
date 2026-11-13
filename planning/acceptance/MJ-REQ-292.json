@@ -3,7 +3,7 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-06T20:46:01.345347+00:00",
+  "updated_at_utc": "2026-11-13T09:13:43.367123+00:00",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
@@ -39,17 +39,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "All required isolated Compose service processes start, migrations complete and readiness succeeds. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -88,17 +92,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "The real React dashboard opens through the tested API service. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -137,17 +145,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "First-run wizard finishes and the saved setup survives reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
@@ -188,17 +200,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "Synthetic PDF and DOCX resume import succeeds through UI/API and persists original bytes. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -239,17 +255,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "Extracted suggestions are displayed unapproved with source identity. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -290,17 +310,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "A deliberately wrong extracted fact is corrected, explicitly reviewed and read back after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -341,17 +365,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "Only explicitly verified facts persist in the selected career profile. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -392,17 +420,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "A saved remote IT search belongs to the same profile and survives reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -438,24 +470,30 @@
         "cli/ui_e2e.py",
         "services/discovery/sources/collect.py",
         "tests/integration/test_e2e_acceptance_workflow_slice.py",
-        "tests/browser/test_matching_explanation_workflow.py"
+        "tests/browser/test_matching_explanation_workflow.py",
+        "cli/acceptance_source_setup.py",
+        "cli/acceptance_campaign.py"
       ],
       "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Actual configuration of both designated public sources under owned isolated containment remains unverified.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "Prove the intended source pair is enabled/read back and retains complete policy binding throughout the same public journey. Runtime04 source-setup history contained two created-source checks with a null policy digest and was rejected by the unchanged strict validator. The four-file repair is included in private032, but a fresh connected qualification on protected merged source remains required.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "At least two intended job sources are enabled and read back. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -496,17 +534,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Discovery completes through real queued workers using the saved search. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -549,17 +591,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Actual read-only public collection and visible real-source provenance remain unverified in this connected run.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "Runtime04 completed one Remotive collection and saved five observed public posting/snapshot joins and same-profile job-detail browser checks. The wrapper failed before ingesting those standalone public observations. Establish real discovered jobs as accepted evidence within the continuous protected-source journey; preserve the original failure and do not relabel the isolated PASS artifacts as numbered acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Authorized read-only public sources produce independently observed real jobs; fixture data is insufficient. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -602,17 +648,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "A search changes the visible result set with correct matching and exclusion. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -653,17 +703,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Selected filters constrain the visible results as specified. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -704,17 +758,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Visible result order agrees with calculated match scores and deterministic ties. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -755,17 +813,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Actual scalar salary data is present in the API but missing in the current job-detail UI; narrow UI correction and connected recheck pending.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Available salary values and provenance are shown without fabricated data. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -806,17 +868,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Actual read-only public collection and visible real-source provenance remain unverified in this connected run.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "Runtime04 saved five public job-detail observations, including three rows with visible restrictions; standalone public/browser checks passed but were not ingested after source-setup validation failed. Prove source-consistent remote eligibility inside the continuous protected-source journey and independently review the joined evidence.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Known remote eligibility and restrictions are visible and consistent with source evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -857,17 +923,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Canonical result displays the correct number of distinct source postings. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -909,17 +979,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Selected canonical job opens with the same identity used in following phases. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -961,17 +1035,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Every known posting/source copy is visible with preserved provenance. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1013,17 +1091,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Preferred authoritative source is visible and justified by current source evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1065,17 +1147,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Selected application destination and route are visible for the canonical job. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1117,17 +1203,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "rey_ui_observations",
+      "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
         "cli/ui_e2e_jobs_journey.py",
         "tests/unit/test_ui_e2e_acceptance_observations.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase B connected assertions plus focused negative regressions",
       "required_integration_validation": "Score and contributing/missing verified facts explain the match. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1165,16 +1255,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: An imported employer is initially unmonitored and produces a distinct discovery intent. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "An imported employer is initially unmonitored and produces a distinct discovery intent. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1214,16 +1309,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: The eligible unseen employer triggers real company-discovery execution without manually substituting a source. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "The eligible unseen employer triggers real company-discovery execution without manually substituting a source. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1260,19 +1360,26 @@
         "services/company_discovery/requests.py",
         "services/company_discovery/domain_acquisition.py",
         "services/company_discovery/flywheel.py",
-        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "apps/api/collection_domain_proofs.py",
+        "cli/acceptance_public_source.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Official employer domain has not been corroborated in this connected run; fixture flywheel bypasses public official-domain acquisition. Bounded native-job discovery enhancement and actual proof pending.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: Official domain is corroborated through independent admissible evidence. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "Official domain is corroborated through independent admissible evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1312,16 +1419,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: Official careers location is identified with preserved evidence. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "Official careers location is identified with preserved evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1361,16 +1473,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: Supported ATS identity is established where evidence permits; ambiguity fails safely. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "Supported ATS identity is established where evidence permits; ambiguity fails safely. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1410,16 +1527,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: Eligible employer becomes a direct source with durable identity and correct controls. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "Eligible employer becomes a direct source with durable identity and correct controls. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1459,16 +1581,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: All current openings within the supported provider listing are enumerated without truncation. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "All current openings within the supported provider listing are enumerated without truncation. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1508,16 +1635,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: A qualifying direct-employer job absent from the original aggregator is discovered. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "A qualifying direct-employer job absent from the original aggregator is discovered. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1557,16 +1689,21 @@
         "tests/integration/test_e2e_acceptance_workflow_slice.py"
       ],
       "status": "PARTIAL",
-      "evidence_of_existing_behavior": [],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "obiwan_employer",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Required public behavior remains: Overlapping employer/aggregator copies merge into one canonical job without provenance loss. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
         "tests/unit/test_official_domain_sameas.py",
         "tests/integration/test_official_domain_sameas.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase C connected assertions plus focused negative regressions",
       "required_integration_validation": "Overlapping employer/aggregator copies merge into one canonical job without provenance loss. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1609,15 +1746,19 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "ahsoka_documents",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "A strong match is saved or shortlisted and remains saved after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1658,15 +1799,19 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "ahsoka_documents",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Tailored resume uses verified facts only and preserves base/version provenance. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -1712,15 +1857,19 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "ahsoka_documents",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Comparison displays actual differences between the selected base and tailored resume versions. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -1766,15 +1915,19 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "ahsoka_documents",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Cover letter is specific to the selected job and distinct from a different job letter without invented facts. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -1818,17 +1971,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Application preparation persists the correct profile/job and document revision pins. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1871,17 +2028,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Prepared application shows the correct selected route. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
@@ -1924,17 +2085,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Supported adapter selection matches the route and provider identity. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -1977,17 +2142,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Playwright opens the controlled application form with the selected adapter. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2030,17 +2199,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Contact fields contain the intended verified applicant values. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2083,17 +2256,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "The intended resume artifact is uploaded and its digest matches the selected version. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2137,17 +2314,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Applicable cover-letter upload matches the intended document version and digest. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2191,17 +2372,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Previously approved exact-question answers populate appropriate fields. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2244,17 +2429,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Unknown/ambiguous/sensitive/unapproved question stops for review before submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -2297,17 +2486,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Explicit human review/correction produces a fresh question-bound approval. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
@@ -2350,17 +2543,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Application resumes using the reviewed state and rejects stale approvals. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2403,17 +2600,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "All current form fields, uploads and applicant pins are validated together. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2456,17 +2657,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "DRY_RUN produces zero external submission requests and stops safely. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2509,17 +2714,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Only the owned local mock receives the deliberate submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2562,17 +2771,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "A bounded authoritative mock confirmation is detected exactly once. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2615,17 +2828,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Application history and confirmed receipt persist and remain idempotent. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
@@ -2668,17 +2885,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Tracker shows the same application and confirmed state after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
@@ -2721,17 +2942,21 @@
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
-      "responsible_agent": "vader_ats_flow",
+      "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
         "tests/unit/test_owned_ats_fixture.py",
         "tests/browser/test_owned_ats_fixture.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Relevant audit events are complete, ordered, scoped and privacy-safe. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
@@ -2778,8 +3003,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: All owned required services actually stop/restart with persistent test volumes retained. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -2787,8 +3012,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "All owned required services actually stop/restart with persistent test volumes retained. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -2831,8 +3056,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Complete same-profile canonical jobs and every source copy match fresh version3 pre-restart inventory. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -2840,8 +3065,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Complete same-profile canonical jobs and every source copy match fresh version3 pre-restart inventory. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -2884,8 +3109,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Enrolled company source identities/configuration persist after restart. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -2893,8 +3118,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Enrolled company source identities/configuration persist after restart. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -2937,8 +3162,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Original and generated documents, versions and exact download hashes survive restart. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -2946,8 +3171,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Original and generated documents, versions and exact download hashes survive restart. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -2990,8 +3215,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Application, history, attempt and confirmation identities survive restart without duplicate receipt. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -2999,8 +3224,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Application, history, attempt and confirmation identities survive restart without duplicate receipt. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -3030,7 +3255,10 @@
       "expected_observable_result": "Real scheduler resumes and naturally admits the expected due task.",
       "implementation_references": [
         "cli/compose_recovery.py",
-        "tests/integration/test_company_monitoring_recovery.py"
+        "tests/integration/test_company_monitoring_recovery.py",
+        "cli/acceptance_monitoring.py",
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py"
       ],
       "status": "NOT_RUN",
       "evidence_of_existing_behavior": [
@@ -3043,8 +3271,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Real scheduler resumes and naturally admits the expected due task. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -3052,8 +3280,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Real scheduler resumes and naturally admits the expected due task. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
@@ -3083,7 +3311,10 @@
       "expected_observable_result": "Company monitoring resumes through actual RQ workers for the same source/profile, advances schedule and does not duplicate work.",
       "implementation_references": [
         "cli/compose_recovery.py",
-        "tests/integration/test_company_monitoring_recovery.py"
+        "tests/integration/test_company_monitoring_recovery.py",
+        "cli/acceptance_monitoring.py",
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py"
       ],
       "status": "NOT_RUN",
       "evidence_of_existing_behavior": [
@@ -3096,8 +3327,8 @@
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
-      "responsible_agent": "han_recovery",
+      "missing_behavior": "Not reached by the fourth campaign. Still required: Company monitoring resumes through actual RQ workers for the same source/profile, advances schedule and does not duplicate work. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
+      "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: han_recovery",
       "exclusive_source_ownership": [
         "services/company_discovery/fixture_monitoring.py",
         "apps/api/fixture_company_monitoring.py",
@@ -3105,8 +3336,8 @@
         "services/discovery/scheduler.py",
         "tests/integration/test_fixture_company_monitoring.py"
       ],
-      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
-      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "ownership_status": "HISTORICAL_SOURCE_PATHS_RETAINED_CURRENT_WORK_REQUIRES_NATIVE_SCOPED_CLAIM",
+      "required_automated_test": "python -m cli.acceptance_journey; numbered phase F connected assertions plus focused negative regressions",
       "required_integration_validation": "Company monitoring resumes through actual RQ workers for the same source/profile, advances schedule and does not duplicate work. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
         "tested_commit": null,
