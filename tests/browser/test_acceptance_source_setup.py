@@ -1,12 +1,15 @@
+import hashlib
 import json
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import Mock
 
 from playwright.sync_api import sync_playwright
 
 from cli.acceptance_source_setup import _policy_sha, compose_owned_public_containment
+from cli.acceptance_public_source import _validate_lease_continuity
 from packages.persistence.store import identity
 from services.discovery.sources.registry import source_adapter
 
@@ -35,6 +38,173 @@ PROOF = {
     "token": "private-token",
     "lease_expires_at": (_TEST_NOW + timedelta(minutes=5)).isoformat(),
 }
+
+
+class ClockedOwner:
+    """A controlled owner that cannot renew an expired or released lease."""
+    def __init__(self, now):
+        self.now = now
+        self.expires = now[0] + timedelta(seconds=30)
+        self.owner, self.token = PROOF['owner'], PROOF['token']
+        self.calls = []
+        self.released = False
+
+    def _check(self):
+        if self.released or self.now[0] >= self.expires:
+            raise RuntimeError('CONTAINMENT_LEASE_EXPIRED')
+        if self.expires <= self.now[0] + timedelta(seconds=16):
+            self.expires = self.now[0] + timedelta(seconds=30)
+
+    def __call__(self, stage, context):
+        self.calls.append(('primary', stage))
+        self._check()
+        return dict(PROOF, owner=self.owner, token=self.token, lease_expires_at=self.expires.isoformat())
+
+    def bind_additional_source(self, *, policy, primary_context):
+        self.calls.append(('additional', 'bind'))
+        self._check()
+        return dict(additional_source_absent=True, provider=policy['provider'], tenant='default',
+            lease_expires_at=self.expires.isoformat(), lease_model='LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS')
+
+    def additional_source(self, event, context):
+        self.calls.append(('additional', event))
+        self._check()
+        return dict(additional_source_policy_verified=True,
+            additional_source_id=context['additional_source_id'],
+            additional_source_enabled=context['additional_enabled'], lease_expires_at=self.expires.isoformat())
+
+
+class SourceSetupLeaseContinuityTests(unittest.TestCase):
+    def wrapper(self, *, primary_provider='wwr'):
+        directory = self.enterContext(tempfile.TemporaryDirectory())
+        self.now = [datetime.fromisoformat(STAMP)]
+        self.owner = ClockedOwner(self.now)
+        def forbidden(*args, **kwargs):
+            self.fail('Protocol-only test reached browser/API transport')
+        wrapped = compose_owned_public_containment(self.owner,
+            base_url='http://127.0.0.1:18700', baseline=BASELINE, runtime_identity=RUNTIME,
+            acceptance_run_id='lease-continuity-contract', artifact_path=Path(directory) / 'setup.json',
+            primary_provider=primary_provider, request=forbidden,
+            execution_scope='CONTROLLED_TRANSPORT', utc_now=lambda: self.now[0])
+        self.context = dict(provider=primary_provider, base_url='http://127.0.0.1:18700')
+        return wrapped
+
+    def test_long_setup_returns_fresh_read_and_continuous_same_owner_checks(self):
+        for primary_provider in ('wwr', 'remotive'):
+            with self.subTest(primary_provider=primary_provider):
+                wrapped = self.wrapper(primary_provider=primary_provider)
+                started, prior_expiry = self.now[0], self.owner.expires
+                wrapped.extra_id = 'owned-extra'
+                wrapped.extra_bound = True
+                def setup(context):
+                    for _ in range(2):
+                        wrapped._with_lease(context,
+                            lambda: self.now.__setitem__(0, self.now[0] + timedelta(seconds=20)))
+                    wrapped.observation = {'controlled': True}
+                wrapped._observe_and_disable = setup
+                proof = wrapped('dispatch', self.context)
+                self.assertGreater(self.now[0], prior_expiry)
+                self.assertGreater(self.owner.expires, self.now[0] + timedelta(seconds=15))
+                self.assertEqual(proof['lease_expires_at'], self.owner.expires.isoformat())
+                self.assertEqual(self.owner.calls[-1], ('primary', 'read'))
+                self.assertEqual(self.owner.calls.count(('primary', 'dispatch')), 1)
+                checks = proof['lease_continuity']['checks']
+                self.assertEqual(checks[-1]['checked_at'], self.now[0].isoformat())
+                self.assertEqual(checks[-1]['lease_expires_at'], proof['lease_expires_at'])
+                self.assertEqual(_validate_lease_continuity(proof, prior_expiry=prior_expiry,
+                    started_at=started, finished_at=self.now[0], final_expiry=self.owner.expires),
+                    proof['lease_continuity'])
+                for index, call in enumerate(self.owner.calls):
+                    if call[0] == 'additional':
+                        self.assertEqual(self.owner.calls[index + 1], ('primary', 'read'))
+                self.assertNotIn(PROOF['token'], json.dumps(proof['lease_continuity']))
+                self.assertIsNone(wrapped._lease_checks)
+
+    def test_preflight_uses_one_admission_and_fresh_final_read_after_bind_and_ui(self):
+        wrapped = self.wrapper()
+        def create(context):
+            wrapped._with_lease(context,
+                lambda: self.now.__setitem__(0, self.now[0] + timedelta(seconds=20)))
+            wrapped.extra_id = 'owned-extra'
+        wrapped._create_extra = create
+        proof = wrapped('preflight', self.context)
+        self.assertEqual(self.owner.calls[:3], [('primary', 'preflight'), ('additional', 'bind'), ('primary', 'read')])
+        self.assertEqual(self.owner.calls.count(('primary', 'preflight')), 1)
+        self.assertEqual(self.owner.calls[-1], ('primary', 'read'))
+        self.assertEqual(proof['lease_expires_at'], self.owner.expires.isoformat())
+        self.assertEqual(proof['lease_continuity']['checks'][-1]['checked_at'], self.now[0].isoformat())
+        self.assertIsNone(wrapped._lease_checks)
+
+    def test_inner_expiry_is_propagated_without_reacquisition_and_capture_is_reset(self):
+        wrapped = self.wrapper()
+        browser = Mock()
+        wrapped.browser = browser
+        def setup(context):
+            self.now[0] += timedelta(seconds=31)
+            wrapped._call_owned('read', context)
+        wrapped._observe_and_disable = setup
+        original_expiry = self.owner.expires
+        with self.assertRaisesRegex(RuntimeError, 'CONTAINMENT_LEASE_EXPIRED'):
+            wrapped('dispatch', self.context)
+        self.assertEqual(self.owner.expires, original_expiry)
+        browser.close.assert_called_once()
+        self.assertIsNone(wrapped._lease_checks)
+        with self.assertRaisesRegex(RuntimeError, 'CONTAINMENT_LEASE_EXPIRED'):
+            wrapped('read', self.context)
+        self.assertIsNone(wrapped._lease_checks)
+        self.assertEqual(self.owner.expires, original_expiry)
+
+    def test_inner_identity_change_cannot_be_hidden_by_restoring_final_identity(self):
+        for attribute in ('owner', 'token'):
+            with self.subTest(attribute=attribute):
+                wrapped = self.wrapper()
+                original = getattr(self.owner, attribute)
+                def setup(context):
+                    setattr(self.owner, attribute, 'replacement')
+                    try:
+                        wrapped._call_owned('read', context)
+                    finally:
+                        setattr(self.owner, attribute, original)
+                wrapped._observe_and_disable = setup
+                with self.assertRaisesRegex(ValueError, 'SOURCE_SETUP_LEASE_CONTINUITY_LOST'):
+                    wrapped('dispatch', self.context)
+                self.assertIsNone(wrapped._lease_checks)
+
+    def test_stale_final_owner_proof_and_clock_regression_fail_closed(self):
+        for mode in ('expired', 'clock-regressed'):
+            with self.subTest(mode=mode):
+                wrapped = self.wrapper()
+                def setup(_context):
+                    if mode == 'expired':
+                        self.now[0] += timedelta(seconds=31)
+                    else:
+                        self.now[0] -= timedelta(seconds=1)
+                wrapped._observe_and_disable = setup
+                code = 'CONTAINMENT_LEASE_EXPIRED' if mode == 'expired' else 'SOURCE_SETUP_LEASE_CONTINUITY_LOST'
+                with self.assertRaisesRegex((RuntimeError, ValueError), code):
+                    wrapped('dispatch', self.context)
+                self.assertIsNone(wrapped._lease_checks)
+
+    def test_single_callback_checkpoint_count_is_bounded_and_resets_after_failure(self):
+        wrapped = self.wrapper()
+        def setup(context):
+            for _ in range(128):
+                wrapped._call_owned('read', context)
+        wrapped._observe_and_disable = setup
+        with self.assertRaisesRegex(ValueError, 'SOURCE_SETUP_LEASE_CONTINUITY_LIMIT'):
+            wrapped('dispatch', self.context)
+        self.assertIsNone(wrapped._lease_checks)
+        # A separate current read has its own one-check capture, not a replay.
+        proof = wrapped('read', self.context)
+        self.assertEqual(len(proof['lease_continuity']['checks']), 1)
+        self.assertIsNone(wrapped._lease_checks)
+
+    def test_reentrant_callback_is_rejected_and_capture_is_reset(self):
+        wrapped = self.wrapper()
+        wrapped._observe_and_disable = lambda context: wrapped('read', context)
+        with self.assertRaisesRegex(ValueError, 'SOURCE_SETUP_CONTAINMENT_REENTRY'):
+            wrapped('dispatch', self.context)
+        self.assertIsNone(wrapped._lease_checks)
 
 
 class SourceSetupBrowserTests(unittest.TestCase):
@@ -188,7 +358,10 @@ class SourceSetupBrowserTests(unittest.TestCase):
                         execution_scope="CONTROLLED_TRANSPORT",
                         utc_now=lambda: datetime.fromisoformat(STAMP),
                     )
-                    wrapped("preflight", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700"})
+                    admitted = wrapped("preflight", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700"})
+                    self.assertEqual(admitted['lease_continuity']['schema_version'], 1)
+                    self.assertEqual(stages.count('preflight'), 1)
+                    self.assertEqual(stages[-1], 'read')
                     self.assertEqual([row["provider"] for row in rows], [extra_provider])
 
                     primary_policy = {
@@ -198,8 +371,15 @@ class SourceSetupBrowserTests(unittest.TestCase):
                     }
                     request("PUT", "/sources", json=primary_policy)
                     primary = next(row for row in rows if row["provider"] == primary_provider)
-                    wrapped("dispatch", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700",
+                    dispatched = wrapped("dispatch", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700",
                         "source_id": primary["id"], "source_policy_sha256": _policy_sha(primary)})
+                    checks = dispatched['lease_continuity']['checks']
+                    self.assertGreater(len(checks), 1)
+                    self.assertEqual(checks[-1]['lease_expires_at'], dispatched['lease_expires_at'])
+                    self.assertEqual(checks[-1]['token_sha256'], hashlib.sha256(PROOF['token'].encode()).hexdigest())
+                    self.assertEqual(stages[-1], 'read')
+                    self.assertEqual(stages.count('dispatch'), 1)
+                    self.assertNotIn(PROOF['token'], json.dumps(dispatched['lease_continuity']))
                     extra = next(row for row in rows if row["provider"] == extra_provider)
                     self.assertFalse(extra["enabled"])
                     self.assertIsNone(extra["last_attempt"])

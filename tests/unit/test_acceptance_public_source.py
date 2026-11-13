@@ -1,6 +1,6 @@
 """No-network contracts for the same-profile public observation helper."""
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import json
 import os
@@ -136,7 +136,7 @@ class PublicSourceObservationTests(unittest.TestCase):
         return run('http://127.0.0.1:18700', BASELINE, path,
             acceptance_run_id='campaign', request=self.api.request, execution_scope='CONTROLLED_TRANSPORT',
             containment_preflight=kwargs.pop('containment_preflight', lambda *_: deepcopy(PROOF)),
-            utc_now=lambda: datetime.fromisoformat(STAMP), **kwargs)
+            utc_now=kwargs.pop('utc_now', lambda: datetime.fromisoformat(STAMP)), **kwargs)
 
     def test_one_collection_records_distinct_ids_and_restores_new_source(self):
         result = self.observe()
@@ -556,6 +556,166 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(result['result'], 'FAIL')
         self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
         self.assertFalse(any(path == '/jobs/real-job' for _, path, _ in self.api.calls))
+
+    def _delayed_dispatch(self, transform=lambda proof: None, *, with_witness=True):
+        """Model a long setup callback with two timely same-owner renewals."""
+        self.api = ControlledAPI()
+        base = datetime.fromisoformat(STAMP)
+        now = [base]
+        dispatched = [False]
+        def contain(stage, _context):
+            proof = dict(PROOF, lease_expires_at=(base + timedelta(seconds=30)).isoformat())
+            if dispatched[0]:
+                return dict(proof, lease_expires_at=(base + timedelta(seconds=60)).isoformat())
+            if stage == 'dispatch':
+                dispatched[0] = True
+                now[0] = base + timedelta(seconds=40)
+                proof['lease_expires_at'] = (base + timedelta(seconds=60)).isoformat()
+                if with_witness:
+                    proof['lease_continuity'] = {'schema_version': 1, 'checks': [dict(
+                        owner=proof['owner'], token_sha256=hashlib.sha256(proof['token'].encode()).hexdigest(),
+                        checked_at=(base + timedelta(seconds=checked)).isoformat(),
+                        lease_expires_at=(base + timedelta(seconds=expires)).isoformat())
+                        for checked, expires in ((0, 30), (20, 60), (40, 60))]}
+                transform(proof)
+            return proof
+        return self.observe(containment_preflight=contain, utc_now=lambda: now[0])
+
+    def test_overlapping_owner_checks_bridge_callback_deadline_without_live_credit(self):
+        result = self._delayed_dispatch()
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['cleanup']['status'], 'RESTORED_DISABLED')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+        self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
+        records = result['lease_continuity_checks']
+        self.assertEqual(len(records), 1)
+        check = records[0]
+        self.assertEqual(check['stage'], 'dispatch')
+        self.assertEqual(check['callback_started_at'], STAMP)
+        self.assertEqual(check['previous_expires_at'], '2026-11-06T12:00:30+00:00')
+        self.assertEqual(check['checked_at'], '2026-11-06T12:00:40+00:00')
+        self.assertEqual(check['lease_expires_at'], '2026-11-06T12:01:00+00:00')
+        self.assertEqual(check['sha256'], _digest(check['witness']))
+        self.assertEqual(check['witness']['checks'][-1]['token_sha256'],
+                         hashlib.sha256(PROOF['token'].encode()).hexdigest())
+        self.assertNotIn(PROOF['token'], json.dumps(result))
+
+    def test_renewed_expiry_without_continuity_cannot_bridge_callback_deadline(self):
+        result = self._delayed_dispatch(with_witness=False)
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+        self.assertTrue(self.api.source['enabled'])
+        self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_invalid_callback_continuity_cannot_dispatch_or_replace_cached_proof(self):
+        invalid = 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID'
+        expired = 'SOURCE_CONTAINMENT_LEASE_EXPIRED'
+        def witness(value):
+            return lambda proof: proof.update(lease_continuity=value)
+        def row(index, key, value):
+            return lambda proof: proof['lease_continuity']['checks'][index].update({key: value})
+        cases = [
+            ('absent-body', witness(None), invalid),
+            ('wrong-body-type', witness([]), invalid),
+            ('empty', witness({'schema_version': 1, 'checks': []}), invalid),
+            ('boolean-version', lambda p: p['lease_continuity'].update(schema_version=True), invalid),
+            ('unknown-version', lambda p: p['lease_continuity'].update(schema_version=2), invalid),
+            ('extra-field', lambda p: p['lease_continuity'].update(untrusted=True), invalid),
+            ('missing-field', lambda p: p['lease_continuity'].pop('schema_version'), invalid),
+            ('too-many', lambda p: p['lease_continuity'].update(checks=
+                [deepcopy(p['lease_continuity']['checks'][0])] * 129), invalid),
+            ('row-type', lambda p: p['lease_continuity']['checks'].__setitem__(1, None), invalid),
+            ('row-extra', row(1, 'untrusted', True), invalid),
+            ('row-missing', lambda p: p['lease_continuity']['checks'][1].pop('owner'), invalid),
+            ('owner-change', row(1, 'owner', 'another-owner'), invalid),
+            ('token-change', row(1, 'token_sha256', '0' * 64), invalid),
+            ('json-token-hash', row(1, 'token_sha256', _digest(PROOF['token'])), invalid),
+            ('bad-time', row(1, 'checked_at', 'invalid'), invalid),
+            ('naive-time', row(1, 'checked_at', '2026-11-06T12:00:20'), invalid),
+            ('offset-time', row(1, 'checked_at', '2026-11-06T13:00:20+01:00'), invalid),
+            ('non-string-time', row(1, 'checked_at', True), invalid),
+            ('future-check', row(2, 'checked_at', '2026-11-06T12:00:41+00:00'), invalid),
+            ('prior-callback', row(0, 'checked_at', '2026-11-06T11:59:59+00:00'), invalid),
+            ('reordered', row(2, 'checked_at', '2026-11-06T12:00:19+00:00'), invalid),
+            ('at-expiry', row(1, 'checked_at', '2026-11-06T12:00:30+00:00'), expired),
+            ('after-expiry', row(1, 'checked_at', '2026-11-06T12:00:31+00:00'), expired),
+            ('missing-bridge', lambda p: p['lease_continuity']['checks'].pop(1), expired),
+            ('expiry-regression', row(1, 'lease_expires_at', '2026-11-06T12:00:29+00:00'), invalid),
+            ('expired-check', row(1, 'lease_expires_at', '2026-11-06T12:00:20+00:00'), expired),
+            ('terminal-mismatch', lambda p: p.update(lease_expires_at='2026-11-06T12:01:30+00:00'), invalid),
+            ('stale-final-proof', lambda p: p.update(lease_expires_at='2026-11-06T12:00:30+00:00'),
+             'SOURCE_CONTAINMENT_LEASE_INVALID'),
+            ('short-final-proof', lambda p: p.update(lease_expires_at='2026-11-06T12:00:55+00:00'),
+             'SOURCE_CONTAINMENT_LEASE_INVALID'),
+            ('final-owner-change', lambda p: p.update(owner='another-owner'), 'SOURCE_OWNERSHIP_CHANGED'),
+            ('final-token-change', lambda p: p.update(token='another-token'), 'SOURCE_OWNERSHIP_CHANGED'),
+        ]
+        for name, change, code in cases:
+            with self.subTest(case=name):
+                result = self._delayed_dispatch(change)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], code, result)
+                self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+                self.assertEqual(result['containment']['lease_expires_at'], '2026-11-06T12:00:30+00:00')
+                self.assertNotIn('lease_continuity_checks', result)
+                self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_malformed_witness_is_rejected_even_before_previous_deadline(self):
+        result = self.observe(containment_preflight=lambda *_: dict(PROOF, lease_continuity={}))
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+        self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
+
+    def test_expired_entry_cannot_invoke_a_callback_offering_new_continuity(self):
+        now = [datetime.fromisoformat(STAMP)]
+        original = self.api.request
+        callback_times = []
+        def delayed(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if path == '/operations/public-operation':
+                now[0] += timedelta(minutes=6)
+            return value
+        def contain(_stage, _context):
+            callback_times.append(now[0])
+            return dict(PROOF, lease_expires_at=(now[0] + timedelta(minutes=5)).isoformat(),
+                lease_continuity={'schema_version': 1, 'checks': [dict(owner=PROOF['owner'],
+                    token_sha256=hashlib.sha256(PROOF['token'].encode()).hexdigest(),
+                    checked_at=now[0].isoformat(),
+                    lease_expires_at=(now[0] + timedelta(minutes=5)).isoformat())]})
+        self.api.request = delayed
+        result = self.observe(containment_preflight=contain, utc_now=lambda: now[0])
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+        self.assertTrue(callback_times)
+        self.assertTrue(all(value == datetime.fromisoformat(STAMP) for value in callback_times))
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+        self.assertFalse(any(path == '/jobs/real-job' for _, path, _ in self.api.calls))
+
+    def test_continuity_evidence_is_bounded_across_long_callbacks(self):
+        now = [datetime.fromisoformat(STAMP)]
+        expires = [now[0] + timedelta(seconds=60)]
+        def contain(stage, _context):
+            proof = dict(PROOF, lease_expires_at=expires[0].isoformat())
+            if stage == 'preflight':
+                return proof
+            old_expiry = expires[0]
+            checkpoints = [(now[0], old_expiry)]
+            now[0] = old_expiry - timedelta(seconds=5)
+            expires[0] = now[0] + timedelta(seconds=60)
+            checkpoints.append((now[0], expires[0]))
+            now[0] = old_expiry + timedelta(seconds=1)
+            checkpoints.append((now[0], expires[0]))
+            return dict(proof, lease_expires_at=expires[0].isoformat(),
+                lease_continuity={'schema_version': 1, 'checks': [dict(owner=proof['owner'],
+                    token_sha256=hashlib.sha256(proof['token'].encode()).hexdigest(),
+                    checked_at=checked.isoformat(), lease_expires_at=until.isoformat())
+                    for checked, until in checkpoints]})
+        result = self.observe(containment_preflight=contain, utc_now=lambda: now[0])
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_LIMIT')
+        self.assertEqual(len(result['lease_continuity_checks']), 16)
+        self.assertEqual(result['containment']['lease_expires_at'],
+                         result['lease_continuity_checks'][-1]['lease_expires_at'])
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+        self.assertNotIn(PROOF['token'], json.dumps(result))
 
     def test_lost_containment_at_public_list_prevents_detail_reads(self):
         original = self.api.request

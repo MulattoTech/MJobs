@@ -31,6 +31,8 @@ FINGERPRINT_FIELDS = ('id', *POLICY_FIELDS, 'strategy', 'capabilities')
 TERMINAL = {'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED', 'DEAD_LETTERED', 'DISCARDED'}
 CHECK = 'same_profile_public_readonly_jobs_observed'
 API_TIMEOUT_SECONDS = 15
+LEASE_CONTINUITY_MAX_CHECKS = 128
+LEASE_CONTINUITY_MAX_RECORDS = 16
 CHILD_FIELDS = ('request_id', 'revision', 'company_id', 'company_source_id', 'profile_id',
     'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt',
     'trigger_job_id', 'candidate_id', 'posting_id', 'snapshot_id', 'snapshot_sha256',
@@ -69,6 +71,46 @@ def _timestamp(value):
     parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
     _require(parsed.tzinfo is not None, 'SOURCE_TIMESTAMP_INVALID')
     return parsed
+
+
+def _validate_lease_continuity(proof, *, prior_expiry, started_at, finished_at, final_expiry):
+    """Validate observed overlapping owner checks within this callback only.
+
+    The designated containment owner is the trust boundary, as for the ordinary
+    proof. A renewed expiry alone cannot bridge an expired cached proof: every
+    completed check must precede the expiry already covered by earlier checks.
+    """
+    witness = proof.get('lease_continuity')
+    _require(isinstance(witness, dict) and set(witness) == {'schema_version', 'checks'}
+        and type(witness['schema_version']) is int and witness['schema_version'] == 1
+        and isinstance(witness['checks'], list)
+        and 1 <= len(witness['checks']) <= LEASE_CONTINUITY_MAX_CHECKS,
+        'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+    _require(all(isinstance(value, datetime) and value.tzinfo is not None
+        and value.utcoffset() == timedelta(0) for value in (started_at, finished_at))
+        and finished_at >= started_at, 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+    token_sha = hashlib.sha256(proof['token'].encode('utf-8')).hexdigest()
+    covered_until, previous_check = prior_expiry, started_at
+    for row in witness['checks']:
+        _require(isinstance(row, dict)
+            and set(row) == {'owner', 'token_sha256', 'checked_at', 'lease_expires_at'}
+            and row['owner'] == proof['owner'] and row['token_sha256'] == token_sha
+            and isinstance(row['checked_at'], str) and isinstance(row['lease_expires_at'], str),
+            'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+        try:
+            checked_at, expires = _timestamp(row['checked_at']), _timestamp(row['lease_expires_at'])
+        except (ValueError, TypeError, AttributeError):
+            raise ObservationError('SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID') from None
+        _require(checked_at.utcoffset() == timedelta(0) and expires.utcoffset() == timedelta(0)
+            and previous_check <= checked_at <= finished_at,
+            'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+        _require(expires > checked_at and (covered_until is None or checked_at < covered_until),
+            'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+        _require(covered_until is None or expires >= covered_until,
+            'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+        covered_until, previous_check = expires, checked_at
+    _require(covered_until == final_expiry, 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_INVALID')
+    return deepcopy(witness)
 
 
 def _evidence_destination(value):
@@ -440,6 +482,9 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
     expiry, covering at least the next 15 seconds. Exclusive collection includes
     manual clients and retry dispatchers. Every contained API read checks the
     lease before and after; an expiry gap or lost proof cannot be reacquired here.
+    A long callback may return bounded lease_continuity checkpoints from the
+    same owner, proving overlapping renewals through its fresh final proof.
+    This cannot rescue a lease already expired before the callback starts.
     Stages include preflight, enable, dispatch, poll, read, finalize and cleanup.
     Context collection IDs are None until the collect POST returns its actual
     operation ID; subsequent callbacks receive that ID and its submitted request ID.
@@ -496,6 +541,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 _require(not containment_lost, 'SOURCE_CONTAINMENT_LOST')
                 now = utc_now()
                 _require(lease_expiry is None or lease_expiry > now, 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+                callback_started_at = now
                 required_until = now + timedelta(seconds=API_TIMEOUT_SECONDS)
                 proof = containment_preflight(stage, dict(provider=provider, base_url=base_url,
                     acceptance_run_id=acceptance_run_id, source_id=evidence.get('source_id') or owned_source,
@@ -512,7 +558,9 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 current = (proof['owner'], proof['token'])
                 _require(ownership is None or ownership == current, 'SOURCE_OWNERSHIP_CHANGED')
                 now = utc_now()
-                _require(lease_expiry is None or lease_expiry > now, 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+                crossed_expiry = lease_expiry is not None and lease_expiry <= now
+                _require(not crossed_expiry or 'lease_continuity' in proof,
+                         'SOURCE_CONTAINMENT_LEASE_EXPIRED')
                 required_until = now + timedelta(seconds=API_TIMEOUT_SECONDS)
                 try:
                     expires = _timestamp(proof['lease_expires_at'])
@@ -520,6 +568,16 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                              'SOURCE_CONTAINMENT_LEASE_INVALID')
                 except (KeyError, TypeError, AttributeError, ValueError):
                     raise ObservationError('SOURCE_CONTAINMENT_LEASE_INVALID') from None
+                if 'lease_continuity' in proof:
+                    witness = _validate_lease_continuity(proof, prior_expiry=lease_expiry,
+                        started_at=callback_started_at, finished_at=now, final_expiry=expires)
+                    if crossed_expiry:
+                        records = evidence.setdefault('lease_continuity_checks', [])
+                        _require(len(records) < LEASE_CONTINUITY_MAX_RECORDS,
+                                 'SOURCE_CONTAINMENT_LEASE_CONTINUITY_LIMIT')
+                        records.append(dict(stage=stage, previous_expires_at=lease_expiry.isoformat(),
+                            callback_started_at=callback_started_at.isoformat(), checked_at=now.isoformat(),
+                            lease_expires_at=expires.isoformat(), witness=witness, sha256=_digest(witness)))
                 ownership, lease_expiry = current, expires
             except Exception:
                 containment_lost = True

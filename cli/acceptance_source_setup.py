@@ -5,7 +5,7 @@ It adds the other supported provider through the local Sources UI, observes it
 beside the selected primary at first dispatch, then disables only the source it
 created before the primary helper can collect anything.
 """
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -13,7 +13,7 @@ from pathlib import Path
 import re
 from urllib.parse import urlsplit
 
-from cli.acceptance_public_source import FINGERPRINT_FIELDS
+from cli.acceptance_public_source import FINGERPRINT_FIELDS, LEASE_CONTINUITY_MAX_CHECKS
 
 
 class SourceSetupError(ValueError):
@@ -138,6 +138,35 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.observation = None
             self.extra_disabled = False
             self._write_count = 0
+            self._lease_checks = None
+
+        def _record_lease_check(self, proof):
+            if self._lease_checks is None:
+                return
+            now = utc_now()
+            try:
+                expires = datetime.fromisoformat(proof['lease_expires_at'].replace('Z', '+00:00'))
+                if (not isinstance(now, datetime) or now.tzinfo is None
+                        or now.utcoffset() != timedelta(0) or expires.tzinfo is None
+                        or expires.utcoffset() != timedelta(0) or expires <= now):
+                    raise ValueError('invalid lease time')
+            except (KeyError, TypeError, AttributeError, ValueError):
+                raise SourceSetupError('SOURCE_SETUP_LEASE_CONTINUITY_INVALID') from None
+            check = {
+                'owner': proof['owner'],
+                'token_sha256': hashlib.sha256(proof['token'].encode('utf-8')).hexdigest(),
+                'checked_at': now.isoformat(), 'lease_expires_at': expires.isoformat(),
+            }
+            if self._lease_checks:
+                previous = self._lease_checks[-1]
+                previous_expiry = datetime.fromisoformat(previous['lease_expires_at'])
+                if (check['owner'] != previous['owner'] or check['token_sha256'] != previous['token_sha256']
+                        or now < datetime.fromisoformat(previous['checked_at'])
+                        or now >= previous_expiry or expires < previous_expiry):
+                    raise SourceSetupError('SOURCE_SETUP_LEASE_CONTINUITY_LOST')
+            if len(self._lease_checks) >= LEASE_CONTINUITY_MAX_CHECKS:
+                raise SourceSetupError('SOURCE_SETUP_LEASE_CONTINUITY_LIMIT')
+            self._lease_checks.append(check)
 
         def _call_owned(self, stage, context):
             if (not isinstance(context, dict) or context.get("provider") != primary_provider
@@ -176,6 +205,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     and isinstance(proof.get("token"), str) and proof["token"]):
                 raise SourceSetupError("SOURCE_CONTAINMENT_REQUIRED")
             self.primary_containment_checks.append(self._containment_check(stage, context, proof))
+            if stage != "release":
+                self._record_lease_check(proof)
             if stage == "release":
                 self.release_receipt = {
                     "released": proof.get("released"),
@@ -290,6 +321,10 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.additional_owner_checks.append(check)
             if event == "release":
                 self.additional_release_receipt = dict(check)
+            if self._lease_checks is not None:
+                # The additional policy receipt does not carry owner identity.
+                # Obtain a full owner check immediately, before another UI action.
+                self._call_owned("read", context)
             return proof
 
         def _source_policy_sha(self, source):
@@ -328,6 +363,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     "lease_model",
                 ) if key in proof} if isinstance(proof, dict) else None)})
             self.additional_declared = True
+            if self._lease_checks is not None:
+                self._call_owned("read", context)
 
         def _page(self):
             if self.page is not None:
@@ -667,17 +704,26 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     return result
                 finally:
                     self._close_browser()
-            proof = self._call_owned(stage, context)
+            if self._lease_checks is not None:
+                raise SourceSetupError("SOURCE_SETUP_CONTAINMENT_REENTRY")
+            self._lease_checks = []
             try:
+                proof = self._call_owned(stage, context)
                 if stage == "preflight" and self.extra_id is None:
                     self._bind_additional_policy(context)
                     self._create_extra(context)
+                    proof = self._call_owned("read", context)
                 elif stage == "dispatch" and self.observation is None:
                     self._observe_and_disable(context)
+                    proof = self._call_owned("read", context)
+                return {**proof, "lease_continuity": {
+                    "schema_version": 1, "checks": [dict(row) for row in self._lease_checks],
+                }}
             except Exception:
                 self._close_browser()
                 raise
-            return proof
+            finally:
+                self._lease_checks = None
 
     if request is None:
         import httpx
