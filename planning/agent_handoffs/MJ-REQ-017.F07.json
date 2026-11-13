@@ -4,9 +4,9 @@
   "objective": "Deliver and formally accept a bounded Arbeitnow niche-source adapter with exact capabilities, deterministic contracts, safe live readback and user-visible configuration",
   "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
   "branch": "web/p6-arbeitnow-20261113-4dae",
-  "head_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+  "head_sha": "27ff4ee1c709aaaafde1f8750a7120b9e6369151",
   "routing_state": "VERIFY",
-  "next_action": "Publish one coherent reviewed F07 candidate under native admission, observe exact-head required checks, then obtain verified steward integration and canonical acceptance review; preserve source-equivalence and failed-attempt receipts",
+  "next_action": "Finalize current-main diagnostic candidate, publish one reviewed ordinary update to existingPR1019, observe all exact-head required checks, then coordinate sole-steward integration and canonical acceptance. Preserve prior failed attempts.",
   "created_at": "2026-11-13T03:41:53.261607+00:00",
   "requirements": [
     "MJ-REQ-017.F07"
@@ -33,20 +33,29 @@
       "result": "PASS"
     },
     {
-      "command": "Protected hosted checks on final published head",
-      "result": "NOT_RUN"
-    },
-    {
       "command": "Protected integration and applicable deployed/integrated runtime validation",
       "result": "NOT_RUN"
     },
     {
       "command": "Formal canonical acceptance and dashboard status promotion",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Prior published d3: CI/SecretScan/Dependencies/Compose PASS; IntegrationFAIL in public fixture deadline case, fullfailure retained",
+      "result": "FAIL"
+    },
+    {
+      "command": "Exact diagnostic02b1957f over d3:16 actual pending-connect/control/readback cases PASS,0 failures/errors/skips; independent review PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Required hosted checks on next published current-main candidate",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Exact Nov9 resumed0d9f integration-steward/canonical claims unresolved; do not steal or release based on age",
-    "Required hosted checks and final publication have not yet run"
-  ]
+    "Prior d3 exact-head Integration failed public worker deadline completion; diagnostic source is locally qualified, new-head hosted qualification remains required.",
+    "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved."
+  ],
+  "updated_at": "2026-11-13T05:16:21.505520+00:00"
 }

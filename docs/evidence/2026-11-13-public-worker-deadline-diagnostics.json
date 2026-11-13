@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017.F07",
+  "related_requirement": "MJ-REQ-004",
+  "recorded_at_utc": "2026-11-13T05:16:21.505520+00:00",
+  "repository": "MulattoTech/MJobs",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1019",
+  "purpose": "Make the observed public fixture worker completion failure distinguishable by actual phase and owned-thread stack, preserving all existing bounds.",
+  "source": {
+    "committed_head": "27ff4ee1c709aaaafde1f8750a7120b9e6369151",
+    "tree": "fa0e834adb04a8e67c94068798fc404cb2de17ee",
+    "execution_base": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+    "execution_used_dirty_test_source": true,
+    "test_path": "tests/integration/test_mock_discovery_request_bounds.py",
+    "test_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+    "test_sha256": "7a99a478a8b9c0f5d50da2dfbebbac77a123f65687674ed9bf38037811ffe3a0",
+    "source_unchanged_during_execution": true,
+    "source_equivalence_to_commit_verified": true,
+    "production_blobs": {
+      "workers/tasks.py": "347951cd467220a9c228c43a41b644c9212c8326",
+      "workers/operations.py": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "services/discovery/pipeline.py": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+      "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+      "packages/persistence/store.py": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+    }
+  },
+  "historical_failure": {
+    "head": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+    "run_id": 43366579639,
+    "job_id": 131692284151,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579639/job/131692284151",
+    "test": "test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+    "test_blob": "1daa4ccf8797c3ffb0bea8c9a94e7e2507b8e333",
+    "result": {
+      "failed": 1,
+      "passed": 1023,
+      "skipped": 14,
+      "subtests_passed": 655
+    },
+    "observed": "Public admission succeeded, actual loopback connect remained pending after100ms, then worker remained alive after1.2s join.",
+    "not_established": [
+      "Phase of surviving worker",
+      "Deadline exception observation",
+      "Terminal row or reopened durable readback",
+      "Production root cause"
+    ],
+    "artifact_zip_sha256": "862ea87984cd0af7b70ee0e4f6c3879340eb0f8fa718d8e80d78909f0496ee39",
+    "junit_sha256": "08f523606781e14eaf3022a8495c35c8b7d2164e58db1ed04aa52bd125eda0cf",
+    "log": {
+      "name": "ci-integration-shard1-d3aacf43.log",
+      "sha256": "296d7b2a47edb8f2879f45702e8aa6256587bf76e0f0ac1d16334eb4b631be7b",
+      "bytes": 154513
+    }
+  },
+  "diagnostic_contract": {
+    "maximum_phase_records": 128,
+    "maximum_stack_frames_per_owned_thread": 16,
+    "payloads_sql_parameters_and_frame_locals_recorded": false,
+    "real_return_values_and_exceptions_preserved": true,
+    "operation_deadline_seconds": 0.8,
+    "completion_join_seconds": 1.2,
+    "all12_original_assertion_predicates_preserved": true,
+    "all7_original_thread_socket_timer_calls_preserved": true,
+    "original_sleeps_listener_and_cleanup_retained": true,
+    "observers_restored": true,
+    "negative_control": "A test-only gate delays the worker-owned terminal DBAPI commit after actual pending-connect timeout/unwind. It requires the original join failure, zero open owned sockets, matching owned stack and phase order, then releases the gate and requires genuine commit return, worker completion and reopened DEAD_LETTERED/OPERATION_TIMEOUT/attempt1.",
+    "negative_control_does_not_claim": "The gate is before the actual DBAPI commit; it proves post-transport finalization-delay classification, not that SQLite itself caused the historical failure.",
+    "negative_control_watchdog_seconds": 5,
+    "production_changes": false,
+    "new_clock_or_SQL_result_replacements": false
+  },
+  "local_qualification": {
+    "result": "PASS",
+    "platform": "MULATTOTECHBOX / Windows / cached project Python",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "-rs",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\public-worker-diagnostic-02b1957f.xml",
+      "tests/integration/test_mock_discovery_request_bounds.py"
+    ],
+    "started_at": "2026-11-13T05:11:49.434783+00:00",
+    "finished_at": "2026-11-13T05:12:01.142285+00:00",
+    "passed": 16,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_elapsed_seconds": 10.41,
+    "selected_cases": [
+      {
+        "name": "test_pending_real_loopback_connect_observes_worker_stop[cancel]",
+        "total_case_seconds": 0.7,
+        "passed": true
+      },
+      {
+        "name": "test_pending_real_loopback_connect_observes_worker_stop[deadline]",
+        "total_case_seconds": 0.885,
+        "passed": true
+      },
+      {
+        "name": "test_public_fixture_worker_pending_connect_persists_terminal_readback[cancel]",
+        "total_case_seconds": 2.374,
+        "passed": true
+      },
+      {
+        "name": "test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+        "total_case_seconds": 2.024,
+        "passed": true
+      },
+      {
+        "name": "test_public_worker_phase_diagnostic_separates_terminal_commit_delay",
+        "total_case_seconds": 2.315,
+        "passed": true
+      }
+    ],
+    "case_duration_limit": "JUnit durations include setup and cleanup; they are not individual connect or commit spans.",
+    "actual_pending_connect_and_negativecontrol_exercised": true,
+    "receipt": {
+      "name": "public-worker-diagnostic-02b1957f.json",
+      "sha256": "1857de562eaacefed49510767fa8938a73920735c7a935df3963e4fa4d8ba4a2",
+      "bytes": 3620
+    },
+    "log": {
+      "name": "public-worker-diagnostic-02b1957f.log",
+      "sha256": "d22c9d92c303a35f6eae2bd23a434dc6ba04ed540235bfd392aefd650105ba3b",
+      "bytes": 102
+    },
+    "junit": {
+      "name": "public-worker-diagnostic-02b1957f.xml",
+      "sha256": "b1fe8539839c1b6950496d9cf97e5326430e0d0faa85dbaf553aa39c2db8e2da",
+      "bytes": 2961
+    }
+  },
+  "reviews": [
+    {
+      "reviewer": "/root",
+      "scope": "Complete source diff and preserved semantics",
+      "result": "PASS"
+    },
+    {
+      "reviewer": "/root/integration_coordination",
+      "implementation_author": false,
+      "reviewed_at_utc": "2026-11-13T05:14:01Z",
+      "reviewed_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+      "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "scope": "Original predicates/timing calls, pass-through observers, owned-engine gate, bounded safe stacks, cleanup and actual local receipt/JUnit"
+    }
+  ],
+  "interpretation": {
+    "diagnostic_qualified": true,
+    "hosted_linux_root_cause": "UNKNOWN",
+    "production_fix_claimed": false,
+    "historical_hosted_gate_resolved": false,
+    "canonical_acceptance_changed": false
+  },
+  "remaining_gates": [
+    "Fresh current-main candidate and separate final review/operator binding",
+    "Native existing-PR admission and exact published-head readback",
+    "All required checks on the newly published head",
+    "Designated protected integration and applicable acceptance"
+  ]
+}
