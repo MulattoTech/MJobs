@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "record_status": "SOURCE_QUALIFIED_EVIDENCE_PREPARED",
+  "record_status": "SOURCE_QUALIFIED_METADATA_REVIEWED_PUBLICATION_GATES_OPEN",
   "intended_repository_path": "docs/evidence/2026-11-13-usajobs-source.json",
   "requirement_id": "MJ-REQ-017.F06",
   "parent_requirement": "MJ-REQ-017",
   "issue": 316,
   "provider": "usajobs",
   "created_at_utc": "2026-11-13T05:52:58.517Z",
-  "last_updated_at_utc": "2026-11-13T06:20:02.299360+00:00",
+  "last_updated_at_utc": "2026-11-13T06:30:49.429972+00:00",
   "prepared_by": "/root/campaign_review",
   "repository": "MulattoTech/MJobs",
   "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
@@ -21,7 +21,7 @@
   "incorporated_protected_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
   "source_was_clean_at_assembled_test_and_live_execution": true,
   "routing_state": "VERIFY",
-  "source_binding_note": "All execution claims bind immutable e9594dd84868cc0828aca34da40cfb31d0029390 and recorded source hashes. The source guide, evidence and handoff are prepared in a documentation-only successor; its actual commit/tree and executable-source equivalence are separately recorded after commit. No successor SHA or new runtime result is inferred here.",
+  "source_binding_note": "All application/test execution claims bind immutable e9594dd84868cc0828aca34da40cfb31d0029390 and recorded source hashes. The three guide/evidence/handoff paths and two approved scanner paths at reviewed163db72d are the only differences from that executed tree. This final two-file metadata successor records completed review/integrity; its actual identity and equivalence are bound separately after commit.",
   "delivery_state": {
     "implemented": true,
     "assembled_focused_tests": "PASS",
@@ -30,13 +30,14 @@
     "bounded_production_adapter_read": "PASS",
     "constructed_official_url_http_observation": "HTTP_200_OBSERVED",
     "page_identity_or_application_flow": "NOT_PROVED",
-    "current_final_metadata_review": "PREPARATION_REVIEW_PASS_IMMUTABLE_SUCCESSOR_REVIEW_PENDING",
+    "current_final_metadata_review": "PASS_AT_163db72d_WITH_FINAL_METADATA_SUCCESSOR_BINDING_SEPARATE",
     "required_hosted_checks": "NOT_RUN",
     "protected_integration": "NOT_RUN",
     "deployment": "NOT_RUN",
     "formal_acceptance": "NOT_RUN",
     "canonical_requirement_index_status": "NOT_RUN",
-    "acceptance_promoted": false
+    "acceptance_promoted": false,
+    "native_repository_integrity": "PASS_AT_163db72d"
   },
   "source_and_assembly": {
     "assembly_receipt": {
@@ -1665,7 +1666,7 @@
     "evidence_preparer": "/root/campaign_review",
     "preparer_authorship_disclosure": "Prepared the original USAJobs integration/provenance tests earlier in the session. This evidence assembly is not claimed as independent approval of those authored tests; independent bulk-repair review is attributed separately.",
     "root_final_metadata_review": {
-      "status": "REVIEWED_PREPARATION_PENDING_IMMUTABLE_SUCCESSOR_BINDING",
+      "status": "PREPARATION_PASS_AND_INDEPENDENT_163db_REVIEW_RECORDED",
       "reviewed_at_utc": "2026-11-13T06:20:02.299360+00:00",
       "reviewer": "/root",
       "scope": "Reviewed complete independent artifact/source findings and evidence state, normalized seven same-instant timestamp spellings, archived the referenced mutable claim, and preserved source-specific runtime limitations.",
@@ -1704,6 +1705,19 @@
         "route_observation.response.headers_received_at_utc": "2026-11-13T05:47:06.609253+00:00",
         "route_observation.finished_at_utc": "2026-11-13T05:47:06.662173+00:00"
       }
+    },
+    "independent_163db_metadata_review": {
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/integration_coordination",
+      "reviewed_head": "163db72d92b178bdbc0b91dee79db0c157f67f40",
+      "reviewed_tree": "e05630597e9096c6929f4193221cc39bf54063f6",
+      "executable_source_and_tests_unchanged_from": "e9594dd84868cc0828aca34da40cfb31d0029390",
+      "receipt": {
+        "name": "independent-review-usajobs-final-163db72d.json",
+        "bytes": 13480,
+        "sha256": "5c4fa69414479f8545704555d3667e23cf0d67d207447b9796d1b8438c713fce"
+      },
+      "blocking_findings": []
     }
   },
   "coordination": {
@@ -1723,9 +1737,9 @@
     "protected_integration_and_canonical_acceptance_are_separate": true
   },
   "pending_finalization": [
-    "Bind the committed metadata/docs successor to unchanged executable/test blobs and complete native integrity/provenance and independent immutable review.",
-    "Incorporate the released exact two-file scanner correction under a fresh native claim; publication admission and exact published-head hosted checks remain separate.",
-    "Coordinate dependency-aware protected integration with the sole steward, applicable integrated/runtime validation and canonical acceptance."
+    "Bind the final two-file metadata successor and independent operator review before fresh new-PR publication admission.",
+    "Earn required hosted checks on the exact published F06 head, then coordinate dependency-aware protected integration with the sole steward.",
+    "Complete applicable integrated/runtime verification and canonical acceptance through the authorized owner; no promotion is asserted here."
   ],
   "limitations": [
     "The source covers only series2210 announcements opened in seven UTC calendar dates and returns at most25; all-government coverage and complete inventory are not claimed.",
@@ -2004,5 +2018,51 @@
     "native_validator_executed": true,
     "errors": [],
     "validated_at_utc": "2026-11-13T06:20:02.299360+00:00"
+  },
+  "native_integrity": {
+    "source_head": "163db72d92b178bdbc0b91dee79db0c157f67f40",
+    "source_tree": "e05630597e9096c6929f4193221cc39bf54063f6",
+    "result": "PASS",
+    "checks": [
+      "Catalogue validation",
+      "Progress journal validation",
+      "Progress dashboard CURRENT",
+      "Commit provenance b57e2c41",
+      "Commit provenance163db72d",
+      "Whitespace e9594dd8..163db72d",
+      "Native handoff schema/validation"
+    ],
+    "receipt": {
+      "name": "f06-integrity-163db72d.json",
+      "bytes": 17527,
+      "sha256": "fb8a57b932fb3a3da123ceed560ea01e153f9512f3f5b5da1da7c7acfb644d35"
+    },
+    "handoff_observation": {
+      "source_binding": "ANCESTOR_REVERIFY_CHANGED_FILES",
+      "routing": "PARTIALLY_BLOCKED",
+      "meaning": "Schema/integrity passed. The handoff intentionally binds actually tested e959 and retains publication/hosted/integration gates; all intervening files were reviewed."
+    },
+    "application_tests_or_provider_calls": false
+  },
+  "scanner_dependency_adoption": {
+    "source_commit": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+    "local_adoption_commit": "163db72d92b178bdbc0b91dee79db0c157f67f40",
+    "local_adoption_tree": "e05630597e9096c6929f4193221cc39bf54063f6",
+    "paths": [
+      ".gitleaksignore",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+    ],
+    "exact_blobs": {
+      ".gitleaksignore": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json": "db132b02dfae64de3793ff1edf47eb18c181aefb"
+    },
+    "receipt": {
+      "name": "scanner-adoption-complete.json",
+      "bytes": 3494,
+      "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+    },
+    "scope": "Only two proven historical synthetic ntfy event-identifier fingerprints; no scanner policy, workflow, application or test change.",
+    "native_scope_disposition": "RELEASED_AFTER_EXACT_ADOPTION",
+    "fresh_f06_hosted_scan": "NOT_RUN"
   }
 }

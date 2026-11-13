@@ -6,9 +6,9 @@
   "branch": "web/p6-usajobs-20261113-4dae",
   "head_sha": "e9594dd84868cc0828aca34da40cfb31d0029390",
   "routing_state": "VERIFY",
-  "next_action": "Complete native integrity and independent immutable metadata/docs successor review, incorporate the released exact scanner correction under fresh ownership, obtain new-PR admission, then earn exact-head hosted checks and coordinate dependency-aware protected integration and applicable acceptance.",
+  "next_action": "Bind the final metadata-only successor to reviewed163db72d and unchanged executed e959, obtain fresh new-PR publication admission, then earn exact-head hosted checks and coordinate dependency-aware protected integration and applicable acceptance.",
   "created_at": "2026-11-13T05:52:58.517Z",
-  "updated_at": "2026-11-13T06:20:02.299360+00:00",
+  "updated_at": "2026-11-13T06:30:49.429972+00:00",
   "requirements": [
     "MJ-REQ-017.F06"
   ],
@@ -54,8 +54,8 @@
       "result": "FAIL"
     },
     {
-      "command": "Final evidence/docs successor source-equivalence review and native catalogue/progress/handoff/provenance/whitespace checks.",
-      "result": "NOT_RUN"
+      "command": "Immutable163db72d final metadata/source-equivalence review PASS: only three guide/evidence/handoff and two approved scanner paths differ from actually tested e959. Seven native integrity/provenance/whitespace/handoff checks exited0; receipts independent-review-usajobs-final-163db72d.json and f06-integrity-163db72d.json.",
+      "result": "PASS"
     },
     {
       "command": "Required hosted checks on the eventual exact F06 published head; protected integration with F07 dependency and applicable integrated/runtime validation.",
@@ -67,7 +67,7 @@
     }
   ],
   "blockers": [
-    "The reviewed evidence/handoff and source guide are prepared; final immutable successor review, native integrity and publication admission remain pending.",
+    "Source, evidence, scanner adoption and seven native checks passed review at163db72d; the final metadata successor still needs its exact operator binding and publication admission.",
     "Required exact-head hosted checks, dependency-aware protected integration and formal acceptance have not occurred.",
     "The historical browser result covers unchanged components; no current assembled-head browser result is claimed.",
     "Bounded same-host HTTP200 does not prove page identity or an application/submission flow; manual-only constructed-route limitations remain explicit."
@@ -81,5 +81,24 @@
       "sha256": "a1ec709d6375306bd49674e3bcbcace6e7cf78f068f82b58efd1fdd845e477f3"
     },
     "timestamp_corrections_only": 7
+  },
+  "final_reviewed_predecessor": {
+    "head": "163db72d92b178bdbc0b91dee79db0c157f67f40",
+    "tree": "e05630597e9096c6929f4193221cc39bf54063f6",
+    "review": {
+      "name": "independent-review-usajobs-final-163db72d.json",
+      "bytes": 13480,
+      "sha256": "5c4fa69414479f8545704555d3667e23cf0d67d207447b9796d1b8438c713fce"
+    },
+    "native_integrity": {
+      "name": "f06-integrity-163db72d.json",
+      "bytes": 17527,
+      "sha256": "fb8a57b932fb3a3da123ceed560ea01e153f9512f3f5b5da1da7c7acfb644d35"
+    },
+    "scanner_adoption": {
+      "name": "scanner-adoption-complete.json",
+      "bytes": 3494,
+      "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+    }
   }
 }
