@@ -165,27 +165,58 @@ def freeze_process(owned):
     return until(stopped, "Owned process did not stop before tree inventory", seconds=2) == "STOPPED"
 
 
-def descendants(parent):
-    """Snapshot only a verified child's descendants, including thread forks."""
-    found = []
-    pending = [parent]
+def descendants(parent, *, proc=Path("/proc")):
+    """Admit a complete snapshot only while every captured parent stays owned."""
+    if not isinstance(parent, ProcessIdentity):
+        raise TypeError("Descendant inventory requires a captured process identity")
+
+    def live(owned):
+        try:
+            current = process_identity(owned.pid)
+        except FileNotFoundError:
+            return False
+        # A retained orphan may change PPID. The process itself must remain the
+        # exact original; every newly acquired child still needs verified PPID.
+        if ((current.pid, current.group, current.session, current.started)
+                != (owned.pid, owned.group, owned.session, owned.started)):
+            raise RuntimeError("Process identity changed during descendant inventory")
+        return current.state not in {"Z", "X"}
+
+    if not live(parent):
+        return []  # Already exited: never enumerate a replacement PID's tree.
+    found, traversed, pending = [], [], [parent]
     while pending:
-        pid = pending.pop()
+        expected = pending.pop()
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
         children = set()
-        for path in Path(f"/proc/{pid}/task").glob("*/children"):
+        for path in (proc / str(expected.pid) / "task").glob("*/children"):
             try:
                 children.update(int(value) for value in path.read_text().split())
             except FileNotFoundError:
-                continue
-        for child in children:
+                continue  # A thread may exit; its owning process is rechecked.
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
+        candidates = []
+        for pid in sorted(children):
             try:
-                owned = process_identity(child)
+                child = process_identity(pid)
             except FileNotFoundError:
                 continue
-            if owned.parent != pid:
+            if child.parent != expected.pid:
                 raise RuntimeError("Descendant ancestry changed during fixture snapshot")
-            found.append(owned)
-            pending.append(child)
+            if child.state not in {"Z", "X"}:
+                candidates.append(child)
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
+        # Nothing reaches the caller's remembered cleanup identities until all
+        # branches and all traversed parents pass the final identity fence.
+        found.extend(candidates)
+        pending.extend(candidates)
+        traversed.append(expected)
+    for expected in traversed:
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
     return found
 
 
@@ -268,7 +299,7 @@ class OwnedWorker:
             found = []
             for owned in list(self.owned.values()):
                 if running(owned):
-                    found.extend(descendants(owned.pid))
+                    found.extend(descendants(owned))
             self.remember(found)
             # Retained orphans themselves must stop too, not just the children
             # found beneath them. Rescan only after every retained identity is
@@ -317,7 +348,7 @@ class OwnedWorker:
     def registered(self):
         if self.process.poll() is not None:
             raise AssertionError("Owned production worker exited during startup")
-        self.remember(descendants(self.process.pid))
+        self.remember(descendants(self.identity))
         for worker in Worker.all(connection=self.redis):
             if worker.pid == self.process.pid:
                 if worker.queue_names() != [self.queue]:
@@ -336,10 +367,11 @@ class OwnedWorker:
         executions = job.get_executions()
         if len(executions) != 1 or executions[0].worker_name != worker.name:
             raise AssertionError("Expected one RQ execution bound to the owned worker")
-        children = Path(f"/proc/{self.process.pid}/task/{self.process.pid}/children").read_text().split()
+        children = [child for child in descendants(self.identity)
+                    if child.parent == self.identity.pid]
         if len(children) != 1:
             raise AssertionError("Expected exactly one production RQ workhorse")
-        horse = process_identity(int(children[0]))
+        horse = children[0]
         # RQ deliberately creates a new group for the horse with setpgrp().
         if ((horse.parent, horse.group, horse.session)
                 != (self.process.pid, horse.pid, self.process.pid)):
@@ -347,11 +379,11 @@ class OwnedWorker:
         self.horse = horse
         # A fixture browser may exist only beneath this verified workhorse.
         # Keep exact starttime-bound PIDs before killing their owning ancestor.
-        self.children = descendants(horse.pid)
+        self.children = descendants(horse)
         self.remember([horse, *self.children])
         return executions[0]
 
-    def freeze_browser(self, profile):
+    def freeze_browser(self, profile, *, before_freeze=None):
         """Freeze one exact Chromium root, leaving production timeout owners live."""
         if (self.identity is None or self.horse is None or self.process.poll() is not None
                 or not running(self.identity) or not running(self.horse)):
@@ -360,7 +392,7 @@ class OwnedWorker:
         root = self.root.resolve(strict=True)
         if profile == root or not profile.is_relative_to(root) or not profile.is_dir():
             raise RuntimeError("Browser profile is outside the owned fixture directory")
-        self.children = descendants(self.horse.pid)
+        self.children = descendants(self.horse)
         self.remember([self.horse, *self.children])
         matches = []
         for child in self.children:
@@ -387,6 +419,8 @@ class OwnedWorker:
             raise RuntimeError("Chromium root does not own the detached session under test")
         if not running(self.identity) or not running(self.horse):
             raise RuntimeError("Production timeout owner exited before browser freeze")
+        if before_freeze is not None:
+            before_freeze()  # Recheck the response gate immediately before the signal.
         if not freeze_process(browser):
             raise RuntimeError("Chromium exited before the frozen-browser fault was established")
         if not running(self.identity) or not running(self.horse):

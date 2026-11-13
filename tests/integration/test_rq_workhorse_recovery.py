@@ -289,22 +289,23 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
     def test_horse_binding_accepts_rq_new_group_and_rejects_unowned_ancestry(self):
         fixture = OwnedWorker(None, None, "redis://127.0.0.1:6379/0", "http://127.0.0.1:1", Path("."), "guard")
         fixture.process = SimpleNamespace(pid=100)
+        fixture.identity = ProcessIdentity(100, 50, 100, 100, 87653)
         worker = SimpleNamespace(name="owned-worker", get_current_job_id=lambda: "owned-job")
         execution = SimpleNamespace(worker_name="owned-worker")
         job = SimpleNamespace(id="owned-job", worker_name="owned-worker", refresh=lambda: None,
                               get_status=lambda **_kwargs: "started", get_executions=lambda: [execution])
         horse = ProcessIdentity(123, 100, 123, 100, 87654)
-        with patch.object(fixture, "registered", return_value=worker), patch(
-                "pathlib.Path.read_text", return_value="123"), patch(
-                "tests.integration.rq_workhorse_fixture.descendants", return_value=[]):
-            with patch("tests.integration.rq_workhorse_fixture.process_identity", return_value=horse):
+        with patch.object(fixture, "registered", return_value=worker):
+            with patch("tests.integration.rq_workhorse_fixture.descendants", side_effect=[[horse], []]) as inventory:
                 self.assertIs(fixture.capture_horse(job), execution)
                 self.assertEqual(fixture.horse, horse)
+                self.assertEqual(inventory.call_args_list,
+                                 [unittest.mock.call(fixture.identity), unittest.mock.call(horse)])
             for changed in (replace(horse, parent=999), replace(horse, group=999),
                             replace(horse, session=999)):
                 with self.subTest(changed=changed), patch(
-                        "tests.integration.rq_workhorse_fixture.process_identity", return_value=changed):
-                    with self.assertRaisesRegex(AssertionError, "ancestry/session"):
+                        "tests.integration.rq_workhorse_fixture.descendants", return_value=[changed]):
+                    with self.assertRaisesRegex(AssertionError, "workhorse|ancestry/session"):
                         fixture.capture_horse(job)
 
     def test_busy_worker_failure_before_horse_capture_stops_all_owned_processes(self):
@@ -356,10 +357,10 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
                 raise FileNotFoundError
             return live[pid]
 
-        def inventory(pid):
-            found = [owned for owned in live.values() if owned.parent == pid]
+        def inventory(parent):
+            found = [owned for owned in live.values() if owned.parent == parent.pid]
             for child in list(found):
-                found.extend(inventory(child.pid))
+                found.extend(inventory(child))
             return found
 
         fixture.identity, fixture.log = parent, Mock()
@@ -647,9 +648,28 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
 
     @pytest.mark.usefixtures("browser_timeout_receipt")
     def test_frozen_mock_browser_timeout_reaps_captured_descendants(self):
-        entered, release = threading.Event(), threading.Event()
-        self.addCleanup(release.set)
+        entered, shutdown = threading.Event(), threading.Event()
+        freeze_done, acknowledged = threading.Event(), threading.Event()
+        self.addCleanup(shutdown.set)
+        gate_lock = threading.Lock()
+        gate = {"state": "WAITING", "active": False, "held_at": None,
+                "deadline": None, "acknowledged_at": None}
         app = create_mock_app()
+
+        def record(receipt, name="rq_browser_timeout_receipt"):
+            encoded = json.dumps(receipt, sort_keys=True)
+            print("RQ_BROWSER_TIMEOUT_RECEIPT " + encoded, flush=True)
+            recorder = getattr(self, "record_browser_timeout_receipt", None)
+            if recorder is not None:
+                recorder(name, encoded)
+            return encoded
+
+        def gate_snapshot():
+            with gate_lock:
+                held = gate["held_at"]
+                return {"state": gate["state"], "stream_active": gate["active"], "limit_seconds": 10,
+                        "elapsed_seconds": round(time.monotonic() - held, 3) if held is not None else None,
+                        "acknowledged": acknowledged.is_set()}
 
         @app.middleware("http")
         async def hold_browser_navigation(request, call_next):
@@ -660,13 +680,39 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                 return response
 
             async def held_document():
-                entered.set()
-                deadline = time.monotonic() + 10
-                while not release.is_set() and time.monotonic() < deadline:
-                    yield b" "
-                    await asyncio.sleep(.1)
-                async for chunk in response.body_iterator:
-                    yield chunk
+                with gate_lock:
+                    if gate["state"] != "WAITING":
+                        gate["state"] = "AMBIGUOUS"
+                        return
+                    held_at = time.monotonic()
+                    gate.update(state="HELD", active=True, held_at=held_at, deadline=held_at + 10)
+                    entered.set()
+                try:
+                    while True:
+                        with gate_lock:
+                            now = time.monotonic()
+                            if gate["state"] == "HELD":
+                                if shutdown.is_set():
+                                    gate["state"] = "ABORTED"
+                                elif now >= gate["deadline"]:
+                                    gate["state"] = "EXPIRED"
+                                elif freeze_done.is_set() and not acknowledged.is_set():
+                                    gate["acknowledged_at"] = now
+                                    acknowledged.set()
+                            state = gate["state"]
+                        if state == "RELEASED":
+                            break
+                        if state != "HELD":
+                            return  # Expiry/abort never forwards the real document.
+                        yield b" "
+                        await asyncio.sleep(.1)
+                    async for chunk in response.body_iterator:
+                        yield chunk
+                finally:
+                    with gate_lock:
+                        if gate["state"] == "HELD":
+                            gate["state"] = "ABORTED"
+                        gate["active"] = False
 
             return StreamingResponse(held_document(), media_type="text/html")
 
@@ -691,54 +737,113 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                              ("workers.tasks.execute_operation", (identifier,), "mjobs-application", 30))
             with self.worker(origin, "browser-timeout", queue="mjobs-application") as worker:
                 try:
-                    until(entered.is_set, "Production browser did not reach loopback ATS", seconds=25)
-                    execution = until(lambda: worker.capture_horse(job), "Browser horse not established")
-                    self.capture_execution(identifier, execution)
-                    job.refresh()
-                    self.assertIsNotNone(job.started_at)
-                    self.assertLess(time.time() - job.started_at.timestamp(), 25,
-                                    "Insufficient RQ budget remains to establish the browser fault")
-                    from services.applications.browser_profiles import browser_profile_path
-                    browser = worker.freeze_browser(browser_profile_path(self.root / application))
-                    # Keep a nonempty immutable inventory before any ancestor
-                    # exits. A later empty /proc children list proves nothing.
-                    original = tuple(worker.owned.values())
-                    self.assertIn(browser, original)
-                    self.assertGreater(len(original), 3)  # worker, horse, driver, browser
-                    frozen_after_seconds = time.time() - job.started_at.timestamp()
-                    release.set()
-                    self.assertEqual(worker.worker.job_monitoring_interval, 30)
+                    try:
+                        until(entered.is_set, "Production browser did not reach loopback ATS", seconds=25)
+                        with gate_lock:
+                            self.assertEqual(gate["state"], "HELD", "Browser response gate unavailable")
+                            gate_deadline = gate["deadline"]
+                        execution = until(lambda: worker.capture_horse(job), "Browser horse not established",
+                                          seconds=max(0, gate_deadline - time.monotonic()))
+                        self.capture_execution(identifier, execution)
+                        job.refresh()
+                        self.assertIsNotNone(job.started_at)
+                        job_started_at = job.started_at.timestamp()
+                        self.assertLess(time.time() - job_started_at, 25,
+                                        "Insufficient RQ budget remains to establish the browser fault")
+
+                        def before_freeze():
+                            with gate_lock:
+                                self.assertEqual(gate["state"], "HELD", "Browser response no longer held")
+                                self.assertTrue(gate["active"], "Browser response stream aborted")
+                                # freeze_process itself is bounded by two seconds.
+                                self.assertLess(time.monotonic() + 2, gate["deadline"],
+                                                "Gate cannot contain the bounded browser freeze")
+                                self.assertLess(time.time() + 2, job_started_at + job.timeout,
+                                                "RQ deadline cannot contain the bounded browser freeze")
+
+                        from services.applications.browser_profiles import browser_profile_path
+                        browser = worker.freeze_browser(browser_profile_path(self.root / application),
+                                                        before_freeze=before_freeze)
+                        frozen_at = time.monotonic()
+                        frozen_after_seconds = time.time() - job_started_at
+                        self.assertLess(frozen_after_seconds, job.timeout, "Freeze completed after RQ deadline")
+                        # Keep a nonempty immutable inventory before any ancestor
+                        # exits. A later empty /proc children list proves nothing.
+                        original = tuple(worker.owned.values())
+                        self.assertIn(browser, original)
+                        self.assertGreater(len(original), 3)  # worker, horse, driver, browser
+                        with gate_lock:
+                            self.assertEqual(gate["state"], "HELD", "Gate expired/aborted during freeze")
+                            self.assertTrue(gate["active"], "Browser response stream aborted during freeze")
+                            self.assertLess(frozen_at, gate["deadline"], "Freeze completed after gate expiry")
+                            freeze_done.set()
+
+                        def gate_acknowledged_or_closed():
+                            with gate_lock:
+                                return acknowledged.is_set() or gate["state"] != "HELD"
+
+                        until(gate_acknowledged_or_closed, "Held response did not acknowledge the completed freeze",
+                              seconds=max(0, gate_deadline - time.monotonic()))
+                        with gate_lock:
+                            now = time.monotonic()
+                            self.assertEqual(gate["state"], "HELD", "Response gate closed before acknowledgment")
+                            self.assertTrue(gate["active"] and acknowledged.is_set(), "Held-response handshake absent")
+                            self.assertGreaterEqual(gate["acknowledged_at"], frozen_at)
+                            self.assertLess(now, gate["deadline"], "Response gate expired before release")
+                            self.assertLess(time.time() - job_started_at, job.timeout,
+                                            "RQ deadline elapsed before held-response handshake")
+                            gate_at_release = {"state": "HELD", "stream_active": True, "limit_seconds": 10,
+                                               "freeze_after_seconds": round(frozen_at - gate["held_at"], 3),
+                                               "ack_after_seconds": round(gate["acknowledged_at"] - gate["held_at"], 3),
+                                               "release_after_seconds": round(now - gate["held_at"], 3)}
+                            gate["state"] = "RELEASED"
+                        self.assertEqual(worker.worker.job_monitoring_interval, 30)
+                    except Exception as error:
+                        record({"schema_version": 1, "operation_id": identifier,
+                                "phase": "FIXTURE_ADMISSION", "qualified": False,
+                                "error_type": type(error).__name__, "gate": gate_snapshot(),
+                                "processes": [workhorse_fixture.process_snapshot(owned)
+                                              for owned in worker.owned.values()],
+                                "observation_before_fixture_teardown": True}, "rq_browser_timeout_admission")
+                        raise
+
                     terminal_after_seconds = None
                     observation_error = None
+                    survivor_grace_started = None
+                    observation_limit = job.timeout + 60 + worker.worker.job_monitoring_interval + 10
 
                     def outcome():
                         nonlocal terminal_after_seconds
                         self.assertIsNone(worker.process.poll(), "Production RQ monitor exited")
-                        for owned in list(worker.owned.values()):
-                            if workhorse_fixture.running(owned):
-                                worker.remember(workhorse_fixture.descendants(owned.pid))
                         settled = (job.get_status(refresh=True) in {"finished", "failed"}
                                    and not workhorse_fixture.running(worker.horse))
                         if settled:
-                            terminal_after_seconds = time.time() - job.started_at.timestamp()
-                        return settled
+                            terminal_after_seconds = time.time() - job_started_at
+                            return True
+                        for owned in list(worker.owned.values()):
+                            if workhorse_fixture.running(owned):
+                                worker.remember(workhorse_fixture.descendants(owned))
+                        return False
 
                     try:
                         # RQ 2.12: timeout+60, checked at the next 30s monitor
-                        # interval. Never cancel, kill, or freeze the horse/parent.
+                        # interval. The 130s allowance starts at the original job
+                        # start, not at fault injection. Teardown never helps it.
+                        remaining = observation_limit - (time.time() - job_started_at)
                         until(outcome, "Production timeout did not settle the original RQ horse",
-                              seconds=job.timeout + 60 + worker.worker.job_monitoring_interval + 10)
+                              seconds=max(0, remaining))
+                        survivor_grace_started = time.monotonic()
                         until(lambda: not any(workhorse_fixture.running(owned)
                                               for owned in worker.owned.values()
                                               if owned.pid != worker.identity.pid),
                               "Captured processes survived the production timeout", seconds=5)
-                    except AssertionError as error:
-                        # Preserve the observation before the final oracle raises
-                        # and before OwnedWorker performs any containment cleanup.
+                    except (AssertionError, RuntimeError) as error:
+                        # Preserve the first observation before the final oracle
+                        # raises or OwnedWorker performs any containment cleanup.
                         observation_error = str(error)
                     finally:
                         row = self.read(identifier)
-                        elapsed = time.time() - job.started_at.timestamp()
+                        elapsed = time.time() - job_started_at
                         exception = job.exc_info or ""
                         if row["error"] == "JobTimeoutException" or "JobTimeoutException" in exception:
                             mechanism = "rq-timeout-exception"
@@ -751,33 +856,34 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                         else:
                             mechanism = "unclassified-failure"
                         receipt = {
-                            "schema_version": 1, "operation_id": identifier,
+                            "schema_version": 1, "operation_id": identifier, "phase": "PRODUCTION_TIMEOUT",
                             "rq_status": job.get_status(refresh=True), "rq_timeout_seconds": job.timeout,
-                            "frozen_after_seconds": round(frozen_after_seconds, 3),
-                            "observed_after_seconds": round(elapsed, 3),
+                            "frozen_after_seconds": round(frozen_after_seconds, 3), "gate_at_release": gate_at_release,
+                            "observed_after_seconds": round(elapsed, 3), "observation_limit_seconds": observation_limit,
                             "terminal_after_seconds": (round(terminal_after_seconds, 3)
                                                        if terminal_after_seconds is not None else None),
+                            "survivor_grace_limit_seconds": 5,
+                            "survivor_grace_elapsed_seconds": (round(time.monotonic() - survivor_grace_started, 3)
+                                                               if survivor_grace_started is not None else None),
                             "mechanism": mechanism, "observation_error": observation_error,
                             "sql": {key: row[key] for key in ("state", "error", "attempt_count")},
-                            "browser_pid": browser.pid,
-                            "initial_identity_count": len(original),
+                            "worker_pid": worker.identity.pid, "horse_pid": worker.horse.pid,
+                            "browser_pid": browser.pid, "initial_identity_count": len(original),
                             "processes": [workhorse_fixture.process_snapshot(owned)
                                           for owned in worker.owned.values()],
                             "observation_before_fixture_teardown": True,
                         }
-                        encoded = json.dumps(receipt, sort_keys=True)
-                        print("RQ_BROWSER_TIMEOUT_RECEIPT " + encoded, flush=True)
-                        recorder = getattr(self, "record_browser_timeout_receipt", None)
-                        if recorder is not None:
-                            recorder("rq_browser_timeout_receipt", encoded)
+                        encoded = record(receipt)
                     self.assertIsNone(observation_error, encoded)
+                    self.assertIsNotNone(terminal_after_seconds, encoded)
+                    self.assertLessEqual(terminal_after_seconds, observation_limit, encoded)
                     self.assertNotEqual(mechanism, "unclassified-failure", encoded)
                     self.assertIn(row["state"], {"FAILED", "BLOCKED", "DEAD_LETTERED"}, encoded)
                     self.assertEqual(row["attempt_count"], 1, encoded)
                     self.assertEqual(httpx.get(origin + "/_test/request-counts", timeout=3,
                                                trust_env=False).json(), {"review": 0, "submit": 0})
                 finally:
-                    release.set()
+                    shutdown.set()
 
     def test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission(self):
         accepted, release, receipt_outage = threading.Event(), threading.Event(), threading.Event()
