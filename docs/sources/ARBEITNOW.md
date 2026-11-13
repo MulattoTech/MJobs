@@ -26,7 +26,7 @@ The adapter reads one latest page only and returns `complete_inventory=False`. I
 
 ## Setup and user-visible source credit
 
-Choose **Arbeitnow (Europe)** in Public job sources once the matching frontend change is integrated. The only supported tenant is `default`; no account, password, API key or browser session is required.
+Choose **Arbeitnow (Europe)** in Public job sources. The only supported tenant is `default`; no account, password, API key or browser session is required.
 
 A source can also be configured through the existing authenticated/local MJobs API:
 
@@ -90,6 +90,8 @@ Run the provider and collector boundary from the repository root:
 ```text
 python -m pytest -q tests/unit/test_arbeitnow_source.py tests/unit/test_arbeitnow_provenance.py tests/integration/test_arbeitnow.py
 python -m pytest -q tests/unit/test_company_source_capabilities.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_extension_point_contracts.py tests/unit/test_source_adapter_contract_223.py
+npm --prefix apps/web run build
+python -m pytest -q tests/browser/test_arbeitnow_source_enrollment.py
 git diff --check
 ```
 
