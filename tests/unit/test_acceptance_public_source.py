@@ -138,6 +138,58 @@ class PublicSourceObservationTests(unittest.TestCase):
             containment_preflight=kwargs.pop('containment_preflight', lambda *_: deepcopy(PROOF)),
             utc_now=kwargs.pop('utc_now', lambda: datetime.fromisoformat(STAMP)), **kwargs)
 
+    def test_safe_containment_codes_are_preserved_without_changing_failure_or_cleanup(self):
+        from cli.acceptance_containment import ContainmentError
+        for code in ('CHILD_READBACK_PARENT_STATE_INVALID', 'CHILD_OPERATION_CHANGED',
+                     'CHILD_SNAPSHOT_NOT_STABLE', 'CONTAINMENT_LEASE_EXPIRED',
+                     'CHILD_PARENT_IDENTITY_CHANGED', 'UNOWNED_COMPANY_DISCOVERY_EXISTS'):
+            with self.subTest(code=code):
+                self.api = ControlledAPI()
+                stages = []
+
+                def containment(stage, context):
+                    stages.append(stage)
+                    if stage == 'poll':
+                        raise ContainmentError(code)
+                    return deepcopy(PROOF)
+
+                result = self.observe(containment_preflight=containment)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+                self.assertEqual(result['containment_failure'], dict(schema_version=1, stage='poll',
+                    error_class='ContainmentError', code=code))
+                self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+                self.assertEqual(stages.count('poll'), 1)
+                self.assertNotIn('cleanup', stages)
+                self.assertTrue(self.api.source['enabled'])
+                self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
+
+    def test_unknown_or_untrusted_exception_text_is_never_saved_as_containment_diagnostic(self):
+        from cli.acceptance_containment import ContainmentError
+
+        class ForeignError(ContainmentError):
+            pass
+
+        secret = 'Bearer synthetic-secret-never-serialize'
+        for error in (RuntimeError('CHILD_OPERATION_CHANGED'), ForeignError('CHILD_OPERATION_CHANGED'),
+                      ContainmentError('UNKNOWN_CODE'), ContainmentError(secret),
+                      ContainmentError('CHILD_OPERATION_CHANGED', secret),
+                      ContainmentError({'token': secret})):
+            with self.subTest(error_class=type(error).__name__):
+                self.api = ControlledAPI()
+
+                def containment(stage, context):
+                    if stage == 'poll':
+                        raise error
+                    return deepcopy(PROOF)
+
+                result = self.observe(containment_preflight=containment)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+                self.assertNotIn('containment_failure', result)
+                self.assertNotIn(secret, json.dumps(result))
+                self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+
     def test_one_collection_records_distinct_ids_and_restores_new_source(self):
         result = self.observe()
         self.assertEqual(result['result'], 'PASS', result)
