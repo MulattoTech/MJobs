@@ -166,5 +166,114 @@
     "Native existing-PR admission and exact published-head readback",
     "All required checks on the newly published head",
     "Designated protected integration and applicable acceptance"
-  ]
+  ],
+  "current_main_qualification": {
+    "head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+    "tree": "765dc1672a15b2355e96021ba3067ae3d3c3a1cd",
+    "main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "purpose": "Protectedmain changed Store's restored-settings save behavior; verify assembled diagnostic against that actual new dependency.",
+    "source_before": {
+      "tests/integration/test_mock_discovery_request_bounds.py": {
+        "git_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "sha256": "7a99a478a8b9c0f5d50da2dfbebbac77a123f65687674ed9bf38037811ffe3a0"
+      },
+      "workers/tasks.py": {
+        "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "services/discovery/pipeline.py": {
+        "git_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f"
+      },
+      "services/discovery/sources/http_transport.py": {
+        "git_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "sha256": "64db749e005529e10dd6f8e258ae37b48f5f84d4e811624d5392e0db22d147f1"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+      }
+    },
+    "source_after": {
+      "tests/integration/test_mock_discovery_request_bounds.py": {
+        "git_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "sha256": "7a99a478a8b9c0f5d50da2dfbebbac77a123f65687674ed9bf38037811ffe3a0"
+      },
+      "workers/tasks.py": {
+        "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "services/discovery/pipeline.py": {
+        "git_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f"
+      },
+      "services/discovery/sources/http_transport.py": {
+        "git_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "sha256": "64db749e005529e10dd6f8e258ae37b48f5f84d4e811624d5392e0db22d147f1"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+      }
+    },
+    "source_unchanged": true,
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "-rs",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\public-worker-diagnostic-53d98663.xml",
+      "tests/integration/test_mock_discovery_request_bounds.py"
+    ],
+    "started_at": "2026-11-13T05:22:04.662440+00:00",
+    "finished_at": "2026-11-13T05:22:16.229141+00:00",
+    "counts": {
+      "passed": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pytest_elapsed_seconds": 10.46,
+    "receipt": {
+      "name": "public-worker-diagnostic-53d98663.json",
+      "sha256": "a55e1da8b3e232a5ce36f190d491fa62b3bf62a7f547bd9ad5d52477710afb55",
+      "bytes": 3752
+    },
+    "log": {
+      "name": "public-worker-diagnostic-53d98663.log",
+      "sha256": "307c3df29b426cc378db9b03b36acb176a7e878bb3722480c87cf8e6843b442e",
+      "bytes": 102
+    },
+    "junit": {
+      "name": "public-worker-diagnostic-53d98663.xml",
+      "sha256": "3fa9ed4ba6d8c6158778bab687daaab688de5b9e10fc5c4683674e020dbe5ca3",
+      "bytes": 2961
+    },
+    "integrity": {
+      "name": "f07-integrity-53d98663.json",
+      "sha256": "f4e0971914351a8e91e1a66a2cd91b4242df3f85bcf03457ec3ce59c5dc75dfd",
+      "bytes": 3375
+    },
+    "main_merge_receipt": {
+      "name": "f07-main5b2-refresh.json",
+      "sha256": "13455008a623c1a6b2e2855bf943b92c8c5ce180f70f12d8b026bea4da246d7f",
+      "bytes": 1537
+    }
+  },
+  "last_updated_at_utc": "2026-11-13T05:24:23.577012+00:00"
 }

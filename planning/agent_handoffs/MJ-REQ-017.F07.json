@@ -4,9 +4,9 @@
   "objective": "Deliver and formally accept a bounded Arbeitnow niche-source adapter with exact capabilities, deterministic contracts, safe live readback and user-visible configuration",
   "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
   "branch": "web/p6-arbeitnow-20261113-4dae",
-  "head_sha": "27ff4ee1c709aaaafde1f8750a7120b9e6369151",
+  "head_sha": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
   "routing_state": "VERIFY",
-  "next_action": "Finalize current-main diagnostic candidate, publish one reviewed ordinary update to existingPR1019, observe all exact-head required checks, then coordinate sole-steward integration and canonical acceptance. Preserve prior failed attempts.",
+  "next_action": "Publish reviewed evidence-only successor of current-main53d to existingPR1019 under fresh admission, then observe required new-head gates and coordinate sole-steward integration/acceptance.",
   "created_at": "2026-11-13T03:41:53.261607+00:00",
   "requirements": [
     "MJ-REQ-017.F07"
@@ -51,11 +51,15 @@
     {
       "command": "Required hosted checks on next published current-main candidate",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Exact53d currentmain5b2 Storedependency:16 focused actual socket/worker/durable casesPASS,0skip; nativeintegrity/provenancePASS",
+      "result": "PASS"
     }
   ],
   "blockers": [
     "Prior d3 exact-head Integration failed public worker deadline completion; diagnostic source is locally qualified, new-head hosted qualification remains required.",
     "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved."
   ],
-  "updated_at": "2026-11-13T05:16:21.505520+00:00"
+  "updated_at": "2026-11-13T05:24:23.577012+00:00"
 }

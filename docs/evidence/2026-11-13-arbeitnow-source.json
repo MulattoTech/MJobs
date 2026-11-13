@@ -359,9 +359,9 @@
     "https://www.arbeitnow.com/",
     "https://www.arbeitnow.com/terms"
   ],
-  "last_updated_at_utc": "2026-11-13T05:16:21.505520+00:00",
+  "last_updated_at_utc": "2026-11-13T05:24:23.577012+00:00",
   "current_qualification": {
-    "source_head": "27ff4ee1c709aaaafde1f8750a7120b9e6369151",
+    "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
     "core_arbeitnow_source_unchanged_from_prior_qualification": true,
     "required_gates_at_prior_published_d3": [
       {
@@ -518,6 +518,9 @@
     "diagnostic_evidence": "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
     "diagnostic_local": "16 PASS,0 failure/error/skip at exact test02b1957f",
     "new_published_head_gates": "NOT_RUN",
-    "integration_acceptance": "NOT_RUN"
+    "integration_acceptance": "NOT_RUN",
+    "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
+    "native_integrity": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d"
   }
 }
