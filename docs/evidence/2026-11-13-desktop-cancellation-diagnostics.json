@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N05",
+  "related_requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-179"
+  ],
+  "issue": "https://github.com/MulattoTech/MJobs/issues/366",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017",
+  "purpose": "Bounded cancellation-phase diagnostics and a genuine SQLite premature-reader negative control.",
+  "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "source": {
+    "base_head": "e32f0b2687172402455e44ea07a79a26597300b7",
+    "base_tree": "c1199005d9225112ce0cdb71fccd43fcd314c61b",
+    "tested_worktree_dirty": true,
+    "qualification_commit": null,
+    "branch": "web/cancellation-diagnostics-20261113-4dae",
+    "path": "tests/unit/test_operation_cancellation_commit.py",
+    "final_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+    "final_sha256": "9847965618501136069e044762db6f14b9429b369631062aa68ec34cce0894c9",
+    "production_blobs": {
+      "workers/operations.py": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "packages/persistence/store.py": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+    },
+    "production_equivalent_at": [
+      "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+      "e32f0b2687172402455e44ea07a79a26597300b7",
+      "e70c08f5c4037122acb5be0a30237fa483ddafcf"
+    ],
+    "binding": "Tests ran over dirty base e32 with source hashes preserved. Source commit7642c8e3 and current-main merge3d483e3f contain the exact final test blob and unchanged worker/Store blobs; no test rerun on those commit identities is claimed.",
+    "source_commit_after_qualification": "7642c8e3df9d7d05122aa9d1a10823cce87b49bd",
+    "refreshed_source_head": "3d483e3f0e75d2b0751165db1df13ba9f0b55ec4",
+    "integrated_main": "e70c08f5c4037122acb5be0a30237fa483ddafcf",
+    "desktop_application_source": {
+      "tested_head": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "apps_web_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+      "refreshed_apps_web_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+      "unchanged": true,
+      "evidence": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+    },
+    "main_refresh": "All eight incoming main blobs were adopted exactly, including canonical SESSION_HANDOFF and .gitleaksignore. This imports the protected public-client prerequisite without claiming it fixes the cancellation latency."
+  },
+  "diagnostic_contract": {
+    "original_test_methods_preserved": 9,
+    "maximum_phase_records": 96,
+    "strict_elapsed_bound_seconds": 0.35,
+    "reader_trap_wait_seconds": 0.5,
+    "original_timer_and_thread_start_order_preserved": true,
+    "actual_sql_and_dbapi_calls_preserved": true,
+    "bounded_phase_context_in_latency_and_premature_read_failures": true,
+    "original_premature_read_reason_retained_as_final_suffix": true,
+    "clocks_replaced": false,
+    "sql_results_mocked": false,
+    "production_files_changed": false
+  },
+  "local_runs": [
+    {
+      "stage": "initial_instrumentation",
+      "result": "PASS",
+      "test_blob": "e2984dc33b8b8848e81d970c98a8cd8ae6548267",
+      "test_sha256": "9fa42f3c194d39700e3a98f21e9994bb5f0bcf319301da5eb714acfb6f573fb3",
+      "started_at": "2026-11-13T04:28:26.469825+00:00",
+      "finished_at": "2026-11-13T04:28:31.513609+00:00",
+      "counts": {
+        "tests_passed": 9,
+        "subtests_passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\cancellation-diagnostic-initial.xml",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "source_unchanged": true,
+      "exit_code": 0,
+      "receipt": "cancellation-diagnostic-initial.json",
+      "receipt_sha256": "e183387d54d106f812737c05d6548fa9b01662dade1410e57b7215cb4fea13c9",
+      "log": "cancellation-diagnostic-initial.log",
+      "log_sha256": "7f7ac77e7cf8a897609d5c2bc17147face980ad4eeb8997caddd9243bed6eb83",
+      "junit": "cancellation-diagnostic-initial.xml",
+      "junit_sha256": "1488fd6fe05b4602e690b7054805d0841f49f4b6177ba5fe9d1d51a0170eba45"
+    },
+    {
+      "stage": "final_with_negative_control",
+      "result": "PASS",
+      "test_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+      "test_sha256": "9847965618501136069e044762db6f14b9429b369631062aa68ec34cce0894c9",
+      "started_at": "2026-11-13T04:44:33.562025+00:00",
+      "finished_at": "2026-11-13T04:44:39.504411+00:00",
+      "counts": {
+        "tests_passed": 10,
+        "subtests_passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\cancellation-diagnostic-negativecontrol.xml",
+        "-s",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "source_unchanged": true,
+      "exit_code": 0,
+      "receipt": "cancellation-diagnostic-negativecontrol.json",
+      "receipt_sha256": "c8e93eaffdf9db2b402f8426bace67626d22095656d41c9175ea76e76cc76e62",
+      "log": "cancellation-diagnostic-negativecontrol.log",
+      "log_sha256": "337e12b713239f5e33e6a32d7a69170bec21cf0ef607e5b69f8f3fcded39998a",
+      "junit": "cancellation-diagnostic-negativecontrol.xml",
+      "junit_sha256": "5402adcf2a7b6181a1e3fe13892be355ee1b1063a15c33830816a98bf51d3121"
+    }
+  ],
+  "negative_control": {
+    "test": "test_execution_thread_negative_control_detects_a_premature_sqlite_read",
+    "operation_kind": "DISCOVER",
+    "thread_name": "mjobs-synthetic-execution",
+    "mechanism": "Non-watcher name executes the genuine durable SQL read; the existing after-cursor hook holds that read while the actual writer attempts its commit.",
+    "required_failure_suffix": "Local polling acquired a read lock during its cancellation transaction",
+    "failure_message_phase_records_verified": true,
+    "premature_reads": 1,
+    "checked_out_connections_after": 0,
+    "observed_relative_seconds": {
+      "premature_read": 0,
+      "dbapi_commit_enter": 0,
+      "premature_read_released": 0.5,
+      "dbapi_commit_exit": 0.531
+    },
+    "observed_dbapi_commit_span_seconds": 0.531,
+    "required_order": "premature_read <= dbapi_commit_enter < premature_read_released <= dbapi_commit_exit",
+    "overlap_assertions": "PASS",
+    "new_fixed_timing_bound": false
+  },
+  "historical_hosted_failures": [
+    {
+      "pr": 1017,
+      "head": "e32f0b2687172402455e44ea07a79a26597300b7",
+      "tested_merge": "4d9675880339d7084167b12611c7adfeab5c1107",
+      "run_id": 43360674713,
+      "job_id": 131673162464,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/43360674713/job/131673162464",
+      "fixture_blob": "d61335b53abd9f9f1f26e9bc9ccc44ec7f11289a",
+      "subtest": {
+        "kind": "DISCOVER",
+        "watcher": "mjobs-wwr-cancellation"
+      },
+      "result": "FAIL",
+      "elapsed_seconds": 1.048089245999961,
+      "strict_bound_seconds": 0.35,
+      "counts": {
+        "failed": 1,
+        "passed": 3986,
+        "skipped": 54,
+        "subtests_passed": 4639
+      },
+      "finding": "Latency failed after durable row/audit, watcher shutdown/errors, and no-premature-read assertions. The timer also included fixture patch setup and thread creation. The delayed phase is UNKNOWN."
+    },
+    {
+      "pr": 987,
+      "head": "b3109c95e81fc8db1d53baaef6aeaa1776f23034",
+      "tested_merge": "528d8457bb5d7e6a0abadb90e9cd8d6035cde132",
+      "run_id": 42561554310,
+      "job_id": 128978869671,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42561554310/job/128978869671",
+      "fixture_blob": "7258e821c41d632adcb2036d41b08fadc01f369d",
+      "subtest": {
+        "kind": "COMPANY_SOURCE_REFRESH",
+        "watcher": "mjobs-remotive-cancellation"
+      },
+      "result": "FAIL",
+      "elapsed_seconds": 0.9033297459999972,
+      "strict_bound_seconds": 0.35,
+      "counts": {
+        "failed": 1,
+        "passed": 3927,
+        "skipped": 54,
+        "subtests_passed": 4579
+      },
+      "observed_relative_seconds": {
+        "staged": 0.901,
+        "audit_entered": 0.901,
+        "watcher_check": 0.902,
+        "poll_entered": 0.902,
+        "poll_acknowledged": 0.902,
+        "audit_finished": 0.902,
+        "request_finished": 0.903,
+        "wait_finished": 0.903
+      },
+      "finding": "The observer was ready before the timer, but nearly all delay preceded staging. Identical worker/Store blobs were verified at both tested merges; a common cause with PR1017 is not established."
+    }
+  ],
+  "review": {
+    "agent": "/root/integration_coordination",
+    "reviewer_is_test_implementation_author": true,
+    "scope": "Read-only source and receipt consistency review; no additional tests.",
+    "result": "No material inconsistency found in the frozen test source and local evidence.",
+    "verified": "Receipt/log/JUnit hashes, exact source identities before/after, original nine method ASTs, preserved helper assertion expressions, unchanged production blobs, negative-control phase ordering, AST compilation without execution and whitespace.",
+    "independent_final_candidate_review": "PENDING",
+    "independent_test_source_review": {
+      "reviewer": "/root/campaign_review",
+      "reviewed_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+      "result": "No blocking finding; original timing, actual SQL, negative control and cleanup preserved"
+    }
+  },
+  "interpretation": {
+    "diagnostic_locally_qualified": true,
+    "hosted_latency_root_cause": "UNKNOWN",
+    "production_fix_claimed": false,
+    "historical_hosted_failures_resolved": false,
+    "full_desktop_acceptance_claimed": false,
+    "canonical_acceptance_changed": false
+  },
+  "remaining_gates": [
+    "Independent review of the final immutable candidate and publication metadata",
+    "Ordinary existing-PR1017 update under current admission and expected-head safeguards",
+    "Required hosted qualification on that final published head; preserve failures and diagnose any measured delay",
+    "Designated protected integration and applicable Desktop acceptance review"
+  ],
+  "private_artifact_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "recorded_at": "2026-11-13T04:56:28.031644+00:00"
+}
