@@ -284,7 +284,7 @@ def test_public_api_enrolls_registered_provider_and_rejects_invalid_tenant(store
         assert disabled.status_code == 200
         assert disabled.json()["id"] == current["id"]
         assert client.get("/sources").json()["sources"][0]["enabled"] is False
-        assert rows(store, m.worker_operations) == []
+        assert rows(store, m.operations) == []
         assert rows(store, m.jobs) == []
 
 
