@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "created_at": "2026-11-13T03:50:32.877581Z",
+  "requirement_id": "MJ-REQ-004",
+  "classification": "One immutable public requirement identifier; no credential",
+  "affected_pr": 1018,
+  "failed_source_head": "cfbcd89ed333f853dba210347f894166a396c776",
+  "original_finding": {
+    "commit": "60dd9d4a50506cabedddeb1cf12610d6240e1ec2",
+    "path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+    "line": 4,
+    "rule": "generic-api-key",
+    "verified_requirement_id": "MJ-REQ-204.N05",
+    "canonical_issue": 366,
+    "fingerprint": "60dd9d4a50506cabedddeb1cf12610d6240e1ec2:docs/evidence/2026-11-13-desktop-notifications-ca95.json:generic-api-key:4",
+    "report_artifact_id": 14007599279,
+    "artifact_zip_sha256": "ffc26b657c8b22e98fec4633dd092771186fd8a94381dfa1b65564ef5d1d3f60",
+    "job": "https://github.com/MulattoTech/MJobs/actions/runs/43361083049/job/131674472739"
+  },
+  "cross_branch_cause": "Unchanged fetch-depth0 checkout fetches all branch refs; unchanged scanner uses --log-opts=--all. Desktop60dd is not an ancestor of failedcfb; shared merge base4bf76.",
+  "review": {
+    "reviewer": "ChatGPT-Web /root/github_inventory",
+    "result": "Independent immutable value/classification/ancestry/artifact review PASS; root separately read original frozen field and verified exact peer fingerprint",
+    "existing_peer_disposition": "e32f0b2687172402455e44ea07a79a26597300b7",
+    "peer_exact_head_security_gate": "SUCCESS",
+    "peer_job": "https://github.com/MulattoTech/MJobs/actions/runs/43360674844/job/131673162601"
+  },
+  "change": {
+    "added_fingerprints": 1,
+    "removed_fingerprints": 0,
+    "scope": "Only exact commit/path/rule/line above; no wildcard or path-level suppression",
+    "mechanism": "Existing .gitleaksignore historical reviewed findings",
+    "unchanged": [
+      "Scanner rules",
+      "Pinned scanner version",
+      "Full all-ref history scope",
+      "Workflow permissions",
+      "Production source",
+      "Tests",
+      "Existing reviewed entries"
+    ]
+  },
+  "limits": [
+    "The original failed gate remains recorded. This correction must earn Security / secret scan on the newly published PR1018 head.",
+    "No credentials were rotated or hidden and no real secret finding was dismissed.",
+    "No full requirement acceptance, integration or deployment is claimed."
+  ]
+}
