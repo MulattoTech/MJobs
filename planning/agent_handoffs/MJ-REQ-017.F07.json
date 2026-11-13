@@ -2,11 +2,11 @@
   "schema_version": 1,
   "task_id": "MJ-REQ-017.F07",
   "objective": "Deliver and formally accept a bounded Arbeitnow niche-source adapter with exact capabilities, deterministic contracts, safe live readback and user-visible configuration",
-  "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
   "branch": "web/p6-arbeitnow-20261113-4dae",
-  "head_sha": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+  "head_sha": "9fff078746046ae9828a63bd96485d082a3835a5",
   "routing_state": "VERIFY",
-  "next_action": "Use separate immutable candidate/operator receipts to bind metadata-only applicability to actually frontend-tested f056e9c5f01fcf259026424272a22dcb07a3b8bc, obtain fresh ordinary existing-PR 1019 update admission, then earn exact new-head hosted checks and sole-steward protected integration. Acceptance and deployment remain separate.",
+  "next_action": "After the real stock handoff transfer, bind the reviewed two-file metadata-only successor of 9fff and immutable publication/operator evidence, obtain fresh ordinary PR 1019 update admission, earn all exact new-head hosted checks, and then perform sole-steward protected integration. Applicable runtime/deployment and designated canonical acceptance remain separate.",
   "created_at": "2026-11-13T03:41:53.261607+00:00",
   "requirements": [
     "MJ-REQ-017.F07"
@@ -83,19 +83,32 @@
     {
       "command": "Final post-frontend metadata successor: fresh exact-head hosted qualification, protected integration, deployment and formal acceptance remain NOT_RUN; historical published 289111609b1ea75c7d19b2d784c0820acbd53c1c Security failure is retained with exact payload-digest disposition adopted locally at 8040fccc741212970f990333b4240433b2d0d24a.",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Historical exact 91bb3c27 published PR 1019: 15/15 hosted checks and 5/5 required contexts PASS at 2026-11-13T09:53:31.567Z; immutable c1edc15e qualification retained. These are not 9fff results.",
+      "result": "PASS"
+    },
+    {
+      "command": "Actual local 9fff main composition: exact 3,308-entry full index/tree oracle, 33 protected-main paths and 25 F07 selections preserved; one expected conflict resolved to protected-main b622d69c; strict provenance PASS, 30 merge commands plus 8 root checks reconciled and 42 original generations absent. No application tests executed.",
+      "result": "PASS"
+    },
+    {
+      "command": "Application execution, hosted qualification and publication at 9fff or the future metadata successor; protected F07 integration, deployment and formal canonical acceptance remain separate and unperformed by this metadata proposal.",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Required hosted checks on the final newly published head, protected integration, applicable integrated/runtime validation, deployment and formal acceptance remain separate gates.",
-    "The actual frontend proof does not establish an OS-visible toast, closed-page delivery or an external application flow."
+    "The actual 9fff local composition and any subsequent two-file metadata commit require fresh existing-PR 1019 publication admission and exact new-head hosted qualification before protected integration.",
+    "The stock task-handoff transfer must preserve its actual generated ownership history; historical f056 frontend and 53d backend proofs must remain distinct from operational head_sha.",
+    "Applicable integrated/runtime validation, deployment and formal acceptance remain separate; no OS-visible notification, closed-page delivery or external application flow is established by this F07 metadata update."
   ],
-  "updated_at": "2026-11-13T09:10:40.294083+00:00",
+  "updated_at": "2026-11-13T13:03:06.722136+00:00",
   "historical_blockers": [
     "Prior d3 exact-head Integration failed public worker deadline completion; diagnostic source is locally qualified, new-head hosted qualification remains required.",
     "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved."
   ],
   "tested_executable_head_sha": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
-  "published_head_sha": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+  "published_head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
   "scanner_adoption": {
     "head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
     "tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
@@ -112,9 +125,9 @@
     "source_equivalence": "Only the two scanner files differ from6df; all executable bytes retain53d equivalence."
   },
   "future_metadata_successor": {
-    "applicability": "Metadata-only successor proof requires separate immutable executable/source-equivalence review.",
+    "applicability": "A two-file metadata-only successor of 9fff may reuse the separately scoped historical proofs only after exact source and metadata-delta review. The earlier main composition is not whole-tree equivalent to f056 or 53d.",
     "hosted_checks": "NOT_RUN_ON_NEW_PUBLICATION_HEAD",
-    "identity_binding": "Separate post-commit candidate/operator receipt; source head_sha here is the actually tested merged frontend."
+    "identity_binding": "Real stock transfer supplies the operational owner/head/branch and appended transfer history. Final metadata commit/tree and publication evidence are bound separately; no self-referential future SHA is asserted."
   },
   "historical_metadata_summaries": [
     {
@@ -137,11 +150,38 @@
         }
       },
       "tests_prefix_preserved_count": 14
+    },
+    {
+      "recorded_at_utc": "2026-11-13T12:34:46Z",
+      "source_head_before_metadata_edit": "9fff078746046ae9828a63bd96485d082a3835a5",
+      "scope": "Preserved prior current-field wording. Existing historical tests, failures and f056/53d execution objects are unchanged.",
+      "fields": {
+        "next_action": "Use separate immutable candidate/operator receipts to bind metadata-only applicability to actually frontend-tested f056e9c5f01fcf259026424272a22dcb07a3b8bc, obtain fresh ordinary existing-PR 1019 update admission, then earn exact new-head hosted checks and sole-steward protected integration. Acceptance and deployment remain separate.",
+        "blockers": [
+          "Required hosted checks on the final newly published head, protected integration, applicable integrated/runtime validation, deployment and formal acceptance remain separate gates.",
+          "The actual frontend proof does not establish an OS-visible toast, closed-page delivery or an external application flow."
+        ],
+        "updated_at": "2026-11-13T09:10:40.294083+00:00",
+        "published_head_sha": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+        "published_head_observation_scope": "Predecessor observed by root through authenticated GitHub at 2026-11-13 08:53 UTC; fresh API verification is required before publication. This is not the future metadata candidate.",
+        "source_binding_note": "head_sha identifies the actual current merged frontend execution. Historical backend/live/diagnostic entries retain their own original source anchors and are not reruns at this head. The final metadata-only successor is identified separately after commit, avoiding a self-referential commit hash.",
+        "future_metadata_successor": {
+          "applicability": "Metadata-only successor proof requires separate immutable executable/source-equivalence review.",
+          "hosted_checks": "NOT_RUN_ON_NEW_PUBLICATION_HEAD",
+          "identity_binding": "Separate post-commit candidate/operator receipt; source head_sha here is the actually tested merged frontend."
+        }
+      },
+      "tests_prefix_preserved_count": 18,
+      "stock_handoff_identity_preimage": {
+        "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+        "branch": "web/p6-arbeitnow-20261113-4dae",
+        "head_sha": "f056e9c5f01fcf259026424272a22dcb07a3b8bc"
+      }
     }
   ],
-  "published_head_observation_scope": "Predecessor observed by root through authenticated GitHub at 2026-11-13 08:53 UTC; fresh API verification is required before publication. This is not the future metadata candidate.",
+  "published_head_observation_scope": "Historical authenticated snapshot at 2026-11-13T09:53:31.567Z: published PR 1019 head 91bb and protected main 1f1, 15/15 checks and 5/5 required contexts successful. Fresh API verification remains required before a later publication;9fff is a separate unpublished local composition.",
   "tested_executable_head_scope": "Historical backend/diagnostic executable anchor only; current merged frontend execution is separately bound in current_frontend_qualification.",
-  "source_binding_note": "head_sha identifies the actual current merged frontend execution. Historical backend/live/diagnostic entries retain their own original source anchors and are not reruns at this head. The final metadata-only successor is identified separately after commit, avoiding a self-referential commit hash.",
+  "source_binding_note": "head_sha is the operational task-handoff checkpoint set by the stock transfer, not an assertion of test execution. current_source_composition records the actual 9fff local merge. Frontend execution remains bound to f056 in current_frontend_qualification; historical backend/diagnostic execution remains bound to 53d and its original blobs. A future metadata commit is identified by separate immutable post-commit receipts.",
   "current_frontend_qualification": {
     "tested_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
     "tested_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
@@ -167,5 +207,32 @@
     "future_metadata_hosted_checks": "NOT_RUN",
     "historical_execution_scope_note": "Original test entries retain their original source and creation-time scope; former whole-tree-equivalence or NOT_RUN statements are not current claims.",
     "metadata_successor_identity_binding": "Separate immutable post-commit candidate/operator receipt; no pending self-referential hash."
+  },
+  "transfer_history": [
+    {
+      "from_owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "reason": "Released F07 source ownership was adopted by the root run, and the reviewed local composition with protected main is complete at 9fff. Preserve historical executable qualifications while binding the operational task checkpoint.",
+      "transferred_at": "2026-11-13T13:03:06.605209+00:00"
+    }
+  ],
+  "current_source_composition": {
+    "operational_head": "9fff078746046ae9828a63bd96485d082a3835a5",
+    "operational_tree": "145735cf97e23d9d4b2c2ee83dde593ce5fe79d9",
+    "parents": [
+      "91bb3c27d56d9bb2342b471e404a66f510b03149",
+      "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
+    ],
+    "source_evidence": "docs/evidence/2026-11-13-arbeitnow-source.json",
+    "evidence_json_pointer": "/current_qualification/current_main_composition",
+    "actual_source_review": {
+      "name": "f07-main-aa94183-merge-preparation-02/independent-actual-composition-review.json",
+      "sha256": "505f41ac274bf321c73d52e976bc60ea6d42be09c8fd31444479e3cddad74b85"
+    },
+    "web_tree_equal_to_tested_f056": true,
+    "whole_tree_equal_to_tested_f056_or53d": false,
+    "application_tests_at_operational_head": "NOT_RUN",
+    "hosted_checks_at_operational_head": "NOT_RUN",
+    "formal_acceptance_changed": false
   }
 }

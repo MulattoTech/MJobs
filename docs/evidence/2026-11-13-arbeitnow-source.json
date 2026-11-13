@@ -6,7 +6,7 @@
   "provider": "arbeitnow",
   "created_at_utc": "2026-11-13T03:41:53.118008+00:00",
   "repository": "MulattoTech/MJobs",
-  "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "owner_run": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
   "branch": "web/p6-arbeitnow-20261113-4dae",
   "implementation_source_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
   "implementation_source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
@@ -341,10 +341,10 @@
     "Standalone browser test is not automatically selected by the PR's explicit connected-acceptance list; local actual-browser proof is recorded here"
   ],
   "remaining_gates": [
-    "Bind metadata-only applicability by separate immutable candidate/operator review while retaining the actually tested source HEAD and exact proof.",
-    "Obtain fresh ordinary existing-PR1019 update admission from the complete live PR inventory and actual native owner, then publish and verify exact remote head/body.",
-    "Earn all required hosted checks on that exact new published head; preserve the old Security failure and the narrowly adopted fingerprint disposition as separate history.",
-    "Use the sole verified steward for protected integration and any required integrated/runtime and canonical acceptance work; no deployment or acceptance promotion is recorded here."
+    "Validate the actual stock handoff history and bind the final two-file metadata-only successor to operational head 9fff before publication.",
+    "Bind the exact two-file metadata-only successor and its source-equivalence limits through immutable review and fresh existing-PR 1019 operator/admission evidence.",
+    "Publish through one ordinary owned branch update and earn all required hosted checks on the exact new head. Historical 91bb: 15/15 and 5/5 PASS does not qualify 9fff or its successor.",
+    "Use the verified sole steward for protected F07 integration, then satisfy applicable integrated/runtime and deployment criteria and the designated canonical acceptance review. No acceptance or deployment promotion is recorded here."
   ],
   "coordination": {
     "ui_original_commit": "64819d7d650ed60759d38d0da97f714272999f49",
@@ -372,9 +372,9 @@
     "https://www.arbeitnow.com/",
     "https://www.arbeitnow.com/terms"
   ],
-  "last_updated_at_utc": "2026-11-13T09:10:40.294083+00:00",
+  "last_updated_at_utc": "2026-11-13T12:34:46Z",
   "current_qualification": {
-    "source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+    "source_head": "9fff078746046ae9828a63bd96485d082a3835a5",
     "core_arbeitnow_source_unchanged_from_prior_qualification": true,
     "required_gates_at_prior_published_d3": [
       {
@@ -530,9 +530,9 @@
     ],
     "diagnostic_evidence": "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
     "diagnostic_local": "16 PASS,0 failure/error/skip at exact test02b1957f",
-    "new_published_head_gates": "Future post-frontend metadata successor: NOT_RUN. Published 28911160 retains its original 14/15 total and 4/5 required outcomes, with the one public-metadata-digest Security failure preserved.",
+    "new_published_head_gates": "Historical published predecessor 91bb: 15/15 checks and 5/5 required contexts PASS at 2026-11-13T09:53:31.567Z. Local 9fff and any future two-file metadata successor: NOT_RUN/NOT_PUBLISHED; fresh exact-head hosted qualification remains required.",
     "integration_acceptance": "NOT_RUN",
-    "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+    "integrated_main": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
     "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
     "native_integrity": "Seven saved catalogue/progress/dashboard/provenance/whitespace commands PASS at53d; no separate handoff-schema command is attributed to that receipt.",
     "current_main_source_review": {
@@ -971,6 +971,15 @@
           "new_published_head_gates": "Published6df:4/5 required contexts PASS; Security FAIL on two historical ntfy event identifiers. Final scanner/evidence successor:NOT_RUN."
         },
         "scope": "Earlier executable/diagnostic/scanner qualification remains attached to its original embedded heads."
+      },
+      {
+        "recorded_at_utc": "2026-11-13T12:34:46Z",
+        "fields": {
+          "source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+          "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+          "new_published_head_gates": "Future post-frontend metadata successor: NOT_RUN. Published 28911160 retains its original 14/15 total and 4/5 required outcomes, with the one public-metadata-digest Security failure preserved."
+        },
+        "scope": "Previous current-field snapshot; its embedded f056/53d and older hosted/scanner results retain their original execution scope."
       }
     ],
     "merged_frontend": {
@@ -1242,7 +1251,227 @@
         "only_failed_context": "Security / secret scan"
       }
     },
-    "historical_proof_scope_note": "Existing diagnostic, executable_source_binding, published_head_qualification, scanner_prerequisite, review and integrity objects retain their original embedded revisions and creation-time scope. The current Desktop-merged frontend execution is separately recorded in merged_frontend; broad no-new-browser/whole-executable-equivalence wording in those preserved historical objects is not a current claim."
+    "historical_proof_scope_note": "Existing diagnostic, executable_source_binding, published_head_qualification, scanner_prerequisite, review and integrity objects retain their original embedded revisions and creation-time scope. The current Desktop-merged frontend execution is separately recorded in merged_frontend; broad no-new-browser/whole-executable-equivalence wording in those preserved historical objects is not a current claim.",
+    "operational_source_scope": "source_head is the completed local source composition checkpoint. integrated_main is the protected-main input incorporated into that local branch; it does not mean F07 has been integrated into main. Actual frontend execution remains f056 and historical backend/diagnostic execution remains53d or the original embedded source anchors.",
+    "historical_published_91bb": {
+      "scope": "Historical exact published predecessor qualification; no result is attributed to the later 9fff composition or its future metadata successor.",
+      "head": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+      "tree": "e143f1bd8e438a000d348845dfca29acbd92c43c",
+      "observed_at_utc": "2026-11-13T09:53:31.567Z",
+      "checks_observed_at_utc": "2026-11-13T09:52:59.800Z",
+      "actual_main_at_observation": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "total_checks": 15,
+      "successful_checks": 15,
+      "required_context_count": 5,
+      "all_required_contexts_pass": true,
+      "github_actions_integration_id": 15368,
+      "required_contexts": [
+        {
+          "context": "CI / required",
+          "integration_id": 15368,
+          "check_run_id": 131809062110,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920239/job/131809062110",
+          "started_at": "2026-11-13T09:35:54Z",
+          "completed_at": "2026-11-13T09:35:57Z"
+        },
+        {
+          "context": "Integration / PostgreSQL and Redis",
+          "integration_id": 15368,
+          "check_run_id": 131816320765,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920182/job/131816320765",
+          "started_at": "2026-11-13T09:52:20Z",
+          "completed_at": "2026-11-13T09:52:22Z"
+        },
+        {
+          "context": "Disposable Compose / mock end-to-end",
+          "integration_id": 15368,
+          "check_run_id": 131806600878,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920236/job/131806600878",
+          "started_at": "2026-11-13T09:30:47Z",
+          "completed_at": "2026-11-13T09:39:18Z"
+        },
+        {
+          "context": "Dependencies / introduced vulnerabilities",
+          "integration_id": 15368,
+          "check_run_id": 131806600805,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920264/job/131806600805",
+          "started_at": "2026-11-13T09:30:47Z",
+          "completed_at": "2026-11-13T09:30:53Z"
+        },
+        {
+          "context": "Security / secret scan",
+          "integration_id": 15368,
+          "check_run_id": 131806600004,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920079/job/131806600004",
+          "started_at": "2026-11-13T09:30:48Z",
+          "completed_at": "2026-11-13T09:31:01Z"
+        }
+      ],
+      "receipt": {
+        "name": "hosted-qualification-pr1019-91bb3c27-095331.json",
+        "bytes": 114333,
+        "sha256": "c1edc15e442b02eae743aa444dae3418af677c68ba08febfc90bad33903a62da"
+      },
+      "historical_failures_preserved": true
+    },
+    "current_main_composition": {
+      "result": "PASS_EXACT_LOCAL_SOURCE_COMPOSITION",
+      "operational_head": "9fff078746046ae9828a63bd96485d082a3835a5",
+      "operational_tree": "145735cf97e23d9d4b2c2ee83dde593ce5fe79d9",
+      "parents": [
+        "91bb3c27d56d9bb2342b471e404a66f510b03149",
+        "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
+      ],
+      "incoming_protected_main": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "incoming_protected_main_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+      "actual_composition_completed_at_utc": "2026-11-13T12:08:09.799330+00:00",
+      "source_scope": "A normal local merge of the already published F07 predecessor and protected main; this is not protected integration of F07 into main.",
+      "full_tree_entries": 3308,
+      "full_index_and_tree_match_approved_mode_blob_oracle": true,
+      "protected_main_paths_preserved": 33,
+      "f07_selections_preserved": 25,
+      "changed_paths_from_published_f07": [
+        "cli/notifications.py",
+        "compose.notifications.yml",
+        "docs/NOTIFICATIONS.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/evidence/2026-11-13-ntfy-ci-diagnostics.json",
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/evidence/2026-11-13-public-connect-entry-diagnostics.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/agent_handoffs/MJ-REQ-204.N02.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "services/notifications/__init__.py",
+        "services/notifications/configuration.py",
+        "services/notifications/contract.py",
+        "services/notifications/events.py",
+        "services/notifications/journal.py",
+        "services/notifications/providers/__init__.py",
+        "services/notifications/providers/ntfy.py",
+        "services/notifications/runner.py",
+        "tests/integration/test_durable_ai_evaluation.py",
+        "tests/integration/test_mock_discovery_request_bounds.py",
+        "tests/integration/test_notification_delivery.py",
+        "tests/integration/test_ntfy_live.py",
+        "tests/unit/test_notification_configuration.py",
+        "tests/unit/test_ntfy_provider.py"
+      ],
+      "conflict_resolution": {
+        "path": "tests/integration/test_mock_discovery_request_bounds.py",
+        "prior_f07_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "selected_protected_main_blob": "b622d69ced4d9a640ffced14abf86ccd88c34125",
+        "scope": "Only this expected overlap was resolved to the newer protected-main diagnostic. The historical 16-case result remains attached to 53d/02b1957f and is not relabeled as an execution of this selected blob."
+      },
+      "frontend_source_equivalence": {
+        "actually_tested_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+        "actually_tested_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
+        "tested_and_composed_web_tree": "c78ef6db85b42674b2007e9b1f16b3360c4a7531",
+        "complete_apps_web_subtree_equal": true,
+        "new_browser_or_build_execution": false
+      },
+      "scoped_backend_source_equivalence": {
+        "historical_backend_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+        "selected_unchanged_blobs": {
+          "services/discovery/sources/arbeitnow.py": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+          "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+          "services/discovery/sources/collect.py": "3d90f0581c5acbe617f22bef05236023949f1afd",
+          "services/discovery/sources/registry.py": "b5f56f14069d14eb5bf08298bcde5ecd859e18e8",
+          "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "apps/api/main.py": "c172440c68bca5884f1dfd183315a429771f617d"
+        },
+        "all_six_selected_blobs_match_composed_tree": true,
+        "scope": "Selected production bytes only. Other incoming main changes and the newer diagnostic make this different from whole-tree equivalence or a new backend execution."
+      },
+      "command_results": {
+        "normal_merge_commands": 30,
+        "exit_zero": 29,
+        "expected_conflict_exit_one": 1,
+        "root_readonly_commands": 8,
+        "all_command_jobs_and_outer_job_finalized": true,
+        "original_generations_reconciled_absent": 42,
+        "strict_commit_provenance": "PASS"
+      },
+      "receipts": {
+        "controller": {
+          "name": "f07-main-aa94183-merge-preparation-02/attempt-01/controller-result.json",
+          "sha256": "c4639ea1fb553e6b2cf80070b46853c102d1369642c11b30bbe560754df784dc"
+        },
+        "child": {
+          "name": "f07-main-aa94183-merge-preparation-02/attempt-01/child-result.json",
+          "sha256": "05627a4453a3b607c16aae50da56d17257e112c5326460538fa3f235b12c5ed0"
+        },
+        "root_reconciliation": {
+          "name": "f07-main-aa94183-merge-preparation-02/root-readback-01/root-reconciliation.json",
+          "sha256": "d32df01729ae97dd79ac4eb2e1ef4f9ac14d7d64db7c8932e3b3f3f08d9ef5a5"
+        },
+        "independent_local_composition_review": {
+          "name": "f07-main-aa94183-merge-preparation-02/independent-actual-composition-review.json",
+          "sha256": "505f41ac274bf321c73d52e976bc60ea6d42be09c8fd31444479e3cddad74b85"
+        },
+        "oracle": {
+          "name": "f07-main-aa94183-merge-preparation-02/source-oracle.json",
+          "sha256": "544c1eea89d20843d6cf528ffa51b0a703ab0eb26ba87ecb8b183b4f9b97eeca"
+        }
+      },
+      "native_owner_checkpoint": {
+        "owner_run": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+        "completed_at_utc": "2026-11-13T12:25:02.424880+00:00",
+        "receipt": {
+          "name": "f07-main-aa94183-merge-preparation-02/actual-owner-checkpoint/checkpoint.json",
+          "sha256": "b5f584fd677fa501b3f94c5c16092a8225acb2ec5d7611a90590c3382291fbf6"
+        },
+        "full_record_readback_at_utc": "2026-11-13T12:27:26Z",
+        "eight_reviewed_updates_and_unchanged_steward": true,
+        "all_nine_native_records_matched_active": true,
+        "scope": "Native source ownership checkpoint; the stock task-handoff transfer is a separate operation."
+      },
+      "application_tests_at_operational_head": "NOT_RUN",
+      "hosted_checks_at_operational_head": "NOT_RUN",
+      "publication_at_operational_head": "NOT_RUN",
+      "f07_protected_integration": "NOT_RUN",
+      "deployment": "NOT_RUN",
+      "formal_acceptance": "NOT_RUN",
+      "canonical_acceptance_changed": false,
+      "metadata_successor": {
+        "head": null,
+        "tree": null,
+        "status": "FUTURE_METADATA_IDENTITY_UNSET_AT_PREPARATION",
+        "scope": "The later two-file metadata-only successor is bound by separate post-commit receipts. These null identity fields record preparation-time knowledge; no future SHA, transfer timestamp, new application execution or hosted result is asserted."
+      },
+      "preserved_attempt_history": {
+        "first_merge_attempt_controller": {
+          "name": "f07-main-aa94183-merge-preparation/attempt-01/controller-result.json",
+          "sha256": "be1e4bef7280546b3136c58fc645f5bcf9de461d3270d0762df351b49801aa28"
+        },
+        "first_merge_attempt_result": "Refused controller-generation handshake before tracked source mutation; original failure and its reconciliation remain preserved.",
+        "first_merge_attempt_reconciliation": {
+          "name": "f07-main-aa94183-merge-preparation/attempt-01/root-failure-generation-reconciliation.json",
+          "sha256": "dd212110584b1cd0e0d3752cf1b610edc07f50f092d7bcca7f1313c362f8d213"
+        }
+      }
+    }
   },
   "historical_metadata_summaries": [
     {
@@ -1259,6 +1488,21 @@
         "last_updated_at_utc": "2026-11-13T06:45:01.259983+00:00"
       },
       "scope": "Preserved creation-time wording; broad whole-tree/frontend equivalence statements here are historical and do not describe the Desktop-merged source."
+    },
+    {
+      "recorded_at_utc": "2026-11-13T12:34:46Z",
+      "source_head_before_metadata_edit": "9fff078746046ae9828a63bd96485d082a3835a5",
+      "scope": "Preserve the complete prior current-field wording while recording actual local composition separately; no historical test or failed hosted result is changed.",
+      "superseded_current_fields": {
+        "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+        "remaining_gates": [
+          "Bind metadata-only applicability by separate immutable candidate/operator review while retaining the actually tested source HEAD and exact proof.",
+          "Obtain fresh ordinary existing-PR1019 update admission from the complete live PR inventory and actual native owner, then publish and verify exact remote head/body.",
+          "Earn all required hosted checks on that exact new published head; preserve the old Security failure and the narrowly adopted fingerprint disposition as separate history.",
+          "Use the sole verified steward for protected integration and any required integrated/runtime and canonical acceptance work; no deployment or acceptance promotion is recorded here."
+        ],
+        "last_updated_at_utc": "2026-11-13T09:10:40.294083+00:00"
+      }
     }
   ]
 }
