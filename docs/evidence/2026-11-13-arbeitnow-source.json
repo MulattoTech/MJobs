@@ -276,7 +276,21 @@
       "passed": 4,
       "failed": 0
     },
-    "final_metadata_and_browser_test_delta_review": "PENDING"
+    "final_metadata_and_browser_test_delta_review": {
+      "creation_time_state": "PENDING",
+      "completed_result": "APPROVED_FOR_PUBLICATION_AND_HOSTED_QUALIFICATION",
+      "reviewer": "/root/integration_coordination",
+      "reviewed_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+      "receipt": "final-review-86cafb5c.json",
+      "receipt_sha256": "56aeae5add043f4baf874822e1d22204097b0eb5ac688b9a2d2015e93892a359",
+      "later_main_refresh_review": {
+        "head": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "reviewer": "/root/p6_readonly",
+        "result": "PASS_FOR_HOSTED_QUALIFICATION",
+        "receipt": "final-review-d3aacf43.json",
+        "receipt_sha256": "478d6486321ab248542ac12a3643de6e4528b18fa716279dcb35f10c19fe3dd9"
+      }
+    }
   },
   "prior_failures_preserved": [
     {
@@ -359,7 +373,7 @@
     "https://www.arbeitnow.com/",
     "https://www.arbeitnow.com/terms"
   ],
-  "last_updated_at_utc": "2026-11-13T05:24:23.577012+00:00",
+  "last_updated_at_utc": "2026-11-13T05:25:31.989185+00:00",
   "current_qualification": {
     "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
     "core_arbeitnow_source_unchanged_from_prior_qualification": true,
@@ -521,6 +535,18 @@
     "integration_acceptance": "NOT_RUN",
     "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
     "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
-    "native_integrity": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d"
+    "native_integrity": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d",
+    "current_main_source_review": {
+      "reviewed_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "reviewer": "/root/campaign_review",
+      "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "scope": "Current-main merge, coreF07 source equivalence, exactincoming5b2blobs andactualcurrentStore16-case receipt/integrity; diagnostic author status disclosed",
+      "independent_diagnostic_source_review": {
+        "reviewer": "/root/integration_coordination",
+        "blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS"
+      },
+      "final_published_head_operator_binding": "Separate private receipt and PR publication readback; required hosted gates remain pending"
+    }
   }
 }
