@@ -378,7 +378,7 @@
     "operation_kind": "DISCOVER",
     "thread_name": "mjobs-synthetic-execution",
     "mechanism": "The execution thread performs the real durable SELECT. The after-cursor hook waits for the separate actual commit-entry event before its existing half-second hold. Owned dialect wrappers pass through genuine DBAPI calls.",
-    "phase_clock": "Relative perf_counter wall time and per-thread CPU time, printed to six decimals; observations are retained as reported.",
+    "phase_clock": "Relative time.monotonic() wall time and time.thread_time() per-thread CPU time, printed to six decimals; observations are retained as reported.",
     "no_new_positive_latency_bound": true,
     "bounded_handshake_seconds": 2,
     "cases": [
@@ -781,7 +781,23 @@
       "scope_limit": "This independent review preceded source commit ce4338537 and the current-main merge. It reviewed exact test blob14ad and noted the then-pending current-main Store qualification; that subsequent qualification is separately recorded above."
     },
     "author_separation": "The preparer authored the diagnostic test change and does not claim independent approval of it. The cited campaign review was performed by another agent; root performed the recorded focused execution.",
-    "final_immutable_review_binding": "This manifest records clean qualification head ac4d4b42 and the preceding independent test-source review. A separate immutable candidate review and authenticated publication metadata bind the later evidence commit; no final publication approval is asserted by this preparation record."
+    "final_immutable_review_binding": "The clean dfc3adb1 evidence successor has separate independent approval recorded above. This later metadata successor corrects its clock label and records the exact released scanner dependency; the final successor identity, equivalence and publication operator approval are bound by a separate private receipt.",
+    "independent_final_dfc_review": {
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/campaign_review",
+      "reviewed_head": "dfc3adb1cdb429b349b12dbd3a3acbcdc917ffcb",
+      "reviewed_tree": "c18e12c84400eb38dc99b39daf8263e7c9346d65",
+      "receipt": {
+        "name": "independent-final-review-desktop-dfc3adb1.json",
+        "bytes": 40059,
+        "sha256": "55b2b7c4d9496a9cd063d0c39d4d7504802289d0e9d64ac405ddd35fbbd231e1"
+      },
+      "blocking_findings": [],
+      "nonblocking_D1": {
+        "finding": "Current phase_clock label named perf_counter while the actual test uses time.monotonic() and time.thread_time().",
+        "disposition": "Corrected this label only; recorded timing observations and executable source unchanged."
+      }
+    }
   },
   "interpretation": {
     "diagnostic_locally_qualified": true,
@@ -797,7 +813,7 @@
     "new_candidate_hosted_qualification": "NOT_RUN"
   },
   "remaining_gates": [
-    "Bind the evidence successor to its final immutable head/tree and obtain a separate independent final merge/evidence review.",
+    "Bind and independently verify this final metadata/scanner successor against the approved dfc3adb1 evidence and unchanged ac4d4b42 executable source.",
     "Prepare fresh authenticated operator/publication metadata and admission for the ordinary existing PR1017 update from the recorded f564 publication head.",
     "Run required hosted qualification on the new final published head. The f564 results are historical and do not qualify the new candidate.",
     "Have the designated steward perform protected integration and the applicable Desktop acceptance review; retain any failure and diagnose from measured evidence."
@@ -955,5 +971,27 @@
       "Protected current-head hosted checks, verified integration stewardship and canonical acceptance ownership remain separate gates."
     ],
     "binding_limit": "The original component runs occurred at a0de7db5 and are retained as such. Current frontend and the eight independently reviewed application/browser-test/documentation blobs are identical. No new frontend/build/browser execution at ac4d4b42 is claimed; subsequent backend/main changes are separately bound and hosted/final acceptance remains required."
-  }
+  },
+  "scanner_dependency_adoption": {
+    "source_commit": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+    "local_adoption_commit": "6df0e06fc53c258411987de731439a99c318a550",
+    "local_adoption_tree": "7a34e15d097462df151721f995e7c2b703572d5c",
+    "paths": [
+      ".gitleaksignore",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+    ],
+    "exact_blobs": {
+      ".gitleaksignore": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json": "db132b02dfae64de3793ff1edf47eb18c181aefb"
+    },
+    "receipt": {
+      "name": "scanner-adoption-complete.json",
+      "bytes": 3494,
+      "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+    },
+    "scope": "Two historical synthetic ntfy event-identifier fingerprints only; no scanner policy, workflow, application or diagnostic-test change.",
+    "shared_claim_disposition": "RELEASED_AFTER_THREE_EXACT_ADOPTIONS",
+    "fresh_desktop_hosted_scan": "NOT_RUN"
+  },
+  "metadata_updated_at_utc": "2026-11-13T06:24:02.750929+00:00"
 }
