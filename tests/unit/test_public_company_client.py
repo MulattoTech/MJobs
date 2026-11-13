@@ -10,6 +10,7 @@ import httpx
 from services.company_discovery.public_client import (
     MAX_RESPONSE_BYTES, HTTPStatusError, PublicCompanyClient, PublicFetchError,
 )
+from services.company_discovery.monitoring_policy import MonitoringPolicy
 from tests.fixtures.company_dns import owned_resolvers
 
 
@@ -35,6 +36,27 @@ class FakeHttpResponse:
 
 
 class PublicCompanyClientTests(unittest.TestCase):
+    def test_rate_spacing_caps_only_effective_probe_concurrency(self):
+        cases = (
+            (15, 2, 8, 1),
+            (30, 2, 8, 1),
+            (60, 2, 8, 2),
+            (15, 10, 8, 3),
+        )
+        for rate_limit, request_timeout, configured, expected in cases:
+            with self.subTest(rate_limit=rate_limit, request_timeout=request_timeout):
+                policy = MonitoringPolicy(
+                    rate_limit=rate_limit,
+                    request_timeout=request_timeout,
+                    concurrency=configured,
+                )
+                client = PublicCompanyClient("https://example.test/jobs", policy=policy)
+                try:
+                    self.assertEqual(client.concurrency, expected)
+                    self.assertEqual(policy.concurrency, configured)
+                finally:
+                    client.close()
+
     def test_unsafe_redirect_is_rejected_before_second_request(self):
         client = PublicCompanyClient("https://example.test/jobs")
         try:
