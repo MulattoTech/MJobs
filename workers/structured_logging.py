@@ -54,7 +54,7 @@ _CONTEXT_FIELDS = {
     "COMPANY_SOURCE_REFRESH": _SOURCE_FIELDS,
 }
 _SAFE_SOURCES = _SAFE_ATS_PROVIDERS | {
-    "mock-board", "mock-employer", "remotive", "wwr", "remoteok", "remote_ok",
+    "mock-board", "mock-employer", "remotive", "wwr", "remoteok", "remote_ok", "arbeitnow",
     "rss", "sitemap", "html", "json", "public-api",
 }
 

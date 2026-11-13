@@ -38,6 +38,7 @@ _PARSERS = {
     "services.discovery.sources.remotive.Remotive",
     "services.discovery.sources.remoteok.RemoteOK",
     "services.discovery.sources.wwr.WeWorkRemotely",
+    "services.discovery.sources.arbeitnow.Arbeitnow",
 }
 _PARSER_HELPERS = (
     "services.discovery.sources.structured_text", "services.discovery.search_semantics",

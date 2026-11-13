@@ -13,6 +13,7 @@ _PARSER_TEMPLATES = {
     "remotive": "services.discovery.sources.remotive.Remotive.normalize",
     "remoteok": "services.discovery.sources.remoteok.RemoteOK.normalize",
     "wwr": "services.discovery.sources.wwr.WeWorkRemotely.normalize",
+    "arbeitnow": "services.discovery.sources.arbeitnow.Arbeitnow.normalize",
 }
 
 
