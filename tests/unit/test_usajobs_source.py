@@ -185,6 +185,101 @@ def test_selection_is_newest_first_bounded_and_text_order_does_not_join_by_index
     assert batch.complete_inventory is False
 
 
+def selection_boundary_payloads(payloads):
+    """Twenty-five supported rows plus one older synthetic agency-label defect."""
+    metadata_rows, text_rows = [], []
+    for index in range(26):
+        raw = envelope(payloads)
+        opened = NOW.date() - timedelta(days=int(index == 25))
+        for record in raw.values():
+            record.update(usajobsControlNumber=990002000 + index,
+                          announcementNumber=f"SYN-SELECTION-{index}",
+                          positionOpenDate=opened.isoformat())
+        metadata_rows.append(raw["metadata"])
+        text_rows.append(raw["announcement_text"])
+    metadata_rows[-1]["hiringAgencyCode"] = "Other Agencies and Independent Organizations"
+    return {"data": metadata_rows}, {"data": text_rows}
+
+
+@pytest.mark.parametrize("order", ("forward", "reverse", "rotated"))
+def test_unselected_agency_label_does_not_poison_deterministic_newest_25(payloads, order):
+    metadata, text = selection_boundary_payloads(payloads)
+    if order == "reverse":
+        metadata["data"].reverse()
+    elif order == "rotated":
+        metadata["data"] = metadata["data"][7:] + metadata["data"][:7]
+    before = deepcopy((metadata, text))
+    expected = list(range(990002024, 990001999, -1))
+    requests = []
+
+    def respond(request):
+        if request.url.path == "/api/historicjoa":
+            return response_for(request, (metadata, text))
+        assert request.url.path == "/api/historicjoa/announcementtext"
+        assert dict(request.url.params) == {
+            "USAJOBSControlNumbers": ",".join(map(str, expected))}
+        return httpx.Response(200, json={"data": [
+            row for row in reversed(text["data"])
+            if row["usajobsControlNumber"] in expected]})
+
+    adapter = adapter_for((metadata, text), requests, handler=respond)
+    batch = adapter.search()
+    assert len(requests) == 2
+    assert [item.raw["metadata"]["usajobsControlNumber"] for item in batch.items] == expected
+    native = payloads[0]["data"][0]
+    assert all(item.company.identity_parts == (
+        "usajobs", native["hiringDepartmentCode"], native["hiringAgencyCode"])
+        for item in batch.items)
+    assert batch.complete_inventory is False and adapter.health() == "HEALTHY"
+    assert (metadata, text) == before
+
+
+@pytest.mark.parametrize(("field", "value"), (
+    ("hiringAgencyCode", "Other Agencies and Independent Organizations"),
+    ("hiringDepartmentCode", "Unsupported department label"),
+    ("announcementNumber", " "),
+))
+def test_selected_identity_defect_fails_before_text_without_backfill(payloads, field, value):
+    metadata, text = selection_boundary_payloads(payloads)
+    newest = metadata["data"][-1]
+    newest["hiringAgencyCode"] = payloads[0]["data"][0]["hiringAgencyCode"]
+    newest["positionOpenDate"] = NOW.date().isoformat()
+    newest[field] = value
+    requests = []
+    adapter = adapter_for((metadata, text), requests)
+    with pytest.raises(SourceError, match="^SOURCE_INVALID_JOB$"):
+        adapter.search()
+    assert len(requests) == 1
+    assert requests[0].url.path == "/api/historicjoa"
+    assert adapter.health() == "SOURCE_INVALID_JOB"
+
+
+@pytest.mark.parametrize(("field", "value"), (
+    ("usajobsControlNumber", True),
+    ("positionOpenDate", "2026-11-99"),
+))
+def test_unselected_row_still_requires_valid_selection_keys(payloads, field, value):
+    metadata, text = selection_boundary_payloads(payloads)
+    metadata["data"][-1][field] = value
+    requests = []
+    adapter = adapter_for((metadata, text), requests)
+    with pytest.raises(SourceError, match="^SOURCE_INVALID_JOB$"):
+        adapter.search()
+    assert len(requests) == 1 and adapter.health() == "SOURCE_INVALID_JOB"
+
+
+def test_unselected_identity_defect_cannot_hide_conflicting_duplicate(payloads):
+    metadata, text = selection_boundary_payloads(payloads)
+    conflicting = deepcopy(metadata["data"][-1])
+    conflicting["positionTitle"] = "Different synthetic source claim"
+    metadata["data"].append(conflicting)
+    requests = []
+    adapter = adapter_for((metadata, text), requests)
+    with pytest.raises(SourceError, match="^SOURCE_JOIN_CONFLICT$"):
+        adapter.search()
+    assert len(requests) == 1 and adapter.health() == "SOURCE_JOIN_CONFLICT"
+
+
 @pytest.mark.parametrize("phase", ("metadata", "text"))
 def test_identical_duplicate_rows_are_consistent_and_returned_once(payloads, phase):
     metadata, text = single(payloads)

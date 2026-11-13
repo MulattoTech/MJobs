@@ -48,6 +48,10 @@ The plural control-number query is a separate live qualification gate until a pr
 
 ## Identity, joining and raw evidence
 
+Selection validates every metadata row's positive numeric control number, opening date, bounded collection structure, occupational-series values and raw fingerprint before deduplication. Conflicting records for the same control number fail the search, including records outside the final selection.
+
+Full agency, department and announcement identity is required for every row in the deterministic newest-25 selection, before any Announcement Text request. An unsupported agency label on an older, unselected row does not assign a company or block the selected subset. If an unsupported identity falls inside the selected subset, the whole search fails; the adapter does not substitute a display name, invent an agency code or fill its slot from older records. The batch remains an explicitly incomplete selection, not a count of all valid or rejected metadata records.
+
 Each posting has a provider-native numeric control number. Metadata and text must agree on:
 
 - Control number.

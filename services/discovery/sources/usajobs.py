@@ -116,19 +116,26 @@ def _date(value, *, required=False):
         return None
 
 
-def _identity(record):
+def _selection_key(record):
+    """Validate metadata keys needed for deduplication and bounded selection."""
     if not isinstance(record, dict):
         raise SourceError("SOURCE_INVALID_JOB")
     control = record.get("usajobsControlNumber")
-    agency = record.get("hiringAgencyCode")
-    department = record.get("hiringDepartmentCode")
-    if (type(control) is not int or not 0 < control <= 2**63 - 1
-            or not isinstance(agency, str) or not _CODE.fullmatch(agency)
-            or not isinstance(department, str) or not _CODE.fullmatch(department)):
+    if type(control) is not int or not 0 < control <= 2**63 - 1:
         raise SourceError("SOURCE_INVALID_JOB")
     opened = _date(record.get("positionOpenDate"), required=True)
+    return control, opened.isoformat()
+
+
+def _identity(record):
+    control, opened = _selection_key(record)
+    agency = record.get("hiringAgencyCode")
+    department = record.get("hiringDepartmentCode")
+    if (not isinstance(agency, str) or not _CODE.fullmatch(agency)
+            or not isinstance(department, str) or not _CODE.fullmatch(department)):
+        raise SourceError("SOURCE_INVALID_JOB")
     announcement = _identifier(record.get("announcementNumber"))
-    return control, agency, opened.isoformat(), announcement, department
+    return control, agency, opened, announcement, department
 
 
 def _alias(record, first, second, *, default=None):
@@ -373,22 +380,27 @@ class USAJobs:
             eligible = []
             for row in self._rows(payload, MAX_METADATA_ITEMS):
                 self.check()
-                key = _identity(row)
+                control, opened = _selection_key(row)
                 _collections(row)
                 categories = _series(row)
                 signature = _fingerprint(row)
-                control = key[0]
                 if control in unique:
                     if signatures[control] != signature:
                         raise SourceError("SOURCE_JOIN_CONFLICT")
                     continue
                 unique[control] = row
                 signatures[control] = signature
-                if first <= date.fromisoformat(key[2]) <= last and POSITION_SERIES in categories:
+                if first <= date.fromisoformat(opened) <= last and POSITION_SERIES in categories:
                     eligible.append(row)
             self.check()
             eligible.sort(key=lambda row: (row["positionOpenDate"], row["usajobsControlNumber"]), reverse=True)
             selected = eligible[:MAX_SELECTED]
+            # Only the fixed newest subset is enriched. Every selected row must
+            # have native agency identity; never backfill or guess a company.
+            for row in selected:
+                self.check()
+                _identity(row)
+            self.check()
             selected_by_control = {row["usajobsControlNumber"]: row for row in selected}
             texts = {}
             text_signatures = {}
