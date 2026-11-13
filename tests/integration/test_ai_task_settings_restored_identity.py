@@ -1,14 +1,14 @@
 """Restored logical task settings stay editable without replacing imported IDs."""
 
-from concurrent.futures import ThreadPoolExecutor
 import copy
 import os
-from pathlib import Path
 import tempfile
 import threading
 import unittest
-from uuid import uuid4
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from unittest.mock import patch
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select, text
@@ -185,16 +185,17 @@ class _TaskSettingsIdentityContract:
         for profile_id in ("fresh", restored_id):
             barrier = threading.Barrier(2)
 
-            def save(label):
+            def save(label, selected_profile, start_barrier):
                 owned = Store(self.database_url)
                 try:
-                    barrier.wait(timeout=10)
-                    owned.save_ai_task_settings(profile_id, _selections(label))
+                    start_barrier.wait(timeout=10)
+                    owned.save_ai_task_settings(selected_profile, _selections(label))
                 finally:
                     owned.engine.dispose()
 
             with ThreadPoolExecutor(max_workers=2) as executor:
-                futures = [executor.submit(save, label) for label in ("one", "two")]
+                futures = [executor.submit(save, label, profile_id, barrier)
+                           for label in ("one", "two")]
                 for future in futures:
                     future.result(timeout=30)
             with self.subTest(profile_id=profile_id):
