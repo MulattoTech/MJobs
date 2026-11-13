@@ -220,6 +220,13 @@ class Store:
         previous = self.profile(profile['id']) if current else {}
         profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
         profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
+        from packages.domain.employer_verification import normalize_activation
+        discovery = profile['preferences']['company_discovery']
+        previous_discovery = (previous.get('preferences') or {}).get('company_discovery') or {}
+        discovery['employer_verification'] = normalize_activation(
+            discovery['employer_verification'], previous_discovery.get('employer_verification'),
+            company_discovery_enabled=discovery['company_discovery_enabled'],
+        )
         preferences_changed = current is not None and previous.get('preferences', {}) != profile['preferences']
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
