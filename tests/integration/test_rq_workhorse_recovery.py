@@ -820,9 +820,8 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                         if settled:
                             terminal_after_seconds = time.time() - job_started_at
                             return True
-                        for owned in list(worker.owned.values()):
-                            if workhorse_fixture.running(owned):
-                                worker.remember(workhorse_fixture.descendants(owned))
+                        # Observe only the identities captured before the fault.
+                        # Acquiring new ownership during shutdown can race exits.
                         return False
 
                     try:
@@ -834,7 +833,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                               seconds=max(0, remaining))
                         survivor_grace_started = time.monotonic()
                         until(lambda: not any(workhorse_fixture.running(owned)
-                                              for owned in worker.owned.values()
+                                              for owned in original
                                               if owned.pid != worker.identity.pid),
                               "Captured processes survived the production timeout", seconds=5)
                     except (AssertionError, RuntimeError) as error:
@@ -869,8 +868,9 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                             "sql": {key: row[key] for key in ("state", "error", "attempt_count")},
                             "worker_pid": worker.identity.pid, "horse_pid": worker.horse.pid,
                             "browser_pid": browser.pid, "initial_identity_count": len(original),
+                            "observation_scope": "captured-original-identities",
                             "processes": [workhorse_fixture.process_snapshot(owned)
-                                          for owned in worker.owned.values()],
+                                          for owned in original],
                             "observation_before_fixture_teardown": True,
                         }
                         encoded = record(receipt)
