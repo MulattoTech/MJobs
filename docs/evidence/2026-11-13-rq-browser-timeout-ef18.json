@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-004",
+  "related_requirement": "MJ-REQ-292",
+  "created_at_utc": "2026-11-13T22:59:38.043007+00:00",
+  "scope": "Regression coverage for production RQ timeout handling of a frozen owned mock-application Chromium browser, plus ownership-safe process inventory in the test fixture.",
+  "literal_requirement_support": {
+    "timeouts": "The enqueued RQ job has a30-second timeout; the observed timeout path settled around30.08seconds.",
+    "controlled_cancellation": "Timeout handling and captured-original cleanup are exercised; explicit user cancellation is not exercised by this new case.",
+    "captured_output": "JUnit property and hashed hosted logs preserve pre-teardown observations.",
+    "error_classification": "SQL operation DEAD_LETTERED / JobTimeoutException / attempt_count 1.",
+    "retry_policy": "No retries occurred; this does not establish broader retry policy.",
+    "operation_classes": [
+      "browser navigation",
+      "external processes"
+    ]
+  },
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "tested_commit": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+    "tested_tree": "74d2c569f7c7a36ba4a83ce7621265a09332f40d",
+    "base_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "branch": "web/ef1809b6/rq-browser-timeout",
+    "clean_before_and_after_local_execution": true,
+    "changed_test_files": [
+      "tests/integration/rq_workhorse_fixture.py",
+      "tests/integration/test_rq_workhorse_recovery.py",
+      "tests/unit/test_rq_browser_timeout_fixture.py"
+    ],
+    "blobs": {
+      "tests/integration/rq_workhorse_fixture.py": "c1df797868c04c8a1d890479fd9e8e899df2af16",
+      "tests/integration/test_rq_workhorse_recovery.py": "990b607fc204d85f45c980982fff882659d2e6b5",
+      "tests/unit/test_rq_browser_timeout_fixture.py": "db5297289ac3bc21a07a8188117a25075f878cf8"
+    },
+    "production_source_changed": false,
+    "workflow_changed": false,
+    "native_working_tree_sha256": {
+      "tests/integration/rq_workhorse_fixture.py": "b4fcb4fd5f7a685a37e951532aca4d1de70e7d75a27f0e24afe1f2de9418f7c7",
+      "tests/integration/test_rq_workhorse_recovery.py": "61511ab977983697ea9266b170414121966400b4255212bec59d7b2e5f51eb6c",
+      "tests/unit/test_rq_browser_timeout_fixture.py": "3555de1209805561bdfdc4e6940a2271337c47cbaa860fd9f2eda7e63f612507"
+    },
+    "git_blob_sha256": {
+      "tests/integration/rq_workhorse_fixture.py": "b4fcb4fd5f7a685a37e951532aca4d1de70e7d75a27f0e24afe1f2de9418f7c7",
+      "tests/integration/test_rq_workhorse_recovery.py": "cf4d8eb4454be7b3c5323d268042e99bf2aa43f1f8d8a0681f69e2da55f6b617",
+      "tests/unit/test_rq_browser_timeout_fixture.py": "3555de1209805561bdfdc4e6940a2271337c47cbaa860fd9f2eda7e63f612507"
+    },
+    "source_byte_binding": "Native working-tree hashes bind the Windows local helper/admission run. Git-blob hashes bind the immutable committed source used by hosted execution. CRLF-to-LF normalization exactly reproduces the integration test's Git bytes; the other two files already match byte-for-byte.",
+    "line_ending_bindings": {
+      "tests/integration/rq_workhorse_fixture.py": {
+        "native_bytes_equal_git_blob": true,
+        "native_crlf_to_lf_equals_git_blob": true
+      },
+      "tests/integration/test_rq_workhorse_recovery.py": {
+        "native_bytes_equal_git_blob": false,
+        "native_crlf_to_lf_equals_git_blob": true
+      },
+      "tests/unit/test_rq_browser_timeout_fixture.py": {
+        "native_bytes_equal_git_blob": true,
+        "native_crlf_to_lf_equals_git_blob": true
+      }
+    }
+  },
+  "implementation": [
+    "Add one real Redis/RQ/Chromium regression using the public mock-run route with submit false and external submission disabled.",
+    "Hold only the browser document response, establish a bounded identity-checked browser freeze, and require an acknowledged held-response handshake before releasing the document.",
+    "Use actual enqueue-side timeout 30; observe RQ terminal state and original horse exit within the original 130-second observation allowance, then at most five seconds for captured originals to settle.",
+    "Record and assert the result before fixture containment cleanup. Invalid fault setup has its own FIXTURE_ADMISSION classification.",
+    "Fence root and intermediate process identities during descendant discovery and preserve existing pidfd signaling; do not admit partial inventories after ownership changes.",
+    "Use a fixed original identity tuple during shutdown observation rather than acquiring new descendants during ordinary exit races."
+  ],
+  "review_history": [
+    {
+      "commit": "d2f94c424e3ec8d88917b0085e155dbef3c44768",
+      "result": "CHANGES_REQUESTED",
+      "findings": [
+        "Unfenced intermediate-parent inventory could admit foreign identities.",
+        "The held-document gate could expire before the freeze.",
+        "Observation allowance restarted after fault injection."
+      ]
+    },
+    {
+      "commit": "421a5ade2e5fa6f2ce7b721fa3c5d47709e02724",
+      "result": "CHANGES_REQUESTED",
+      "findings": [
+        "Opportunistic descendant acquisition during natural shutdown could prematurely stop observation."
+      ]
+    },
+    {
+      "commit": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+      "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviews": [
+        {
+          "file": "rq-browser-timeout-independent-review-31d9afb3.json",
+          "sha256": "e8040597b0503ba829084002d8746975b31951493c49a427309c3b9727c586a8",
+          "reviewer": "/root/p6_access_options",
+          "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS"
+        },
+        {
+          "file": "rq-browser-timeout-ownership-review-31d9afb3.json",
+          "sha256": "e1b6c9d6ee0874a2722f87196ac55ded894ea913a7ca5c480f72aaa4acf18232",
+          "reviewer": "/root/github_current",
+          "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS"
+        }
+      ]
+    }
+  ],
+  "local_validation": {
+    "result": "PASS",
+    "source_commit": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+    "source_tree": "74d2c569f7c7a36ba4a83ce7621265a09332f40d",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-s",
+      "tests/unit/test_rq_browser_timeout_fixture.py",
+      "tests/integration/test_rq_workhorse_recovery.py::WorkhorseFixtureAdmissionTests",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\rq-browser-timeout-unit-31d9afb3.junit.xml"
+    ],
+    "environment": "MULATTOTECHBOX / Windows / existing project Python 3.12.10 environment; helper/admission tests only.",
+    "started_at_utc": "2026-11-13T22:29:56.801968+00:00",
+    "finished_at_utc": "2026-11-13T22:30:00.398153+00:00",
+    "exit_code": 0,
+    "primary_pass": 27,
+    "subtest_pass": 53,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "receipt_file": "rq-browser-timeout-unit-31d9afb3.receipt.json",
+    "receipt_sha256": "2e905689579b150b1a78c53b7594e3a177fb74e2b5c8b1b267c9d09da50be114",
+    "log_sha256": "b15e556385c2bbe8d6230b019724ff63989865254a93365b69084306d86570e9",
+    "junit_sha256": "ddcfd7a35d3b8a2ffa883bb9cacd9208d5322ffa82b3f7b2bcd123b3b393ff10",
+    "native_compute_released": true
+  },
+  "hosted_validation": {
+    "result": "PASS_CAPTURED_ORIGINAL_TIMEOUT_CLEANUP",
+    "workflow_path": ".github/workflows/integration.yml",
+    "workflow_id": 381416613,
+    "event": "workflow_dispatch",
+    "run_id": 43520399435,
+    "run_attempt": 1,
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/43520399435",
+    "created_at_utc": "2026-11-13T22:34:36Z",
+    "completed_readback_utc": "2026-11-13T22:53:35Z",
+    "source_commit": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+    "source_tree": "74d2c569f7c7a36ba4a83ce7621265a09332f40d",
+    "actual_checkout_proven_from_each_shard_log": true,
+    "runner_kind": "GitHub-hosted",
+    "matrix": [
+      {
+        "shard": 0,
+        "job_id": 132212912122,
+        "runner_id": 1000037789,
+        "runner_name": "GitHub Actions 1000037789",
+        "region": "eastus",
+        "image": "ubuntu-24.04",
+        "conclusion": "success",
+        "started_at": "2026-11-13T22:34:39Z",
+        "completed_at": "2026-11-13T22:53:29Z",
+        "primary_case_records": 910,
+        "passes": 896,
+        "failures": 0,
+        "errors": 0,
+        "skips": 14
+      },
+      {
+        "shard": 1,
+        "job_id": 132212912221,
+        "runner_id": 1000037788,
+        "runner_name": "GitHub Actions 1000037788",
+        "region": "eastus",
+        "image": "ubuntu-24.04",
+        "conclusion": "success",
+        "started_at": "2026-11-13T22:34:39Z",
+        "completed_at": "2026-11-13T22:49:52Z",
+        "primary_case_records": 942,
+        "passes": 933,
+        "failures": 0,
+        "errors": 0,
+        "skips": 9
+      },
+      {
+        "shard": 2,
+        "job_id": 132212911953,
+        "runner_id": 1000037787,
+        "runner_name": "GitHub Actions 1000037787",
+        "region": "southcentralus",
+        "image": "ubuntu-24.04",
+        "conclusion": "success",
+        "started_at": "2026-11-13T22:34:39Z",
+        "completed_at": "2026-11-13T22:47:34Z",
+        "primary_case_records": 1073,
+        "passes": 1056,
+        "failures": 0,
+        "errors": 0,
+        "skips": 17
+      }
+    ],
+    "aggregate": {
+      "id": 132221384698,
+      "name": "Integration / PostgreSQL and Redis",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-13T22:53:31Z",
+      "completed_at": "2026-11-13T22:53:34Z"
+    },
+    "junit_totals": {
+      "primary_case_records": 2925,
+      "failures": 0,
+      "errors": 0,
+      "skips": 40,
+      "passes": 2885
+    },
+    "target_selector": "tests/integration/test_rq_workhorse_recovery.py::RqWorkhorseRecoveryTests::test_frozen_mock_browser_timeout_reaps_captured_descendants",
+    "target_result": "PASS",
+    "target_seconds": 32.137,
+    "target_receipt": {
+      "browser_pid": 20889,
+      "frozen_after_seconds": 0.812,
+      "gate_at_release": {
+        "ack_after_seconds": 0.202,
+        "freeze_after_seconds": 0.109,
+        "limit_seconds": 10,
+        "release_after_seconds": 0.209,
+        "state": "HELD",
+        "stream_active": true
+      },
+      "horse_pid": 20874,
+      "initial_identity_count": 10,
+      "mechanism": "rq-timeout-exception",
+      "observation_before_fixture_teardown": true,
+      "observation_error": null,
+      "observation_limit_seconds": 130,
+      "observation_scope": "captured-original-identities",
+      "observed_after_seconds": 30.081,
+      "operation_id": "6f753a2e65ce179190c3550422ce9457cdc173be603a55e1a6a3cf75d5e68710",
+      "phase": "PRODUCTION_TIMEOUT",
+      "processes": [
+        {
+          "alive": true,
+          "group": 20851,
+          "pid": 20851,
+          "session": 20851,
+          "started": 102522,
+          "state": "S"
+        },
+        {
+          "alive": false,
+          "group": 20874,
+          "pid": 20874,
+          "session": 20851,
+          "started": 102618,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20874,
+          "pid": 20877,
+          "session": 20851,
+          "started": 102637,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20889,
+          "session": 20889,
+          "started": 102670,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20891,
+          "session": 20889,
+          "started": 102672,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20892,
+          "session": 20889,
+          "started": 102672,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20910,
+          "session": 20889,
+          "started": 102675,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20920,
+          "session": 20889,
+          "started": 102676,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20944,
+          "session": 20889,
+          "started": 102682,
+          "state": "EXITED"
+        },
+        {
+          "alive": false,
+          "group": 20889,
+          "pid": 20908,
+          "session": 20889,
+          "started": 102674,
+          "state": "EXITED"
+        }
+      ],
+      "rq_status": "finished",
+      "rq_timeout_seconds": 30,
+      "schema_version": 1,
+      "sql": {
+        "attempt_count": 1,
+        "error": "JobTimeoutException",
+        "state": "DEAD_LETTERED"
+      },
+      "survivor_grace_elapsed_seconds": 0.002,
+      "survivor_grace_limit_seconds": 5,
+      "terminal_after_seconds": 30.08,
+      "worker_pid": 20851
+    },
+    "artifacts": [
+      {
+        "shard": 0,
+        "id": 14084001347,
+        "name": "integration-results-0",
+        "archive_sha256": "81160b43e76bd6989a054281ebefed264eeb9c924b06c1bb986d085cdc12684e",
+        "archive_crc": "PASS",
+        "junit_sha256": "0be8d2e4619f6d9c292d65b08e7ce85d563459f99cad661cde1f3a9d6c3cebb9",
+        "job_id": 132212912122,
+        "job_log_sha256": "da8fad6e0fa52cfa8ae7d03f3b86295b5a1148893fe63aae5b8570ecfb254314"
+      },
+      {
+        "shard": 1,
+        "id": 14083976260,
+        "name": "integration-results-1",
+        "archive_sha256": "3958cfff627719a096d9c486a81ace625afb53aa8c129ce940af9beb972871cf",
+        "archive_crc": "PASS",
+        "junit_sha256": "7f22e73960bbb8e7e9b0c2b756f24c1424a26babb34f956ec86ee41021f0de13",
+        "job_id": 132212912221,
+        "job_log_sha256": "1168a5764037247b940a508a1fd0265f44b0d18f1396e1231381db9f7dd12d95"
+      },
+      {
+        "shard": 2,
+        "id": 14084035741,
+        "name": "integration-results-2",
+        "archive_sha256": "93ac3cbaf991a7991aed00f8be07d92dfdcce3d90546b4d1266f79efc183226f",
+        "archive_crc": "PASS",
+        "junit_sha256": "41d1bdd9b0e2950fe0d56403a9449e85be579195fc3aaa24871c24187d06945c",
+        "job_id": 132212911953,
+        "job_log_sha256": "02db30e2237be9e68c671fc3629517c0bdddee7f6cebfab891aa96c01b9de4d6"
+      }
+    ],
+    "qualification_receipt": "rq-browser-timeout-hosted-43520399435/qualification-final.json",
+    "qualification_receipt_sha256": "42113a04a4b193f223ff41843afa156c15ceb097f20b50690d61e13918a1f419"
+  },
+  "independent_runtime_review": {
+    "result": "PASS_SOURCE_BOUND_HOSTED_TARGET_EXECUTION",
+    "source_commit": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+    "reviewer": "/root/p6_access_options",
+    "file": "rq-browser-timeout-independent-runtime-review-31d9afb3-43520399435.json",
+    "sha256": "9aef08243b5e22e91c34b3f6a25ddee1023d1fbc893541c7b1dd26f73e9034e0"
+  },
+  "outcome": {
+    "production_leak_observed": false,
+    "production_fix_claimed": false,
+    "captured_nonworker_originals": 9,
+    "captured_nonworker_originals_exited_before_fixture_teardown": 9,
+    "worker_alive_at_observation": true,
+    "canonical_MJ_REQ_004": "PARTIAL_UNCHANGED",
+    "canonical_MJ_REQ_292": "PARTIAL_UNCHANGED",
+    "formal_campaign_steps_promoted": 0
+  },
+  "limits": [
+    "Only the immutable original captured identities are covered; later or uncaptured descendants are not exhaustively inventoried.",
+    "The observed path is JobTimeoutException handling around 30 seconds. The later RQ hard-monitor/SIGKILL fallback was not exercised.",
+    "Process exit is observed; this receipt does not identify the exact signal or cleanup component responsible for every exit.",
+    "RQ finished is not application-operation success: the SQL operation is DEAD_LETTERED with JobTimeoutException and attempt_count 1.",
+    "The SQL operation is read before fixture teardown through the fixture's existing Store. This case does not add an independent Store reopen or host-restart durability oracle.",
+    "Synthetic loopback mock ATS only; no external application submission, live ATS compatibility, manual-auth cleanup, deployment, or whole MJ-REQ-004/MJ-REQ-292 acceptance is established.",
+    "The pytest record_property/xunit2 warning is retained. The actual uploaded JUnit was inspected and contains the complete target property.",
+    "The 40 skipped primary cases in the full integration matrix are not counted as passing evidence.",
+    "New publication-head required checks, protected integration and any applicable runtime adoption remain separate from this exact-source hosted qualification."
+  ],
+  "next_action": "Publish one coherent regression/fixture-safety candidate, pass its exact-head required checks, and hand it to the sole protected integration/canonical steward. No production repair is justified by this passing experiment.",
+  "metadata_review_history": [
+    {
+      "commit": "8fd8282d79b0258f78456732c769535e76177b7e",
+      "result": "CHANGES_REQUESTED",
+      "finding": "The generic source.sha256 label did not distinguish one native Windows CRLF working file from its immutable Git blob.",
+      "correction": "Preserve native_working_tree_sha256, compute git_blob_sha256 directly from all three immutable blobs, and record exact newline equivalence. No test or production bytes changed."
+    }
+  ]
+}
