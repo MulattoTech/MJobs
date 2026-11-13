@@ -527,6 +527,18 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
 
+
+## Astra current-main SQLite preparation — 2026-11-12 / 13b3
+
+- Owner: `GPT6-ASTRA-PRO-20261112T165932Z-FLEET-WATCHDOG-13b3-MJOBS-PREP`; preparation only, not the protected MJobs integration owner.
+- Base: `75b2393d11b73c36dc3da984588669563eb0b760`; branch: `astra/sqlite-current-main-20261112-13b3`.
+- Preserved both historical candidates/worktrees. Ported the identical bounded low-rate probe-concurrency mitigation from `46d7ceab6473e954d7fc632fcefe03aa4469194b` / `46944cd12c8ced008d8e610777aa03cee542b33c` into this isolated current-main candidate.
+- Effective client concurrency respects both configured concurrency and possible request overlap. The persisted policy, durable rate reservation, request/operation deadlines, 100 ms control-read budget and fail-closed behavior are unchanged.
+- Fresh baseline RED: all four candidate concurrency subcases fail against unchanged main. Candidate working-tree verification: 39 tests + 11 subtests PASS, zero failures/errors/skips, 63.96 seconds, Python 3.12.10 on Windows. Covers 15/60 RPM real loopback TLS, receipt replay/reopen, cancellation/stall behavior and real SQLite fail-closed negative paths.
+- Source/test blob identities, commands, run timestamps, exact limits and overlap review: `docs/evidence/2026-11-12-astra-sqlite-low-rate-13b3.json`. The owner records final-commit qualification separately; precommit results are not mislabeled exact-commit executions.
+- Next safe action: confirmed single integrator reviews this local candidate, reconciles #968's disjoint public-client retry hunk, and earns fresh required hosted checks before any protected integration. The November 10 integration claim remains unresolved by this preparation lane.
+- No PR/main mutation, hosted rerun, production change, live dispatch, canonical acceptance promotion, full-shard PASS or general SQLite-contention elimination is claimed. MJ-REQ-004 remains PARTIAL.
+
 ## Astra current-main integration refresh - PR960 c707
 
 - UTC: 2026-11-12T19:35:19.689223+00:00; session: GPT6-ASTRA-PRO-20261112T192834Z-MJOBS-INTEGRATION-c707. Dylan explicitly authorized transfer of the unreleased November10 MJobs integration claim; private coordination issue76 records the transfer and sole root ownership.
@@ -535,3 +547,13 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Evidence: docs/evidence/2026-11-12-astra-pr960-main-refresh-c707.json. This addition records the precommit proof accurately; fresh published-head verification, protected hosted gates and merge remain pending.
 - MJ-REQ-004 remains PARTIAL; canonical original/reference acceptance unchanged. Production is still6a47f562 with real submissions disabled and dispatch paused. Automatic rollout is blocked by a new migration and requires a separately reviewed guarded rehearsal/rollback proof.
 - Next: publish this same candidate tree by fast-forwarding the existing PR branch with an expected-head lease, earn fresh protected checks, recheck ownership/head/base/reviews, merge normally, then integrate the separate SQLite low-rate mitigation.
+
+## Astra SQLite protected-integration candidate - c707
+
+- UTC: 2026-11-12T19:57:13.956051+00:00; owner: GPT6-ASTRA-PRO-20261112T192834Z-MJOBS-INTEGRATION-c707, explicitly authorized by Dylan and recorded in private issue 76.
+- PR #960 is protected-merged at 4bf76a643d5de991d4c818ebaac3c20dc8ca2499; its exact published head d5a89225 passed the focused 56 tests + 40 subtests, independent static review and all five required hosted gates. The original unit timing failure and one justified successful retry remain recorded.
+- Refreshed the published SQLite preparation 28a57a2fa080b5e607c628de27f19d9c528be43c onto that main. The sole conflict was two append-only handoff entries; both complete entries are retained in chronological order. Production and test blobs remain identical to the reviewed preparation.
+- Historical exact local proof 4d93ac66 passed 39 tests + 11 subtests. New combined-candidate execution is NOT_RUN at this commit; the integration owner will record its exact tested commit/tree and results separately before protected integration.
+- The cap limits ineffective low-rate concurrency while preserving configured policy, rate spacing, deadlines, cancellation and fail-closed control reads. It does not prove elimination of every SQLite contention cause.
+- Next: execute the three focused modules on this immutable candidate, verify provenance and repository consistency, publish the same tree on the existing preparation branch, open one focused MJ-REQ-004 PR and earn all fresh protected checks.
+- Canonical acceptance remains unchanged and MJ-REQ-004 remains PARTIAL. Production remains 6a47f562 with external submissions disabled; synthetic guarded migration/recovery rehearsal is separate and production rollout is not claimed.
