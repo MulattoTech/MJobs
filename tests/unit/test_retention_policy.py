@@ -186,6 +186,52 @@ class RetentionPolicyTests(unittest.TestCase):
         self.assertFalse(effective["dry_run"])
         self.assertTrue(effective["prune_enabled"])
 
+    def test_policy_rejects_runtime_invalid_rules_before_reading_or_saving_consent(self):
+        fingerprint = read_retention_policy(self.store, self.config)["config_fingerprint"]
+        for relative_root in (
+            "sessions/tmp", "secrets/tmp", "secret/tmp", "database/tmp", "db/tmp",
+            "tokens/tmp", "cache/SeSsIoNs", "cache/bad name", "cache/bad\tname",
+            "cache/caf\u00e9", "cache/" + "x" * 201,
+            # Policy-specific protected names must remain rejected too.
+            "document/tmp", "upload/tmp", "profile/tmp", "job/tmp",
+            "record/tmp", "records/tmp",
+        ):
+            invalid = self._config()
+            invalid["rules"][0]["relative_root"] = relative_root
+            with self.subTest(relative_root=relative_root):
+                with self.assertRaises(RetentionPolicyError) as read_error:
+                    read_retention_policy(self.store, invalid)
+                self.assertEqual(str(read_error.exception), "RETENTION_POLICY_INVALID_CONFIG")
+                with self.assertRaises(RetentionPolicyError) as save_error:
+                    save_retention_policy(
+                        self.store, invalid, expected_revision=0,
+                        expected_config_fingerprint=fingerprint, enabled=True,
+                        max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 14},
+                    )
+                self.assertEqual(str(save_error.exception), "RETENTION_POLICY_INVALID_CONFIG")
+                self.assertEqual(read_retention_policy(self.store, self.config)["revision"], 0)
+
+    def test_policy_rejects_duplicate_managed_roots_case_insensitively(self):
+        for duplicate_root in ("transient/screenshots", "Transient/ScreenShots"):
+            invalid = self._config()
+            invalid["rules"][1]["relative_root"] = duplicate_root
+            with self.subTest(relative_root=duplicate_root):
+                with self.assertRaises(RetentionPolicyError) as caught:
+                    read_retention_policy(self.store, invalid)
+                self.assertEqual(str(caught.exception), "RETENTION_POLICY_INVALID_CONFIG")
+
+        # Distinct, valid roots still support persisted consent with bounded ages.
+        valid = self._config()
+        valid["rules"][0]["relative_root"] = "cache/" + "x" * 200
+        initial = read_retention_policy(self.store, valid)
+        saved = save_retention_policy(
+            self.store, valid, expected_revision=0,
+            expected_config_fingerprint=initial["config_fingerprint"], enabled=True,
+            max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 14},
+        )
+        self.assertTrue(saved["enabled"])
+        self.assertEqual(read_retention_policy(self.store, valid), saved)
+
     def test_revision_conflicts_and_exact_rule_age_bounds_are_fixed_code(self):
         save_retention_policy(
             self.store, self.config, expected_revision=0,
