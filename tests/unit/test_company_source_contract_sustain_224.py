@@ -13,7 +13,7 @@ from services.discovery.sources.errors import SourceError
 
 
 COMPANY_ATS_PROVIDERS = frozenset({"greenhouse", "lever"})
-GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok"})
+GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok", "arbeitnow"})
 
 
 def _registered_provider_names() -> frozenset[str]:

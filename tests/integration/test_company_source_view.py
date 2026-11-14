@@ -320,7 +320,8 @@ class CompanySourceViewTests(unittest.TestCase):
         registry = SourceAdapterRegistry([('fixture_extension', lambda source, **kwargs: Extension())])
         expected = {}
         for provider in registry.providers():
-            tenant = 'global:acme' if provider == 'lever' else 'acme'
+            tenant = ('default' if provider == 'arbeitnow' else
+                      'global:acme' if provider == 'lever' else 'acme')
             identifier = configure_source(self.store, tenant, provider=provider, registry=registry)
             with self.store.engine.connect() as connection:
                 collector = dict(connection.execute(select(m.job_sources).where(

@@ -1,0 +1,711 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N02",
+  "record_type": "required_hosted_check_failure_diagnostics",
+  "recorded_at_utc": "2026-11-13T06:43:08.288081+00:00",
+  "source_base": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+  "protected_main_at_failure": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+  "historical_failure": {
+    "run": 43375590745,
+    "cause": "UNDETERMINED",
+    "jobs": [
+      {
+        "job": 131721225981,
+        "test": "tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_slow_provider_deadline_is_durable_without_partial_evaluation",
+        "subcase": "openai",
+        "observed": "BLOCKED/AI_ERROR assertions passed; completed request-body observations were empty instead of one synthetic request. Later durable readback assertions were not reached for this subcase.",
+        "passed": 913,
+        "skipped": 9,
+        "subtests_passed": 677,
+        "failed": 1,
+        "log_sha256": "97fc2db78fe1c2e1b1dc8cfac3736d3855284928e5da1bea72adefc6715733a6",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721225981"
+      },
+      {
+        "job": 131721226395,
+        "test": "tests/integration/test_mock_discovery_request_bounds.py::test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+        "observed": "connecting.wait(2) returned false before the pending-connect, join and durable-readback assertions.",
+        "passed": 1061,
+        "skipped": 17,
+        "subtests_passed": 532,
+        "failed": 1,
+        "log_sha256": "accd64ceebd09d49299fc1c9f2eb117243f9c7e0ee8485d73c6d840608c56868",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226395",
+        "ownership": "Separate F07 owner; not changed by this diagnostic commit."
+      }
+    ],
+    "static_triage_sha256": "338cde939543b52fd9f8394b412681696b0450a6856c2575fdc4faff3ed4ee8d",
+    "interpretation": "The compared tests, execution paths, dependency lock and workflow match main at the failure. This does not establish a cause, a flaky test, or absence of indirect effects."
+  },
+  "change": {
+    "path": "tests/integration/test_durable_ai_evaluation.py",
+    "method_count": 1,
+    "sha256": "2ca0b7a41c77a295c0515e2081de0d65ad1d1d9a3208718d9d331c635438febb",
+    "diff_sha256": "4b1ebed6fd5869e6d0609b7bc4f786d0fd33315b4fdd7166b6d51ab865aba55f",
+    "original_assertion_operand_pairs_unchanged": 9,
+    "request_budget_seconds": 1.0,
+    "body_trickle_seconds": 0.02,
+    "server_poll_seconds": 0.01,
+    "cleanup_join_seconds": 2,
+    "new_diagnostics": "Fixed phase names, monotonic elapsed seconds, fixed provider names, allowlisted provider error, completed request count and server-thread liveness. No request, prompt, credential, endpoint or arbitrary exception text.",
+    "production_changed": false,
+    "workflow_or_retry_changed": false,
+    "test_budget_or_expected_result_changed": false
+  },
+  "focused_verification": {
+    "source_state": "Exact base9ef plus the single diagnostic test edit; later evidence metadata was not present during execution.",
+    "positive": {
+      "tests_run": 1,
+      "subtests": [
+        {
+          "provider": "ollama",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai-compatible",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "azure-openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "local",
+          "status": "PASS"
+        }
+      ],
+      "failure_count": 0,
+      "error_count": 0,
+      "skipped_count": 0
+    },
+    "controlled_negative": {
+      "tests_run": 1,
+      "subtests": [
+        {
+          "provider": "ollama",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai-compatible",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai",
+          "status": "FAIL",
+          "diagnostic": {
+            "clock": "monotonic",
+            "completed_request_count": 0,
+            "phase_seconds": {
+              "client_factory": 1.329,
+              "provider_error": 1.329,
+              "provider_generate_enter": 0.235,
+              "queue_enter": 0.204,
+              "server_thread_started": 0.0,
+              "worker_enter": 0.219,
+              "worker_return": 1.344
+            },
+            "provider": "openai",
+            "provider_error": "AI_PROVIDER_TIMEOUT",
+            "server_thread_alive": true
+          },
+          "failure_type": "AssertionError",
+          "oracle": "exact_one_request_assertion"
+        },
+        {
+          "provider": "azure-openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "local",
+          "status": "PASS"
+        }
+      ],
+      "failure_count": 1,
+      "error_count": 0,
+      "skipped_count": 0
+    },
+    "negative_control_injection": "Only OpenAI's existing client factory was delayed by1.1 seconds in the private proof. The unchanged production guard using the test's1-second budget refused before HTTPX request/handler entry. The proof requires the exact frozen source file/method/traceback line of the original one-request assertion.",
+    "negative_control_conclusion": "The original request-count oracle still rejects missing POSTs and the new diagnostic identifies this deliberately induced pre-stream timeout. It does not reproduce or explain the historical CI failure.",
+    "controller_elapsed_seconds": 16.969,
+    "proof_elapsed_seconds": 15.5,
+    "remaining_created_threads": [],
+    "source_unchanged": true,
+    "retained_job_zero_active_and_host_signaled": true,
+    "fresh_controller_child_launcher_readback": "ABSENT",
+    "light_claim": "RELEASED",
+    "external_provider_calls": false,
+    "actual_network": "Owned ephemeral loopback HTTP only",
+    "proof_result": "PASS_DIAGNOSTIC_BEHAVIOR_ONLY",
+    "execution_sha256": "fabe0dcdcb078c1ab2cf5421211633ceb5e43306e8d04f7011e918295fb2e220",
+    "proof_sha256": "eace1e19b34451750e99b2d3d81ef99c363726a3dcd6233369bc56c97c188bb2",
+    "log_sha256": "df3b91cc0b60cadd2ba729df572ab28784c74b703d9147b72d2e3b7d7a14e428",
+    "post_controller_readback_sha256": "f1f27e8c818c3f0eba4205ae1ed56b193dc3749c3f579a175eed648d42436c63",
+    "released_light_receipt_sha256": "e58ba47f3a2db68baf07655d458a9823938bd8e30dd91990b414cc58d7c27c81",
+    "server_handler_observations": {
+      "count": 5,
+      "type": "ConnectionAbortedError",
+      "platform": "Windows",
+      "code": 10053,
+      "phase": "Interrupted server-side trickle writes",
+      "preserved_in_log": true,
+      "interpretation": "These handler-thread traces are retained. Unittest error counts were zero; the run is not described as log-error-free."
+    }
+  },
+  "review": {
+    "static_reviewer": "/root/coordination_review",
+    "static_review_sha256": "d35339a9eea31eceb4fcabbeca2f0f7deb28da1fbcf81cf868ca450ea7e816dd",
+    "initial_control_review_finding_preserved": "The first unexecuted proof could accept a different failed assertion carrying the same diagnostics. It was held and corrected to the exact original request-count assertion before execution.",
+    "runtime_evidence_independent_review": {
+      "reviewer": "/root/campaign_review",
+      "result": "PASS_NARROW_DIAGNOSTIC_PROOF_WITH_RETAINED_HANDLER_TRACES",
+      "receipt_sha256": "67634df24864ebf4bb845c48a15d989be8b0c56ed639bf478c73ba003868f858"
+    },
+    "metadata_review": "Independent review of draft1563c22e accepted its source/claims with the handler-trace note, execution-review reference and test-budget wording correction included here."
+  },
+  "remaining": {
+    "public_worker_entry_diagnostics": "Separate owner work pending.",
+    "new_exact_head_required_checks": "NOT_RUN",
+    "protected_integration": "NOT_RUN",
+    "N02_formal_acceptance": "NOT_RUN"
+  },
+  "successor_history": [
+    {
+      "record_type": "hosted_recurrence_and_focused_body_boundary_proof",
+      "recorded_at_utc": "2026-11-13T10:08:06.652566+00:00",
+      "history_policy": "All pre-existing fields describe their original checkpoint and are preserved unchanged. This appended entry records the later6b hosted failure and3d focused proof; it does not retroactively relabel an earlier failure or execution source.",
+      "published_failure": {
+        "head_sha": "6b277cad0bdcf2ff1e027ad57d8ea545726b1246",
+        "protected_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+        "run": 43399117822,
+        "run_attempt": 1,
+        "job": 131797244966,
+        "required_gate": "Integration",
+        "job_name": "Integration / shard 0",
+        "conclusion": "FAIL",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43399117822/job/131797244966",
+        "failure_case": {
+          "classname": "tests.integration.test_durable_ai_evaluation.DurableAIEvaluationTests",
+          "name": "test_slow_provider_deadline_is_durable_without_partial_evaluation",
+          "test_seconds": 7.072,
+          "assertion": "calls == ['synthetic request']",
+          "actual_request_count": 0,
+          "line": 739
+        },
+        "counts": {
+          "pytest_summary": {
+            "passed": 913,
+            "failed": 1,
+            "skipped": 9,
+            "subtests_passed": 677,
+            "seconds": 863.55
+          },
+          "junit_suite": {
+            "reported_tests": 1600,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 9,
+            "seconds": 863.539
+          },
+          "junit_testcase_elements": {
+            "total": 922,
+            "pass_marked": 912,
+            "failure_marked": 1,
+            "skip_marked": 9
+          },
+          "explanation": "Pytest includes separate unittest subtest/parent reports in its totals; JUnit combines the failed subtest under its parent testcase. Do not claim1600 independent test methods or1590 newly passed methods."
+        },
+        "runtime": {
+          "python_setup": "CPython (3.12.16)",
+          "SQLAlchemy": "2.1.1",
+          "httpcore": "1.0.9",
+          "httpx": "0.28.1",
+          "pydantic": "2.13.5",
+          "pytest": "9.0.3"
+        },
+        "safe_diagnostic": {
+          "clock": "monotonic",
+          "completed_request_count": 0,
+          "phase_seconds": {
+            "client_factory": 0.054404,
+            "httpx_request": 1.118485,
+            "provider_error": 1.119923,
+            "provider_generate_enter": 0.053908,
+            "queue_enter": 0.018678,
+            "server_thread_started": 0.00037,
+            "worker_enter": 0.035115,
+            "worker_return": 1.125055
+          },
+          "provider": "openai",
+          "provider_error": "AI_PROVIDER_TIMEOUT",
+          "server_thread_alive": true
+        },
+        "timing_inference": {
+          "factory_to_request_hook_seconds": "1.064081",
+          "request_budget_seconds": 1.0,
+          "minimum_lateness_vs_provider_deadline_seconds": "0.064081",
+          "reason": "Provider start_time is captured immediately before client_factory; request hook therefore occurred after the fixed absolute deadline had elapsed."
+        },
+        "diagnosis": "The intended slow-response-body boundary was not reached: the real request-body list was empty. The request hook occurred after the unchanged absolute provider deadline. The observed gap spans guard/client/request preparation and possible scheduler or GC pauses; its allocation is unresolved. Explicit GC setup is a hypothesis-driven fixture improvement, not a proven root cause. No product regression or infrastructure outage has been established.",
+        "durable_assertion_limit": "Initial BLOCKED and AI_ERROR assertions passed. The later empty-history, reopened-state and API readback assertions were not reached for the failed OpenAI subtest.",
+        "source_comparison": "The nine compared production/workflow paths match6b,9e2 andmain1f1. The failing class uses SQLite; the workflow service name does not make it a PostgreSQL assertion.",
+        "evidence_sha256": {
+          "diagnosis": "8f2f9a7c99f48e4288815c50cdd6e7e359a3887a4e2fc121bad0f9a1547b4a47",
+          "run_metadata": "d0ff7c4c3e54657235209e4448cd1045a8a1d66f9fe951df6b4fad0bba0defad",
+          "job_metadata": "2484e242f649a54982cd5f8baf91ef478de4fb0fb871b37c7744834683ecee17",
+          "full_private_job_log": "4a2a39a49e35b0fb82551b9c97f275148734c1aebc9569380289cb29d2ab0d36",
+          "artifact_zip": "901be5424f550e75c9a1f2e38b085a25f889cedd445987fa66733385c3902ab2",
+          "junit_xml": "2c2d5e0966d4e11bffc0d5bf52e85d840afc849e27ec6fda5c149d9e1941274b"
+        }
+      },
+      "test_only_correction": {
+        "head_sha": "3d063337cac79d56409cfeb2031cbdeac5746956",
+        "tree_sha": "0bc63da8ddd3ac21b9204e4435ac084caf2be8ac",
+        "parent_sha": "6b277cad0bdcf2ff1e027ad57d8ea545726b1246",
+        "path": "tests/integration/test_durable_ai_evaluation.py",
+        "method": "test_slow_provider_deadline_is_durable_without_partial_evaluation",
+        "method_count": 1,
+        "sha256": "d4c28be580d688fd7c5cc3bdddb5ab1f44bae4f4845526397e6c920d84593dd1",
+        "git_blob": "36e9714d3e2de0b53c928e559fc30099ac01fce8",
+        "changes": [
+          "Explicit gc.collect() before the timed worker, with bounded fixed phase/count diagnostics; automatic GC remains enabled.",
+          "Observe the first nonempty raw response chunk while yielding original bytes unchanged and delegating stream close.",
+          "Record original watcher entry without a new wait, checkpoint, deadline reset or bypass.",
+          "Require AI_PROVIDER_TIMEOUT and actual request-body, response-header and response-body boundaries in addition to all original durable assertions."
+        ],
+        "original_assertion_operand_pairs_unchanged": 9,
+        "providers": [
+          "ollama",
+          "openai-compatible",
+          "openai",
+          "azure-openai",
+          "local"
+        ],
+        "request_budget_seconds": 1.0,
+        "body_trickle_seconds": 0.02,
+        "server_poll_seconds": 0.01,
+        "cleanup_join_seconds": 2,
+        "production_changed": false,
+        "workflow_or_retry_changed": false,
+        "timeout_increased": false,
+        "assertions_removed_or_deselected": false,
+        "static_review_sha256": "2813eb42a99d434c789cd1be71d452101e21b2f72593bf631af7e54286c8ef10",
+        "materialization_receipt_sha256": "2b5002a7fb555118468a6a064c7c1eb673b4e58fe4c9a35300aa211f7793079e"
+      },
+      "focused_verification": {
+        "executed_source_sha": "3d063337cac79d56409cfeb2031cbdeac5746956",
+        "executed_tree_sha": "0bc63da8ddd3ac21b9204e4435ac084caf2be8ac",
+        "source_state": "Actual clean3d test-only commit. This appended evidence metadata was not present during execution.",
+        "selection": "The one actual complete slow-provider method, all five providers, executed once positively and once with the one controlled OpenAI negative; no full-class or broad-suite rerun.",
+        "positive": {
+          "tests_run": 1,
+          "subtests": [
+            {
+              "provider": "ollama",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 55,
+                "phase_seconds": {
+                  "client_factory": 0.266,
+                  "gc_setup_enter": 0.219,
+                  "gc_setup_return": 0.25,
+                  "handler_enter": 0.282,
+                  "httpx_request": 0.282,
+                  "httpx_response_headers": 0.282,
+                  "provider_error": 1.282,
+                  "provider_generate_enter": 0.266,
+                  "queue_enter": 0.188,
+                  "request_body_read": 0.282,
+                  "response_body_read": 0.282,
+                  "response_headers_sent": 0.282,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.282,
+                  "worker_enter": 0.25,
+                  "worker_return": 1.282
+                },
+                "provider": "ollama",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "openai-compatible",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2992,
+                "phase_seconds": {
+                  "client_factory": 0.266,
+                  "gc_setup_enter": 0.187,
+                  "gc_setup_return": 0.25,
+                  "handler_enter": 0.266,
+                  "httpx_request": 0.266,
+                  "httpx_response_headers": 0.266,
+                  "provider_error": 1.266,
+                  "provider_generate_enter": 0.266,
+                  "queue_enter": 0.187,
+                  "request_body_read": 0.266,
+                  "response_body_read": 0.266,
+                  "response_headers_sent": 0.266,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.266,
+                  "worker_enter": 0.25,
+                  "worker_return": 1.266
+                },
+                "provider": "openai-compatible",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "openai",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2634,
+                "phase_seconds": {
+                  "client_factory": 0.25,
+                  "gc_setup_enter": 0.187,
+                  "gc_setup_return": 0.234,
+                  "handler_enter": 0.265,
+                  "httpx_request": 0.25,
+                  "httpx_response_headers": 0.265,
+                  "provider_error": 1.281,
+                  "provider_generate_enter": 0.25,
+                  "queue_enter": 0.172,
+                  "request_body_read": 0.265,
+                  "response_body_read": 0.265,
+                  "response_headers_sent": 0.265,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.25,
+                  "worker_enter": 0.234,
+                  "worker_return": 1.281
+                },
+                "provider": "openai",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "azure-openai",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2973,
+                "phase_seconds": {
+                  "client_factory": 0.265,
+                  "gc_setup_enter": 0.187,
+                  "gc_setup_return": 0.25,
+                  "handler_enter": 0.281,
+                  "httpx_request": 0.265,
+                  "httpx_response_headers": 0.281,
+                  "provider_error": 1.281,
+                  "provider_generate_enter": 0.265,
+                  "queue_enter": 0.172,
+                  "request_body_read": 0.281,
+                  "response_body_read": 0.281,
+                  "response_headers_sent": 0.281,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.265,
+                  "worker_enter": 0.25,
+                  "worker_return": 1.281
+                },
+                "provider": "azure-openai",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "local",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2973,
+                "phase_seconds": {
+                  "client_factory": 0.297,
+                  "gc_setup_enter": 0.219,
+                  "gc_setup_return": 0.266,
+                  "handler_enter": 0.297,
+                  "httpx_request": 0.297,
+                  "httpx_response_headers": 0.297,
+                  "provider_error": 1.312,
+                  "provider_generate_enter": 0.297,
+                  "queue_enter": 0.203,
+                  "request_body_read": 0.297,
+                  "response_body_read": 0.297,
+                  "response_headers_sent": 0.297,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.297,
+                  "worker_enter": 0.266,
+                  "worker_return": 1.312
+                },
+                "provider": "local",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            }
+          ],
+          "failure_count": 0,
+          "error_count": 0,
+          "skipped_count": 0
+        },
+        "controlled_negative": {
+          "tests_run": 1,
+          "subtests": [
+            {
+              "provider": "ollama",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 3484,
+                "phase_seconds": {
+                  "client_factory": 0.328,
+                  "gc_setup_enter": 0.218,
+                  "gc_setup_return": 0.312,
+                  "handler_enter": 0.343,
+                  "httpx_request": 0.328,
+                  "httpx_response_headers": 0.343,
+                  "provider_error": 1.359,
+                  "provider_generate_enter": 0.328,
+                  "queue_enter": 0.203,
+                  "request_body_read": 0.343,
+                  "response_body_read": 0.343,
+                  "response_headers_sent": 0.343,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.328,
+                  "worker_enter": 0.312,
+                  "worker_return": 1.375
+                },
+                "provider": "ollama",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "openai-compatible",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 3151,
+                "phase_seconds": {
+                  "client_factory": 0.328,
+                  "gc_setup_enter": 0.219,
+                  "gc_setup_return": 0.313,
+                  "handler_enter": 0.328,
+                  "httpx_request": 0.328,
+                  "httpx_response_headers": 0.328,
+                  "provider_error": 1.328,
+                  "provider_generate_enter": 0.328,
+                  "queue_enter": 0.203,
+                  "request_body_read": 0.328,
+                  "response_body_read": 0.328,
+                  "response_headers_sent": 0.328,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.328,
+                  "worker_enter": 0.313,
+                  "worker_return": 1.344
+                },
+                "provider": "openai-compatible",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "openai",
+              "status": "FAIL",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2634,
+                "phase_seconds": {
+                  "client_factory": 0.312,
+                  "gc_setup_enter": 0.187,
+                  "gc_setup_return": 0.281,
+                  "handler_enter": 0.312,
+                  "httpx_request": 0.312,
+                  "httpx_response_headers": 0.312,
+                  "provider_error": 0.312,
+                  "provider_generate_enter": 0.312,
+                  "queue_enter": 0.172,
+                  "request_body_read": 0.312,
+                  "response_headers_sent": 0.312,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.312,
+                  "worker_enter": 0.281,
+                  "worker_return": 0.328
+                },
+                "provider": "openai",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              },
+              "failure_type": "AssertionError",
+              "oracle": "exact_body_boundary_assertion"
+            },
+            {
+              "provider": "azure-openai",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 3286,
+                "phase_seconds": {
+                  "client_factory": 0.313,
+                  "gc_setup_enter": 0.204,
+                  "gc_setup_return": 0.297,
+                  "handler_enter": 0.329,
+                  "httpx_request": 0.313,
+                  "httpx_response_headers": 0.329,
+                  "provider_error": 1.313,
+                  "provider_generate_enter": 0.313,
+                  "queue_enter": 0.188,
+                  "request_body_read": 0.329,
+                  "response_body_read": 0.329,
+                  "response_headers_sent": 0.329,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.313,
+                  "worker_enter": 0.297,
+                  "worker_return": 1.329
+                },
+                "provider": "azure-openai",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            },
+            {
+              "provider": "local",
+              "status": "PASS",
+              "diagnostic": {
+                "clock": "monotonic",
+                "completed_request_count": 1,
+                "gc_setup_collected": 2973,
+                "phase_seconds": {
+                  "client_factory": 0.328,
+                  "gc_setup_enter": 0.203,
+                  "gc_setup_return": 0.313,
+                  "handler_enter": 0.344,
+                  "httpx_request": 0.328,
+                  "httpx_response_headers": 0.344,
+                  "provider_error": 1.328,
+                  "provider_generate_enter": 0.328,
+                  "queue_enter": 0.188,
+                  "request_body_read": 0.344,
+                  "response_body_read": 0.344,
+                  "response_headers_sent": 0.344,
+                  "server_thread_started": 0.0,
+                  "watcher_enter": 0.328,
+                  "worker_enter": 0.313,
+                  "worker_return": 1.344
+                },
+                "provider": "local",
+                "provider_error": "AI_PROVIDER_TIMEOUT",
+                "server_thread_alive": true
+              }
+            }
+          ],
+          "failure_count": 1,
+          "error_count": 0,
+          "skipped_count": 0
+        },
+        "negative_control": "Only OpenAI retains its real constructor/client factory and real local POST/response headers, then a private response-stream wrapper raises controlled HTTPX ReadTimeout before any body chunk. Other four providers execute unchanged.",
+        "negative_oracle": {
+          "qualified": true,
+          "assertion": "Actual frozen assertIn(boundary, observed_phases, diagnostic()) for missing response_body_read",
+          "exact_frozen_test_line": 780,
+          "control_counts": {
+            "constructor_calls": 1,
+            "factory_calls": 1,
+            "hook_calls": 1,
+            "stream_iterations": 1,
+            "stream_closes": 1
+          },
+          "conclusion": "The stricter body-boundary assertion rejects a timeout code without any consumed response body. This controlled exception does not prove elapsed deadline behavior or reproduce/explain the hosted timing gap."
+        },
+        "python_version": "3.12.10",
+        "runtime_versions": {
+          "httpx": "0.28.1",
+          "httpcore": "1.0.9",
+          "SQLAlchemy": "2.1.1",
+          "pytest": "9.1.1"
+        },
+        "controller_elapsed_seconds": 17.297,
+        "proof_elapsed_seconds": 16.235,
+        "fixture_threads_remaining": [],
+        "audit_counts": {
+          "allowed_binds": 31,
+          "allowed_connects": 31,
+          "allowed_dns_calls": 20,
+          "refused_network_calls": 0,
+          "refused_child_process_calls": 0
+        },
+        "actual_network": "Owned ephemeral literal127.0.0.1 HTTP only; external network and subprocess calls refused by audit policy.",
+        "external_provider_calls": false,
+        "source_unchanged": true,
+        "retained_job_zero_active_and_host_signaled": true,
+        "server_handler_observations": {
+          "count": 5,
+          "type": "ConnectionAbortedError",
+          "platform": "Windows",
+          "code": 10053,
+          "preserved_in_log": true,
+          "interpretation": "Five server-side interrupted-trickle tracebacks are retained. Unittest errors remain zero; this run is not described as log-error-free."
+        },
+        "proof_result": "PASS_EXACT_METHOD_AND_BODY_ORACLE_ONLY",
+        "plan_sha256": "ecf9f1c545a71ea55981a2ae768c81e05eec08cac0a663b32df2ff8f4869d170",
+        "controller_sha256": "752f091ab780d01c41c00f3e04ca1f5f241636f43996fc39292a73949f30841e",
+        "child_sha256": "9da920bfbaa9cb6b91e19b1460bb93b352b528d0c1a3a90d2f07acc7ff797a21",
+        "independent_harness_review_sha256": "9093865db282366ab8b81925fd189053fd1b7d5acbcaef7a1dd31e6c0e6428f1",
+        "execution_sha256": "30546785a3dc6004e8617ee5cb1470201d239592e5f67f12de89241a7e84cbaf",
+        "proof_sha256": "d51cb9d6d9085942f4353caf7881f711bcef6961adddfcfce1284cf318b87123",
+        "log_sha256": "0f240088af3ce1a08afcc2099f0a8934e33fb823772095e522b256d782a570da",
+        "cleanup": {
+          "status": "ROOT_INDEPENDENT_READBACK_PASS_AND_OWNER_SAFE_RELEASED",
+          "original_generations_absent": 5,
+          "retained_job_zero": true,
+          "resource_claim": "RELEASED",
+          "readback_sha256": "a5bd60f541147b1e7d84e767ce9b9db5670b9daa01b22f4f59d6af6c9ad28991",
+          "release_sha256": "0664fece0a8f4357cd38ffe7f5fe4668750e3417c2bc19c6277f147e8c323558",
+          "independent_result_review_sha256": "afa3e05c8a46df21fe5f9710b9d56ed022b22f235ce6375a0e6ebbe3eec78a30",
+          "qualification_summary_sha256": "827f84b39b5a58fc0f834c73c57a7e4c344c4bef196562884f052cda7deb1cb6",
+          "source_pin_count": 21,
+          "source_owner_checks": "Three exact native MATCH/ACTIVE records verified by root before release."
+        }
+      },
+      "invocation_history": [
+        {
+          "result": "PREADMISSION_INVOCATION_ERROR",
+          "code": "SEALED_PLAN_AND_DIGEST_REQUIRED",
+          "cause": "Executor omitted the required plan path and SHA arguments. It stopped before plan loading, native admission or child creation.",
+          "workload_started": false,
+          "receipt_sha256": "a82bcd934daff338e74b7cb8343589be93a573aa7d6a28d606e851e1d3c59174"
+        },
+        {
+          "result": "FIRST_ADMITTED_WORKLOAD_COMPLETED",
+          "corrected_invocation_explicitly_authorized": true,
+          "authorization_sha256": "4c1f70ea3d7ee89c86b97d139151218cc9a5b4f21bede1df956260c0e6872025",
+          "automatic_retry": false
+        }
+      ],
+      "remaining": {
+        "final_evidence_successor_commit_sha": null,
+        "new_exact_head_hosted_checks": "NOT_RUN",
+        "protected_integration": "NOT_RUN",
+        "N02_formal_acceptance": "NOT_RUN",
+        "parent_204": "NOT_RUN_UNCHANGED",
+        "acceptance_changes_in_this_appendix": false,
+        "historical_6b_required_gate": "FAIL_PRESERVED",
+        "hosted_limitation": "The focused local success cannot exclude recurrence under hosted scheduling. New exact-head hosted required checks remain mandatory."
+      }
+    }
+  ]
+}

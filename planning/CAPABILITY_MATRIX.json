@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T05:59:31.437084+00:00",
+  "timestamp": "2026-11-13T13:54:32.089277+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -4364,9 +4364,12 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N02",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/NOTIFICATIONS.md"
+      ],
+      "note": "Proposed scoped ntfy PASS under the five literal issue363 criteria: explicit opt-in/default-off generic owned terminal-operation notifications, declared capabilities, deterministic 92-case proof at40e, and actual stock Dockerfile/Compose/PostgreSQL/local ntfy proof at462707 with one acknowledgement and one-attempt restart deduplication. All15 notification blobs remain identical through protected main aa94183;22/23 selected package inputs match, with only the separately reviewed/protected PR1016 Store AI-settings fix. Actual d0 passed15 hosted checks and all5 required gates; PR1021 merged at aa94183 on2026-11-13T11:19:09Z. This canonical candidate remains pending its own validation, protected acceptance publication and post-refresh actual Mission Control comparison. Production is NOT_DEPLOYED/NOT_VERIFIED; parent204 and queue055 stay NOT_RUN/QUEUED. No external recipient, device display, exactly-once guarantee or full-parent coverage is claimed.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"
@@ -4391,9 +4394,12 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N05",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/DESKTOP_NOTIFICATIONS.md"
+      ],
+      "note": "Scoped Desktop provider acceptance: all five issue 366 criteria are satisfied for explicit profile opt-in and generic terminal outcomes while the page is open. Exact a0de source passed 28 frontend tests, build and 5 actual native Chromium/API cases; relevant blobs are unchanged through published b9e8d5d4 and protected PR 1017 merge 1f1a578e. All five exact-head required hosted gates passed. Native construction/show events were observed; OS-visible toast, manual OS dismissal, full browser/OS restart and live two-tab race are not claimed. The governing P6 activation and literal/applicable deployment decision support this child; production remains NOT_DEPLOYED/NOT_VERIFIED and parent 204 remains NOT_RUN. This canonical PASS is proposed in the reviewed acceptance candidate; protected acceptance publication is pending and does not accept ntfy or any sibling.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"

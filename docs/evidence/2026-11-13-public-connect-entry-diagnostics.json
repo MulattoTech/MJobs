@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017.F07",
+  "related_pr": 1021,
+  "status": "DIAGNOSTIC_FIDELITY_QUALIFIED",
+  "created_at_utc": "2026-11-13T07:08:22.632015+00:00",
+  "scope": "Bounded failure-only observations for the unchanged public-worker connection-entry and join predicates; controlled genuine worker finalization proof, with no production causal-fix claim.",
+  "tested_source": {
+    "head": "0e0a4a71078e54a3a53c0c053187d26097442254",
+    "tree": "b663e84c11b3be257d65f70223d4936acd6be334",
+    "base": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+    "source_bindings": {
+      "tests/integration/test_mock_discovery_request_bounds.py": {
+        "git_blob": "b622d69ced4d9a640ffced14abf86ccd88c34125",
+        "sha256": "9f3465d9b7308ef0db592e071f508965d12fc84b814dcac5cc160d786ccdc516"
+      },
+      "workers/tasks.py": {
+        "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "services/discovery/pipeline.py": {
+        "git_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f"
+      },
+      "services/discovery/sources/http_transport.py": {
+        "git_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "sha256": "64db749e005529e10dd6f8e258ae37b48f5f84d4e811624d5392e0db22d147f1"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+      },
+      "cli/verification_process.py": {
+        "git_blob": "8afef407dc3d7ee6d990d5afaf5733566c62f327",
+        "sha256": "22e6b75e3599b46d52bf631ecdb9e81ef325aac15bdb630d6cd4070547523e5e"
+      }
+    },
+    "dirty": false
+  },
+  "historical_failure": {
+    "pull_request": 1021,
+    "head": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+    "head_test_blob": "1daa4ccf8797c3ffb0bea8c9a94e7e2507b8e333",
+    "actual_checkout_merge_from_log": "a3e57529afaea927d16c851cc8af2e1c8e767054",
+    "actual_checkout_base_from_log": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "job_id": 131721226395,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226395",
+    "artifact": {
+      "bytes": 132896,
+      "name": "ci-ntfy-9ef56e1-131721226395.log",
+      "sha256": "91756807ba4451f277638e0d01f684004be20707bb937411450a32157b3caa68"
+    },
+    "failed_test": "test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+    "failed_location": "tests/integration/test_mock_discovery_request_bounds.py:267",
+    "failed_predicate": "connecting.wait(2)",
+    "observed_message": "public worker did not attempt loopback connection",
+    "summary": {
+      "failed": 1,
+      "passed": 1061,
+      "skipped": 17,
+      "subtests_passed": 532,
+      "seconds": 879.9
+    },
+    "conclusion": "The event was not observed within2 seconds. The log has no bounded worker phase/stack snapshot at this assertion. It does not establish a blocked connect, worker liveness, pre-connect completion, deadline cause, CPU cause or cleanup defect.",
+    "source_limit": "The failed9ef head's test blob1daa4ccf predates the existing02b diagnostic helper. This proposal is against exacte890/02b, not a claim that9ef executed02b. The actual merge checkout is recorded from the log; its test blob was not independently fetched."
+  },
+  "implementation": {
+    "author": "/root/campaign_review",
+    "previous_test_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+    "test_blob": "b622d69ced4d9a640ffced14abf86ccd88c34125",
+    "changes": [
+      "Generalize describe_failed_join to describe_failure with fixed connect_entry_failed and join_failed call-site phases.",
+      "Attach the same bounded snapshot to the original connecting.wait(2) assertion; retain its exact predicate and existing message prefix.",
+      "Retain the original failed-join message prefix and join_failed phase, now through the generalized helper.",
+      "Add only fixed phase, worker/watcher liveness, result count, error type names, existing get-unwind flag, HTTP-client closed state, and observed connect count alongside the original bounded records/stacks/open-socket count.",
+      "Add one controlled pre-connect-failure fidelity test. No production files or original test bodies change."
+    ],
+    "preserved_bounds": {
+      "entry_wait_seconds": 2,
+      "deadline_seconds": 0.8,
+      "cancel_budget_seconds": 2,
+      "pending_observation_seconds": 0.1,
+      "join_seconds": 1.2,
+      "cleanup_join_seconds": 11,
+      "phase_records": 128,
+      "frames_per_exact_worker_or_watcher": 16
+    },
+    "static_preservation": {
+      "seven_original_test_function_asts": "IDENTICAL",
+      "twelve_original_worker_assertion_predicates": "IDENTICAL",
+      "seven_original_timing_thread_calls": "IDENTICAL"
+    },
+    "privacy_and_capture_limits": [
+      "Failure-only capture; no new work on successful assertion paths.",
+      "Only the exact worker and observed watcher Thread objects contribute stacks. Frames are reduced to basename/function/line; no locals, exception messages, payloads or SQL parameters are retained.",
+      "worker_error_types is populated by the existing single worker exception catch, at most one type name. No str/repr of worker exceptions is added.",
+      "State and stack observations are best effort and not atomic. watcher_alive=None means no watcher object was observed; it does not prove that none existed.",
+      "The existing transport_unwound flag means MockClient.get exited. Observed connect count is reported separately; the flag alone does not prove an OS connection attempt.",
+      "No diagnostic SQL read, waits, GC tuning, cache warming, clock substitution, timeout changes or logger changes are introduced."
+    ]
+  },
+  "new_control": {
+    "name": "test_public_worker_entry_diagnostic_records_pre_connect_failure",
+    "injection": "A scoped test-only _resolve wrapper raises one synthetic RuntimeError only on the owned mock004-public-worker thread, before the actual _Backend would allocate/connect its socket. Other callers delegate to the original resolver.",
+    "genuine_execution": "Public admission, actual execute_operation, actual SourceTransport/httpcore/HTTPX entry, real worker failure handling, real terminal SQLite commit, real HTTP close/Store disposal and durable reopened readback remain in use.",
+    "timing": "The new control uses the unchanged cancel fixture's existing2-second budget; no cancellation is issued because the original entry predicate fails. The original deadline case remains0.8 seconds.",
+    "expected_proof": [
+      "The entry assertion raises with its exact diagnostic prefix.",
+      "The snapshot shows a finished worker, one real worker result, no escaped worker exception and no observed worker OS connect.",
+      "Ordered records show controlled RuntimeError, backend/get exit, Store disposal, worker exit, then connect_entry_failed; the later join phase was never entered.",
+      "Real HTTP client is closed, worker/watcher are stopped, no checked-out worker connection remains, and scoped hooks restore their original identities.",
+      "A reopened SQLite Store reads DEAD_LETTERED / RuntimeError / attempt_count1.",
+      "The synthetic private error-message sentinel is absent from both assertion output and snapshot; record/frame caps and exact-thread scope hold."
+    ],
+    "historical_cause_claim": false,
+    "limitations": "This deliberately controlled pre-connect completion validates diagnostic content, privacy and actual cleanup. It neither reproduces nor explains the historical9ef hosted failure.",
+    "runtime_status": "PASS"
+  },
+  "independent_source_review": {
+    "reviewer": "/root/p6_readonly",
+    "implementation_author": false,
+    "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+    "artifact": {
+      "name": "independent-review-public-connect-entry-b622d69c.json",
+      "bytes": 9378,
+      "sha256": "5cf64c866f96f62a9678bf469edb31caa35a79b8b1badd3a91d200fb1c7ea89e"
+    }
+  },
+  "execution": {
+    "executor": "MULATTOTECHBOX via authorized MTerm-CLI",
+    "head": "0e0a4a71078e54a3a53c0c053187d26097442254",
+    "started_at_utc": "2026-11-13T07:07:06.483194+00:00",
+    "finished_at_utc": "2026-11-13T07:07:20.789877+00:00",
+    "controller_elapsed_seconds": 14.141,
+    "entrypoint": "Actual pytest __main__ via runpy in retained Windows OwnedProcess Job; stdout/stderr redirected to owned log before pytest entry",
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "python_flags": [
+      "-X",
+      "utf8",
+      "-B"
+    ],
+    "pytest_arguments": [
+      "-q",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "-rs",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\public-connect-entry-0e0a4a71.xml",
+      "tests/integration/test_mock_discovery_request_bounds.py"
+    ],
+    "exact_argv_receipt": {
+      "name": "public-connect-entry-0e0a4a71.json",
+      "bytes": 7240,
+      "sha256": "94c224b79e77baba3f34d65c311c337539cc3621bfc53a0504e12d63f90ede95"
+    },
+    "controller_program": {
+      "name": "public-connect-entry-qualification.py",
+      "bytes": 8610,
+      "sha256": "d99c7d8843fddf2567ace0a339e06a5d9a3b8cb70b3cc067060225e1a0598b0f"
+    },
+    "returncode": 0,
+    "junit_totals": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "case_names": [
+      "test_pre_response_socket_observes_worker_stop_and_releases_ownership[cancel]",
+      "test_pre_response_socket_observes_worker_stop_and_releases_ownership[deadline]",
+      "test_pending_real_loopback_connect_observes_worker_stop[cancel]",
+      "test_pending_real_loopback_connect_observes_worker_stop[deadline]",
+      "test_public_fixture_worker_pending_connect_persists_terminal_readback[cancel]",
+      "test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+      "test_public_worker_entry_diagnostic_records_pre_connect_failure",
+      "test_public_worker_phase_diagnostic_separates_terminal_commit_delay",
+      "test_fixture_origin_remains_explicitly_allowlisted[https://127.0.0.1]",
+      "test_fixture_origin_remains_explicitly_allowlisted[http://example.invalid]",
+      "test_fixture_origin_remains_explicitly_allowlisted[http://user:pass@localhost]",
+      "test_fixture_origin_remains_explicitly_allowlisted[http://localhost/path]",
+      "test_fixture_origin_remains_explicitly_allowlisted[http://mock]",
+      "test_compose_mock_origin_still_requires_explicit_gate",
+      "test_injected_response_controls_preserve_same_origin_redirect_bound[external]",
+      "test_injected_response_controls_preserve_same_origin_redirect_bound[loop]",
+      "test_injected_response_controls_preserve_same_origin_redirect_bound[healthy]"
+    ],
+    "log": {
+      "name": "public-connect-entry-0e0a4a71.log",
+      "bytes": 40,
+      "sha256": "9a80baee71e6df2e31dbdc6d54485a919ec18be54160dc8de7004ba50047c448"
+    },
+    "junit": {
+      "name": "public-connect-entry-0e0a4a71.xml",
+      "bytes": 3122,
+      "sha256": "d31360d7d021ae9a1e8182d7d7124be564d7853a01963855e28a84e506738c9e"
+    },
+    "source_unchanged": true,
+    "worktree_clean_after": true,
+    "cleanup": {
+      "status": "PASS",
+      "retained_job_active_members": 0,
+      "original_host_signaled": true,
+      "method": "cli.verification_process.OwnedProcess.finalize"
+    },
+    "resource_release": {
+      "claim_key": "web:WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f:public-connect-entry-light:1693d7274e0d4422bfd3cd4cfa1c95a9",
+      "status": "RELEASED",
+      "released_at": "2026-11-13T07:07:20.789877+00:00",
+      "exact_native_receipt_match": true
+    }
+  },
+  "preserved_refused_admission": {
+    "name": "public-connect-entry-admission-refusal-01.json",
+    "bytes": 546,
+    "sha256": "2f3ce3d366a6a5a2d1a2b2e78c9f7b70f802d06f0c539f502f9e53650410006f"
+  },
+  "adoption_boundary": {
+    "destination_candidate_observed": "9e2b2aeab59adb05fa8287610a00ef4ce4e9248d",
+    "dependency_equivalence": [
+      {
+        "path": "workers/tasks.py",
+        "diagnostic_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "ntfy9e2_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "identical": true
+      },
+      {
+        "path": "workers/operations.py",
+        "diagnostic_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "ntfy9e2_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "identical": true
+      },
+      {
+        "path": "workers/retries.py",
+        "diagnostic_blob": "39d47b42cbc8310f2d4dbae9ae4fe53aeb07b357",
+        "ntfy9e2_blob": "39d47b42cbc8310f2d4dbae9ae4fe53aeb07b357",
+        "identical": true
+      },
+      {
+        "path": "services/discovery/pipeline.py",
+        "diagnostic_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "ntfy9e2_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "identical": true
+      },
+      {
+        "path": "services/discovery/sources/http_transport.py",
+        "diagnostic_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "ntfy9e2_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "identical": true
+      },
+      {
+        "path": "packages/persistence/store.py",
+        "diagnostic_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "ntfy9e2_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "identical": true
+      }
+    ],
+    "scope": [
+      "tests/integration/test_mock_discovery_request_bounds.py",
+      "docs/evidence/2026-11-13-public-connect-entry-diagnostics.json"
+    ],
+    "note": "The complete b622 test includes the previously qualified02b join diagnostic, which is absent from ntfy's older1daa test. Adoption must use reviewed exact bytes/cumulative delta under transferred ownership, not imply an unchanged contextual cherry-pick. Actual composed destination qualification and hosted gates remain separate."
+  },
+  "limits": [
+    "No production application code changed.",
+    "No timeout/assertion widening, clock/GC warming, or fabricated terminal database result.",
+    "No external provider request, application submission, Docker/runtime fixture mutation or protected integration performed.",
+    "The historical hosted cause remains UNKNOWN.",
+    "Formal requirement acceptance, production behavior and new-head hosted checks are not established by this diagnostic module run."
+  ]
+}

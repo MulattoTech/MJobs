@@ -22,6 +22,10 @@ DESCRIPTION = '<p>Build Python systems.</p><script>privateAttack()</script>'
 POSTED = '2026-10-20T12:00:00+00:00'
 LEVER_ID = '00000000-0000-0000-0000-000000000101'
 FIXTURES = {
+    'arbeitnow': {'slug': 'platform-engineer-101', 'company_name': 'Acme',
+                  'title': 'Platform Engineer', 'description': DESCRIPTION,
+                  'created_at': int(datetime.fromisoformat(POSTED).timestamp()),
+                  'url': 'https://www.arbeitnow.com/jobs/companies/acme/platform-engineer-101'},
     'greenhouse': {'id': 101, 'title': 'Platform Engineer', 'content': DESCRIPTION,
                   'first_published_at': POSTED,
                   'absolute_url': 'https://job-boards.greenhouse.io/acme/jobs/101'},
@@ -39,6 +43,7 @@ FIXTURES = {
             'link': 'https://weworkremotely.com/remote-jobs/acme-platform-engineer'},
 }
 MINIMAL_FIELDS = {
+    'arbeitnow': ('slug', 'company_name', 'title', 'url'),
     'greenhouse': ('id', 'title'),
     'lever': ('id', 'text', 'hostedUrl'),
     'remotive': ('id', 'title'),
@@ -53,7 +58,9 @@ def adapter(provider, requests):
     def respond(request):
         requests.append(request)
         assert request.method == 'GET'
-        if provider == 'greenhouse':
+        if provider == 'arbeitnow':
+            payload = {'data': [raw]}
+        elif provider == 'greenhouse':
             payload = {'jobs': [raw]} if request.url.path.endswith('/jobs') else {'name': 'Acme'}
         elif provider == 'remotive':
             payload = {'jobs': [raw]}
@@ -65,7 +72,8 @@ def adapter(provider, requests):
                                   headers={'content-type': 'application/rss+xml'})
         return httpx.Response(200, json=payload)
 
-    tenant = 'global:acme' if provider == 'lever' else 'acme'
+    tenant = ('default' if provider == 'arbeitnow' else
+              'global:acme' if provider == 'lever' else 'acme')
     return source_adapter({'provider': provider, 'tenant': tenant},
                           transport=httpx.MockTransport(respond))
 
@@ -105,6 +113,10 @@ def test_source_search_returns_stable_jobs_and_valid_normalized_fields(provider)
     assert source.health() == 'HEALTHY'
     assert not source.capabilities().as_dict()['direct_application']
     assert requests and all(request.method == 'GET' for request in requests)
+    if provider == 'arbeitnow':
+        assert first.complete_inventory is False and second.complete_inventory is False
+        assert all(str(request.url) == 'https://www.arbeitnow.com/api/job-board-api'
+                   for request in requests)
 
 
 @pytest.mark.parametrize('provider', FIXTURES)
