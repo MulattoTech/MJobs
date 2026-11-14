@@ -20,6 +20,13 @@ MAX_SITEMAP_ENTRIES = 10_000
 _DOCTYPE_OR_ENTITY = re.compile(r"<!\s*(?:DOCTYPE|ENTITY)\b", re.IGNORECASE)
 
 
+class _SitemapTreeBuilder(ET.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        # Enforce the policy after XML encoding detection, before any entities
+        # are expanded; text screening alone cannot cover every byte pattern.
+        raise ValueError("SITEMAP_DTD_UNSUPPORTED")
+
+
 def _origin(url):
     try:
         parts = urlsplit(url)
@@ -130,8 +137,9 @@ def parse_sitemap(sitemap_url, xml_text) -> dict:
     if len(encoded) > MAX_SITEMAP_BYTES or _DOCTYPE_OR_ENTITY.search(xml_text):
         return empty
     try:
-        root = ET.fromstring(encoded)
-    except (ET.ParseError, ValueError, UnicodeError):
+        parser = ET.XMLParser(target=_SitemapTreeBuilder())
+        root = ET.fromstring(encoded, parser=parser)
+    except (ET.ParseError, ValueError, UnicodeError, LookupError):
         return empty
 
     root_name = root.tag
