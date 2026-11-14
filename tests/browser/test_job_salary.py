@@ -1,13 +1,13 @@
 """Connected browser proof that canonical API salary is shown in job detail."""
-from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from pathlib import Path
 from urllib.parse import urlsplit
 
-from playwright.sync_api import expect, sync_playwright
 import uvicorn
+from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import update
 
 from apps.api.main import create_app
