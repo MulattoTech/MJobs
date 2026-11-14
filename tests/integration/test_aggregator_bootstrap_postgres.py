@@ -31,6 +31,7 @@ class _PostgresCollectionFixture(unittest.TestCase):
     collect = collection.AggregatorBootstrapCollectionTests.collect
     pending = collection.AggregatorBootstrapCollectionTests.pending
     parent_operation = collection.AggregatorBootstrapCollectionTests.parent_operation
+    _activate_v2 = collection.AggregatorBootstrapCollectionTests._activate_v2
 
     def setUp(self):
         url = make_url(os.environ['MJOBS_TEST_POSTGRES_URL'])
