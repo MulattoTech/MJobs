@@ -1,9 +1,11 @@
 """Official-domain ATS enrollment through real workers and durable collection."""
 import os
+from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from uuid import uuid4
 
 import httpx
 from fastapi.testclient import TestClient
@@ -19,6 +21,8 @@ from services.discovery.scheduler import schedule_due_sources
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.sources.greenhouse import Greenhouse
 from tests.integration.test_spine import PROFILE
+from workers.dispatch import enqueue_operation
+from workers.operations import claim
 from workers.tasks import execute_operation
 
 
@@ -71,6 +75,28 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
                 patch.object(Greenhouse, '_get', lambda adapter, suffix, params=None: self.board(adapter, suffix, params)):
             result = (execute or execute_operation)(queued['operation_id'])
         return result
+
+    def _activate_aggregator_verification_v2(self):
+        current = self.store.profile('fixture')
+        profile = deepcopy(PROFILE)
+        profile['preferences'] = deepcopy(current['preferences'])
+        profile['preferences'].setdefault('company_discovery', {}).update(
+            company_discovery_enabled=True,
+            employer_verification={
+                'version': 1, 'mode': 'GREENHOUSE_RECIPROCAL_V1', 'activation_id': None})
+        self.store.save_profile(profile, expected_version=current['version'])
+
+    def _start_parent_collection_attempt(self, source_id):
+        profile = self.store.profile('fixture')
+        request_id = 'greenhouse-aggregator-parent-' + uuid4().hex
+        operation_id = enqueue_operation(self.store, 'DISCOVER', 'fixture', {
+            'source_id': source_id, 'request_id': request_id,
+            'profile_version': profile['version'],
+        })
+        parent = claim(self.store, operation_id)
+        self.assertIsNotNone(parent)
+        return {'parent_operation_id': operation_id,
+                'parent_operation_attempt': parent['attempt_count']}
 
     def test_verified_ats_enrollment_import_reload_and_recurring_collection(self):
         result = self.discover()
@@ -219,10 +245,21 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(m.company_domains.delete())
             connection.execute(m.companies.delete())
+        self._activate_aggregator_verification_v2()
         source_id = configure_source(self.store, 'default', provider='remotive')
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.job_sources).where(
+                m.job_sources.c.id == source_id).values(rate_limit=1))
         payload = dict(RAW_REMOTIVE_PAYLOAD, jobs=[RAW_REMOTIVE_PAYLOAD['jobs'][0]])
+        payload['jobs'][0]['description'] += (
+            '<a href="https://job-boards.greenhouse.io/example/jobs/101">Apply</a>')
+        parent_lineage = self._start_parent_collection_attempt(source_id)
         collect_source(self.store, source_id, 'fixture',
-                       transport=httpx.MockTransport(lambda request: httpx.Response(200, json=payload)))
+                       transport=httpx.MockTransport(lambda request: httpx.Response(200, json=payload)),
+                       **parent_lineage)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == parent_lineage['parent_operation_id']).values(state='COMPLETED'))
         with self.store.engine.begin() as connection:
             original = connection.execute(select(m.jobs)).mappings().one()
             upsert(connection, m.routes, {'id': identity('observed-first-party-route'),
@@ -254,7 +291,7 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
             self.assertEqual(len(priority_rows), 1, 'Expected one genuine aggregator bootstrap operation')
             high_priority = dict(priority_rows[0])
             self.assertEqual(high_priority['params']['aggregator_bootstrap'],
-                             'AGGREGATOR_BOOTSTRAP_PENDING_V1')
+                             'AGGREGATOR_BOOTSTRAP_PENDING_V2')
 
             # RQ may deliver the normal operation first, but claim must defer it
             # without consuming an attempt while the real HIGH bootstrap is queued.

@@ -113,6 +113,7 @@ class AggregatorBootstrapRealRQTests(unittest.TestCase):
         # Build the same real parent/child persistence graph used by collection:
         # a running DISCOVER parent stages an aggregator hint and enqueues one
         # COMPANY_DISCOVER child. The collector's source HTTP is MockTransport.
+        self.case._activate_v2()
         lineage = self.case.parent_operation()
         self.case.collect(**lineage)
         with self.case.store.engine.connect() as connection:
@@ -121,7 +122,7 @@ class AggregatorBootstrapRealRQTests(unittest.TestCase):
                 m.operations.c.id == request["operation_id"])).mappings().one())
         self.assertEqual(request["authorization"], "AGGREGATOR_BOOTSTRAP_PENDING")
         self.assertEqual(child["kind"], "COMPANY_DISCOVER")
-        self.assertEqual(child["params"]["aggregator_bootstrap"], "AGGREGATOR_BOOTSTRAP_PENDING_V1")
+        self.assertEqual(child["params"]["aggregator_bootstrap"], "AGGREGATOR_BOOTSTRAP_PENDING_V2")
         parent_binding = request["domain_evidence"][0]["binding"]
         self.assertEqual(parent_binding["parent_operation_id"], lineage["parent_operation_id"])
         self.assertEqual(parent_binding["parent_operation_attempt"], lineage["parent_operation_attempt"])
