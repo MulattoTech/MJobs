@@ -1,0 +1,615 @@
+{
+  "schema_version": 1,
+  "draft_only": false,
+  "status": "PASS_BOUNDED_LOCAL_PROOF_SOURCE_RECONCILED_PENDING_INTEGRATION",
+  "evidence_captured_at_utc": "2026-11-14T12:04:35.644777+00:00",
+  "requirement": "MJ-REQ-146",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/147",
+  "work_id": "MJ-REQ-146-route-save-feedback-ef18",
+  "branch": "web/ef1809b6/route-save-feedback",
+  "summary": "The check/save interlock is supported by the qualified red-first baseline, all five fixed unit cases, typecheck/build and one real local compiled-SPA/API/SQLite browser case. The original source-creation trailer failure and one successful message-only reconciliation are retained separately; full MJ146 acceptance remains PARTIAL.",
+  "source_identity": {
+    "base_head": "0a84cb7173b42e86b410ccf3056d68b39513b15a",
+    "base_tree": "9333037e7b9f9ff8dcf152131649367bfc815348",
+    "full_source_file_count": 3313,
+    "test_only_baseline": {
+      "source_identity_kind": "PRIVATE_FROZEN_TEST_ONLY_BASELINE_CAPSULE",
+      "candidate_tree": "83ff05babfa54f42e1173478c57bd09d99784ea4",
+      "source_manifest_sha256": "66fdf198b36faf71da766748d4ab34ecd8179beafecd689ac1c3d57e738eb729",
+      "candidate_commit": null
+    },
+    "applied_fixed_source": {
+      "source_identity_kind": "FROZEN_UNCOMMITTED_APPLIED_SOURCE_TREE",
+      "candidate_tree": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "source_manifest_sha256": "938aa60820ce132faf7281c1bf1561b4153410c5fb3e4de804fde9e009f8c1b1",
+      "candidate_commit": null,
+      "source_files": [
+        {
+          "path": "apps/web/src/application-route-discovery.tsx",
+          "git_mode": "100644",
+          "git_blob": "401836a7beb3c27aa9f25bac8d80bedab212da94",
+          "bytes": 5181,
+          "sha256": "1d7b678e5c1b725bd4203bac791329e1dc6703d902f691f58aac539a7335ebcd"
+        },
+        {
+          "path": "apps/web/src/application-route-discovery.test.tsx",
+          "git_mode": "100644",
+          "git_blob": "54001f157c2156520f3e235a1fc787e569010835",
+          "bytes": 9916,
+          "sha256": "6b1faa7981e2f75ee3c45689b95e956a0b33795f84b48b4099161d5ca856e7ab"
+        },
+        {
+          "path": "tests/browser/test_application_route_preference.py",
+          "git_mode": "100644",
+          "git_blob": "03579f15248ef4f8f4d07a4b9a53d493c494f987",
+          "bytes": 37825,
+          "sha256": "ae8072db7bf9228bb2c012d0e61eee6850fec975017fb80bd1249f40ec8eff3f"
+        }
+      ]
+    },
+    "fixed_web": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "source_manifest_sha256": "938aa60820ce132faf7281c1bf1561b4153410c5fb3e4de804fde9e009f8c1b1",
+      "candidate_commit": null,
+      "runtime_receipt": {
+        "path": "mj146-fixed-web-01/receipt.json",
+        "sha256": "4d9f35faf325a34e46c7cf08db375334d854a8d88f3c9593a9d1b54da8ada0a8"
+      }
+    },
+    "fixed_browser": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "source_manifest_sha256": "938aa60820ce132faf7281c1bf1561b4153410c5fb3e4de804fde9e009f8c1b1",
+      "candidate_commit": null,
+      "runtime_receipt": {
+        "path": "mj146-fixed-browser-01/receipt.json",
+        "sha256": "0ac03ba7a11358ab5075f6f64e7f26922adab3b05f003626d180c6df25a6e570"
+      }
+    },
+    "later_source_commit": {
+      "status": "PASS_EXACT_SOURCE_COMMIT_AFTER_MESSAGE_RECONCILIATION",
+      "source_head": "bcab70de9f8607a1a85bbebb38a9463210bb85c9",
+      "source_tree": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "source_commit_attempts": 2,
+      "source_creation_attempts": 1,
+      "message_amend_attempts": 1,
+      "paths": [
+        "apps/web/src/application-route-discovery.test.tsx",
+        "apps/web/src/application-route-discovery.tsx",
+        "tests/browser/test_application_route_preference.py"
+      ],
+      "source_manifest_sha256": "938aa60820ce132faf7281c1bf1561b4153410c5fb3e4de804fde9e009f8c1b1",
+      "snapshot_tree_equals_committed_tree": true,
+      "commit_provenance": {
+        "exit_code": 0
+      },
+      "receipt": {
+        "path": "mj146-source-commit-reconciliation-01.json",
+        "sha256": "dbd6e7d81291757246bd9c94acc38c7d89664a3e24c8526dd65da9bcc6d96b76"
+      },
+      "original_failed_receipt": {
+        "path": "mj146-source-commit-01.json",
+        "sha256": "eeb35394c911c8a3cb5cea261d3cb934c90127634257859b4905b4a156614e82"
+      },
+      "original_head_sha": "6a75c241e13afd011d1aabe1b277d6644e8ba405",
+      "message_only_proof": {
+        "path": "mj146-source-message-only-proof-01.json",
+        "sha256": "17c87f9e538b14b3633a563f0588d4641552ca0b84fafa31e34cd3b2c8c95ae2"
+      },
+      "recovery_commit_object": {
+        "path": "mj146-source-commit-reconciliation-original-object-01.bin",
+        "sha256": "9ba923ef842adb1a31d1459ca10353c3d4209a733ea8edce7f2b146ba69bd286",
+        "bytes": 1263,
+        "git_commit": "6a75c241e13afd011d1aabe1b277d6644e8ba405"
+      }
+    },
+    "metadata_commit": {
+      "status": "NOT_RUN",
+      "head_sha": null,
+      "tree_sha": null,
+      "receipt": null
+    },
+    "interpretation": "Baseline and fixed runtime proofs executed their respective precommit source capsules and retain candidate_commit:null. The later source creation failed only trailer-length validation; one guarded message-only amendment retained the fixed tree and all three source blobs. No runtime was rerun or attributed to either later commit."
+  },
+  "publication_scope": {
+    "planned_new_pull_requests": 1,
+    "source_paths": [
+      "apps/web/src/application-route-discovery.tsx",
+      "apps/web/src/application-route-discovery.test.tsx",
+      "tests/browser/test_application_route_preference.py"
+    ],
+    "metadata_paths": [
+      "docs/evidence/2026-11-14-route-save-feedback-ef18.json",
+      "planning/agent_handoffs/MJ-REQ-146-ef18-route-save-feedback.json"
+    ],
+    "publication_authorization": "NOT_CONFERRED_BY_THIS_DRAFT"
+  },
+  "observed_validation": {
+    "source_proposal_review": {
+      "result": "PASS_INDEPENDENT_MJ146_SOURCE_PROPOSAL_STATIC_REVIEW",
+      "artifact": {
+        "path": "mj146-source-proposal-independent-review-01.json",
+        "sha256": "3d4998931413c9bbccff358b59d8d331bbf32f4cf6f794b061d5e1b889fef419"
+      }
+    },
+    "production_application": {
+      "state": "PASS_EXACT_REVIEWED_PRODUCTION_APPLICATION",
+      "receipt": {
+        "path": "mj146-production-application-01/result.json",
+        "sha256": "003ef765abc17e2499e367331ca6e2e55f4af134e5243a30ba86d15140485439"
+      },
+      "independent_review": {
+        "path": "mj146-production-application-independent-review-01.json",
+        "sha256": "4b37a9d574a28e70309d5d79551b4eb142f1f1024045c711d24745fcd23579aa"
+      },
+      "result": "PASS_INDEPENDENT_MJ146_APPLIED_SOURCE_REVIEW_FIXED_RUNTIME_PENDING"
+    },
+    "fixed_web": {
+      "status": "FIXED_WEB_PASS_WITH_DIST",
+      "mode": "fixed-web",
+      "attempt_id": "cab5a733549a4936a37a13d821bffa80",
+      "unit_counts": {
+        "primary": 5,
+        "selected": 5,
+        "passed": 5,
+        "failed": 0,
+        "filtered": 0
+      },
+      "cases": [
+        {
+          "name": "offers a user-triggered check and explains that the saved route stays selected",
+          "status": "passed"
+        },
+        {
+          "name": "does not render a candidate from an unsafe scheme, query string, or fragment",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a pending save bound across attempted and subsequent rechecks",
+          "status": "passed"
+        },
+        {
+          "name": "recovers from rejected checks and saves without allowing an intervening action",
+          "status": "passed"
+        },
+        {
+          "name": "admits one same-turn check and one same-turn save",
+          "status": "passed"
+        }
+      ],
+      "stage_exit_codes": {
+        "vitest": 0,
+        "typecheck": 0,
+        "build": 0
+      },
+      "runtime_receipt": {
+        "path": "mj146-fixed-web-01/receipt.json",
+        "sha256": "4d9f35faf325a34e46c7cf08db375334d854a8d88f3c9593a9d1b54da8ada0a8"
+      },
+      "child_outcome": {
+        "path": "mj146-fixed-web-01/child-outcome.json",
+        "sha256": "af27bc4b30d0670126b5d841fdff91e0729fecca1a5ead3bee9aac8035831e8f"
+      },
+      "runtime_result_qualified": true,
+      "source_postcheck_status": "PASS",
+      "external_timeout": false,
+      "original_host_exit_code": 0,
+      "post_exit_job_accounting": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true,
+      "independent_review": {
+        "path": "mj146-fixed-web-runtime-review-01.json",
+        "sha256": "3761a65201d3364495d96c111d3614ea1c42057eb53fde1646ff63f9d3449668"
+      },
+      "independent_review_status": "PASS",
+      "independent_review_result": "PASS_FIXED_WEB_INDEPENDENT_RUNTIME_REVIEW"
+    },
+    "fixed_browser": {
+      "status": "FIXED_ONE_BROWSER_CASE_PASS",
+      "mode": "fixed-browser",
+      "attempt_id": "59678232994846be86bad1f8dbc4d452",
+      "junit_counts": {
+        "primary": 1,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "node": "tests/browser/test_application_route_preference.py::test_pending_route_save_blocks_recheck_and_later_result_starts_unsaved",
+      "pytest_reports": {
+        "setup": "passed",
+        "call": "passed",
+        "teardown": "passed"
+      },
+      "properties": [
+        "route_save_feedback_receipt",
+        "route_save_feedback_cleanup"
+      ],
+      "runtime_receipt": {
+        "path": "mj146-fixed-browser-01/receipt.json",
+        "sha256": "0ac03ba7a11358ab5075f6f64e7f26922adab3b05f003626d180c6df25a6e570"
+      },
+      "child_outcome": {
+        "path": "mj146-fixed-browser-01/child-outcome.json",
+        "sha256": "97b3e716f762e821970c70ccc2028540ca68a9f59ca7f93f317cdeb7b1c19b09"
+      },
+      "independent_review": {
+        "path": "mj146-fixed-browser-runtime-review-01.json",
+        "sha256": "40f974b2a76a8d5a48f869f33c5ac978305b332194bdb79d0e2a2579499ac667"
+      },
+      "independent_review_result": "PASS_FIXED_BROWSER_INDEPENDENT_RUNTIME_REVIEW",
+      "runtime_result_qualified": true,
+      "source_postcheck_status": "PASS",
+      "external_timeout": false,
+      "original_host_exit_code": 0,
+      "post_exit_job_accounting": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true,
+      "same_tree_build_receipt": {
+        "path": "mj146-fixed-web-01/receipt.json",
+        "sha256": "4d9f35faf325a34e46c7cf08db375334d854a8d88f3c9593a9d1b54da8ada0a8"
+      },
+      "consumed_dist_manifest": {
+        "path": "mj146-fixed-web-01/dist-manifest.json",
+        "sha256": "6f542eb09805eecc3c50da332bf9799a7a92178c7b2840cc9b76857039b93261"
+      },
+      "environment": "Real Chromium and compiled SPA using one loopback API server and private SQLite; only the external resolver return is controlled and synthetic.",
+      "observed_summary": {
+        "primary": 1,
+        "phases": [
+          "pending_save",
+          "saved_a",
+          "checked_b_unsaved"
+        ],
+        "same_origin_requests": 51,
+        "ordinary_visit_posts": 1,
+        "resolve_posts": 2,
+        "save_destination_posts": 1,
+        "resolver_calls_at_gate": 2,
+        "resolver_calls_after_click": 2,
+        "resolver_calls_final": 3,
+        "durable_saved_route_id": "2fc2d9ce25348b59edaacb716a50350c44c81d8c35b6f6d1a0f78e072aee30e5",
+        "original_selection_preserved": true,
+        "no_submission_database_counts": {
+          "applications": 0,
+          "attempts": 0,
+          "operations": 0
+        },
+        "saved_audit_events": 1,
+        "api_threads_closed": 1,
+        "fixture_server_uses": 0,
+        "context_closed": true,
+        "browser_disconnected": true
+      },
+      "cleanup_receipt": {
+        "all_resources_closed": true,
+        "browser_disconnected": true,
+        "context_closed": true,
+        "error_types": [],
+        "gate_released": true,
+        "playwright_stopped": true,
+        "primary_failure_preserved": false,
+        "resolver_stopped": true,
+        "schema_version": 1,
+        "server_thread_stopped": true,
+        "socket_closed": true,
+        "store_disposed": true,
+        "temporary_directory_removed": true
+      },
+      "observed_traffic": {
+        "same_origin_requests": 51,
+        "get": 47,
+        "post": 4,
+        "ordinary_visit_posts": 1,
+        "resolve_posts": 2,
+        "save_destination_posts": 1,
+        "external_requests": 0,
+        "page_errors": 0,
+        "unexpected_mutations": []
+      },
+      "observation_limit": "One primary case, three pytest reports and three behavior phases. It proves this UI interlock, not external redirect identity, provider behavior, submission or full MJ146 acceptance."
+    }
+  },
+  "baseline_evidence": {
+    "status": "BASELINE_ONE_BEHAVIORAL_FAILURE",
+    "mode": "baseline-unit",
+    "attempt_id": "131befa8868746fdaae62260036008da",
+    "unit_counts": {
+      "primary": 5,
+      "selected": 1,
+      "passed": 0,
+      "failed": 1,
+      "filtered": 4
+    },
+    "runtime_receipt": {
+      "path": "mj146-baseline-unit-01/receipt.json",
+      "sha256": "c45efa39a1290bc8c958ef8e359d45679cf2568f3d5c732a8ec2d83d3604ce55"
+    },
+    "child_outcome": {
+      "path": "mj146-baseline-unit-01/child-outcome.json",
+      "sha256": "cd6429940af489e2c1c7c866264ea4445ef86751925aa577e602db40737a785a"
+    },
+    "independent_review": {
+      "path": "mj146-baseline-runtime-review-02.json",
+      "sha256": "fd7b60960fb536c2df0b4625b2e29d9b8195a3f8cfc93c299ef939943b8592ea"
+    },
+    "independent_review_result": "PASS_INDEPENDENT_MJ146_BASELINE_RUNTIME_REVIEW",
+    "runtime_result_qualified": true,
+    "source_postcheck_status": "PASS",
+    "node_exit_code": 1,
+    "original_host_exit_code": 0,
+    "external_timeout": false,
+    "post_exit_job_accounting": {
+      "total": 5,
+      "active": 0,
+      "terminated": 0
+    },
+    "compute_released": true,
+    "selected_case": "keeps a pending save bound across attempted and subsequent rechecks",
+    "observed_assertion": {
+      "error_name": "AssertionError",
+      "source_path": "apps/web/src/application-route-discovery.test.tsx",
+      "line": 148,
+      "column": 71,
+      "explicit_actual": {
+        "disabledDuringSave": false
+      },
+      "explicit_expected": {
+        "disabledDuringSave": true
+      },
+      "other_aggregate_values": "Five other values were abbreviated by the JSON reporter and are not asserted as observed."
+    },
+    "observed_sequence_limit": "Reaching the final assertion establishes completion of the initial-check, pending-save, attempted-recheck, save-completion and later-check test flow; it does not expose the five abbreviated aggregate values.",
+    "global_unhandled_error_count": 0,
+    "evidence_policy": "NORMAL_PARENT_QUALIFICATION_ONLY",
+    "supplement_or_exception_used": false,
+    "four_other_cases": "FILTERED_NOT_EXECUTED"
+  },
+  "requirement_scope": {
+    "connection": "Keep saved-destination feedback truthful while a user-triggered route save is pending.",
+    "original_requirement_status": "PARTIAL",
+    "full_original_requirement_result": "NOT_ASSERTED",
+    "separate_formal_acceptance_ownership": "PRESERVED; this three-file supporting repair does not adopt the separate MJ146 acceptance scope.",
+    "unchanged_requirements": {
+      "MJ-REQ-267": "PASS_UNCHANGED_NOT_REQUALIFIED",
+      "MJ-REQ-266": "PASS_UNCHANGED_NOT_REQUALIFIED"
+    },
+    "outside_scope": "The save API independently resolves the destination again. External redirect drift between check and save remains outside this UI interlock and is not proven safe by this slice."
+  },
+  "preparation_history": [
+    "Frozen draft01 and its independent draft review are preserved. The corrected baseline review02 remains authoritative; the original baseline runtime and earlier review remain unchanged.",
+    "The original source-creation failure is retained unchanged. One guarded message-only amendment preserves source/runtime proofs and explicitly records creation1/amend1/total2.",
+    "This content capture precedes metadata application/commit and PR publication. It does not reference its own future content review."
+  ],
+  "build_warning": {
+    "status": "OBSERVED_NONFATAL",
+    "kind": "NONFATAL_CHUNK_SIZE_WARNING",
+    "text": "Some chunks are larger than 500 kB after minification.",
+    "build_exit_code": 0,
+    "interpretation": "Observed for this actual build; no baseline/preexisting or size/performance acceptance claim."
+  },
+  "runtime_limit": {
+    "local_node": "v27.0.0-alpha.0.0.0",
+    "ci_node_major": "24",
+    "same_as_ci_runtime": false,
+    "hosted_checks": "NOT_RUN",
+    "interpretation": "Local baseline, web and browser results are bound to their original precommit source capsules. Local Node 27 alpha differs from hosted Node24; no hosted PASS is claimed."
+  },
+  "artifacts": {
+    "proposal": {
+      "path": "mj146-route-save-proposal-01/manifest.json",
+      "sha256": "bfd9f778c3a41a271cc4db42155d69b1b06ee688b19c849ebf0829aa39a6e814"
+    },
+    "selectors": {
+      "path": "mj146-route-save-proposal-01/selectors.json",
+      "sha256": "b069a59af278f7366ad013d56f9664b93bc5da445da5a083d7541f2e5f65b494"
+    },
+    "verification_plan": {
+      "path": "mj146-route-save-proposal-01/verification-plan.json",
+      "sha256": "5e281c30cb9fe22ffd91b9e8d5832acf243a25fd84ad455dad8f3699a918de62"
+    },
+    "source_proposal_review": {
+      "path": "mj146-source-proposal-independent-review-01.json",
+      "sha256": "3d4998931413c9bbccff358b59d8d331bbf32f4cf6f794b061d5e1b889fef419"
+    },
+    "test_application": {
+      "path": "mj146-test-application-01/result.json",
+      "sha256": "10af4d39cd091d99e5a752d911190d3fde2c3be7725a02ac24474798f7bcc193"
+    },
+    "production_application": {
+      "path": "mj146-production-application-01/result.json",
+      "sha256": "003ef765abc17e2499e367331ca6e2e55f4af134e5243a30ba86d15140485439"
+    },
+    "production_application_review": {
+      "path": "mj146-production-application-independent-review-01.json",
+      "sha256": "4b37a9d574a28e70309d5d79551b4eb142f1f1024045c711d24745fcd23579aa"
+    },
+    "baseline_capsule": {
+      "path": "mj146-source-application-preparation-01/baseline-source-capsule.json",
+      "sha256": "66fdf198b36faf71da766748d4ab34ecd8179beafecd689ac1c3d57e738eb729"
+    },
+    "fixed_capsule": {
+      "path": "mj146-source-application-preparation-01/fixed-source-capsule.json",
+      "sha256": "938aa60820ce132faf7281c1bf1561b4153410c5fb3e4de804fde9e009f8c1b1"
+    },
+    "baseline_parent": {
+      "path": "mj146-baseline-unit-01/receipt.json",
+      "sha256": "c45efa39a1290bc8c958ef8e359d45679cf2568f3d5c732a8ec2d83d3604ce55"
+    },
+    "baseline_child": {
+      "path": "mj146-baseline-unit-01/child-outcome.json",
+      "sha256": "cd6429940af489e2c1c7c866264ea4445ef86751925aa577e602db40737a785a"
+    },
+    "baseline_review": {
+      "path": "mj146-baseline-runtime-review-02.json",
+      "sha256": "fd7b60960fb536c2df0b4625b2e29d9b8195a3f8cfc93c299ef939943b8592ea"
+    },
+    "fixed_web_parent": {
+      "path": "mj146-fixed-web-01/receipt.json",
+      "sha256": "4d9f35faf325a34e46c7cf08db375334d854a8d88f3c9593a9d1b54da8ada0a8"
+    },
+    "fixed_web_child": {
+      "path": "mj146-fixed-web-01/child-outcome.json",
+      "sha256": "af27bc4b30d0670126b5d841fdff91e0729fecca1a5ead3bee9aac8035831e8f"
+    },
+    "fixed_web_dist_manifest": {
+      "path": "mj146-fixed-web-01/dist-manifest.json",
+      "sha256": "6f542eb09805eecc3c50da332bf9799a7a92178c7b2840cc9b76857039b93261"
+    },
+    "fixed_web_review": {
+      "path": "mj146-fixed-web-runtime-review-01.json",
+      "sha256": "3761a65201d3364495d96c111d3614ea1c42057eb53fde1646ff63f9d3449668"
+    },
+    "fixed_browser_parent": {
+      "path": "mj146-fixed-browser-01/receipt.json",
+      "sha256": "0ac03ba7a11358ab5075f6f64e7f26922adab3b05f003626d180c6df25a6e570"
+    },
+    "fixed_browser_child": {
+      "path": "mj146-fixed-browser-01/child-outcome.json",
+      "sha256": "97b3e716f762e821970c70ccc2028540ca68a9f59ca7f93f317cdeb7b1c19b09"
+    },
+    "fixed_browser_review": {
+      "path": "mj146-fixed-browser-runtime-review-01.json",
+      "sha256": "40f974b2a76a8d5a48f869f33c5ac978305b332194bdb79d0e2a2579499ac667"
+    },
+    "source_commit_reconciliation": {
+      "path": "mj146-source-commit-reconciliation-01.json",
+      "sha256": "dbd6e7d81291757246bd9c94acc38c7d89664a3e24c8526dd65da9bcc6d96b76"
+    },
+    "source_creation_failure": {
+      "path": "mj146-source-commit-01.json",
+      "sha256": "eeb35394c911c8a3cb5cea261d3cb934c90127634257859b4905b4a156614e82"
+    },
+    "message_only_proof": {
+      "path": "mj146-source-message-only-proof-01.json",
+      "sha256": "17c87f9e538b14b3633a563f0588d4641552ca0b84fafa31e34cd3b2c8c95ae2"
+    },
+    "recovery_commit_object": {
+      "path": "mj146-source-commit-reconciliation-original-object-01.bin",
+      "sha256": "9ba923ef842adb1a31d1459ca10353c3d4209a733ea8edce7f2b146ba69bd286",
+      "bytes": 1263,
+      "git_commit": "6a75c241e13afd011d1aabe1b277d6644e8ba405"
+    },
+    "draft_content_review": {
+      "path": "mj146-evidence-drafts-independent-review-01.json",
+      "sha256": "d5f1760efb569fc5915598951e3a1294422d2e5d4348d39e0dcf71acdbd6e029"
+    },
+    "browser_raw_properties": {
+      "path": "mj146-fixed-browser-01/pytest-properties.json",
+      "sha256": "4e9daefd987a2044ddfc4bc073dc13e88982aa991bee5b5eeef4ef91ff81bcfd",
+      "bytes": 9775
+    }
+  },
+  "artifact_path_basis": "Retained private run-relative evidence references. Final content and source equivalence are independently reviewed outside these documents; their containing metadata commit and later PR bind these bytes externally.",
+  "evidence_document": "docs/evidence/2026-11-14-route-save-feedback-ef18.json",
+  "remaining_root_bindings": [
+    "Metadata-only application/commit and final content review bind these exact bytes externally.",
+    "Final candidate, PR and exact-head hosted checks remain outside this evidence capture."
+  ],
+  "acceptance_delta": {
+    "original": 0,
+    "reference": 0
+  },
+  "canonical_promotion": "NONE",
+  "provider_or_apply_mock_proof": "NOT_ASSERTED",
+  "publication": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "head_sha": null,
+    "tree_sha": null,
+    "pr_number": null,
+    "pr_url": null,
+    "hosted_checks": {
+      "status": "NOT_RUN",
+      "head_sha": null,
+      "runs": null,
+      "conclusions": null
+    },
+    "merged": false,
+    "deployed": false
+  },
+  "source_commit_history": {
+    "original_creation": {
+      "head_sha": "6a75c241e13afd011d1aabe1b277d6644e8ba405",
+      "tree_sha": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "state": "SOURCE_COMMIT_ATTEMPT_FAILED_RECONCILE",
+      "receipt": {
+        "path": "mj146-source-commit-01.json",
+        "sha256": "eeb35394c911c8a3cb5cea261d3cb934c90127634257859b4905b4a156614e82"
+      },
+      "source_creation_attempts": 1,
+      "provenance_exit_code": 1,
+      "cause": "Git-parsed Validation was 664 characters, above the pinned validator limit of 600; source tree and runtime proof were unchanged."
+    },
+    "message_only_reconciliation": {
+      "state": "PASS_EXACT_SOURCE_COMMIT_AFTER_MESSAGE_RECONCILIATION",
+      "source_head": "bcab70de9f8607a1a85bbebb38a9463210bb85c9",
+      "source_tree": "0a095a7c19f0b8d641f8f8df56ff463985d7099a",
+      "receipt": {
+        "path": "mj146-source-commit-reconciliation-01.json",
+        "sha256": "dbd6e7d81291757246bd9c94acc38c7d89664a3e24c8526dd65da9bcc6d96b76"
+      },
+      "source_creation_attempts": 1,
+      "message_amend_attempts": 1,
+      "source_commit_attempts": 2,
+      "validation_length": 466,
+      "provenance_exit_code": 0,
+      "same_parent_tree_and_three_source_blobs": true,
+      "proof": {
+        "path": "mj146-source-message-only-proof-01.json",
+        "sha256": "17c87f9e538b14b3633a563f0588d4641552ca0b84fafa31e34cd3b2c8c95ae2"
+      },
+      "recovery_commit_object": {
+        "path": "mj146-source-commit-reconciliation-original-object-01.bin",
+        "sha256": "9ba923ef842adb1a31d1459ca10353c3d4209a733ea8edce7f2b146ba69bd286",
+        "bytes": 1263,
+        "git_commit": "6a75c241e13afd011d1aabe1b277d6644e8ba405"
+      },
+      "runtime_replayed": false
+    }
+  },
+  "browser_observations": {
+    "phases": [
+      "pending_save",
+      "saved_a",
+      "checked_b_unsaved"
+    ],
+    "pending_save": "The original save response was held after durable save A. A and the original route selection remained displayed; the ordinary disabled-Check interaction added no resolver call or resolve POST.",
+    "saved_a": "Releasing the original response showed A as Saved, with the same durable database state and selected source route.",
+    "checked_b_unsaved": "A later explicit check displayed B with Save enabled and no inherited Saved state. Only A remained persisted.",
+    "resolver_invocations": {
+      "at_save_gate": 2,
+      "after_attempted_recheck": 2,
+      "final": 3
+    },
+    "requests": {
+      "same_origin": 51,
+      "ordinary_visit_posts": 1,
+      "resolve_posts": 2,
+      "save_destination_posts": 1
+    },
+    "no_submission_database_counts": {
+      "applications": 0,
+      "attempts": 0,
+      "operations": 0
+    },
+    "saved_audit_events": 1,
+    "original_selection_preserved": true,
+    "cleanup_complete": true,
+    "gate_limit": "The bounded original-response gate is fixture instrumentation; no endpoint result or database save was replaced."
+  },
+  "browser_warning": {
+    "status": "OBSERVED_NONFATAL",
+    "kind": "NONFATAL_PYTEST_JUNIT_FAMILY_WARNING",
+    "text": "record_property is incompatible with junit_family 'xunit2' (use 'legacy' or 'xunit1')",
+    "pytest_exit_code": 0,
+    "actual_properties_retained_and_verified": true,
+    "junit_family_changed": false,
+    "runtime_replayed": false
+  }
+}
