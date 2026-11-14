@@ -37,7 +37,7 @@ def test_new_profile_selection_is_isolated_and_pinned_across_environment_changes
 
 def test_legacy_session_is_preserved_even_when_default_changes(tmp_path):
     profile = tmp_path / "browser-profile"
-    profile.mkdir()
+    profile.mkdir(mode=0o700)
     (profile / "Cookies").write_bytes(b"legacy-synthetic-cookie")
     with patch.dict(os.environ, {"MJOBS_BROWSER_PROFILE": "new-profile"}):
         assert browser_profile_path(tmp_path, initialize=True) == profile

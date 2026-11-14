@@ -1,6 +1,7 @@
 """Private host input must fail closed before any browser activity."""
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -13,7 +14,7 @@ class ManualAuthHostTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name).resolve()
         self.profile = self.root / "app1" / "browser-profile"
-        self.profile.mkdir(parents=True)
+        self.profile.mkdir(mode=0o700, parents=True)
         self.payload = {"schema": 1, "output_dir": str(self.root),
                         "application_id": "app1", "mock_origin": "http://127.0.0.1:8123",
                         "requisition": "job_1", "budget_seconds": 30}
@@ -33,6 +34,18 @@ class ManualAuthHostTests(unittest.TestCase):
         self.assertEqual(args[1], "http://127.0.0.1:8123/ats/login/job_1")
         self.assertTrue(args[2].allowed(args[1]))
         self.assertIn("check", kwargs)
+
+
+    @unittest.skipUnless(os.name == "posix", "POSIX directory-mode admission")
+    def test_permissive_session_is_refused_before_host_browser_launch(self):
+        self.profile.chmod(0o755)
+        cookie = self.profile / "Cookies"
+        cookie.write_bytes(b"synthetic-session-fixture")
+        result, browser = self.run_host(json.dumps(self.payload).encode())
+        self.assertEqual(result, 2)
+        browser.assert_not_called()
+        self.assertEqual(cookie.read_bytes(), b"synthetic-session-fixture")
+        self.assertEqual(self.profile.stat().st_mode & 0o777, 0o755)
 
     def test_invalid_input_never_starts_browser(self):
         changes = [{"schema": True}, {"schema": 2}, {"application_id": "../app1"},

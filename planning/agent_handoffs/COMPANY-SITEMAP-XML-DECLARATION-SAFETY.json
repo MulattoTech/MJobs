@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "COMPANY-SITEMAP-XML-DECLARATION-SAFETY",
+  "objective": "Enforce existing sitemap XML policy and preserve same-origin discovery fallback",
+  "owner": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+  "branch": "web/web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f/sitemap-xml",
+  "head_sha": "5bc3e0bcaa00b7692461d0df51707c6cc89748c2",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Required hosted checks and current-main review; serialized protected integration; separately guarded deployment when eligible",
+  "created_at": "2026-11-05T03:21:15.493407+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "59 focused tests and 20 subtests; catalogue/progress/dashboard/diff PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected hosted checks, production rollout, authenticated browser verification",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Required hosted gates and serialized integration remain pending"
+  ]
+}

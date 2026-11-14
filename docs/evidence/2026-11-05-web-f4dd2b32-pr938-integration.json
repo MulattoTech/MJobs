@@ -1,0 +1,145 @@
+{
+  "run": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+  "requirement": "MJ-REQ-171",
+  "objective": "PR-938-INTEGRATION",
+  "utc": "2026-11-05T02:57:02.744318+00:00",
+  "prior_reviewed_head": "d35c5496898d72b5b3741b54110c7fab828494cb",
+  "base_main": "d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+  "tested_revision": "7af007f9521302dff18d247fba99cb7136d09d31",
+  "claim_ref": "refs/heads/webpro-claims/PR-938-INTEGRATION",
+  "claim_owner": "4cdf252bd914a1c82516c7267ec512a5fa0c10de",
+  "source_and_test_files": [
+    "services/applications/browser_profiles.py",
+    "services/applications/manual_auth.py",
+    "tests/unit/test_browser_profile_configuration.py",
+    "tests/unit/test_browser_profile_privacy.py",
+    "tests/unit/test_manual_auth_deadline.py",
+    "tests/unit/test_manual_auth_host.py",
+    "tests/unit/test_manual_auth_path_security.py"
+  ],
+  "reviewed_source_preserved": true,
+  "candidate_command": "python -B -m pytest -q -p no:cacheprovider --basetemp <isolated-temp> --junitxml <isolated-receipt> tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py tests/unit/test_browser_debug_capture.py --tb=short",
+  "candidate_result": "80 passed, 8 skipped, 143 subtests passed in 9.05s",
+  "validation": {
+    "catalogue": "Catalogue validation: PASS",
+    "progress": "Progress journal validation: PASS",
+    "dashboard": "Progress dashboard: CURRENT",
+    "diff": "PASS (exit 0)",
+    "reviewed_source_preservation": "PASS (exit 0)"
+  },
+  "original_windows": "61 passed, 8 skipped, 112 subtests passed; 11.91s; same reviewed source",
+  "original_linux": "Python 3.12.14; unittest privacy module: 11 PASS, zero skips/errors/failures; 0.022s; original head",
+  "independent_review": "https://github.com/MulattoTech/MJobs/pull/938#pullrequestreview-5777993701",
+  "open_peer_prs_compared": 20,
+  "source_overlap": [],
+  "status": "TESTED; fresh hosted gates and protected merge remain pending",
+  "acceptance": "MJ-REQ-171 PARTIAL unchanged; no acceptance or denominator promotion",
+  "limits": [
+    "No Windows ACL, extended ACL, hostile ancestor replacement or physical-restart claim.",
+    "Existing permissive POSIX session directories fail closed without automatic remediation.",
+    "Production, authenticated browser and full-stack tests were not run by this integration.",
+    "Prior source, scanner failures and historical evidence are preserved."
+  ],
+  "refreshes": [
+    {
+      "run": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+      "requirement": "MJ-REQ-171",
+      "objective": "PR-938-INTEGRATION",
+      "utc": "2026-11-05T03:06:09.886260+00:00",
+      "prior_reviewed_head": "1cd2c715594d877134a0acdab6c73ccb3c5feb76",
+      "base_main": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+      "tested_revision": "9fce42c7cc4aab293de889e5555c474fbc668fd5",
+      "claim_ref": "refs/heads/webpro-claims/PR-938-INTEGRATION",
+      "claim_owner": "4cdf252bd914a1c82516c7267ec512a5fa0c10de",
+      "source_and_test_files": [
+        "services/applications/browser_profiles.py",
+        "services/applications/manual_auth.py",
+        "tests/unit/test_browser_profile_configuration.py",
+        "tests/unit/test_browser_profile_privacy.py",
+        "tests/unit/test_manual_auth_deadline.py",
+        "tests/unit/test_manual_auth_host.py",
+        "tests/unit/test_manual_auth_path_security.py"
+      ],
+      "reviewed_source_preserved": true,
+      "candidate_command": "python -B -m pytest -q -p no:cacheprovider --basetemp <isolated-temp> --junitxml <isolated-receipt> tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py tests/unit/test_browser_debug_capture.py --tb=short",
+      "candidate_result": "80 passed, 8 skipped, 143 subtests passed in 9.21s",
+      "validation": {
+        "catalogue": "Catalogue validation: PASS",
+        "progress": "Progress journal validation: PASS",
+        "dashboard": "Progress dashboard: CURRENT",
+        "diff": "PASS (exit 0)",
+        "reviewed_source_preservation": "PASS (exit 0)"
+      },
+      "original_windows": "61 passed, 8 skipped, 112 subtests passed; 11.91s; same reviewed source",
+      "original_linux": "Python 3.12.14; unittest privacy module: 11 PASS, zero skips/errors/failures; 0.022s; original head",
+      "independent_review": "https://github.com/MulattoTech/MJobs/pull/938#pullrequestreview-5777993701",
+      "open_peer_prs_compared": 20,
+      "source_overlap": [],
+      "status": "TESTED; fresh hosted gates and protected merge remain pending",
+      "acceptance": "MJ-REQ-171 PARTIAL unchanged; no acceptance or denominator promotion",
+      "limits": [
+        "No Windows ACL, extended ACL, hostile ancestor replacement or physical-restart claim.",
+        "Existing permissive POSIX session directories fail closed without automatic remediation.",
+        "Production, authenticated browser and full-stack tests were not run by this integration.",
+        "Prior source, scanner failures and historical evidence are preserved."
+      ]
+    },
+    {
+      "run": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+      "requirement": "MJ-REQ-171",
+      "objective": "PR-938-INTEGRATION",
+      "utc": "2026-11-05T03:38:54.188931+00:00",
+      "prior_reviewed_head": "32ced02b56900b9f161c7397c4650a5f6025865b",
+      "base_main": "af227103386e4363b3dec3c4453192035699718c",
+      "tested_revision": "52763d4c464fb0ba8b6f8a284aa96688aafcd87b",
+      "claim_ref": "refs/heads/webpro-claims/PR-938-INTEGRATION",
+      "claim_owner": "64ccb71047daa48d73bbcccfd9c2e47b9acaa3e4",
+      "source_and_test_files": [
+        "services/applications/browser_profiles.py",
+        "services/applications/manual_auth.py",
+        "tests/unit/test_browser_profile_configuration.py",
+        "tests/unit/test_browser_profile_privacy.py",
+        "tests/unit/test_manual_auth_deadline.py",
+        "tests/unit/test_manual_auth_host.py",
+        "tests/unit/test_manual_auth_path_security.py",
+        "services/company_discovery/career_pages.py",
+        "tests/unit/test_career_page_sitemaps.py",
+        "tests/integration/test_company_discovery_sitemap_safety.py"
+      ],
+      "reviewed_source_preserved": true,
+      "sitemap_component": {
+        "pr": 959,
+        "head": "b6e3d982e7a8d404c5d70c1d91931278c5dfd146",
+        "claim_owner": "d3d8cd7400f65b9fbdee13aef96eb51944dd4a5c",
+        "all_five_blobs_preserved": true,
+        "independent_review": "https://github.com/MulattoTech/MJobs/pull/959#pullrequestreview-5779471434"
+      },
+      "previous_head_hosted_gates": "All five required checks passed on 32ced02b at c6d499 baseline; superseded by protected PR955 main advancement before integration lock acquisition",
+      "main_merge": "0e7a172ed27077a507a0b53469223345582378c3",
+      "candidate_command": "python -B -m pytest -q -p no:cacheprovider --basetemp <isolated-temp> --junitxml <isolated-receipt> tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py tests/unit/test_browser_debug_capture.py tests/unit/test_career_page_sitemaps.py tests/integration/test_company_discovery_sitemap_safety.py tests/integration/test_company_discovery_sitemaps.py tests/integration/test_company_career_candidates.py tests/unit/test_discovery_scheduler_lifecycle_160.py tests/unit/test_remotive_job_ids.py tests/integration/test_remotive_job_id_isolation.py --tb=short",
+      "candidate_result": "167 passed, 8 skipped, 171 subtests passed in 53.46s",
+      "validation": {
+        "catalogue": "Catalogue validation: PASS",
+        "progress": "Progress journal validation: PASS",
+        "dashboard": "Progress dashboard: CURRENT",
+        "diff": "PASS (exit 0)",
+        "reviewed_source_preservation": "PASS (exit 0)",
+        "sitemap_component_preservation": "PASS (exit 0)",
+        "incoming_main_preservation": "PASS (exit 0)"
+      },
+      "original_windows": "61 passed, 8 skipped, 112 subtests passed; 11.91s; same reviewed source",
+      "original_linux": "Python 3.12.14; unittest privacy module: 11 PASS, zero skips/errors/failures; 0.022s; original head",
+      "independent_review": "https://github.com/MulattoTech/MJobs/pull/938#pullrequestreview-5777993701",
+      "open_peer_prs_compared": 20,
+      "source_overlap": [],
+      "status": "TESTED; fresh hosted gates and protected merge remain pending",
+      "acceptance": "MJ-REQ-171, MJ-REQ-018 and MJ-REQ-004 PARTIAL unchanged; no acceptance or denominator promotion",
+      "limits": [
+        "No Windows ACL, extended ACL, hostile ancestor replacement or physical-restart claim.",
+        "Existing permissive POSIX session directories fail closed without automatic remediation.",
+        "Production, authenticated browser and full-stack tests were not run by this integration.",
+        "Prior source, scanner failures and historical evidence are preserved."
+      ]
+    }
+  ]
+}

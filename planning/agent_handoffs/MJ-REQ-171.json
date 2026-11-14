@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-171",
+  "objective": "Private browser session directory admission with fixed failures and preserved profiles",
+  "owner": "web-20261104T235930Z-bdfe9be94cd3",
+  "branch": "web/web-20261104T235930Z-bdfe9be94cd3/MJ-REQ-171",
+  "head_sha": "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
+  "routing_state": "RESUME",
+  "next_action": "Publish scoped PR; require exact candidate CI and release assessment",
+  "created_at": "2026-11-05T00:10:29.657178+00:00",
+  "requirements": [
+    "MJ-REQ-171"
+  ],
+  "tests": [
+    {
+      "command": "Linux privacy 11; Windows focused 60 +109 subtests; catalogue/progress/dashboard/diff",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted current-candidate CI; independent review; production; Windows ACL isolation",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
