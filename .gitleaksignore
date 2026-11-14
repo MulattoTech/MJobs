@@ -359,3 +359,16 @@ aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structu
 3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:489
 3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502
 b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523
+
+# PR1028/PR1030 exact historical evidence fingerprints only, not credentials.
+# Six values resolve to immutable Git blob objects; one is a recorded SHA-256
+# of the uncommitted baseline test input, independently reconstructed at review.
+# Proof: docs/evidence/2026-11-14-secret-scan-fingerprint-review.md
+# No regex, path, scanning rule, or whole-file exclusion is disabled.
+6fda41901137f91961837908a1a64526ee0cc075:docs/evidence/2026-11-14-answer-resume-currentness-8966724d.json:generic-api-key:18
+6fda41901137f91961837908a1a64526ee0cc075:docs/evidence/2026-11-14-answer-resume-currentness-8966724d.json:generic-api-key:35
+00688bcf09cfb4aefb6ab55ae5df9f25ff5a68a4:docs/evidence/2026-11-14-browser-profile-metadata-ef18.json:generic-api-key:134
+00688bcf09cfb4aefb6ab55ae5df9f25ff5a68a4:docs/evidence/2026-11-14-browser-profile-metadata-ef18.json:generic-api-key:135
+00688bcf09cfb4aefb6ab55ae5df9f25ff5a68a4:docs/evidence/2026-11-14-browser-profile-metadata-ef18.json:generic-api-key:137
+00688bcf09cfb4aefb6ab55ae5df9f25ff5a68a4:docs/evidence/2026-11-14-browser-profile-metadata-ef18.json:generic-api-key:140
+00688bcf09cfb4aefb6ab55ae5df9f25ff5a68a4:docs/evidence/2026-11-14-browser-profile-metadata-ef18.json:generic-api-key:141

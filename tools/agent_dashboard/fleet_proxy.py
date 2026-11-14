@@ -6,14 +6,16 @@ from fastapi import HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
 
 ASSETS = {"", "index.html", "app.js", "turbo-ui.js", "sustain-ui.js", "master-ui.js",
-          "restore-ui.js", "quota-ui.js", "find-work-ui.js", "style.css", "turbo.css",
+          "restore-ui.js", "quota-ui.js", "find-work-ui.js", "run-ui.js", "style.css", "turbo.css",
           "master.css", "restore.css", "quota.css", "find-work.css", "startup-ui.js", "startup.css"}
 READS = {"api/health", "api/state", "api/environment", "api/quota", "api/master",
+         "api/run",
          "api/preflight", "api/providers", "api/gemini-usage", "api/agent-plan",
          "api/turbo", "api/turbo/preview", "api/turbo/all-hands/preview",
          "api/sustain", "api/sustain/preview", "api/find-work/preview",
          "api/find-work/status", "api/master/restore/preview", "api/startup"}
 WRITES = {"api/nudge", "api/replace", "api/retire", "api/agent-plan",
+          "api/run/start",
           "api/agent-plan/apply", "api/find-work", "api/find-work/all",
           "api/quota/config", "api/quota/arm", "api/quota/disarm",
           "api/master/pause", "api/master/drain", "api/master/cancel-drain",
@@ -52,7 +54,7 @@ def install_fleet_proxy(app, relay=None):
             if client is None:
                 raise httpx.ConnectError("Fleet proxy lifespan is not active")
             return await client.request(
-                method, "http://127.0.0.1:8787/" + tail,
+                method, "http://127.0.0.1:4320/fleet/" + tail,
                 content=body, headers=headers,
             )
 
@@ -87,10 +89,10 @@ def install_fleet_proxy(app, relay=None):
             body.extend(chunk)
             if len(body) > 65536:
                 raise HTTPException(413, "Control request too large")
-        headers = {"Host": "127.0.0.1:8787", "Content-Type": "application/json"}
+        headers = {"Host": "127.0.0.1:4320", "Content-Type": "application/json"}
         if request.method == "POST":
             headers["X-AO-Fleet"] = "1"
-            headers["Origin"] = "http://127.0.0.1:8787"
+            headers["Origin"] = "http://127.0.0.1:4320"
         try:
             upstream = await relay(request.method, tail, bytes(body), headers)
         except (httpx.HTTPError, OSError):

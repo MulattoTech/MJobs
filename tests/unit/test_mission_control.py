@@ -94,6 +94,13 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(progress["original"]["partial"], 1)
         self.assertEqual(progress["original"]["not_run"], 1)
         self.assertEqual(progress["original"]["accepted_percent"], 33.3)
+        self.assertEqual(
+            [area["name"] for area in progress["areas"]],
+            [area["name"] for area in sorted(progress["areas"],
+                                           key=lambda row: (-row["accepted_percent"], row["name"]))],
+        )
+        self.assertEqual([row["name"] for row in progress["priorities"]],
+                         sorted(row["name"] for row in progress["priorities"]))
         self.assertEqual(progress["reference"]["pass"], 1)
         self.assertEqual(progress["reference"]["accepted_percent"], 50.0)
         self.assertEqual(progress["release_readiness"], "UNKNOWN")
