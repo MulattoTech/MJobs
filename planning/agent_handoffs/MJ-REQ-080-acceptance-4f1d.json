@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-080-acceptance-4f1d",
+  "objective": "Verify every literal company-discovery SSRF boundary through real production consumers and durable blocked-operation readback",
+  "owner": "ChatGPT-Web / web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-080-company-security",
+  "head_sha": "75277e08dfa919e27406b2ac7a27e0947ab5a3e8",
+  "routing_state": "VERIFY",
+  "next_action": "Read the live owned PR and exact-head required checks; the designated integration owner reviews applicability, protected integration and any canonical PARTIAL-to-PASS transition. Explicit publication authorization already exists.",
+  "created_at": "2026-11-09T18:01:52.449722+00:00",
+  "requirements": [
+    "MJ-REQ-080"
+  ],
+  "tests": [
+    {
+      "command": "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python -m pytest -q tests/integration/test_company_discovery_security_acceptance_080.py tests/unit/test_company_fetch_policy.py tests/unit/test_public_company_client.py tests/integration/test_public_company_discovery.py tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_real_native_numeric_lookup_and_parent_private_rejection tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_all_answers_are_validated_before_any_connection tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_blocks_private_or_off_origin_fetch_targets tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_rejects_cross_origin_redirect_result tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_tls12_trusted_hostname_succeeds tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_untrusted_certificate_rejected_before_http tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_wrong_hostname_rejected_before_http tests/unit/test_greenhouse_enrollment.py tests/unit/test_lever_source.py tests/integration/test_greenhouse.py::GreenhouseTests::test_tenant_redirect_and_large_payload_are_rejected --tb=short --junitxml=/workspace/scratch/1d691ba9cdbd/company-security-080-independent.xml",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "New published-head hosted gates; live external provider network and production deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Canonical acceptance remains owned by the single integration steward; this is a full literal PASS proposal, not an applied promotion."
+  ],
+  "evidence": "docs/evidence/2026-11-09-web-4f1d-company-discovery-security.json",
+  "source_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "independently_tested_revision": "75277e08dfa919e27406b2ac7a27e0947ab5a3e8",
+  "acceptance_proposal": "FULL_LITERAL_PASS",
+  "canonical_result": "PARTIAL",
+  "publication_record": "Authoring snapshot; use the live owned PR for delivery status. Explicit current-session publication authorization is already recorded."
+}
