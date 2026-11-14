@@ -6,6 +6,52 @@ export type ResumeWorkspaceContext = { profileId: string; jobId: string; profile
 export type ResumeWorkspaceSectionSource = { sectionId: string; label: string; factIds: string[]; visible?: boolean; items: { factId: string; text: string }[] };
 type Preview = Awaited<ReturnType<ResumeWorkspaceClient['preview']>>;
 type Snapshot = { context: ResumeWorkspaceContext; sections: ResumeWorkspaceSectionSource[]; templateId: string; preview: Preview | null; reviewed: boolean; canSave: boolean; savedVersion: number | null; versions: ResumeWorkspaceRevision[]; error: string | null; loading: boolean };
+type KeywordCoverageRow = { key: string; term: string; factIds: string[] };
+
+function keywordCoverage(preview: Preview) {
+  const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+  const nonblank = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+  const alignment = record(preview.keyword_alignment);
+  const matches = record(alignment?.matches);
+  const unmatched = record(alignment?.unmatched);
+  const selection = alignment?.selected_fact_ids;
+  const selectedIds = Array.isArray(selection) && selection.every(nonblank) ? selection : null;
+  const facts = record(preview.source_refs)?.facts;
+  const sourceIds = Array.isArray(facts) ? facts.map(fact => record(fact)?.fact_id) : null;
+  const validSourceIds = sourceIds?.every(nonblank) ? sourceIds : null;
+  const selected = new Set(selectedIds ?? []);
+  const sourced = new Set(validSourceIds ?? []);
+  const evidenceAvailable = alignment?.analysis_only === true && selectedIds !== null && validSourceIds !== null;
+  let incomplete = !evidenceAvailable || !matches || !unmatched;
+  const rows: KeywordCoverageRow[] = [];
+
+  for (const group of ['skills', 'responsibilities']) {
+    const matchRows = matches?.[group];
+    const unknownTerms = unmatched?.[group];
+    const groupAvailable = Array.isArray(matchRows) && Array.isArray(unknownTerms) && unknownTerms.every(nonblank);
+    if (!groupAvailable) incomplete = true;
+    const terms = new Map<string, KeywordCoverageRow>();
+    for (const value of Array.isArray(matchRows) ? matchRows : []) {
+      const row = record(value);
+      const term = row?.term;
+      if (!nonblank(term)) { incomplete = true; continue; }
+      const references = row?.fact_ids;
+      const validReferences = Array.isArray(references) && references.every(nonblank) && references.every(id => selected.has(id) && sourced.has(id));
+      if (!validReferences) incomplete = true;
+      let factIds = evidenceAvailable && groupAvailable && validReferences ? references : [];
+      if (terms.has(term)) { incomplete = true; factIds = []; }
+      terms.set(term, { key: `${group}:${term}`, term, factIds });
+    }
+    for (const term of Array.isArray(unknownTerms) ? unknownTerms : []) {
+      if (!nonblank(term)) { incomplete = true; continue; }
+      if (terms.get(term)?.factIds.length) incomplete = true;
+      // The API supplies unknown terms as strings; explicit unknown evidence wins.
+      terms.set(term, { key: `${group}:${term}`, term, factIds: [] });
+    }
+    rows.push(...terms.values());
+  }
+  return { rows, incomplete };
+}
 
 export function createResumeWorkspaceController(options: ResumeWorkspaceContext & { sections: ResumeWorkspaceSectionSource[]; client: ResumeWorkspaceClient }) {
   let generation = 0;
@@ -31,13 +77,14 @@ export function createResumeWorkspaceController(options: ResumeWorkspaceContext 
 
 export function ResumeWorkspace({ controller }: { controller: ReturnType<typeof createResumeWorkspaceController> }) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
+  const coverage = state.preview ? keywordCoverage(state.preview) : null;
   return <section className="panel" aria-label="Resume workspace"><h2>Resume workspace</h2><p>Arrange only your current approved facts for this job. Keyword coverage is analysis only and never adds content.</p>
     {state.error && <div role="alert"><p>{state.error}</p><button type="button" onClick={() => void controller.load()}>Reload workspace</button></div>}
     {state.loading && <p role="status">Working…</p>}
     <label>Resume template<select aria-label="Resume template" value={state.templateId} onChange={event => controller.setTemplate(event.target.value)}><option value="verified-headings-v1">Classic · single column</option><option value="approved-skill-and-bullet-emphasis-v2">Skills forward · ATS safe</option><option value="approved-selection-and-bullet-emphasis-v2">Approved facts · ATS safe</option></select></label>
     <ol>{state.sections.map((row, index) => <li key={row.sectionId}><label><input type="checkbox" checked={row.visible ?? true} disabled={!row.visible && state.sections.filter(item => item.visible !== false).length === 1} onChange={event => controller.toggleSection(row.sectionId, event.target.checked)} /> {row.label}</label>{' '}<button type="button" aria-label={`Move ${row.label} up`} disabled={index === 0} onClick={() => controller.moveSection(row.sectionId, -1)}>Move up</button>{' '}<button type="button" aria-label={`Move ${row.label} down`} disabled={index === state.sections.length - 1} onClick={() => controller.moveSection(row.sectionId, 1)}>Move down</button></li>)}</ol>
     <button type="button" disabled={state.loading || !state.context.profileId || !state.context.jobId} onClick={() => void controller.preview()}>Preview this resume</button>
-    {state.preview && <><h3>Preview</h3><pre>{state.preview.rendered_text}</pre><section aria-label="Keyword coverage analysis"><h4>Keyword coverage analysis</h4><p>Analysis only; no keywords are inserted automatically.</p>{Object.values(state.preview.keyword_alignment.matches).flat().map((row: any) => <p key={row.term}><strong>{row.term}: SUPPORTED</strong> · approved fact {row.fact_ids.join(', ')}</p>)}{Object.values(state.preview.keyword_alignment.unmatched).flat().map((row: any) => <p key={row.term}>{row.term}: UNKNOWN</p>)}</section><label><input type="checkbox" aria-label="I reviewed this resume workspace preview" checked={state.reviewed} onChange={event => controller.setReviewed(event.target.checked)} /> I reviewed this resume workspace preview</label></>}
+    {state.preview && coverage && <><h3>Preview</h3><pre>{state.preview.rendered_text}</pre><section aria-label="Keyword coverage analysis"><h4>Keyword coverage analysis</h4><p>Analysis only; no keywords are inserted automatically.</p>{coverage.incomplete && <p role="status">Some keyword coverage could not be verified.</p>}{coverage.rows.map(row => <p key={row.key}>{row.factIds.length ? <><strong>{row.term}: SUPPORTED</strong> · approved fact {row.factIds.join(', ')}</> : <>{row.term}: UNKNOWN</>}</p>)}</section><label><input type="checkbox" aria-label="I reviewed this resume workspace preview" checked={state.reviewed} onChange={event => controller.setReviewed(event.target.checked)} /> I reviewed this resume workspace preview</label></>}
     <button type="button" disabled={!state.canSave} onClick={() => void controller.save()}>Save reviewed version</button>
     <h3>Saved versions</h3><ol>{state.versions.map((version, index) => { const previous = state.versions[index - 1]; const before = previous?.rendered_text?.split('\n') ?? []; const after = version.rendered_text?.split('\n') ?? []; const removed = before.filter(line => !after.includes(line)); const added = after.filter(line => !before.includes(line)); return <li key={version.id}>Version {version.version} · {version.template_id} · <a href={`/profiles/${encodeURIComponent(state.context.profileId)}/jobs/${encodeURIComponent(state.context.jobId)}/resume-workspace/versions/${version.version}/docx`} download={`resume-workspace-v${version.version}.docx`}>Download DOCX</a>{' · '}<a href={`/profiles/${encodeURIComponent(state.context.profileId)}/jobs/${encodeURIComponent(state.context.jobId)}/resume-workspace/versions/${version.version}/pdf`} download={`resume-workspace-v${version.version}.pdf`}>Download PDF</a>{' · '}<a href={`/profiles/${encodeURIComponent(state.context.profileId)}/jobs/${encodeURIComponent(state.context.jobId)}/resume-workspace/versions/${version.version}/txt`} download={`resume-workspace-v${version.version}.txt`}>Download TXT</a>{previous&&<details><summary>Compare with version {previous.version}</summary><pre>{[...removed.map(line => `− ${line}`), ...added.map(line => `+ ${line}`)].join('\n') || 'No text changes; the layout or template metadata changed.'}</pre></details>}</li>; })}</ol>
   </section>;
