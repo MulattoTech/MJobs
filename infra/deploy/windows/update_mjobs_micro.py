@@ -11,7 +11,7 @@ if os.name == 'nt':
     import msvcrt
 else:
     msvcrt = None
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import shutil
 import stat
@@ -310,6 +310,87 @@ def require_plain_path(path):
                 & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)):
             raise RuntimeError('Redirected deployment path; requires reconciliation')
 
+
+HOME_CONFIGURATION_ERROR = 'MJOBS_MICRO_HOME_INVALID'
+
+
+def _explicit_home_path(value):
+    """Parse one literal drive-rooted Windows path, without expanding anything."""
+    if (not isinstance(value, str) or not 3 < len(value) <= 32767
+            or value != value.strip()
+            or not re.match(r'^[A-Za-z]:[\\/]', value)
+            or any(ord(character) < 32 or ord(character) == 127 for character in value)
+            or any(character in value[2:] for character in '<>:"|?*%$')):
+        raise RuntimeError(HOME_CONFIGURATION_ERROR)
+    components = value[3:].replace('\\', '/').split('/')
+    if components[-1] == '':
+        components.pop()
+    if (not components or any(not component or component in ('.', '..')
+                             or component.endswith((' ', '.'))
+                             or PureWindowsPath(component).is_reserved()
+                             for component in components)):
+        raise RuntimeError(HOME_CONFIGURATION_ERROR)
+    return PureWindowsPath(value)
+
+
+def _require_local_drive(anchor):
+    """Reject network, removable and unknown roots; never resolve a UNC."""
+    import ctypes
+
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    drive_type = kernel.GetDriveTypeW
+    drive_type.argtypes = [ctypes.c_wchar_p]
+    drive_type.restype = ctypes.c_uint
+    if drive_type(anchor) != 3:  # DRIVE_FIXED
+        raise RuntimeError(HOME_CONFIGURATION_ERROR)
+
+
+def _require_home_layout(home):
+    """Check plain paths and entry types only; this is NOT an NTFS privacy proof."""
+    entries = (
+        (home, True, True), (home / 'config', True, True),
+        (home / 'releases', True, False), (home / 'backups', True, False),
+        *((home / name, False, False) for name in (
+            'state.json', 'state.new.json', 'update.lock', 'update.log',
+            'update.old.log', 'update.py')),
+        (home / 'config' / '.env', False, False),
+        (home / 'config' / 'compose.micro.yml', False, False),
+    )
+    for path, directory, required in entries:
+        require_plain_path(path)
+        try:
+            info = path.stat()
+        except FileNotFoundError:
+            if required:
+                raise RuntimeError(HOME_CONFIGURATION_ERROR) from None
+            continue
+        expected_type = stat.S_ISDIR if directory else stat.S_ISREG
+        if not expected_type(info.st_mode):
+            raise RuntimeError(HOME_CONFIGURATION_ERROR)
+
+
+def configure_deployment_home(environment=os.environ):
+    """Apply an explicit, already bootstrapped app root before updater effects.
+
+    Absence leaves legacy globals untouched, including callers' injected paths.
+    This function neither creates a root nor migrates, copies or qualifies it.
+    The captured environment mapping also keeps the legacy main() test seam.
+    """
+    global HOME, BASE, STATE, LOG
+
+    if 'MJOBS_MICRO_HOME' not in environment:
+        return False
+    try:
+        windows_path = _explicit_home_path(environment['MJOBS_MICRO_HOME'])
+        _require_local_drive(windows_path.anchor)
+        home = Path(str(windows_path))
+        _require_home_layout(home)
+    except Exception:
+        raise RuntimeError(HOME_CONFIGURATION_ERROR) from None
+    HOME, BASE = home, home / 'config'
+    STATE, LOG = home / 'state.json', home / 'update.log'
+    return True
+
 def candidate_git_environment():
     """Use identical checkout and verification rules regardless of host Git settings."""
     env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
@@ -426,7 +507,15 @@ def atomic_state(data):
         os.fsync(stream.fileno())
     os.replace(temp, STATE)
 
-def run_update():
+def run_update(*, explicit_home=False):
+    if explicit_home:
+        try:
+            if (BASE != HOME / 'config' or STATE != HOME / 'state.json'
+                    or LOG != HOME / 'update.log'):
+                raise RuntimeError(HOME_CONFIGURATION_ERROR)
+            _require_home_layout(HOME)
+        except Exception:
+            raise RuntimeError(HOME_CONFIGURATION_ERROR) from None
     if not (STATE.is_file() and BASE.is_dir() and OPS_PYTHON.is_file()):
         raise RuntimeError('MJobs micro baseline or backup runtime missing')
     previous = json.loads(STATE.read_text(encoding='utf-8'))
@@ -437,6 +526,13 @@ def run_update():
             or old_image != 'mjobs-micro:sha-' + old_sha
             or not old_source.is_dir()):
         raise RuntimeError('Invalid protected deployment state')
+    if explicit_home:
+        # A relocated baseline must be the exact old release inside this root.
+        # Verify its existing Git/source contract before GitHub, migration reads,
+        # Docker, backup, or trusting a no-op main == old_sha result.
+        if previous.get('source') != str(HOME / 'releases' / old_sha):
+            raise RuntimeError('Invalid relocated deployment source')
+        verify_candidate(old_source, old_sha)
     sha = main_sha()
     if sha == old_sha:
         return
@@ -497,31 +593,46 @@ def run_update():
     log(f'SUCCESS: deployed validated main SHA {sha}')
 
 def main():
-    if os.name != 'nt':
-        return 2
-    HOME.mkdir(parents=True, exist_ok=True)
-    lock = HOME / 'update.lock'
+    global HOME, BASE, STATE, LOG
+
+    previous_paths = HOME, BASE, STATE, LOG
     try:
-        with lock.open('a+b') as fp:
-            fp.seek(0, os.SEEK_END)
-            if fp.tell() == 0:
-                fp.write(b'0')
-                fp.flush()
-            fp.seek(0)
-            try:
-                msvcrt.locking(fp.fileno(), msvcrt.LK_NBLCK, 1)
-            except OSError:
-                return 0
-            try:
-                run_update()
-                return 0
-            finally:
+        try:
+            explicit_home = configure_deployment_home()
+        except RuntimeError:
+            # Invalid explicit input must never create or log to a legacy path.
+            if sys.stderr is not None:
+                sys.stderr.write('BLOCKED: ' + HOME_CONFIGURATION_ERROR + '\n')
+            return 1
+        if os.name != 'nt':
+            return 2
+        if not explicit_home:
+            HOME.mkdir(parents=True, exist_ok=True)
+        lock = HOME / 'update.lock'
+        try:
+            with lock.open('a+b') as fp:
+                fp.seek(0, os.SEEK_END)
+                if fp.tell() == 0:
+                    fp.write(b'0')
+                    fp.flush()
                 fp.seek(0)
-                msvcrt.locking(fp.fileno(), msvcrt.LK_UNLCK, 1)
-    except Exception as error:
-        log('BLOCKED: ' + (str(error) if isinstance(error, RuntimeError)
-                           else type(error).__name__))
-        return 1
+                try:
+                    msvcrt.locking(fp.fileno(), msvcrt.LK_NBLCK, 1)
+                except OSError:
+                    return 0
+                try:
+                    run_update(explicit_home=explicit_home)
+                    return 0
+                finally:
+                    fp.seek(0)
+                    msvcrt.locking(fp.fileno(), msvcrt.LK_UNLCK, 1)
+        except Exception as error:
+            log('BLOCKED: ' + (str(error) if isinstance(error, RuntimeError)
+                               else type(error).__name__))
+            return 1
+    finally:
+        # A later invocation without an override must not inherit this selection.
+        HOME, BASE, STATE, LOG = previous_paths
 
 if __name__ == '__main__':
     sys.exit(main())
