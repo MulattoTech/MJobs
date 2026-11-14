@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "draft_only": false,
+  "status": "LOCAL_SLICE_VERIFIED_AWAITING_PUBLICATION",
+  "evidence_captured_at_utc": "2026-11-14T14:42:59.321Z",
+  "requirement": "MJ-REQ-236",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/237",
+  "work_id": "MJ-REQ-236-search-history-source-label-ef18",
+  "branch": "web/ef1809b6/search-history-source-label",
+  "summary": "The source-specific client bound now accepts up to 256 Unicode code points while preserving the existing blank/control checks and exact returned text. Corrected-source baseline03, fixed-web02 and browser02 are independently qualified; one later source commit exactly matches their fixed tree.",
+  "source_head": "2154ad00d631f5b8d370aab90569110a2c264586",
+  "source_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+  "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+  "source_file_bytes": {
+    "apps/web/src/search-history-client.test.ts": {
+      "sha256": "f817c3648e56a2b284ac2296f8d377cc95d7d9a5e293a86dd820d135e2168945",
+      "bytes": 7824,
+      "git_blob": "789e5af89cb8f8a9d60aeb22f3b9d405b729eb3a"
+    },
+    "apps/web/src/search-history-client.ts": {
+      "sha256": "f704996b60eb5ce6c6d62f5797eaff5df5bff8027b456ddcb9f07dd982eb792d",
+      "bytes": 8448,
+      "git_blob": "38292329df70bca81e0ee9c213c4df8d4e5ed869"
+    },
+    "tests/browser/test_search_history_connected.py": {
+      "sha256": "97da3b81641a4c7af3d45858b6d54a2a4ebccb8044f62ea93c4c22b97b3b1c81",
+      "bytes": 35747,
+      "git_blob": "776e475e50d2916994a6f2ab9418fa0ccfe79333"
+    }
+  },
+  "source_commit_receipt": {
+    "path": "mj236-source-commit-01.json",
+    "bytes": 15847,
+    "sha256": "b2929caafed997dcd6908477483ac51b2a2824ec230106800564e52a63feaba1"
+  },
+  "source_commit_review": {
+    "path": "mj236-source-commit-independent-review-01.json",
+    "bytes": 8513,
+    "sha256": "fc8927e81f9a406cc795499e9469d10072d57973f600d262222236762332b12b"
+  },
+  "runtime_source_bindings": {
+    "fixed_web": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "candidate_commit": null,
+      "receipt": {
+        "path": "mj236-fixed-web-02/receipt.json",
+        "bytes": 42905,
+        "sha256": "89de413d9dc48731dbfedb2cfb62fa247658646f6a7f1f049c8283c116381c0d"
+      },
+      "review": {
+        "path": "mj236-fixed-web-runtime-review-02.json",
+        "bytes": 16058,
+        "sha256": "f6edfb8d937ea9447f5e22064300f385ed2cdd3a492150863b0fb9c572995cb2"
+      }
+    },
+    "fixed_browser": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "candidate_commit": null,
+      "receipt": {
+        "path": "mj236-fixed-browser-02/receipt.json",
+        "bytes": 168541,
+        "sha256": "2b1d200725d2441e358131022ad06e37b464c3e01d747d04e5336c4281070138"
+      },
+      "review": {
+        "path": "mj236-fixed-browser-runtime-review-02.json",
+        "bytes": 16466,
+        "sha256": "2ea16ba0eb2fc2be9108e0b41edf3dbff5e1b0ce5f778631b938a85f49173f86"
+      }
+    }
+  },
+  "source_equivalence": {
+    "source_commit_attempts": 1,
+    "parent_sha": "0a84cb7173b42e86b410ccf3056d68b39513b15a",
+    "snapshot_created_before_commit": true,
+    "snapshot_tree_equals_committed_tree": true,
+    "three_source_blobs_equal": {
+      "apps/web/src/search-history-client.test.ts": "789e5af89cb8f8a9d60aeb22f3b9d405b729eb3a",
+      "apps/web/src/search-history-client.ts": "38292329df70bca81e0ee9c213c4df8d4e5ed869",
+      "tests/browser/test_search_history_connected.py": "776e475e50d2916994a6f2ab9418fa0ccfe79333"
+    },
+    "git_status_clean_at_source_commit": true,
+    "provenance_exit_code": 0,
+    "runtime_candidate_commit_remains_null": true
+  },
+  "publication_scope": {
+    "planned_new_pull_requests": 1,
+    "source_paths": [
+      "apps/web/src/search-history-client.ts",
+      "apps/web/src/search-history-client.test.ts",
+      "tests/browser/test_search_history_connected.py"
+    ],
+    "metadata_paths": [
+      "docs/evidence/2026-11-14-search-history-source-label-ef18.json",
+      "planning/agent_handoffs/MJ-REQ-236-ef18-search-history-source-label.json"
+    ],
+    "publication_authorization": "Requires the separately reviewed final candidate, current target/inventory admission and ordinary one-shot publication flow."
+  },
+  "baseline_evidence": {
+    "attempt_id": "55b4d9c7e444481dba74182410556add",
+    "child": {
+      "path": "mj236-baseline-unit-03/child-outcome.json",
+      "bytes": 20179,
+      "sha256": "a125e12f7838ca659a61345572d93165901d4e3fc9dfaf977efbb9b447f5b7d6"
+    },
+    "independent_review": {
+      "path": "mj236-baseline-runtime-review-03.json",
+      "bytes": 13022,
+      "sha256": "7e6e4306aa2c9f5d9133f9b64159cf63db68011d3d4d1a025351c64d6b555c9e"
+    },
+    "parent": {
+      "path": "mj236-baseline-unit-03/receipt.json",
+      "bytes": 38270,
+      "sha256": "bb8834bce423b29bc82eae063ba7407192d099574fcbe1494f3fc4cae325f9ac"
+    },
+    "parent_status": "BASELINE_ONE_BEHAVIORAL_FAILURE",
+    "qualification": "PASS_INDEPENDENT_MJ236_BASELINE_RUNTIME_REVIEW"
+  },
+  "observed_validation": {
+    "baseline": {
+      "status": "BASELINE_ONE_BEHAVIORAL_FAILURE",
+      "counts": {
+        "primary": 12,
+        "selected": 1,
+        "passed": 0,
+        "failed": 1,
+        "filtered": 11
+      },
+      "cause_name": "SearchHistoryClientError",
+      "cause_kind": "INVALID_RESPONSE",
+      "global_unhandled_error_count": 0,
+      "source_postcheck": "PASS",
+      "job": {
+        "total": 5,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true
+    },
+    "fixed_web": {
+      "status": "FIXED_WEB_PASS_WITH_DIST",
+      "counts": {
+        "primary": 12,
+        "selected": 12,
+        "passed": 12,
+        "failed": 0,
+        "filtered": 0
+      },
+      "stages": {
+        "vitest": 0,
+        "typecheck": 0,
+        "build": 0
+      },
+      "source_postcheck": "PASS",
+      "job": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true
+    },
+    "fixed_browser": {
+      "status": "FIXED_ONE_BROWSER_CASE_PASS",
+      "primary": 1,
+      "phases": [
+        "initial_readback",
+        "reload",
+        "profile_isolation"
+      ],
+      "source_lengths": {
+        "ascii_201": {
+          "code_points": 201,
+          "utf16_units": 201
+        },
+        "ascii_256": {
+          "code_points": 256,
+          "utf16_units": 256
+        },
+        "mixed_256": {
+          "code_points": 256,
+          "utf16_units": 384
+        }
+      },
+      "fixture_history_records": 4,
+      "same_origin_get_requests": 93,
+      "mutations": 0,
+      "four_database_tables_unchanged": true,
+      "source_postcheck": "PASS",
+      "job": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true
+    }
+  },
+  "preserved_failed_attempts": [
+    {
+      "attempt": "fixed-browser-01",
+      "qualified": false,
+      "source_tree": "a444df05a2c2e38a45aa75e390e9da30ab1f7415",
+      "source_manifest_sha256": "a6866f6a0a0bf0346ee2df4d160753a3dc79ed8001a94965ca33f27808a9089a",
+      "candidate_commit": null,
+      "cause": "The new fixture referenced models.application_attempts, but the exported table object is models.attempts. AttributeError occurred before Playwright/browser startup.",
+      "normal_source_postcheck_completed": false,
+      "post_exit_job_accounting": {
+        "total": 3,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true,
+      "runtime_receipt": {
+        "path": "mj236-fixed-browser-01/receipt.json",
+        "bytes": 77299,
+        "sha256": "c3f9583e05e595f02efc0269727d4bec2009a2591c095db1aead4cdc8ac15763"
+      },
+      "independent_review": {
+        "path": "mj236-fixed-browser-failure-review-01.json",
+        "bytes": 11168,
+        "sha256": "462ea7ce0350da8d284e9fc25af137f3e9531c4a2dcd2393320ce04025ee5ca9"
+      }
+    },
+    {
+      "attempt": "baseline-unit-02",
+      "qualified": false,
+      "source_tree": "d2a21f634bcdda354784f52e7375c50a2688a33d",
+      "source_manifest_sha256": "7d66cadebef8254a5e8847cea8df3cffe47b3bddf77f7eaf57003409208dbce4",
+      "candidate_commit": null,
+      "cause": "The copied reporter still targeted baseline-unit-01/vitest-run-end.json. Its exclusive wx write raised EEXIST; the required baseline-unit-02 run-end file was absent, causing downstream FileNotFoundError.",
+      "normal_source_postcheck_completed": false,
+      "post_exit_job_accounting": {
+        "total": 5,
+        "active": 0,
+        "terminated": 0
+      },
+      "compute_released": true,
+      "runtime_receipt": {
+        "path": "mj236-baseline-unit-02/receipt.json",
+        "bytes": 14573,
+        "sha256": "5d999a458fcc99bd1bee2897bcf6b558da293123f75049c7aa2f9583d7f7922a"
+      },
+      "independent_review": {
+        "path": "mj236-baseline-failure-review-02.json",
+        "bytes": 10318,
+        "sha256": "59cd4ea14c415f4e8dcc9819670865f8b165c2620fa47c5a892d2a130194540b"
+      }
+    }
+  ],
+  "history_note": "Browser01's fixture AttributeError and baseline02's reporter EEXIST remain unqualified. Earlier baseline01/web01 remain tied to their older capsules. The restored baseline and corrected production transition are recorded in the evidence document; no old proof was retargeted.",
+  "requirement_scope": {
+    "literal_requirement": "Store: source, query, profile, filters, start, finish, results, new jobs, duplicates, errors.",
+    "verified_slice": "Preserve durable search-history source labels within the existing 256-code-point storage length limit in client parsing and connected browser readback.",
+    "original_requirement_status": "PARTIAL",
+    "canonical_status_after_this_slice": "PARTIAL",
+    "canonical_acceptance_data": "UNCHANGED",
+    "full_original_requirement_result": "NOT_ASSERTED",
+    "scope_boundary": "Only source length and Unicode code-point compatibility changes. Existing JavaScript nonempty and C0/DEL rejection remain. Python strip and JavaScript trim differ, and persistence permits DEL; universal whitespace/control admission agreement is not claimed."
+  },
+  "warnings": [
+    {
+      "kind": "NONFATAL_VITE_CHUNK_SIZE",
+      "text": "Some chunks are larger than 500 kB after minification.",
+      "build_exit_code": 0,
+      "warning_limit_changed": false,
+      "raw_log": {
+        "path": "mj236-fixed-web-02/build.log",
+        "bytes": 718,
+        "sha256": "f267d9ca776c3d7ce1ffddd316e11b9742857b18996d8472e06f1505edd45c03"
+      }
+    },
+    {
+      "kind": "NONFATAL_PYTEST_RECORD_PROPERTY_XUNIT2",
+      "text": "record_property is incompatible with junit_family 'xunit2'",
+      "pytest_exit_code": 0,
+      "actual_junit_properties_present_and_verified": true,
+      "raw_log": {
+        "path": "mj236-fixed-browser-02/pytest.log",
+        "bytes": 607,
+        "sha256": "660bb049183a4c1815fbc06ba1f3e1517f1581664de4ffff16e4daba3007e3e7"
+      }
+    }
+  ],
+  "runtime_limit": {
+    "local_node": "v27.0.0-alpha.0.0.0",
+    "ci_node_major": "24",
+    "same_as_ci_runtime": false,
+    "hosted_checks": "NOT_RUN",
+    "interpretation": "The local unit/build results used the sealed Node 27 alpha environment. The browser consumed that compiled SPA. Hosted Node 24 checks and any protected-main integration remain separate."
+  },
+  "evidence_document": {
+    "repository_path": "docs/evidence/2026-11-14-search-history-source-label-ef18.json"
+  },
+  "next_action": "Independently review and apply these exact two metadata files, create the separate metadata commit with unchanged source blobs, then use the ordinary reviewed current-target publication flow. Keep formal MJ236 acceptance PARTIAL.",
+  "acceptance_delta": 0,
+  "canonical_promotion": false,
+  "provider_or_apply_mock_proof": false,
+  "artifact_path_basis": "Artifact paths are relative to the retained run evidence root; repository paths are explicitly labeled.",
+  "metadata_commit": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "head_sha": null,
+    "tree_sha": null,
+    "receipt": null,
+    "identity_binding": "The containing Git/PR head binds these metadata bytes externally."
+  },
+  "publication": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "head_sha": null,
+    "tree_sha": null,
+    "pr_number": null,
+    "pr_url": null,
+    "hosted_checks": {
+      "status": "NOT_RUN",
+      "head_sha": null,
+      "runs": null,
+      "conclusions": null
+    },
+    "merged": false,
+    "deployed": false
+  },
+  "execution_context_reference": {
+    "repository_path": "docs/evidence/2026-11-14-search-history-source-label-ef18.json",
+    "json_pointer": "/execution_context",
+    "description": "Recorded Windows/Python/Node/npm identity, sanitized command representations and observed phase timing/exit data with exact raw-artifact field references."
+  }
+}
