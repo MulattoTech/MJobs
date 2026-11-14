@@ -527,6 +527,7 @@ def _observe_domain_proofs(read, evidence, source):
 
 def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
         containment_preflight, request=None, execution_scope='LIVE_PUBLIC_READ_ONLY',
+        employer_verification=False,
         timeout_seconds=90, child_timeout_seconds=90, poll_interval=.25, monotonic=time.monotonic, sleep=time.sleep,
         utc_now=lambda: datetime.now(timezone.utc)):
     """Return and save a truthful receipt; never retry a collection or submit forms.
@@ -554,6 +555,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             or url.username is not None or url.password is not None or url.query or url.fragment
             or url.path not in ('', '/') or provider not in ENDPOINTS
             or execution_scope not in {'LIVE_PUBLIC_READ_ONLY', 'CONTROLLED_TRANSPORT'}
+            or type(employer_verification) is not bool
             or not callable(containment_preflight) or not 2 <= timeout_seconds <= 120
             or type(child_timeout_seconds) not in (int, float) or not 2 <= child_timeout_seconds <= 120
             or not .05 <= poll_interval <= 2):
@@ -666,6 +668,18 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 selected_application_route_id=initial_selection['route_id'],
                 selected_state_sha256=initial_selection['sha256'])
             contained('preflight')
+            if employer_verification:
+                from cli.ui_e2e import validate_employer_verification_witness
+                from cli.acceptance_public_employer import begin as begin_employer
+                profile = read('GET', '/profiles/' + quote(baseline['profile_id'], safe=''))
+                validate_employer_verification_witness(baseline, True, current_profile=profile)
+                _require(baseline['target_origin'] == base_url.rstrip('/'), 'EMPLOYER_UI_ORIGIN_CHANGED')
+                _require(baseline['acceptance_run_id'] == acceptance_run_id
+                    and _timestamp(baseline['timestamp']) <= _timestamp(evidence['timestamp']),
+                    'EMPLOYER_UI_RUN_CHANGED')
+                employer_initial = begin_employer(read, baseline['profile_id'], initial_selection['profile_version'], utc_now=utc_now)
+                evidence['employer_verification_requested'] = True
+                evidence['employer_observation'] = {'status': 'NOT_RUN', 'reason': 'CHILDREN_NOT_SETTLED'}
             source = _source(read, provider)
             if source is None:
                 _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
@@ -731,6 +745,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             _require(operation.get('attempt_count') == 1 and operation.get('retry_count', 0) == 0,
                      'PUBLIC_COLLECTION_RETRIED')
             evidence['collection_operation_attempt'] = operation['attempt_count']
+            evidence['collection_started_at'] = operation['started_at']
             source = _source(read, provider)
             _require(source is not None and source['id'] == evidence['source_id']
                 and source.get('last_success') == source.get('last_attempt'), 'SOURCE_RECEIPT_CHANGED')
@@ -743,6 +758,10 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             _observe_children(read, evidence, initial_selection, source, timeout_seconds=child_timeout_seconds,
                               poll_interval=poll_interval, monotonic=monotonic, sleep=sleep)
             _observe_domain_proofs(read, evidence, source)
+            if employer_verification and (evidence['domain_proof_readback']['status'] == 'CAPTURED'
+                    or not evidence['child_discovery']['children']):
+                from cli.acceptance_public_employer import capture as capture_employer
+                evidence['employer_observation'] = capture_employer(read, evidence, source, employer_initial)
             _require(read('GET', '/health').get('external_submission_enabled') is False,
                      'EXTERNAL_SUBMISSION_SETTING_CHANGED')
             contained('finalize')

@@ -236,6 +236,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
     external_requests = []
     blocked_writes = []
     page_errors = []
+    employer_observation = None
     with httpx.Client(base_url=origin, timeout=10, trust_env=False,
                       follow_redirects=False) as api:
         before = _state_snapshot(api, profile_id, application_id)
@@ -404,6 +405,21 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                         "claim_scope": "SOURCE_REPORTED_LOCATION_ONLY; NOT_WORK_AUTHORIZATION"}
                         if restriction else None),
                 })
+            employer_capture = public_artifact.get("employer_observation")
+            if isinstance(employer_capture, dict) and employer_capture.get("status") == "COMPLETE":
+                from cli.ui_e2e import validate_employer_verification_witness
+                from cli.acceptance_public_employer import observe_browser as observe_employer
+                _require(public_artifact.get("employer_verification_requested") is True,
+                         "PUBLIC_BROWSER_EMPLOYER_OPT_IN_MISSING")
+                _require(baseline.get('target_origin') == origin, 'PUBLIC_BROWSER_EMPLOYER_ORIGIN_CHANGED')
+                validate_employer_verification_witness(baseline, True,
+                    current_profile=_api_json(api, '/profiles/' + quote(profile_id, safe='')))
+                def employer_read(method, path, **kwargs):
+                    _require(method == 'GET', 'PUBLIC_BROWSER_EMPLOYER_READ_ONLY')
+                    response = api.get(path, **kwargs)
+                    response.raise_for_status()
+                    return response.json()
+                employer_observation = observe_employer(page, employer_read, employer_capture, public_artifact)
             context.close()
             browser.close()
 
@@ -469,5 +485,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                              "selected_application_job_id")}},
         ],
     }
+    if employer_observation is not None:
+        evidence["employer_observation"] = employer_observation
     evidence["sha256"] = _digest(evidence)
     return evidence

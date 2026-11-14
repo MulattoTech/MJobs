@@ -419,8 +419,8 @@ def _is_known_bundle_artifact(name: Any) -> bool:
             and "/" not in name and "\\" not in name and ":" not in name)
 
 
-def _segment_for_step(number: int) -> str:
-    return ("startup" if number == 1 else "public_browser" if number in {11, 16}
+def _segment_for_step(number: int, *, employer_public: bool = False) -> str:
+    return ("startup" if number == 1 else "public_browser" if number in {11, 16} or employer_public and 23 <= number <= 31
             else "recovery" if 54 <= number <= 58
             else "monitor_after" if number in {59, 60} else "ui")
 
@@ -633,7 +633,15 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
 
     loaded_segments: dict[str, tuple[dict, Path, str, dict[int, dict]]] = {}
     target_base_url = target.get("base_url") if isinstance(target, dict) else None
-    relevant_segments = {_segment_for_step(step["number"]) for step in pass_steps}
+    employer_public = report.get("employer_observation_segment") == "public_browser"
+    if report.get("employer_observation_segment") not in {None, "public_browser"}:
+        errors.append("journey employer observation segment is invalid")
+    if employer_public and not callable(getattr(journey, "public_employer_identity", None)):
+        errors.append("public employer evidence requires the current identity join validator")
+        return False
+    relevant_segments = {_segment_for_step(step["number"], employer_public=employer_public) for step in pass_steps}
+    if employer_public:
+        relevant_segments.add("public_browser")
     relevant_segments.add("ui")
     if "monitor_after" in relevant_segments:
         relevant_segments.add("monitor_prepare")
@@ -766,6 +774,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         errors.append("runtime evidence cannot establish the connected UI baseline")
         return False
     ui_baseline = ui_data[0]
+    expected_employer_lineage = None
     try:
         ui_identity = journey._identity(ui_baseline)
         ui_runtime = journey.validate_runtime_identity(ui_baseline.get("runtime_identity"))
@@ -775,8 +784,6 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         if ui_lineage != report_lineage:
             errors.append("connected UI stage_lineage differs from journey report")
         expected_employer_lineage = ui_identity.get("employer_discovery_lineage")
-        if report.get("employer_discovery_lineage") != expected_employer_lineage:
-            errors.append("journey employer discovery lineage differs from connected UI readback")
     except (KeyError, TypeError, ValueError) as exc:
         errors.append(f"connected UI runtime or stage lineage is invalid: {exc}")
 
@@ -927,9 +934,16 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
                         ui_baseline, public_data[0], browser, public_data[2], browser_sha,
                         runtime) != joined:
                     errors.append("public-observations differs from the runner-validated source/browser join")
+                has_public_employer = "employer_discovery_lineage" in joined
+                if has_public_employer != employer_public:
+                    errors.append("journey employer route differs from the reconstructed whole public group")
+                public_identity = continuity
+                if has_public_employer:
+                    public_identity = journey.public_employer_identity(continuity, joined)
+                    expected_employer_lineage = public_identity["employer_discovery_lineage"]
                 normalized = journey.numbered_observations(
                     joined, segment="public_browser", run_id=run_id,
-                    source=source, identity=continuity)
+                    source=source, identity=public_identity)
                 normalized_by_number = {row["step"]: row for row in normalized}
                 for number, observation in normalized_by_number.items():
                     result_row = by_number[number]
@@ -941,6 +955,9 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             except (AttributeError, KeyError, TypeError, ValueError) as exc:
                 errors.append(f"journey public browser evidence is invalid: {exc}")
 
+    if report.get("employer_discovery_lineage") != expected_employer_lineage:
+        errors.append("journey employer discovery lineage differs from validated producer readback")
+
     if 55 in {step["number"] for step in pass_steps}:
         recovery_data = loaded_segments.get("recovery")
         if recovery_data is not None:
@@ -951,7 +968,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
     for step in pass_steps:
         number = step["number"]
         label = f"step {number}"
-        segment = "source_setup" if number == 9 else _segment_for_step(number)
+        segment = "source_setup" if number == 9 else _segment_for_step(number, employer_public=employer_public)
         segment_data = loaded_segments.get(segment)
         report_row = by_number[number]
         observation = report_row.get("observation")

@@ -645,7 +645,43 @@ def validate_public_artifact(artifact, baseline, provider, run_id):
                                 source=baseline["source"], identity=_identity(baseline))
     if len(rows) != 1 or rows[0]["step"] != 11 or rows[0]["status"] != "PASS":
         raise ValueError("Same-profile public collection lacks its exact positive observation")
+    _validate_public_employer_capture(baseline, artifact)
     return artifact
+
+
+def _validate_public_employer_capture(baseline, public):
+    capture = public.get("employer_observation")
+    requested = public.get("employer_verification_requested", False)
+    if type(requested) is not bool or (capture is not None and not requested):
+        raise ValueError("Public employer capture lacks explicit saved opt-in")
+    if not requested:
+        return None
+    ui_e2e.validate_employer_verification_witness(baseline, True)
+    if capture == {"status": "NOT_RUN", "reason": "CHILDREN_NOT_SETTLED"}:
+        return None
+    from cli.acceptance_public_employer import validate
+    validate(capture, public)
+    if capture["initial"]["policy_sha256"] != baseline["employer_verification_opt_in"]["policy_sha256"]:
+        raise ValueError("Employer capture differs from saved UI consent")
+    if not _instant(baseline['timestamp']) <= _instant(public['timestamp']) <= _instant(capture['initial']['captured_at']):
+        raise ValueError("Employer source baseline does not follow this run's UI save")
+    return capture
+
+
+def public_employer_identity(identity, joined):
+    """Use only after reconstructing the exact public source/browser join."""
+    lineage = joined.get("employer_discovery_lineage")
+    if lineage is None:
+        return copy.deepcopy(identity)
+    if (not isinstance(lineage, dict) or set(lineage) != {"profile_id", "operation_id", "request_id", "job_ids"}
+            or lineage["profile_id"] != identity["profile_id"]
+            or any(not isinstance(lineage[key], str) or not SAFE_ID.fullmatch(lineage[key])
+                   for key in ("operation_id", "request_id"))
+            or len(_bounded_identity_ids(lineage["job_ids"], 2, "public employer identity")) != 2
+            or identity.get("job_id") in lineage["job_ids"]):
+        raise ValueError("Public employer identity is not separate from the selected application")
+    return {**copy.deepcopy(identity), "employer_discovery_lineage": copy.deepcopy(lineage),
+            "observed_job_ids": sorted(set(identity.get("observed_job_ids", [])) | set(lineage["job_ids"]))}
 
 
 def join_public_browser(baseline, public, browser, public_sha, browser_sha, runtime):
@@ -695,10 +731,33 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
     timestamp = browser.get("timestamp_utc")
     if not _instant(public["timestamp"]) <= _instant(timestamp) <= datetime.now(timezone.utc) + timedelta(seconds=5):
         raise ValueError("Public browser evidence predates collection or is future-dated")
-    return {"schema_version": 1, "result": "PARTIAL", "timestamp": timestamp, "source": baseline["source"],
+    joined = {"schema_version": 1, "result": "PARTIAL", "timestamp": timestamp, "source": baseline["source"],
         "acceptance_run_id": public["acceptance_run_id"], "public_artifact": "public.json", "public_sha256": public_sha,
         "browser_artifact": "public-browser.json", "browser_sha256": browser_sha,
         "runtime_identity": projection, "acceptance_observations": rows}
+    capture = _validate_public_employer_capture(baseline, public)
+    employer_browser = browser.get("employer_observation")
+    if employer_browser is not None:
+        from cli.acceptance_public_employer import browser_projection
+        if capture is None or capture["status"] != "COMPLETE" or employer_browser != browser_projection(capture):
+            raise ValueError("Public employer browser assertions differ from the same-employer capture")
+        selected = capture["selected"]
+        # Controlled component evidence never replaces the fictional group.
+        if public["execution_scope"] == "LIVE_PUBLIC_READ_ONLY" and selected["domain"]["execution_scope"] == "PUBLIC_READ_ONLY":
+            child = selected["child"]
+            lineage = {"profile_id": child["profile_id"], "operation_id": child["operation_id"],
+                       "request_id": child["request_id"], "job_ids": employer_browser["job_ids"]}
+            joined["employer_discovery_lineage"] = lineage
+            public_employer_identity(_identity(baseline), joined)
+            for step in range(23, 32):
+                rows.append({"step": step, "status": "PASS",
+                    "checks": [{"name": name, "passed": True} for name in sorted(REQUIRED_CHECKS[step])],
+                    "observable_result": "Same employer collection, official domain, native inventory and UI verified",
+                    "evidence_kind": "PUBLIC_READ_ONLY", "source_commit": baseline["source"]["commit"],
+                    "run_id": public["acceptance_run_id"],
+                    "continuity": {key: lineage[key] for key in ("profile_id", "operation_id", "request_id")} |
+                        {"job_id": selected["trigger_job" if step == 31 else "native_only_job"]["id"]}})
+    return joined
 
 
 def _validate_source_setup_release_history(artifact, baseline, target, runtime):
@@ -1135,6 +1194,12 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         raise ValueError("Observation artifact run or source binding mismatch")
     seen = set()
     result = []
+    if segment == "public_browser":
+        employer_rows = [row for row in rows if isinstance(row, dict) and type(row.get("step")) is int and 23 <= row["step"] <= 31]
+        if employer_rows and (len(employer_rows) != 9 or {row["step"] for row in employer_rows} != set(range(23, 32))
+                or artifact.get("employer_discovery_lineage") != identity.get("employer_discovery_lineage")
+                or artifact.get("employer_discovery_lineage") is None):
+            raise ValueError("Public employer observations require the complete same-employer group")
     lineage = validate_stage_lineage(artifact, identity)
     for row in rows:
         if not isinstance(row, dict):
@@ -1145,7 +1210,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 or (segment == "startup" and step != 1)
                 or (segment == "source_setup" and step != 9)
                 or (segment in {"public", "public_source"} and step != 11)
-                or (segment == "public_browser" and step not in {11, 16})
+                or (segment == "public_browser" and step not in {11, 16, *range(23, 32)})
                 or (segment == "recovery" and not 54 <= step <= 58)
                 or (segment == "monitor_after" and step not in {59, 60})
                 or segment == "monitor_prepare"):
@@ -1401,6 +1466,10 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                     raise ValueError("Public browser joined evidence lineage mismatch")
                 artifact, sha = joined, joined_sha
                 observation_segment, evidence_name = "public_browser", "public-observations.json"
+                if "employer_discovery_lineage" in joined:
+                    identity = public_employer_identity(identity, joined)
+                    self.binding["employer_discovery_lineage"] = copy.deepcopy(identity["employer_discovery_lineage"])
+                    self.binding["employer_observation_segment"] = "public_browser"
             else:
                 artifact = copy.deepcopy(artifact)
                 for row in artifact.get("acceptance_observations", []):
@@ -1602,7 +1671,8 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
                     raise ValueError("UI baseline changed before public collection")
                 public_module.run(target["base_url"], baseline, artifact_path,
                                   acceptance_run_id=run_id, provider=public_source_provider,
-                                  containment_preflight=public_source_preflight)
+                                  containment_preflight=public_source_preflight,
+                                  **({"employer_verification": True} if employer_verification else {}))
                 public, public_sha = _read_artifact(artifact_path)
                 validate_public_artifact(public, baseline, public_source_provider, run_id)
                 if browser_module is not None:

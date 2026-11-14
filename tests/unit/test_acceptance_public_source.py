@@ -174,6 +174,44 @@ class PublicSourceObservationTests(unittest.TestCase):
                 self.assertTrue(self.api.source['enabled'])
                 self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
 
+    def test_employer_capture_requires_saved_ui_witness_before_any_mutation(self):
+        result = self.observe(employer_verification=True)
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertTrue(all(method == 'GET' for method, _, _ in self.api.calls))
+        self.assertIsNone(self.api.source)
+
+    def test_opted_in_empty_employer_cohort_is_partial_and_never_activates_profile(self):
+        from tests.unit.test_acceptance_employer_verification_opt_in import _controlled_profile, _controlled_ui_artifact
+        self.api.profile = _controlled_profile(profile_id='profile', version=VERSION)
+        baseline = {**BASELINE, **_controlled_ui_artifact(profile=self.api.profile,
+            source=BASELINE['source'], run_id='campaign', origin='http://127.0.0.1:18700')}
+        baseline['timestamp'] = STAMP
+        baseline['employer_verification_opt_in'].update(saved_at_utc=STAMP, baseline_bound_at_utc=STAMP)
+        def request(method, path, **kwargs):
+            if path == '/company-sources/view':
+                self.assertEqual(method, 'GET')
+                return {'company_sources': []}
+            if path.endswith('/inventory-proofs'):
+                self.assertEqual(method, 'GET')
+                collection = self.api.last_children
+                value = {key: collection[key] for key in ('schema_version', 'profile_id', 'profile_version',
+                    'source_id', 'parent_operation_id', 'parent_operation_attempt', 'parent_request_id', 'complete', 'limit')}
+                value.update(collection_lineage_sha256=collection['lineage_sha256'],
+                    collection_readback_sha256=collection['sha256'], observations=[])
+                value['sha256'] = _digest(value)
+                return value
+            return self.api.request(method, path, **kwargs)
+        before = deepcopy(self.api.profile)
+        result = run('http://127.0.0.1:18700', baseline, self.path,
+            acceptance_run_id='campaign', request=request, execution_scope='CONTROLLED_TRANSPORT',
+            containment_preflight=lambda *_: deepcopy(PROOF), employer_verification=True,
+            utc_now=lambda: datetime.fromisoformat(STAMP))
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['employer_observation']['status'], 'PARTIAL')
+        self.assertEqual(result['employer_observation']['public_acceptance'], 'NOT_RUN')
+        self.assertEqual(self.api.profile, before)
+        self.assertFalse(any(method != 'GET' and path.startswith('/profiles/') for method, path, _ in self.api.calls))
+
     def test_unknown_or_untrusted_exception_text_is_never_saved_as_containment_diagnostic(self):
         from cli.acceptance_containment import ContainmentError
 

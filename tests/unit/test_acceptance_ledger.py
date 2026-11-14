@@ -1044,6 +1044,30 @@ def test_runtime_evidence_mode_can_validate_all_60_and_remove_permanent_pass_blo
     assert verified.counts["PASS"] == 60
 
 
+def test_public_employer_route_metadata_cannot_relabel_fixture_acceptance(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    numbers = [11, 16, *range(23, 32)]
+    build_runtime_proof(root, data, numbers, monkeypatch)
+    assert ledger.validate_ledger(data, root, require_runtime_evidence=True).errors == []
+    report_path = root / data['journey_report']['artifact']
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    report['employer_observation_segment'] = 'public_browser'
+    report_sha, _ = _write_json_lf(report_path, report)
+    data['journey_report']['sha256'] = report_sha
+    # Keep the independent receipt binding coherent: rejection must come from
+    # the missing whole source/browser group, not merely an old outer hash.
+    review_path = root / data['steps'][10]['review']['evidence_artifact']
+    review = json.loads(review_path.read_text(encoding='utf-8'))
+    review['evidence_sha256'] = report_sha
+    review_sha, _ = _write_json_lf(review_path, review)
+    for number in numbers:
+        data['steps'][number - 1]['review']['evidence_sha256'] = review_sha
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any('route differs from the reconstructed whole public group' in error for error in verified.errors), verified.errors
+    assert any('step 25 PASS is not present as a positive numbered producer observation' in error for error in verified.errors), verified.errors
+
+
 def test_runtime_evidence_accepts_v4_recovery_inventory_snapshot_identity(tmp_path, monkeypatch):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
