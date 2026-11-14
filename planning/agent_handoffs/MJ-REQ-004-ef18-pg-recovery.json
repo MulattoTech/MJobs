@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-004-ef18-pg-recovery",
+  "objective": "Bound individual PostgreSQL lock waits during recovery and optional post-commit context lookup while preserving stricter limits, committed outcomes and safe logging.",
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "branch": "web/ef1809b6/pg-recovery-lock-budget",
+  "head_sha": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+  "routing_state": "VERIFY",
+  "created_at": "2026-11-14T00:59:48.089207+00:00",
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-292"
+  ],
+  "next_action": "Publish one ordinary fast-forward update of existing PR1027 through fresh live update admission; observe current-head required gates and all four PostgreSQL target receipts; preserve first failure if any; then hand the qualified candidate to the sole integration steward.",
+  "tests": [
+    {
+      "command": "Initial59a/4d AST, scope, provenance and independent source/fixture review.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact4d147330 eight focused SQLite recovery cases:8primary PASS,0fail/error/skip.",
+      "result": "PASS"
+    },
+    {
+      "command": "Published4e757cc0 Integration43539747457 attempt1:two real PostgreSQL lock cases PASS,2886primary PASS/40SKIP/0FAIL/0ERROR; all5required gates PASS; independent artifact review PASS.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exactc1125fa8 helper AST/diff/provenance and independent immutable review.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exactc1125fa8 eight SQLite/logging cases:8primary+65subtests PASS,0fail/error/skip,4.21s.",
+      "result": "PASS"
+    },
+    {
+      "command": "Both original-source PostgreSQL baselines; combined successor PostgreSQL contention cases and metadata-head required hosted gates.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Protected integration, deployment and full004/292acceptance.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "evidence_file": "docs/evidence/2026-11-14-pg-recovery-lock-budget-ef18.json",
+  "source_test_revision": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+  "source_tree": "59dbf71c1f78ab0b19232a7a2985532d1c8dfab5",
+  "source_binding": "This record describes source c1125fa8. Initial recovery runtime is explicitly bound to published4e and its tree-equivalent merge checkout. Helper PostgreSQL runtime and all required gates on the next metadata publication head remain NOT_RUN; prior results are not transferred.",
+  "production_changed": true,
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "limitations": [
+    "Per-lock ceiling only; no whole-sweep/helper/transaction/call deadline",
+    "No connection, pool, pre-ping, network, ordinary statement-duration, finalization or log-sink deadline proof",
+    "No fairness guarantee under persistent contention",
+    "No change to Store, workers/tasks.py, source-setup lease semantics, company_refresh_saved, logging schema/privacy fields, provider or workflow contracts",
+    "Synthetic fixtures are not browser/provider or production acceptance",
+    "Both baseline runtime expectations remain unobserved",
+    "Earlier4e hosted proof and currentc112 SQLite proof retain distinct source bindings; metadata successor needs its own hosted gates",
+    "Missing finite-window fixture witnesses are unqualified admission failures and cannot be counted as production failures or PASS"
+  ],
+  "updated_at": "2026-11-14T01:49:31.342343+00:00",
+  "published_head_with_prior_hosted_proof": "4e757cc0979523ab34907d1c350c585266b4a386"
+}
