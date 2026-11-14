@@ -1,0 +1,60 @@
+{
+  "requirement_ids": [
+    "MJ-REF-031",
+    "MJ-REQ-292"
+  ],
+  "scope": "Reviewed browser extraction capture size validation and recovery; no whole-requirement acceptance change",
+  "tested_source_commit": "c3ccd90e013aba2f9c58093e3a52c0bef6be9843",
+  "base_commit": "0a84cb7173b42e86b410ccf3056d68b39513b15a",
+  "recorded_at_utc": "2026-11-14T12:49:28.240512+00:00",
+  "behavior": "Reject retained original extraction metadata outside existing API bounds before POST; explain re-extraction; preserve reviewed removal, long manual canonical descriptions, provenance and idempotency.",
+  "verification": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/browser-job-extraction-capture.test.ts",
+      "result": "PASS",
+      "tests": 14
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_browser_job_extraction_confirm_capture_api.py tests/browser/test_browser_job_extraction_confirm_capture.py --tb=short",
+      "environment": "repository pinned Python venv; Playwright1.63; isolated SQLite and Chromium; synthetic local data",
+      "result": "PASS",
+      "tests": 7,
+      "subtests": 8,
+      "elapsed_seconds": 19.92
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Typecheck and build; existing large-chunk advisory"
+    },
+    {
+      "command": "npm exec -- eslint src/browser-job-extraction-capture.ts src/browser-job-extraction-capture.test.ts",
+      "cwd": "apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m ruff check tests/browser/test_browser_job_extraction_confirm_capture.py tests/integration/test_browser_job_extraction_confirm_capture_api.py",
+      "result": "FAIL",
+      "classification": "PRE_EXISTING",
+      "note": "I001 in both files and RUF012 browser class attribute; same codes and locations confirmed on base through Ruff stdin"
+    },
+    {
+      "command": "git diff 0a84cb71 HEAD --check",
+      "result": "PASS"
+    }
+  ],
+  "review": {
+    "kind": "local Luna Medium review",
+    "task_review": "APPROVED_AFTER_FIX",
+    "final_branch_review": "APPROVED",
+    "source_revision": "c3ccd90e013aba2f9c58093e3a52c0bef6be9843"
+  },
+  "limits": [
+    "Hosted CI not yet run for publication head",
+    "No production deployment",
+    "No real applicant data or external application submission",
+    "No full60-step campaign acceptance",
+    "No canonical acceptance counters changed"
+  ],
+  "rollback": "Revert the scoped frontend commit(s); no database migration or stored-data change required"
+}
