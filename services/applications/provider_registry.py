@@ -25,6 +25,7 @@ _BUILTINS = (
     ("breezy", _factory("services.applications.adapters.breezy", "BreezyApplicationAdapter")),
     ("generic_html", _factory("services.applications.adapters.generic_html", "GenericHTMLApplicationAdapter")),
     ("greenhouse", _factory("services.applications.adapters.greenhouse", "GreenhouseApplicationAdapter")),
+    ("icims", _factory("services.applications.adapters.icims", "ICIMSApplicationAdapter")),
     ("lever", _factory("services.applications.adapters.lever", "LeverApplicationAdapter")),
     ("recruitee", _factory("services.applications.adapters.recruitee", "RecruiteeApplicationAdapter")),
     ("smartrecruiters", _factory("services.applications.adapters.smartrecruiters", "SmartRecruitersApplicationAdapter")),

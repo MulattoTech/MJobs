@@ -186,8 +186,8 @@ def test_default_registries_preserve_builtin_order_and_are_read_only():
     )
     assert applications.providers() == (
         "ashby", "bamboohr", "breezy", "generic_html", "greenhouse",
-        "lever", "recruitee", "smartrecruiters", "teamtailor", "workable",
-        "workday",
+        "icims", "lever", "recruitee", "smartrecruiters", "teamtailor",
+        "workable", "workday",
     )
     assert isinstance(sources.factories, MappingProxyType)
     assert isinstance(applications.factories, MappingProxyType)
