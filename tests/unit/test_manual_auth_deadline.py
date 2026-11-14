@@ -77,7 +77,8 @@ class ManualAuthDeadlineTests(unittest.TestCase):
             payload = {'schema': 1, 'output_dir': str(root), 'application_id': 'app1',
                 'mock_origin': 'http://127.0.0.1:8123', 'requisition': 'A', 'budget_seconds': 1}
             now = [10.0]
-            def browser(*args, check):
+            def browser(*args, check, application_root):
+                self.assertEqual(application_root, root / "app1")
                 self.assertEqual(check.remaining_seconds(), 1.0)
                 now[0] = 10.75
                 self.assertEqual(check.remaining_seconds(), .25)
