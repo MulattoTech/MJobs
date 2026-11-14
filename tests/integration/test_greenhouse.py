@@ -228,6 +228,7 @@ class GreenhouseTests(unittest.TestCase):
             maximum = 0
             starts = []
             guard = threading.Lock()
+            rendezvous = threading.Barrier(2) if concurrency > 1 else None
 
             def slow_transport(request):
                 nonlocal active, maximum
@@ -236,9 +237,12 @@ class GreenhouseTests(unittest.TestCase):
                     maximum = max(maximum, active)
                     starts.append(time.monotonic())
                 try:
-                    # Slow synthetic reads overlap only when the per-source
-                    # limit allows it; no external request is made.
-                    time.sleep(0.25)
+                    # Hold parallel reads until both arrive, independently of
+                    # client setup and scheduling; no external request is made.
+                    if rendezvous is None:
+                        time.sleep(0.25)
+                    else:
+                        rendezvous.wait(timeout=5)
                     if request.url.path.endswith("/jobs"):
                         return httpx.Response(200, json={"jobs": [RAW]})
                     return httpx.Response(200, json={"name": "Example Public Employer"})
@@ -275,6 +279,7 @@ class GreenhouseTests(unittest.TestCase):
         active = 0
         maximum = 0
         guard = threading.Lock()
+        rendezvous = threading.Barrier(2)
 
         def slow_transport(request):
             nonlocal active, maximum
@@ -282,7 +287,7 @@ class GreenhouseTests(unittest.TestCase):
                 active += 1
                 maximum = max(maximum, active)
             try:
-                time.sleep(0.25)
+                rendezvous.wait(timeout=5)
                 if request.url.path.endswith("/jobs"):
                     return httpx.Response(200, json={"jobs": [dict(
                         RAW,
