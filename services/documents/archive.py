@@ -4,7 +4,11 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from services.documents.archive_store import append_archive_event, list_archive_events
+from services.documents.archive_store import (
+    append_archive_event,
+    find_archive_event,
+    latest_archive_events,
+)
 
 
 _ARCHIVE = "DOCUMENT_ARCHIVED"
@@ -31,8 +35,8 @@ def document_archive_state(store, *, profile_id: str,
     uploaded resume revision IDs are profile-scoped and use ``application_id=None``.
     """
     store.profile(profile_id)
-    events = list_archive_events(store, profile_id=profile_id,
-                                 application_id=application_id, limit=1000)
+    events = latest_archive_events(store, profile_id=profile_id,
+                                   application_id=application_id)
     return _project_state(events)
 
 
@@ -50,34 +54,32 @@ def _set_archived(store, profile_id: str, document_id: str,
         revision = _owned_revision(connection, profile_id, document_id)
         application_id = revision["application_id"]
         revision_payload = revision["archive_payload"]
-        events = list_archive_events(
+        events = latest_archive_events(
             store, profile_id=profile_id, application_id=application_id,
-            document_id=document_id, limit=1000, connection=connection,
+            document_id=document_id, connection=connection,
         )
         prior = _project_state(events).get(document_id, False)
-        previous_operation = next((event for event in events
-                                   if event["action"] == action
-                                   and event["operation_id"] == operation_id), None)
-        if previous_operation is not None:
-            if previous_operation["payload"] != {
-                    **revision_payload, "profile_id": profile_id,
-                    "application_id": application_id, "document_id": document_id,
-                    "operation_id": operation_id}:
-                raise ValueError("Archive operation identity was reused for different revision data")
-
-        event = previous_operation
+        # Retry identity is durable even after the operation leaves the visible
+        # history window. Validate it even when the requested state is a no-op.
+        event = find_archive_event(
+            store, profile_id=profile_id, application_id=application_id,
+            document_id=document_id, action=action, operation_id=operation_id,
+            payload=revision_payload, connection=connection,
+        )
+        current = prior
         changed = False
-        if prior != archived and previous_operation is None:
-            before_ids = {item["id"] for item in events}
+        if prior != archived and event is None:
             event = append_archive_event(
                 store, profile_id=profile_id, application_id=application_id,
                 document_id=document_id, action=action, operation_id=operation_id,
                 payload=revision_payload, connection=connection,
             )
-            changed = event["id"] not in before_ids
-            if changed:
-                events.append(event)
-        current = _project_state(events).get(document_id, False)
+            events = latest_archive_events(
+                store, profile_id=profile_id, application_id=application_id,
+                document_id=document_id, connection=connection,
+            )
+            current = _project_state(events).get(document_id, False)
+            changed = current != prior
         return {"profile_id": profile_id, "application_id": application_id,
                 "document_id": document_id, "archived": current,
                 "changed": changed, "event": event}

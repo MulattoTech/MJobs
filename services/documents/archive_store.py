@@ -138,6 +138,103 @@ def list_archive_events(
         return read(conn)
 
 
+def latest_archive_events(
+    store,
+    *,
+    profile_id: str,
+    application_id: str | None = None,
+    document_id: str | None = None,
+    connection=None,
+) -> list[dict]:
+    """Read the latest event for every revision in an exact ownership scope.
+
+    Current state must not depend on the bounded history display. Read newest
+    first and retain one event per document, using exact decoded scope values
+    on both persistence backends. A single-document read stops at its first
+    matching event. The caller retains ownership of a supplied transaction.
+    """
+    _validate_identifier("profile_id", profile_id)
+    if application_id is not None:
+        _validate_identifier("application_id", application_id)
+    if document_id is not None:
+        _validate_identifier("document_id", document_id)
+
+    def read(conn):
+        _verify_document_owner(conn, profile_id, application_id, document_id)
+        statement = select(m.audit).where(
+            m.audit.c.entity_id == (application_id or profile_id),
+            m.audit.c.action.in_(ARCHIVE_ACTIONS),
+        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())
+        latest: dict[str, dict] = {}
+        # Keep streaming local to this SELECT: the caller may subsequently
+        # write using the same connection. Closing also handles an early stop.
+        with conn.execute(statement, execution_options={"yield_per": 100}) as result:
+            for row in result.mappings():
+                payload = row["payload"]
+                if not isinstance(payload, dict):
+                    continue
+                revision_id = payload.get("document_id")
+                if (payload.get("profile_id") != profile_id
+                        or payload.get("application_id") != application_id
+                        or not isinstance(revision_id, str)
+                        or (document_id is not None and revision_id != document_id)
+                        or revision_id in latest):
+                    continue
+                latest[revision_id] = {
+                    "id": row["id"],
+                    "profile_id": profile_id,
+                    "application_id": application_id,
+                    "document_id": revision_id,
+                    "operation_id": payload.get("operation_id"),
+                    "action": row["action"],
+                    "payload": payload,
+                    "timestamp": row["timestamp"],
+                }
+                if document_id is not None:
+                    break
+        return list(latest.values())
+
+    if connection is not None:
+        return read(connection)
+    with store.engine.connect() as conn:
+        return read(conn)
+
+
+def find_archive_event(
+    store,
+    *,
+    profile_id: str,
+    application_id: str | None = None,
+    document_id: str,
+    action: str,
+    operation_id: str,
+    payload: dict | None = None,
+    connection=None,
+) -> dict | None:
+    """Find an exact retry identity, verifying its complete immutable payload."""
+    _validate_identifier("profile_id", profile_id)
+    if application_id is not None:
+        _validate_identifier("application_id", application_id)
+    _validate_identifier("document_id", document_id)
+    _validate_identifier("operation_id", operation_id)
+    _validate_action(action)
+    event_payload = _payload(profile_id, application_id, document_id, operation_id, payload)
+    event_id = identity("document-archive-audit", profile_id, application_id, action, operation_id)
+
+    def read(conn):
+        _verify_document_owner(conn, profile_id, application_id, document_id)
+        existing = conn.execute(select(m.audit).where(m.audit.c.id == event_id)).mappings().first()
+        if existing is None:
+            return None
+        return _same_event(existing, event_payload, profile_id, application_id,
+                           document_id, action, operation_id)
+
+    if connection is not None:
+        return read(connection)
+    with store.engine.connect() as conn:
+        return read(conn)
+
+
 def _verify_document_owner(connection, profile_id: str, application_id: str | None,
                            document_id: str | None) -> None:
     if application_id is None:
@@ -211,7 +308,8 @@ def _payload(profile_id: str, application_id: str | None, document_id: str,
 
 def _same_event(row, payload: dict, profile_id: str, application_id: str | None,
                 document_id: str, action: str, operation_id: str) -> dict:
-    if row["action"] != action or row["payload"] != payload:
+    if (row["entity_id"] != (application_id or profile_id)
+            or row["action"] != action or row["payload"] != payload):
         raise ValueError("Archive operation identity was reused with different event data")
     return {
         "id": row["id"],

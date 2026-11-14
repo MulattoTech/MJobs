@@ -256,9 +256,9 @@ def _revisions(connection, profile_id: str) -> tuple[list[dict], set[str]]:
         m.resume_revisions.c.document_kind.in_(_KINDS),
     ).order_by(m.resume_revisions.c.created_at.desc(),
                m.resume_revisions.c.version.desc())).mappings()]
-    from services.documents.archive_store import list_archive_events
-    events = list_archive_events(
-        None, profile_id=profile_id, application_id=None, limit=1000,
+    from services.documents.archive_store import latest_archive_events
+    events = latest_archive_events(
+        None, profile_id=profile_id, application_id=None,
         connection=connection,
     )
     archived: dict[str, bool] = {}
