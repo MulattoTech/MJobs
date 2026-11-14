@@ -101,7 +101,7 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
                 requirements.append({"skill": value, "strength": "UNKNOWN"})
 
         per_job: dict[str, dict[str, set[str]]] = defaultdict(
-            lambda: {"strengths": set(), "evidence": set()}
+            lambda: {"strengths": set(), "evidence": set(), "gap_strengths": set()}
         )
         for requirement in requirements:
             if not isinstance(requirement, dict):
@@ -111,11 +111,14 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
                 continue
             strength = str(requirement.get("strength") or "UNKNOWN").upper()
             evidence = str(requirement.get("profile_evidence") or "UNKNOWN").upper()
-            per_job[skill_id]["strengths"].add(
-                strength if strength in _CLASSIFIED_STRENGTHS or strength == "UNKNOWN"
-                else "UNKNOWN"
-            )
+            if strength not in _CLASSIFIED_STRENGTHS:
+                strength = "UNKNOWN"
+            per_job[skill_id]["strengths"].add(strength)
             per_job[skill_id]["evidence"].add(evidence)
+            # Keep evidence paired with its own posting strength. Duplicate or
+            # legacy rows must not borrow a classification from another row.
+            if evidence == "NO_APPROVED_EVIDENCE" and strength in _CLASSIFIED_STRENGTHS:
+                per_job[skill_id]["gap_strengths"].add(strength)
 
         for skill_id, signals in per_job.items():
             row = totals[skill_id]
@@ -132,13 +135,11 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
                 row["unknown_metadata"].add(job_id)
             if "APPROVED" in evidence:
                 row["approved_evidence"].add(job_id)
-            has_evidence_gap = (
-                "NO_APPROVED_EVIDENCE" in evidence
-                and bool(strengths & _CLASSIFIED_STRENGTHS)
-            )
+            gap_strengths = signals["gap_strengths"]
+            has_evidence_gap = bool(gap_strengths)
             if has_evidence_gap:
                 row["no_approved_evidence"].add(job_id)
-                if "REQUIRED" in strengths:
+                if "REQUIRED" in gap_strengths:
                     row["gap_required"].add(job_id)
             user_events = reported.get(job_id) or {}
             row["evidence_jobs"][job_id] = {
