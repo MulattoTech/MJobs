@@ -93,6 +93,25 @@ class JobSalaryBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Salary range", exact=True)).to_contain_text(
                         "Source-reported salary range (not independently verified)",
                     )
+                    # A later canonical clear must suppress stale legacy salary,
+                    # not let a parallel renderer bring that value back.
+                    with store.engine.begin() as connection:
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"]).values(
+                            attributes={**job["attributes"], "salary_min": None,
+                                        "salary_max": None, "salary_currency": None,
+                                        "salary_period": None, "salary_source": None,
+                                        "salary": [{"min": 70000, "max": 95000,
+                                                    "currency": "EUR", "period": "YEAR"}]},
+                        ))
+                    with page.expect_response(lambda item:
+                            item.url == origin + f"/jobs/{job['id']}?profile_id=fixture") as cleared_response:
+                        page.locator(".job-card").filter(has_text=job["title"]).click()
+                    cleared_job = cleared_response.value.json()
+                    self.assertIsNone(cleared_job["salary_min"])
+                    self.assertIsNone(cleared_job["salary_max"])
+                    self.assertEqual(cleared_job["attributes"]["salary"][0]["currency"], "EUR")
+                    expect(page.get_by_label("Salary range", exact=True)).to_have_count(0)
+                    expect(page.locator(".job-detail")).not_to_contain_text("EUR 70000–95000")
                     self.assertEqual(external_requests, [])
                     browser.close()
             finally:
