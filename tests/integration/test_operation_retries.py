@@ -4,6 +4,7 @@ from functools import partial
 import os
 from pathlib import Path
 import tempfile
+import ssl
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
@@ -17,12 +18,59 @@ from services.discovery.sources.collect import configure_source, collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.operations.progress import get_operation_progress
 from tests.integration.test_spine import PROFILE
+from tests.unit.test_public_company_retry_classification import public_transport_failure
+from services.company_discovery.public_client import PublicFetchError
+from services.company_discovery.flywheel import discover_company_source
 from workers.dispatch import enqueue_operation, _pending_operations
 from workers.operations import claim, request_cancel
 from workers.tasks import execute_operation
 
 
 class OperationRetryTests(unittest.TestCase):
+    def test_public_transport_failure_survives_restart_and_completes(self):
+        candidate = {"company_name": "Synthetic Retry", "company_website": "https://example.test"}
+        identifier = enqueue_operation(self.store, "COMPANY_DISCOVER", "transport-candidate", {
+            "candidate": candidate})
+        before = datetime.now(timezone.utc)
+        def fail(*args, **kwargs):
+            raise public_transport_failure(ConnectionResetError("private transport diagnostic"),
+                fetch=lambda client: discover_company_source(args[0], candidate, client, **kwargs))
+        with patch("workers.tasks.discover_company_source", side_effect=fail):
+            self.assertEqual(execute_operation(identifier)["status"], "QUEUED")
+        row = self.row(identifier)
+        self.assertEqual((row["error"], row["retry_count"], row["attempt_count"]),
+                         ("TRANSPORT_TRANSIENT", 1, 1))
+        self.assertGreaterEqual(datetime.fromisoformat(row["next_attempt_at"]), before + timedelta(seconds=60))
+        self.assertNotIn("private transport diagnostic", str(row))
+        self.assertIsNone(claim(self.store, identifier))
+        with self.store.engine.connect() as connection:
+            self.assertEqual(_pending_operations(connection), [])
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.assertEqual(self.row(identifier)["next_attempt_at"], row["next_attempt_at"])
+        self.assertIsNone(claim(self.store, identifier))
+        self.make_due(identifier)
+        with patch("workers.tasks.discover_company_source", return_value={"provider": "none"}):
+            self.assertEqual(execute_operation(identifier)["status"], "COMPLETED")
+        self.assertEqual(self.row(identifier)["attempt_count"], 2)
+        self.assertIsNone(self.row(identifier)["next_attempt_at"])
+
+    def test_public_permanent_and_policy_failures_are_terminal(self):
+        failures = [public_transport_failure(ssl.SSLCertVerificationError(1, "private")),
+                    public_transport_failure(ssl.SSLError(1, "private")),
+                    public_transport_failure(OSError("unknown")),
+                    PublicFetchError("ROBOTS_DENIED"), PublicFetchError("DNS_PRIVATE")]
+        for index, failure in enumerate(failures):
+            with self.subTest(index=index):
+                identifier = enqueue_operation(self.store, "COMPANY_DISCOVER", f"terminal-{index}", {
+                    "candidate": {"company_website": "https://example.test"}})
+                with patch("workers.tasks.discover_company_source", side_effect=failure):
+                    result = execute_operation(identifier)
+                self.assertIn(result["status"], {"BLOCKED", "DEAD_LETTERED"})
+                self.assertEqual(self.row(identifier)["retry_count"], 0)
+                self.assertIsNone(self.row(identifier)["next_attempt_at"])
+                self.assertIsNone(claim(self.store, identifier))
+
     def database_url(self):
         return f"sqlite:///{(self.root / 'retry.db').as_posix()}"
 
