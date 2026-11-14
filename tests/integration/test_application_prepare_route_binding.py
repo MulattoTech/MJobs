@@ -1,11 +1,11 @@
 """Explicit preparation routes stay bound through durable worker completion."""
-from copy import deepcopy
-from datetime import datetime, timedelta, timezone
 import hashlib
 import os
-from pathlib import Path
 import tempfile
 import unittest
+from copy import deepcopy
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -282,7 +282,7 @@ class ApplicationPrepareRouteBindingTests(unittest.TestCase):
                         params={"fixture_activity": True}, state=state, error=error,
                         updated_at=now(),
                         lease_expires_at=(
-                            datetime.now(timezone.utc) + timedelta(hours=1)
+                            datetime.now(UTC) + timedelta(hours=1)
                         ).isoformat() if state == "RUNNING" else None,
                     ))
                     activity_before = dict(connection.execute(
@@ -361,7 +361,7 @@ class ApplicationPrepareRouteBindingTests(unittest.TestCase):
                         params={"fixture_activity": True}, state=state, error=error,
                         updated_at=now(),
                         lease_expires_at=(
-                            datetime.now(timezone.utc) + timedelta(hours=1)
+                            datetime.now(UTC) + timedelta(hours=1)
                         ).isoformat() if state == "RUNNING" else None,
                     ))
             owners_before = [dict(row) for row in connection.execute(
