@@ -267,8 +267,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
         self.assertIn("safe metadata limit", rejected.text)
         self.assertEqual(self._counts(), before)
 
-        # The corrected canonical value may exceed the original extraction cap;
-        # the shorter fresh source provenance remains independently admissible.
+        # A fresh shorter extraction demonstrates recovery and durable readback.
         fresh = extract_job_capture({
             "job_posting": {
                 "@type": "JobPosting", "title": "Systems Administrator",

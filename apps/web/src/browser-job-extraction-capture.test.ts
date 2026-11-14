@@ -267,6 +267,36 @@ describe('explicit browser extraction capture client', () => {
     }), manual, 'reject-route-unreviewed')).toThrow(/review each removed extracted field/i);
   });
 
+  it('allows reviewed removal of oversized optional original provenance but still blocks unreviewed removal', () => {
+    const oversizedUrl = `https://jobs.example.test/${'a'.repeat(2_100)}`;
+    const oversizedOriginal = confirmation({
+      preview: {
+        ...confirmation().preview,
+        review_required: [],
+        fields: {
+          ...fields,
+          listing_url: {
+            value: oversizedUrl, source: 'PROVIDER_FIELDS', confidence: 0.9, review_required: false,
+          },
+        },
+      },
+      corrections: { ...confirmation().corrections, listing_url: '' },
+    });
+
+    const removed = buildBrowserJobExtractionCapturePayload(profileId, oversizedOriginal, manual, 'remove-oversized-original');
+    expect(removed.payload.source_details.extraction_capture.raw_fields.listing_url).toBeNull();
+    expect(removed.payload.source_details.extraction_capture.review_receipt.rejected_fields)
+      .toContain('listing_url');
+
+    const unreviewed = confirmation({
+      preview: oversizedOriginal.preview,
+      corrections: oversizedOriginal.corrections,
+      reviewed_fields: ['title', 'company', 'description', 'application_url'],
+    });
+    expect(() => buildBrowserJobExtractionCapturePayload(profileId, unreviewed, manual, 'unreviewed-oversized-removal'))
+      .toThrow(/review each removed extracted field.*listing_url/i);
+  });
+
   it('rejects oversized UTF-8 payload before making a request', async () => {
     const request = vi.fn();
     const client = createBrowserJobExtractionCaptureClient(profileId, request, () => 'large-id');

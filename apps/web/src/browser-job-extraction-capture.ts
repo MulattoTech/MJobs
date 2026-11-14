@@ -297,16 +297,6 @@ export function buildBrowserJobExtractionCapturePayload(
   const originalValues = Object.fromEntries(browserJobExtractionFields.map(name => [
     name, sanitizedFieldValue(name, fields[name].value),
   ])) as Record<BrowserJobExtractionFieldName, string | null>;
-  for (const name of browserJobExtractionFields) {
-    const value = originalValues[name];
-    const limit = maxOriginalFieldLengths[name];
-    if (value && limit !== undefined && [...value].length > limit) {
-      throw new Error(
-        `The original extracted ${name.replaceAll('_', ' ')} exceeds the ${limit}-character capture limit. ` +
-        'Shorten or re-extract the original capture before saving; corrections keep the original provenance.',
-      );
-    }
-  }
   const finalValues = Object.fromEntries(browserJobExtractionFields.map(name => [
     name, sanitizedFieldValue(name, finalValue(confirmation, name)),
   ])) as
@@ -318,6 +308,16 @@ export function buildBrowserJobExtractionCapturePayload(
   const unreviewedRejectedFields = rejectedFields.filter(name => !reviewedAtConfirmation(confirmation, name));
   if (unreviewedRejectedFields.length) {
     throw new Error(`Explicitly review each removed extracted field before capture: ${unreviewedRejectedFields.join(', ')}.`);
+  }
+  for (const name of browserJobExtractionFields) {
+    const value = originalValues[name];
+    const limit = maxOriginalFieldLengths[name];
+    if (!rejectedFieldSet.has(name) && value && limit !== undefined && [...value].length > limit) {
+      throw new Error(
+        `The original extracted ${name.replaceAll('_', ' ')} exceeds the ${limit}-character capture limit. ` +
+        'Shorten or re-extract the original capture before saving; corrections keep the original provenance.',
+      );
+    }
   }
   for (const name of browserJobExtractionFields) {
     const value = finalValues[name];
