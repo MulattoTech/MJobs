@@ -1,0 +1,825 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-205",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/206",
+  "run_id": "web-20261109T154515Z-b40d54070a01",
+  "created_utc": "2026-11-09T15:53:00.605550+00:00",
+  "status": "FULL_CRITERION_PASS_PROPOSED_PENDING_PROTECTED_DELIVERY",
+  "proposed_result": "PASS",
+  "canonical_result_changed": false,
+  "requirement_interpretation": {
+    "normative_text": "Expose intention-oriented APIs.",
+    "example_routes_are_illustrative": true,
+    "route_variation_explicitly_allowed": true,
+    "live_issue_updated_at": "2026-10-11T03:58:09Z",
+    "interpretation": "Validate concrete goal-oriented public reads and commands, durable asynchronous outcomes, caller intent, profile boundaries, retry/refusal, and restart readback. The route examples do not require matching spelling or unapproved live submission support.",
+    "reviewer_note": "Parent reviewed the live wording and accepts equivalent intention APIs with the explicitly recorded narrower company-source read model and mock-only answer-resume boundary. Independent final evidence review remains pending."
+  },
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python_executable": "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+    "python_version": "3.12.14",
+    "validation_type": "Mounted FastAPI TestClient, disposable SQLite, loopback fixture HTTP and actual workers.tasks.execute_operation; selected existing tests additionally use controlled mocks.",
+    "real_user_data": false,
+    "external_application_submission": false,
+    "external_collector_execution_in_new_tests": false,
+    "host_heavy_resources_used": false
+  },
+  "criteria": [
+    {
+      "id": "intention_oriented_api_contract",
+      "requirement_text": "Expose intention-oriented APIs.",
+      "result": "PASS",
+      "assertions": [
+        "Public commands represent user goals and return durable application/operation identities.",
+        "Read APIs expose saved jobs, company sources, applications, documents, sources and operation state.",
+        "Fixture discovery and preparation execute through the real worker entrypoint.",
+        "Explicit rediscovery preserves company/source/job identity and terminal prior operations.",
+        "Save, preparation, list, document download, rediscovery and queued-source intent survive store reopen.",
+        "Application retry requeues the exact admitted review operation without enabling submission or opening a browser.",
+        "Reviewed answer resumption rejects stale/foreign/unapproved inputs and returns only fenced durable results."
+      ]
+    }
+  ],
+  "example_intent_mapping": [
+    {
+      "intent": "List and read jobs",
+      "routes": [
+        "GET /jobs",
+        "GET /jobs/{job_id}"
+      ],
+      "evidence": [
+        "test_acceptance_205_b40d54.py::test_job_save_prepare_application_list_and_retry_survive_reopen",
+        "test_job_tracking.py"
+      ]
+    },
+    {
+      "intent": "Save job",
+      "routes": [
+        "PUT /profiles/{profile_id}/jobs/{job_id}/tracking/disposition"
+      ],
+      "evidence": [
+        "test_job_tracking.py",
+        "test_acceptance_205_b40d54.py::test_job_save_prepare_application_list_and_retry_survive_reopen"
+      ]
+    },
+    {
+      "intent": "Generate resume and prepare application",
+      "routes": [
+        "POST /applications",
+        "GET /profiles/{profile_id}/applications/{application_id}/documents",
+        "GET /profiles/{profile_id}/documents/{document_id}/{format}"
+      ],
+      "evidence": [
+        "test_api_queue.py::ApiQueueTests::test_selected_career_story_survives_durable_preparation_and_document_readback",
+        "test_acceptance_205_b40d54.py::test_job_save_prepare_application_list_and_retry_survive_reopen"
+      ]
+    },
+    {
+      "intent": "Read company data",
+      "routes": [
+        "GET /company-sources",
+        "GET /company-sources/view"
+      ],
+      "boundary": "Lists persisted company-source records; does not claim a universal company inventory including identities without sources.",
+      "evidence": [
+        "test_company_sources.py",
+        "test_company_source_view.py::CompanySourceViewTests",
+        "test_acceptance_205_b40d54.py::test_company_discovery_and_explicit_rediscovery_preserve_company_reads"
+      ]
+    },
+    {
+      "intent": "Discover and rediscover company",
+      "routes": [
+        "POST /companies/discovery"
+      ],
+      "evidence": [
+        "test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests",
+        "test_acceptance_205_b40d54.py::test_company_discovery_and_explicit_rediscovery_preserve_company_reads"
+      ]
+    },
+    {
+      "intent": "List and read applications",
+      "routes": [
+        "GET /applications",
+        "GET /profiles/{profile_id}/applications/{application_id}"
+      ],
+      "evidence": [
+        "test_acceptance_205_b40d54.py::test_job_save_prepare_application_list_and_retry_survive_reopen"
+      ]
+    },
+    {
+      "intent": "Resume application after reviewed answer",
+      "routes": [
+        "POST /profiles/{profile_id}/applications/{application_id}/answer-review-resumes"
+      ],
+      "boundary": "Controlled mock application flow only; PERSONAL mode refuses fixture-only execution.",
+      "evidence": [
+        "test_application_answer_resume_api.py"
+      ]
+    },
+    {
+      "intent": "Retry failed application work",
+      "routes": [
+        "POST /operations/{operation_id}/retry"
+      ],
+      "boundary": "Safe explicit admission is verified after controlled pre-execution failure injection; retry remains queued. Ambiguous submission cannot be retried. No browser execution or external provider outcome is claimed.",
+      "evidence": [
+        "test_acceptance_205_b40d54.py::test_job_save_prepare_application_list_and_retry_survive_reopen",
+        "test_dead_letter_queue.py"
+      ]
+    },
+    {
+      "intent": "List and run sources",
+      "routes": [
+        "GET /sources",
+        "POST /sources/{source_id}/collect"
+      ],
+      "boundary": "New PERSONAL scenario verifies durable admission, not live external provider collection. Existing API test separately executes a mocked collector.",
+      "evidence": [
+        "test_source_enrollment_api.py",
+        "test_api_queue.py::ApiQueueTests::test_personal_mode_rejects_fixture_actions_and_keeps_public_collection",
+        "test_acceptance_205_b40d54.py::test_personal_source_run_is_a_durable_intent_without_external_execution"
+      ]
+    },
+    {
+      "intent": "Read operation progress",
+      "routes": [
+        "GET /operations/{operation_id}"
+      ],
+      "evidence": [
+        "test_api_queue.py",
+        "test_acceptance_205_b40d54.py",
+        "test_dead_letter_queue.py"
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "started_utc": "2026-11-09T15:48:35.648669+00:00",
+      "finished_utc": "2026-11-09T15:49:12.927128+00:00",
+      "duration_seconds": 37.278,
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_job_tracking.py",
+        "tests/integration/test_company_source_view.py::CompanySourceViewTests",
+        "tests/integration/test_company_sources.py",
+        "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests",
+        "tests/integration/test_application_answer_resume_api.py",
+        "tests/integration/test_dead_letter_queue.py",
+        "tests/integration/test_source_enrollment_api.py",
+        "tests/integration/test_api_queue.py::ApiQueueTests::test_api_saves_explicit_facts_and_reports_durable_queueing",
+        "tests/integration/test_api_queue.py::ApiQueueTests::test_personal_mode_rejects_fixture_actions_and_keeps_public_collection",
+        "tests/integration/test_api_queue.py::ApiQueueTests::test_preparation_is_durable_background_work_and_cancel_is_visible",
+        "tests/integration/test_api_queue.py::ApiQueueTests::test_selected_career_story_survives_durable_preparation_and_document_readback",
+        "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_api_admission_lookup_and_profile_scope_are_durable",
+        "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/205-existing.xml"
+      ],
+      "returncode": 0,
+      "summary": "62 passed;16 subtests passed;0 skipped;pytest29.73s",
+      "junit": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "78",
+        "time": "29.733",
+        "timestamp": "2026-11-09T09:48:35.868973-06:00",
+        "hostname": "3500872d9821"
+      },
+      "log_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-existing.log",
+      "log_sha256": "59a3201369d9f9947318c93205a5e7d8082e7d1e3d9efd9be0b61b5852199592",
+      "junit_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-existing.xml",
+      "junit_sha256": "3dc945365305a3d8cab9a0a63fa01e4939646a654b829204fe9cb957bc15672d"
+    },
+    {
+      "started_utc": "2026-11-09T15:51:08.809901+00:00",
+      "finished_utc": "2026-11-09T15:51:16.718231+00:00",
+      "duration_seconds": 7.908,
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_acceptance_205_b40d54.py",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-retry.xml"
+      ],
+      "returncode": 0,
+      "summary": "3 passed;0 skipped;pytest5.13s",
+      "junit": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "3",
+        "time": "5.134",
+        "timestamp": "2026-11-09T09:51:09.033385-06:00",
+        "hostname": "3500872d9821"
+      },
+      "log_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-retry.log",
+      "log_sha256": "f0035c8452aae2eab425c05fec4b4c0ac365fed250627568d53f31c62391e11c",
+      "junit_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-retry.xml",
+      "junit_sha256": "596cd2e305baf4df87b56ead945898875417e85188f85cf7095304d0d218dcdf"
+    }
+  ],
+  "aggregate_unique_successful_tests": {
+    "tests": 65,
+    "subtests": 16,
+    "skips": 0,
+    "note": "Counts the existing selected suite once and the final three new journeys once; earlier iterations do not increase the total."
+  },
+  "preserved_iterations": [
+    {
+      "started_utc": "2026-11-09T15:49:48.173908+00:00",
+      "finished_utc": "2026-11-09T15:49:55.699127+00:00",
+      "duration_seconds": 7.525,
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_acceptance_205_b40d54.py",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-first.xml"
+      ],
+      "returncode": 1,
+      "summary": "2 passed;1 failed: harness-only Store.count(\"jobs\") used a nonexistent metadata table alias. Replaced that assertion with the public GET /jobs empty inventory check. No runtime change.",
+      "log_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-first.log"
+    },
+    {
+      "started_utc": "2026-11-09T15:50:17.748578+00:00",
+      "finished_utc": "2026-11-09T15:50:25.528471+00:00",
+      "duration_seconds": 7.78,
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_acceptance_205_b40d54.py",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-final.xml"
+      ],
+      "returncode": 0,
+      "summary": "3 passed before adding the positive application-retry admission assertions.",
+      "log_path": "/workspace/scratch/11cf817acfbe/run-b40d54/205-acceptance-final.log"
+    }
+  ],
+  "privacy_and_safety": {
+    "fixtures_only": true,
+    "profile_scope": "Current/other profile application list, detail refusal, saved-job isolation, answer-resume scope and immutable result boundaries covered.",
+    "submission": "External submission disabled; no real application or live employer mutation occurred.",
+    "secrets": "No real credentials or applicant data used. Logs and source fixtures are synthetic."
+  },
+  "not_run": [
+    "Final committed-cohort exact SHA rerun (root will perform).",
+    "Independent final acceptance review.",
+    "Hosted checks for new acceptance-test revision.",
+    "PostgreSQL-specific opt-in variants.",
+    "Browser UI acceptance.",
+    "Live external collector/provider execution.",
+    "External ATS application resume or submission."
+  ],
+  "next_action": "Integrate the exact tested acceptance evidence through protected checks; elected canonical owner may promote205 after reviewing the stated API-design boundaries.",
+  "static_validation": [
+    {
+      "command": "python -m ruff check tests/integration/test_acceptance_205_b40d54.py",
+      "result": "PASS after import-order fix"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "final_candidate_verification": {
+    "source_commit": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+    "source_tree": "749c9162ee0d099de0b371e8a55e6a75feb09781",
+    "result": "PASS",
+    "tests_passed": 150,
+    "subtests_passed": 195,
+    "skipped": 0,
+    "command": [
+      "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/integration/test_acceptance_108_b40d54.py",
+      "tests/unit/test_ai_providers.py",
+      "tests/unit/test_ai_provider_transport.py",
+      "tests/unit/test_azure_openai_provider.py",
+      "tests/unit/test_ollama_provider.py",
+      "tests/unit/test_disabled_ai_provider.py",
+      "tests/unit/test_ai_task_configuration.py",
+      "tests/unit/test_ai_response_deadline.py",
+      "tests/unit/test_ai_header_deadline.py",
+      "tests/unit/test_ai_tls_handshake.py",
+      "tests/unit/test_ai_cost_consumer.py",
+      "tests/unit/test_ai_structured_output.py",
+      "tests/integration/test_ai_task_settings_api.py",
+      "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_real_loopback_provider_and_cli_contract",
+      "tests/integration/test_job_tracking.py",
+      "tests/integration/test_company_source_view.py::CompanySourceViewTests",
+      "tests/integration/test_company_sources.py",
+      "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests",
+      "tests/integration/test_application_answer_resume_api.py",
+      "tests/integration/test_dead_letter_queue.py",
+      "tests/integration/test_source_enrollment_api.py",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_api_saves_explicit_facts_and_reports_durable_queueing",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_personal_mode_rejects_fixture_actions_and_keeps_public_collection",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_preparation_is_durable_background_work_and_cancel_is_visible",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_selected_career_story_survives_durable_preparation_and_document_readback",
+      "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_api_admission_lookup_and_profile_scope_are_durable",
+      "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery",
+      "tests/integration/test_acceptance_205_b40d54.py",
+      "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/proof-exact-source.xml"
+    ],
+    "started_utc": "2026-11-09T16:00:44.101208+00:00",
+    "finished_utc": "2026-11-09T16:01:39.128207+00:00",
+    "exit_code": 0,
+    "source_change_scope": "Two new acceptance tests; no runtime changes. The independent priority repair is reused through existing PR992.",
+    "artifacts": {
+      "proof-exact-source-run.json": {
+        "sha256": "1a903f7d7d8a6bb96debd94d0391d5f133aadcaa71e2a1e1dc393dea189f0c07"
+      },
+      "proof-exact-source.log": {
+        "sha256": "3a332418e3afcf71678de17cb30b37ddd8c0e5d2de7df358e231be953e425045"
+      },
+      "proof-exact-source.xml": {
+        "sha256": "f4ba368c850564d8c6bf4d5b98a702001f442a8bd7245075071bc4aa804dbe26"
+      }
+    }
+  },
+  "independent_review": {
+    "schema_version": 1,
+    "requirement_id": "MJ-REQ-205",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/206",
+    "reviewer": "/root/acceptance_unrun_audit",
+    "independence": "Reviewer authored the separate MJ-REQ-118 repair but did not author the MJ-REQ-205 acceptance tests, original API implementation or initial evidence proposal.",
+    "reviewed_commit": "2276cd3ef1eb62a52658217f5e2728b2d40b3047",
+    "reviewed_utc": "2026-11-09T15:58:26.378051+00:00",
+    "decision": "ACCEPT_FULL_API_DESIGN_CRITERION",
+    "canonical_promotion_authorized_by_this_record": false,
+    "interpretation": {
+      "live_issue_checked": true,
+      "live_issue_updated_at": "2026-10-11T03:58:09Z",
+      "normative_text": "Expose intention-oriented APIs.",
+      "examples_are_illustrative": true,
+      "exact_routes_may_differ": true,
+      "reason": "The actual public APIs express user goals through typed commands and query models, provide durable operation or application identities, validate context and return explicit refusal or terminal readback. Every illustrative intent has a demonstrated equivalent, with the company-source and controlled-resume boundaries stated below. This API-design requirement does not itself require that all broader feature integrations or application adapters be fully accepted."
+    },
+    "intent_mapping_review": [
+      {
+        "intent": "List/read jobs",
+        "routes": [
+          "GET /jobs",
+          "GET /jobs/{job_id}"
+        ],
+        "assessment": "Mounted API journey obtains actual fixture-discovered jobs and consistent detail."
+      },
+      {
+        "intent": "Save job",
+        "routes": [
+          "PUT /profiles/{profile_id}/jobs/{job_id}/tracking/disposition"
+        ],
+        "assessment": "Explicit SAVED command and profile-scoped persisted readback after reopen."
+      },
+      {
+        "intent": "Generate resume/prepare application",
+        "routes": [
+          "POST /applications",
+          "GET /profiles/{profile_id}/applications/{application_id}/documents",
+          "GET /profiles/{profile_id}/documents/{document_id}/txt"
+        ],
+        "assessment": "Real PREPARE worker operation generates a validated resume whose bytes remain readable after reopen; preparation combines the illustrated goals."
+      },
+      {
+        "intent": "Read company data",
+        "routes": [
+          "GET /company-sources",
+          "GET /company-sources/view"
+        ],
+        "assessment": "Persisted company/source identities, names and data are read and survive reopen. This is a company-source read model, not a universal inventory of every company identity."
+      },
+      {
+        "intent": "Discover/rediscover company",
+        "routes": [
+          "POST /companies/discovery"
+        ],
+        "assessment": "Explicit distinct request identities and USER_ADDED_COMPANY/KNOWN_SOURCE_BROKEN intent produce real fixture discovery operations; subsequent operation and canonical identities are retained."
+      },
+      {
+        "intent": "List/read applications",
+        "routes": [
+          "GET /applications",
+          "GET /profiles/{profile_id}/applications/{application_id}"
+        ],
+        "assessment": "Prepared application is listed and readable only under the selected profile in the exercised routes; foreign-profile read returns404."
+      },
+      {
+        "intent": "Resume application",
+        "routes": [
+          "POST /profiles/{profile_id}/applications/{application_id}/answer-review-resumes"
+        ],
+        "assessment": "Typed, exact-bound reviewed-answer intent is admitted and returns fenced immutable completion through real worker orchestration. apply_mock is deliberately mocked in this API-contract test. The route is FIXTURE-only and refuses PERSONAL execution; no actual browser or external ATS resumption is claimed."
+      },
+      {
+        "intent": "Retry failed application work",
+        "routes": [
+          "POST /operations/{operation_id}/retry"
+        ],
+        "assessment": "Explicit retry retains the admitted dry-run operation identity, increments retry count and remains queued without opening a browser or enabling submission. SUBMISSION_UNCONFIRMED is denied with409 RECONCILIATION_REQUIRED."
+      },
+      {
+        "intent": "List/run sources",
+        "routes": [
+          "GET /sources",
+          "POST /sources/{source_id}/collect"
+        ],
+        "assessment": "PERSONAL source intent is durably and idempotently admitted and survives reopen. No external collector executes in the new acceptance journey. Existing API/worker fixture proof separately covers dispatch."
+      },
+      {
+        "intent": "Read operation progress",
+        "routes": [
+          "GET /operations/{operation_id}"
+        ],
+        "assessment": "QUEUED and COMPLETED results are queried through public API, including after store reopen."
+      }
+    ],
+    "independent_execution": {
+      "tested_sha": "2276cd3ef1eb62a52658217f5e2728b2d40b3047",
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_acceptance_205_b40d54.py",
+        "tests/integration/test_application_answer_resume_api.py",
+        "tests/integration/test_dead_letter_queue.py::DeadLetterQueueTests::test_ambiguous_application_submission_cannot_be_retried",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/mjreq205-independent-junit.xml"
+      ],
+      "cwd": "/workspace/scratch/11cf817acfbe/mjobs-acceptance-b40d54",
+      "started_utc": "2026-11-09T15:56:44.768696+00:00",
+      "finished_utc": "2026-11-09T15:57:03.028151+00:00",
+      "elapsed_seconds": 18.259,
+      "exit_code": 0,
+      "log": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq205-independent.log",
+      "junit": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq205-independent-junit.xml",
+      "result": "PASS",
+      "passed": 11,
+      "subtests_passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "pytest_seconds": 12.9
+    },
+    "reviewed_parent_execution": {
+      "tested_sha": "6847163ecf87ab606f7be40b7dbee269f34ee6db",
+      "exit_code": 0,
+      "counts": {
+        "passed": 197,
+        "subtests_passed": 206,
+        "failed": 0,
+        "skipped": 0
+      },
+      "log": "cohort-exact-source.log",
+      "junit": "cohort-exact-source.xml",
+      "revision_delta": "git diff 6847163e..2276cd3e changes only import order in test_acceptance_108_b40d54.py;205 source/test blobs are identical."
+    },
+    "findings": [
+      {
+        "severity": "LOW",
+        "kind": "EVIDENCE_METADATA_CORRECTION",
+        "path": "docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+        "field": "source.revision_qualification",
+        "description": "The initial evidence incorrectly labels the concurrent application-priority change MJ-REQ-146; it is MJ-REQ-118. Correct before final publication.",
+        "functional_blocker": false
+      }
+    ],
+    "publication_requirements": [
+      "Bind final evidence to committed source2276cd3e or a proved identical successor and include the executed parent/independent checks.",
+      "Replace obsolete committed-rerun-pending and independent-review-pending labels in the proposal with actual receipts.",
+      "Retain explicit company-source, fixture resume, queued retry and synthetic source execution qualifications.",
+      "Protected hosted checks and serialized canonical integration remain separate gates."
+    ],
+    "nonclaims": [
+      "No blanket acceptance of company discovery, every-company inventory, real ATS resumption, external source integrations or generic authentication/authorization.",
+      "No real external job application, browser launch, live provider operation, deployment or canonical matrix change occurred during this independent review."
+    ],
+    "reviewed_git_blobs": {
+      "tests/integration/test_acceptance_205_b40d54.py": "0ffcb859a55c614c4f92f3af47d4f609237804b8",
+      "apps/api/main.py": "c172440c68bca5884f1dfd183315a429771f617d",
+      "apps/api/application_answer_resume.py": "7a0d79cc8c4d1bb96edf3e39bb1f1de42db1ae85",
+      "services/applications/answer_resume.py": "116e0236fd59c48975d54a517c249a17960d65b2",
+      "services/applications/run_requests.py": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+      "workers/operations.py": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "workers/tasks.py": "347951cd467220a9c228c43a41b644c9212c8326",
+      "services/company_discovery/triggers.py": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+      "services/company_discovery/sources.py": "edfdf177d95dfbcb06ea1e879243ed32dc0594d5",
+      "tests/integration/test_application_answer_resume_api.py": "c660408277faeef95beb9c7abdc1dfd46f1abf63",
+      "tests/integration/test_dead_letter_queue.py": "890e6e9e4769afb8213bf10a64b4867f96a4cf67"
+    },
+    "receipt_hashes": {
+      "mjreq205-independent.log": "9c243df2cac7846d6e9ccd9fd297bedc3a5b3a84fbb3b9aeaeae6262f2d1b1af",
+      "mjreq205-independent-junit.xml": "12bfd797367bb6441764798ffe5e5e0c5f6d01e7b8aeeac5b7a87bba09ab1976",
+      "mjreq205-independent-run.json": "3503e637c4c64aa553d17ccb0fa786851ab0dfafa0bbb00b832136112165bfcb",
+      "cohort-exact-source.log": "2fc83cc08686b29f38dc6b1faeb55050b1eff4adb1826ede6a64afc2d0909f3f",
+      "cohort-exact-source.xml": "f81c6edbad34fc4eaf49034275b6b9f89379ebb04019d2b07cf68fc9531e26f0",
+      "cohort-exact-source-run.json": "fb90cc72d61ce48f465e113a1676b2978aaf4424967c2cdf408495fae6a78942"
+    }
+  },
+  "review_reconciliation": {
+    "final_source_commit": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+    "reviewed_test_blobs_unchanged": true,
+    "runtime_delta_from_protected_main": [],
+    "note": "Independent review was on the same acceptance-test blobs. After removing the duplicated private priority repair, the complete108/205set was rerun successfully on this clean-main-based exact source commit."
+  },
+  "canonical_acceptance_changed": false,
+  "publication_gate": {
+    "required_checks": "PENDING",
+    "integration_owner": "web-20261109T132018Z-0d9f5a0511ab",
+    "canonical_promotion": "NOT_APPLIED"
+  },
+  "historical_worktree_observation": {
+    "base_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "base_tree": "35447039890f0d5785bdc48a967cd7fb13a9c8cd",
+    "worktree": "/workspace/scratch/11cf817acfbe/mjobs-acceptance-b40d54",
+    "branch": "web/web-20261109T154515Z-b40d54070a01/original-acceptance",
+    "tracked_diff_paths": [
+      "services/discovery/application_priority.py",
+      "tests/integration/test_application_priority_api.py",
+      "tests/unit/test_application_priority.py"
+    ],
+    "captured_tracked_diff_sha256": "11b0a6ebb186c28654d388196828cd73049c561bea0c04169b0115db743bfd43",
+    "revision_qualification": "Initial bootstrap identified f3db88aa with only the unrelated untracked MJ-REQ-108 acceptance test. The root concurrently edited MJ-REQ-118 application-priority source/tests in this shared worktree during the acceptance campaign. Current content hashes are captured; this receipt does not claim every earlier run executed a pristine base tree. A final rerun on the committed cohort is required before publication/promotion.",
+    "files": {
+      "apps/api/main.py": {
+        "head_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "tested_worktree_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8"
+      },
+      "apps/api/application_answer_resume.py": {
+        "head_blob": "7a0d79cc8c4d1bb96edf3e39bb1f1de42db1ae85",
+        "tested_worktree_blob": "7a0d79cc8c4d1bb96edf3e39bb1f1de42db1ae85",
+        "sha256": "d394ef97f4dedb00d86e84ea3f1a6537b112f876b7847225416ed81af1666653"
+      },
+      "packages/persistence/store.py": {
+        "head_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "tested_worktree_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+      },
+      "packages/persistence/models.py": {
+        "head_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+        "tested_worktree_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+        "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+      },
+      "services/company_discovery/triggers.py": {
+        "head_blob": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+        "tested_worktree_blob": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+        "sha256": "cd5d1c69dab59d785035893df4a178564c09b7d9f20b66e9c28fca1ecf3e10e2"
+      },
+      "services/company_discovery/sources.py": {
+        "head_blob": "edfdf177d95dfbcb06ea1e879243ed32dc0594d5",
+        "tested_worktree_blob": "edfdf177d95dfbcb06ea1e879243ed32dc0594d5",
+        "sha256": "69c1d62836ec5d3bfc6ef67061751f77713858dad40d832d9292770bd25a80c5"
+      },
+      "services/discovery/pipeline.py": {
+        "head_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "tested_worktree_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f"
+      },
+      "services/discovery/application_priority.py": {
+        "head_blob": "b6e4c8e13186245cb8b4a2e4e51246a080f92444",
+        "tested_worktree_blob": "9b5e5c78609d51f790c1ffbf048d9f481c796d59",
+        "sha256": "80987051c57728bf2569e2b9189c82c9b2d23297c4801c3067fba3d30152c48f"
+      },
+      "services/documents/generate.py": {
+        "head_blob": "f2245628b5574b1bf29621ca84da07212e27f503",
+        "tested_worktree_blob": "f2245628b5574b1bf29621ca84da07212e27f503",
+        "sha256": "a85bd87a27f18ee4c28379d4d3d2013d8ee03c9199285f58603e5cf4b8bce03a"
+      },
+      "services/documents/history.py": {
+        "head_blob": "fb19fbd3bf8a8f20a478252c15cd9e764592e027",
+        "tested_worktree_blob": "fb19fbd3bf8a8f20a478252c15cd9e764592e027",
+        "sha256": "ce13943685cd476dedbc9a30dc2f9667c50da723df3b35546a56b5281ee595f3"
+      },
+      "services/tracking/jobs.py": {
+        "head_blob": "8752ea3165a63887b175079a4214e08c5ddca0dc",
+        "tested_worktree_blob": "8752ea3165a63887b175079a4214e08c5ddca0dc",
+        "sha256": "57e8f8432d767c922ed20a1db1578a32820eba6cd0975dc7f199290f7315cc32"
+      },
+      "services/tracking/applications.py": {
+        "head_blob": "5774b931470aa57abd092d35dba9d69d85c24e4b",
+        "tested_worktree_blob": "5774b931470aa57abd092d35dba9d69d85c24e4b",
+        "sha256": "d761247c539560831e61f6bcb464a23a51ec61ff0fa68db2cf3b66c2360eedde"
+      },
+      "services/applications/answer_resume.py": {
+        "head_blob": "116e0236fd59c48975d54a517c249a17960d65b2",
+        "tested_worktree_blob": "116e0236fd59c48975d54a517c249a17960d65b2",
+        "sha256": "04e5a6b0edb2c33feeea6147fb888ca9ce7ce45b662ac15e52a28b7e65ec6c4d"
+      },
+      "services/applications/run_requests.py": {
+        "head_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+        "tested_worktree_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+        "sha256": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3"
+      },
+      "workers/dispatch.py": {
+        "head_blob": "658f94620a8487f0253189ec75d10795b7182d17",
+        "tested_worktree_blob": "658f94620a8487f0253189ec75d10795b7182d17",
+        "sha256": "e9d425f4a03bc459e5f58c889545d9c949938b148c30ffb2d37513cfc5c47371"
+      },
+      "workers/operations.py": {
+        "head_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "tested_worktree_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "workers/tasks.py": {
+        "head_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "tested_worktree_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+      },
+      "fixtures/mock_server.py": {
+        "head_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "tested_worktree_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7"
+      },
+      "tests/integration/test_acceptance_205_b40d54.py": {
+        "head_blob": null,
+        "tested_worktree_blob": "0ffcb859a55c614c4f92f3af47d4f609237804b8",
+        "sha256": "9b6f637b254fe576bc333308c06221575b59a2d6d4b13682badc00aa5f933fb3",
+        "executed_before_import_sort_sha256": "f4793a54efea792a3d1d1e43afe163a60573e7ff1f9240595625f3838ac8513e",
+        "post_execution_change": "Ruff I001 import ordering only; committed-cohort rerun remains required."
+      },
+      "tests/integration/test_api_queue.py": {
+        "head_blob": "b09e69c2014af038fd0ab2def386c911c6dc81a3",
+        "tested_worktree_blob": "b09e69c2014af038fd0ab2def386c911c6dc81a3",
+        "sha256": "a209760efeb9f183ce9a968d652467ee7b3e5157e5944bf90dae77580b04ac6f"
+      },
+      "tests/integration/test_application_answer_resume_api.py": {
+        "head_blob": "c660408277faeef95beb9c7abdc1dfd46f1abf63",
+        "tested_worktree_blob": "c660408277faeef95beb9c7abdc1dfd46f1abf63",
+        "sha256": "53a0be2b881d5a77102c621e27b22e4c2e33a1d3edded223240388cd87a20bea"
+      },
+      "tests/integration/test_application_run_requests.py": {
+        "head_blob": "a3dc65bc75557afeddee02aebbd52c6b2221c236",
+        "tested_worktree_blob": "a3dc65bc75557afeddee02aebbd52c6b2221c236",
+        "sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef"
+      },
+      "tests/integration/test_company_discovery_idempotency.py": {
+        "head_blob": "1c4336f82991c9084b083cc97f1243007f6b4de9",
+        "tested_worktree_blob": "1c4336f82991c9084b083cc97f1243007f6b4de9",
+        "sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca"
+      },
+      "tests/integration/test_company_source_view.py": {
+        "head_blob": "c2bfef356e0d2af018ec72d4d23f88b88117d295",
+        "tested_worktree_blob": "c2bfef356e0d2af018ec72d4d23f88b88117d295",
+        "sha256": "fd44c50fbda8fe8ced63a8daf670364e56fb79392f88b038eda7dd9f741c7ca3"
+      },
+      "tests/integration/test_company_sources.py": {
+        "head_blob": "d4a1203de00449cfc4e438f17e173a5f1bd53df2",
+        "tested_worktree_blob": "d4a1203de00449cfc4e438f17e173a5f1bd53df2",
+        "sha256": "dc776a3a57c6c675024a2f73a9855e88f2e4ccaa9306345b7af65466bebeb19d"
+      },
+      "tests/integration/test_dead_letter_queue.py": {
+        "head_blob": "890e6e9e4769afb8213bf10a64b4867f96a4cf67",
+        "tested_worktree_blob": "890e6e9e4769afb8213bf10a64b4867f96a4cf67",
+        "sha256": "73a270c25e8be5ebeb1ce6d02252ead33cb3f3c7dea7aff8f750f8f8ea834e14"
+      },
+      "tests/integration/test_job_tracking.py": {
+        "head_blob": "28ad9c9232222efb22a5ca1b9557f21eed73466b",
+        "tested_worktree_blob": "28ad9c9232222efb22a5ca1b9557f21eed73466b",
+        "sha256": "c631c5b638ff1920c44a92c6e03b0dc26dea9e9c0275cef53cdc81c5cef49c0f"
+      },
+      "tests/integration/test_source_enrollment_api.py": {
+        "head_blob": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+        "tested_worktree_blob": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+        "sha256": "dcfcb2710b39cbd5f6c2e51825981d820cb23cb093b47912c13126bceaf6c268"
+      }
+    }
+  },
+  "source": {
+    "base_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "source_commit": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+    "source_tree": "749c9162ee0d099de0b371e8a55e6a75feb09781",
+    "changed_paths": [
+      "tests/integration/test_acceptance_108_b40d54.py",
+      "tests/integration/test_acceptance_205_b40d54.py"
+    ],
+    "runtime_changes": [],
+    "files": {
+      "apps/api/main.py": {
+        "git_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8"
+      },
+      "apps/api/application_answer_resume.py": {
+        "git_blob": "7a0d79cc8c4d1bb96edf3e39bb1f1de42db1ae85",
+        "sha256": "d394ef97f4dedb00d86e84ea3f1a6537b112f876b7847225416ed81af1666653"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+      },
+      "packages/persistence/models.py": {
+        "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+        "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+      },
+      "services/company_discovery/triggers.py": {
+        "git_blob": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+        "sha256": "cd5d1c69dab59d785035893df4a178564c09b7d9f20b66e9c28fca1ecf3e10e2"
+      },
+      "services/company_discovery/sources.py": {
+        "git_blob": "edfdf177d95dfbcb06ea1e879243ed32dc0594d5",
+        "sha256": "69c1d62836ec5d3bfc6ef67061751f77713858dad40d832d9292770bd25a80c5"
+      },
+      "services/discovery/pipeline.py": {
+        "git_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f"
+      },
+      "services/discovery/application_priority.py": {
+        "git_blob": "b6e4c8e13186245cb8b4a2e4e51246a080f92444",
+        "sha256": "beb21b89ac32afc3b516acb5f0cc9f802a994aca4e5b4adcb457f165f7399bae"
+      },
+      "services/documents/generate.py": {
+        "git_blob": "f2245628b5574b1bf29621ca84da07212e27f503",
+        "sha256": "a85bd87a27f18ee4c28379d4d3d2013d8ee03c9199285f58603e5cf4b8bce03a"
+      },
+      "services/documents/history.py": {
+        "git_blob": "fb19fbd3bf8a8f20a478252c15cd9e764592e027",
+        "sha256": "ce13943685cd476dedbc9a30dc2f9667c50da723df3b35546a56b5281ee595f3"
+      },
+      "services/tracking/jobs.py": {
+        "git_blob": "8752ea3165a63887b175079a4214e08c5ddca0dc",
+        "sha256": "57e8f8432d767c922ed20a1db1578a32820eba6cd0975dc7f199290f7315cc32"
+      },
+      "services/tracking/applications.py": {
+        "git_blob": "5774b931470aa57abd092d35dba9d69d85c24e4b",
+        "sha256": "d761247c539560831e61f6bcb464a23a51ec61ff0fa68db2cf3b66c2360eedde"
+      },
+      "services/applications/answer_resume.py": {
+        "git_blob": "116e0236fd59c48975d54a517c249a17960d65b2",
+        "sha256": "04e5a6b0edb2c33feeea6147fb888ca9ce7ce45b662ac15e52a28b7e65ec6c4d"
+      },
+      "services/applications/run_requests.py": {
+        "git_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+        "sha256": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3"
+      },
+      "workers/dispatch.py": {
+        "git_blob": "658f94620a8487f0253189ec75d10795b7182d17",
+        "sha256": "e9d425f4a03bc459e5f58c889545d9c949938b148c30ffb2d37513cfc5c47371"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "workers/tasks.py": {
+        "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+      },
+      "fixtures/mock_server.py": {
+        "git_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7"
+      },
+      "tests/integration/test_acceptance_205_b40d54.py": {
+        "git_blob": "0ffcb859a55c614c4f92f3af47d4f609237804b8",
+        "sha256": "9b6f637b254fe576bc333308c06221575b59a2d6d4b13682badc00aa5f933fb3"
+      },
+      "tests/integration/test_api_queue.py": {
+        "git_blob": "b09e69c2014af038fd0ab2def386c911c6dc81a3",
+        "sha256": "a209760efeb9f183ce9a968d652467ee7b3e5157e5944bf90dae77580b04ac6f"
+      },
+      "tests/integration/test_application_answer_resume_api.py": {
+        "git_blob": "c660408277faeef95beb9c7abdc1dfd46f1abf63",
+        "sha256": "53a0be2b881d5a77102c621e27b22e4c2e33a1d3edded223240388cd87a20bea"
+      },
+      "tests/integration/test_application_run_requests.py": {
+        "git_blob": "a3dc65bc75557afeddee02aebbd52c6b2221c236",
+        "sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef"
+      },
+      "tests/integration/test_company_discovery_idempotency.py": {
+        "git_blob": "1c4336f82991c9084b083cc97f1243007f6b4de9",
+        "sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca"
+      },
+      "tests/integration/test_company_source_view.py": {
+        "git_blob": "c2bfef356e0d2af018ec72d4d23f88b88117d295",
+        "sha256": "fd44c50fbda8fe8ced63a8daf670364e56fb79392f88b038eda7dd9f741c7ca3"
+      },
+      "tests/integration/test_company_sources.py": {
+        "git_blob": "d4a1203de00449cfc4e438f17e173a5f1bd53df2",
+        "sha256": "dc776a3a57c6c675024a2f73a9855e88f2e4ccaa9306345b7af65466bebeb19d"
+      },
+      "tests/integration/test_dead_letter_queue.py": {
+        "git_blob": "890e6e9e4769afb8213bf10a64b4867f96a4cf67",
+        "sha256": "73a270c25e8be5ebeb1ce6d02252ead33cb3f3c7dea7aff8f750f8f8ea834e14"
+      },
+      "tests/integration/test_job_tracking.py": {
+        "git_blob": "28ad9c9232222efb22a5ca1b9557f21eed73466b",
+        "sha256": "c631c5b638ff1920c44a92c6e03b0dc26dea9e9c0275cef53cdc81c5cef49c0f"
+      },
+      "tests/integration/test_source_enrollment_api.py": {
+        "git_blob": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+        "sha256": "dcfcb2710b39cbd5f6c2e51825981d820cb23cb093b47912c13126bceaf6c268"
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-108-acceptance-b40d54",
+  "objective": "Full original108provider abstraction acceptance with persisted selections through real loopback production consumers",
+  "owner": "web-20261109T154515Z-b40d54070a01",
+  "branch": "web/web-20261109T154515Z-b40d54070a01/original-acceptance-proofs",
+  "head_sha": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+  "routing_state": "INTEGRATE",
+  "next_action": "Protected integration; canonical owner reviews docs/evidence/2026-11-09-mjreq108-acceptance-b40d54.json for PASS promotion",
+  "created_at": "2026-11-09T16:04:36.427275+00:00",
+  "requirements": [
+    "MJ-REQ-108-acceptance-b40d54"
+  ],
+  "tests": [
+    {
+      "command": "Exact d67d61ca: combined108/205150tests195subtestsPASS,0skip; independent108reviewACCEPT",
+      "result": "PASS"
+    },
+    {
+      "command": "Final hosted checks; production paid inference and browser availability are not claimed",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
