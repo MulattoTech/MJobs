@@ -212,10 +212,28 @@ def _join_postings(job: dict, observation: dict, provider: str) -> list[dict]:
                      and raw.get("company_name") == job.get("company"),
                      "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
         else:
-            _require(str(posting.get("source_job_id")) == str(observation.get("native_posting_id")),
+            from packages.persistence.store import identity
+            from services.discovery.sources.wwr import WeWorkRemotely, SourceError
+
+            # Aggregator storage IDs are company-namespaced; native feed IDs are not.
+            # Reuse the real adapter's normalization and official-origin admission.
+            try:
+                normalized = WeWorkRemotely().normalize(raw)
+            except (SourceError, ValueError, TypeError):
+                raise ValueError("PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH") from None
+            native_id = normalized["requisition"]
+            company_id, source_id = job.get("company_id"), observation.get("source_id")
+            _require(provider == "wwr" and observation.get("source_endpoint") == _ENDPOINTS["wwr"]
+                     and isinstance(company_id, str) and re.fullmatch(r"[a-f0-9]{64}", company_id)
+                     and isinstance(source_id, str) and re.fullmatch(r"[a-f0-9]{64}", source_id)
+                     and normalized["application_url"]
+                     and native_id == observation.get("native_posting_id") == job.get("requisition")
+                     and normalized["title"] == job.get("title")
+                     and normalized["attributes"]["company_name"] == job.get("company"),
                      "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
-            _require(isinstance(raw.get("title"), str) and job.get("title") in raw["title"]
-                     and job.get("company") in raw["title"],
+            storage_id = identity(company_id, native_id)
+            _require(posting.get("source_job_id") == storage_id
+                     and posting.get("id") == identity(source_id, storage_id),
                      "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
         joined.append(posting)
     _require(joined, "PUBLIC_BROWSER_POSTING_SNAPSHOT_MISMATCH")

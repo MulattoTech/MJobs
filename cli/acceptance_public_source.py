@@ -31,6 +31,9 @@ FINGERPRINT_FIELDS = ('id', *POLICY_FIELDS, 'strategy', 'capabilities')
 TERMINAL = {'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED', 'DEAD_LETTERED', 'DISCARDED'}
 CHECK = 'same_profile_public_readonly_jobs_observed'
 API_TIMEOUT_SECONDS = 15
+# The listing-first reciprocal proof needs one source interval plus six seconds
+# inside its unchanged 30-second budget. Only newly owned primaries use this cap.
+PRIMARY_SOURCE_RATE_LIMIT = 5
 LEASE_CONTINUITY_MAX_CHECKS = 128
 LEASE_CONTINUITY_MAX_RECORDS = 16
 SAFE_CONTAINMENT_ERROR_CODES = frozenset({
@@ -638,7 +641,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             if source is None:
                 _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
                 policy = dict(provider=provider, tenant='default', enabled=True, poll_interval=604800,
-                    concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
+                    concurrency=1, request_timeout=10, rate_limit=PRIMARY_SOURCE_RATE_LIMIT, jitter_seconds=0)
                 from services.discovery.sources.registry import source_adapter
                 capabilities = source_adapter(policy).capabilities()
                 contained('enable')

@@ -455,17 +455,20 @@ def test_v2_employer_first_reciprocity_failure_never_falls_back_to_listing(failu
     assert values[3]['rate_limit'] == 1
 
 
-def test_v2_compatible_listing_keeps_source_lane_and_shared_native_employer_lane():
+@pytest.mark.parametrize("source_rate", [5, 15])
+def test_v2_compatible_listing_keeps_source_lane_and_shared_native_employer_lane(source_rate):
     values, policy = v2_inputs('<p>No direct link.</p>')
-    values[3]['rate_limit'] = 15
+    values[3]['rate_limit'] = source_rate
     responses, trace = pages(), {}
     responses[LISTING] = httpx.Response(200, text=f'<a href="{BOARD}">Apply</a>', request=httpx.Request('GET', LISTING))
     proof = resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
                                        pending_sha256='c' * 64, trace=trace)
+    assert proof['budget']['timeout_seconds'] == 30
+    assert trace['requests'][-1][1] - trace['requests'][0][1] < 30
     assert proof['version'] == 2 and len(proof['origin_policies']) == 3
     source_stamps = [stamp for url, stamp in trace['requests'] if 'weworkremotely.com' in url]
     verification_stamps = [stamp for url, stamp in trace['requests'] if 'weworkremotely.com' not in url]
-    assert len(source_stamps) == 2 and source_stamps[1] - source_stamps[0] >= 4 - 1e-9
+    assert len(source_stamps) == 2 and source_stamps[1] - source_stamps[0] >= 60 / source_rate - 1e-9
     assert len(verification_stamps) == 4
     assert all(b - a >= 2 - 1e-9 for a, b in zip(verification_stamps, verification_stamps[1:]))
     assert proof['source_policy_sha256'] == subject.canonical_digest(values[3])
@@ -607,3 +610,19 @@ def test_disabled_preference_preserves_the_exact_v1_receipt_shape_and_digest():
     disabled = resolve(values)[0]
     assert disabled == old and disabled['version'] == 1
     assert not {'pending_sha256', 'verification_policy_sha256', 'origin_policies'} & set(disabled)
+
+
+def test_v2_five_per_minute_listing_still_refuses_consumed_authorization_window():
+    values, policy = v2_inputs('<p>No direct link.</p>')
+    values[3]['rate_limit'] = 5
+    clock, trace = _RateClock(), {}
+    checks = 0
+    def check():
+        nonlocal checks
+        checks += 1
+        if checks == 1:
+            clock.sleep(13)
+    with pytest.raises(subject.BootstrapRateBudgetIncompatible):
+        resolve_with_real_rate_gate(values, clock=clock, check=check, trace=trace,
+                                   verification_policy=policy, pending_sha256='c' * 64)
+    assert trace == {'clients': [], 'requests': []}

@@ -651,7 +651,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "poll_interval": 604800,
                 "concurrency": 1,
                 "request_timeout": 10,
-                "rate_limit": 1,
+                "rate_limit": 5,
                 "jitter_seconds": 0,
                 "strategy": "FEED",
                 "capabilities": {"direct_application": False},
@@ -678,7 +678,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "poll_interval": 604800,
                 "concurrency": 1,
                 "request_timeout": 10,
-                "rate_limit": 1,
+                "rate_limit": 5,
                 "jitter_seconds": 0,
                 "strategy": "FEED",
                 "capabilities": {"direct_application": False},
@@ -1089,7 +1089,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             "poll_interval": 604800,
             "concurrency": 1,
             "request_timeout": 10,
-            "rate_limit": 1,
+            "rate_limit": 5,
             "jitter_seconds": 0,
         }
         containment.request("PUT", "/sources", json=policy)
@@ -1206,7 +1206,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "poll_interval": 604800,
                 "concurrency": 1,
                 "request_timeout": 10,
-                "rate_limit": 1,
+                "rate_limit": 5,
                 "jitter_seconds": 0,
             },
         )
@@ -1294,7 +1294,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "poll_interval": 604800,
                 "concurrency": 1,
                 "request_timeout": 10,
-                "rate_limit": 1,
+                "rate_limit": 5,
                 "jitter_seconds": 0,
             },
         )
@@ -1313,7 +1313,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                     "poll_interval": 604800,
                     "concurrency": 1,
                     "request_timeout": 10,
-                    "rate_limit": 1,
+                    "rate_limit": 5,
                     "jitter_seconds": 0,
                 },
             )

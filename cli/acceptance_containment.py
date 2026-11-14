@@ -21,7 +21,7 @@ from urllib.parse import quote, unquote, urlsplit
 
 import httpx
 
-from cli.acceptance_public_source import ENDPOINTS, FINGERPRINT_FIELDS, POLICY_FIELDS
+from cli.acceptance_public_source import ENDPOINTS, FINGERPRINT_FIELDS, POLICY_FIELDS, PRIMARY_SOURCE_RATE_LIMIT
 
 API_TIMEOUT_SECONDS = 15
 # The scheduler supports intervals up to 300 seconds. Allow one full interval
@@ -640,7 +640,7 @@ class OwnedPublicContainment:
                         "poll_interval": 604800,
                         "concurrency": 1,
                         "request_timeout": 10,
-                        "rate_limit": 1,
+                        "rate_limit": PRIMARY_SOURCE_RATE_LIMIT,
                         "jitter_seconds": 0,
                     },
                     "SOURCE_ENABLE_SCOPE_INVALID",
@@ -1221,7 +1221,7 @@ class OwnedPublicContainment:
                     "poll_interval": 604800,
                     "concurrency": 1,
                     "request_timeout": 10,
-                    "rate_limit": 1,
+                    "rate_limit": PRIMARY_SOURCE_RATE_LIMIT,
                     "jitter_seconds": 0,
                 }
                 _require(

@@ -206,6 +206,9 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(len(result['source_record_sha256']), 64)
         self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
         self.assertEqual(result['cleanup']['status'], 'RESTORED_DISABLED')
+        self.assertEqual(self.api.source['rate_limit'], 5)
+        self.assertEqual(self.api.source['concurrency'], 1)
+        self.assertEqual(self.api.source['request_timeout'], 10)
         self.assertFalse(self.api.source['enabled'])
         self.assertEqual(json.loads(self.path.read_text()), result)
         self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
@@ -226,6 +229,7 @@ class PublicSourceObservationTests(unittest.TestCase):
         child = self.child('COMPLETED')
         self.api.children = [child]
         source = self.api.configured()
+        source["rate_limit"] = 5  # The absent primary is created with this fixed policy.
         self.api.source = None
         proof = dict(company_id='company', request_id='child-request', request_revision=2,
             operation_id='child-operation', domain_id='domain', domain='acme.example',

@@ -192,3 +192,61 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WwrPersistenceBrowserJoinTests(unittest.TestCase):
+    def test_real_collection_api_and_browser_join_preserve_native_namespace(self):
+        from cli.acceptance_public_browser import _join_postings
+        from cli.acceptance_public_source import _public_jobs
+        from services.discovery.sources.collect import configure_source, collect_source
+        from tests.integration.test_wwr import RAW_WWR_RSS
+        with tempfile.TemporaryDirectory(prefix="mjobs-wwr-join-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'join.db').as_posix()}")
+            try:
+                store.migrate()
+                store.bind_workspace_mode("FIXTURE")
+                store.save_profile(copy.deepcopy(PROFILE))
+                source_id = configure_source(store, "default", provider="wwr")
+                seen = []
+                def wire(request):
+                    self.assertEqual(str(request.url), "https://weworkremotely.com/remote-jobs.rss")
+                    seen.append(str(request.url))
+                    return httpx.Response(200, content=RAW_WWR_RSS,
+                                          headers={"content-type": "application/rss+xml"})
+                collect_source(store, source_id, "fixture", transport=httpx.MockTransport(wire))
+                app = create_app(store, "http://127.0.0.1:1", root / "output",
+                                 redis_url="redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                with TestClient(app) as client:
+                    def request(method, path, **kwargs):
+                        response = client.request(method, path, **kwargs)
+                        self.assertEqual(response.status_code, 200)
+                        return response.json()
+                    source = next(r for r in request("GET", "/sources")["sources"] if r["id"] == source_id)
+                    version = request("GET", "/profiles/fixture")["version"]
+                    observations = _public_jobs(request, source,
+                        {"started_at": "2000-01-01T00:00:00+00:00"},
+                        {"job_id": "other-selected-fixture", "profile_version": version},
+                        "fixture", "https://weworkremotely.com/remote-jobs.rss")
+                    observation = observations[0]
+                    job = request("GET", "/jobs/" + observation["job_id"], params={"profile_id": "fixture"})
+                self.assertEqual(len(seen), 1)
+                joined = _join_postings(job, observation, "wwr")
+                self.assertTrue(joined)
+                self.assertNotEqual(joined[0]["source_job_id"], observation["native_posting_id"])
+                for change in ("native", "company", "source", "raw-storage-id", "random-storage-id", "posting-id", "origin", "snapshot"):
+                    with self.subTest(change=change):
+                        altered_job, altered_observation = copy.deepcopy(job), copy.deepcopy(observation)
+                        posting = altered_job["postings"][0]
+                        if change == "native": altered_observation["native_posting_id"] = "different-native"
+                        elif change == "company": altered_job["company_id"] = "a" * 64
+                        elif change == "source": altered_observation["source_id"] = "b" * 64
+                        elif change == "raw-storage-id": posting["source_job_id"] = observation["native_posting_id"]
+                        elif change == "random-storage-id": posting["source_job_id"] = "c" * 64
+                        elif change == "posting-id": posting["id"] = "d" * 64
+                        elif change == "origin": altered_observation["source_endpoint"] = "https://example.invalid/feed"
+                        else: posting["raw"]["guid"] = "https://example.invalid/remote-jobs/" + observation["native_posting_id"]
+                        with self.assertRaises(ValueError):
+                            _join_postings(altered_job, altered_observation, "wwr")
+            finally:
+                store.engine.dispose()
