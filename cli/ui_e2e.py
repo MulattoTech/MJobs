@@ -1071,6 +1071,25 @@ def validate_employer_verification_witness(artifact, requested, *, current_profi
             raise ValueError("Current employer-verification profile differs from the sealed UI baseline")
 
 
+def print_console_summary(evidence):
+    """Print only bounded status metadata; keep full evidence in its private artifact."""
+    result = evidence.get("result")
+    mode = evidence.get("mode")
+    summary = {
+        "event": "ui_complete",
+        "result": result if isinstance(result, str) and result in {
+            "PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"} else "UNKNOWN",
+        "mode": mode if isinstance(mode, str) and mode in {
+            "ONBOARDING_FIXTURE", "FICTIONAL_DEMO"} else "UNKNOWN",
+        "check_count": len(evidence.get("checks", []))
+        if isinstance(evidence.get("checks"), list) else 0,
+        "observation_count": len(evidence.get("acceptance_observations", []))
+        if isinstance(evidence.get("acceptance_observations"), list) else 0,
+        "artifact": "ui.json",
+    }
+    print(json.dumps(summary, sort_keys=True))
+
+
 def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         runtime_identity=None, employer_verification=False):
     if type(employer_verification) is not bool:
@@ -2950,7 +2969,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         evidence["employer_verification_opt_in"] = journal.binding["employer_verification_opt_in"]
         validate_employer_verification_witness({**journal.binding, **evidence}, True)
     journal.finish(evidence)
-    print(json.dumps(evidence, indent=2))
+    print_console_summary(evidence)
 
 
 if __name__ == "__main__":

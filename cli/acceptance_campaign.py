@@ -15,11 +15,40 @@ import os
 from pathlib import Path
 import re
 import subprocess
-import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_ID = re.compile(r"sha256:[a-f0-9]{64}\Z")
+CAMPAIGN_RESULTS = frozenset({"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"})
+SCOREBOARD_FIELDS = ("observed_PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED")
+
+
+def _campaign_status(value):
+    return value if isinstance(value, str) and value in CAMPAIGN_RESULTS else "UNKNOWN"
+
+
+def _launch_console_summary(plan, args):
+    """Project launch metadata to fixed, non-path console fields."""
+    return {
+        "source_setup": args.source_setup is True,
+        "monitoring": args.monitoring is True,
+        "public_source_provider": plan["public_source_provider"],
+        "source_commit": plan["source"]["commit"],
+        "source_tree": plan["source"]["tree"],
+        "image_id": plan["image_id"],
+        "startup_receipt_sha256": plan["startup_sha256"],
+        "build_receipt_sha256": plan["build_sha256"],
+    }
+
+
+def _scoreboard_console_summary(report):
+    source = report.get("scoreboard")
+    source = source if isinstance(source, dict) else {}
+    return {
+        field: value if type(value) is int and value >= 0 else 0
+        for field in SCOREBOARD_FIELDS
+        for value in (source.get(field, 0),)
+    }
 
 
 def build_parser():
@@ -276,28 +305,14 @@ def run_campaign(args, *, journey=None):
         from cli import acceptance_journey as journey
     plan = validate_plan(args, journey=journey)
     source_setup = _source_setup_support() if args.source_setup else None
-    launch = {
-        "command": [sys.executable, "-m", "cli.acceptance_campaign", *sys.argv[1:]],
-        "source_setup": args.source_setup,
-        "monitoring": args.monitoring,
-        "employer_verification": plan["employer_verification"],
-        "public_source_provider": plan["public_source_provider"],
-        "source_commit": plan["source"]["commit"],
-        "run_id": plan["run_id"], "image_id": plan["image_id"],
-        "startup_receipt": str(plan["startup_path"]),
-        "startup_receipt_sha256": plan["startup_sha256"],
-        "build_receipt": str(plan["build_path"]),
-        "build_receipt_sha256": plan["build_sha256"],
-    }
     if args.validate_only:
         print(json.dumps({
             "receipt_schema": "PASS", "live_runtime": "NOT_RUN", "ui": "NOT_RUN",
             "public_operations": "NOT_RUN", "source_commit": plan["source"]["commit"],
-            "source_tree": plan["source"]["tree"], "run_id": plan["run_id"],
-            "target": plan["target"], "image_id": plan["image_id"],
+            "source_tree": plan["source"]["tree"], "image_id": plan["image_id"],
             "startup_receipt_sha256": plan["startup_sha256"],
             "build_receipt_sha256": plan["build_sha256"],
-            "evidence": str(plan["evidence_dir"] / "journey.json"), "launch": launch,
+            "launch": _launch_console_summary(plan, args),
         }, sort_keys=True))
         return 0
 
@@ -308,7 +323,7 @@ def run_campaign(args, *, journey=None):
     os.environ["MJOBS_OPERATION_MODE"] = "FIXTURE"
     os.environ["MJOBS_COMPOSE_MOCK"] = "1"
     os.environ["MJOBS_IMAGE"] = plan["image_id"]
-    print(json.dumps({"launch": launch}, sort_keys=True), flush=True)
+    print(json.dumps({"launch": _launch_console_summary(plan, args)}, sort_keys=True), flush=True)
 
     preflight = _lazy_containment(plan, args, journey, source_setup)
     report = journey.run(
@@ -321,9 +336,8 @@ def run_campaign(args, *, journey=None):
         employer_verification=plan["employer_verification"],
     )
     print(json.dumps({
-        "result": report["result"], "run_id": report["run_id"],
-        "scoreboard": report.get("scoreboard"),
-        "evidence": str(plan["evidence_dir"] / "journey.json"),
+        "result": _campaign_status(report.get("result")),
+        "scoreboard": _scoreboard_console_summary(report),
     }, sort_keys=True))
     return 0 if report["result"] == "PASS" else 2
 

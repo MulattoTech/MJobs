@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -36,6 +37,8 @@ class FakeJourney:
         self.startup_validations = []
         self.report = None
         self.baseline = None
+        self.result = None
+        self.returned_report = None
 
     def _read_artifact(self, path):
         if Path(path).name == "journey.json" and self.report is not None:
@@ -70,7 +73,10 @@ class FakeJourney:
 
     def run(self, **kwargs):
         self.run_calls.append(kwargs)
-        return {"result": "PARTIAL", "run_id": kwargs["run_id"], "scoreboard": {}}
+        self.returned_report = self.result or {
+            "result": "PARTIAL", "run_id": kwargs["run_id"], "scoreboard": {},
+        }
+        return self.returned_report
 
 
 def _receipt_files(tmp_path, *, startup_source=None, app=None):
@@ -181,10 +187,42 @@ def test_validate_only_checks_receipts_without_runtime_or_journey_calls(tmp_path
     output = json.loads(capsys.readouterr().out)
     assert output["receipt_schema"] == "PASS"
     assert output["live_runtime"] == output["ui"] == output["public_operations"] == "NOT_RUN"
-    assert output["run_id"] == "run-1"
+    assert "run_id" not in output
+    assert output["launch"]["public_source_provider"] == "wwr"
     assert journey.startup_validations
     assert journey.run_calls == []
     assert source_setup_checks == ["validated"]
+
+
+def test_validate_only_stdout_omits_arguments_paths_and_unknown_receipt_data(
+        tmp_path, monkeypatch, capsys):
+    startup, build, startup_path, build_path = _receipt_files(tmp_path)
+    startup_path = startup_path.rename(startup_path.with_name("startup-PRIVATE-PATH-SENTINEL.json"))
+    build_path = build_path.rename(build_path.with_name("build-PRIVATE-PATH-SENTINEL.json"))
+    startup["unknown_private_field"] = {"nested": "PRIVATE-RECEIPT-SENTINEL"}
+    startup_path.write_text(json.dumps(startup), encoding="utf-8")
+    journey = FakeJourney(startup, build)
+    monkeypatch.setattr(campaign, "ROOT", tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(campaign.subprocess, "run", lambda *a, **kw: SimpleNamespace(stdout=b"Dockerfile"))
+    monkeypatch.setattr(sys, "argv", ["PRIVATE-ARGV-SENTINEL"])
+    args = _args(tmp_path / "outputs" / "PRIVATE-EVIDENCE-PATH-SENTINEL",
+                 startup_path, build_path, "--validate-only", "--employer-verification")
+
+    assert campaign.run_campaign(args, journey=journey) == 0
+
+    rendered = capsys.readouterr().out
+    for sentinel in ("PRIVATE-ARGV-SENTINEL", "PRIVATE-PATH-SENTINEL",
+                     "PRIVATE-EVIDENCE-PATH-SENTINEL", "PRIVATE-RECEIPT-SENTINEL"):
+        assert sentinel not in rendered
+    output = json.loads(rendered)
+    assert output["receipt_schema"] == "PASS"
+    assert output["live_runtime"] == output["ui"] == output["public_operations"] == "NOT_RUN"
+    assert "run_id" not in output and "target" not in output and "evidence" not in output
+    assert "employer_verification" not in output["launch"]
+    assert output["launch"]["source_commit"] == SOURCE["commit"]
+    assert output["launch"]["startup_receipt_sha256"]
+    assert journey.run_calls == []
 
 
 def test_validate_only_rejects_receipt_source_mismatch_before_journey_execution(tmp_path, monkeypatch):
@@ -447,8 +485,9 @@ def test_employer_opt_in_is_explicit_and_validate_only_has_no_runtime_actions(
 
     monkeypatch.setattr(campaign, "_lazy_containment", forbidden)
     assert campaign.run_campaign(args, journey=journey) == 0
-    result = json.loads(capsys.readouterr().out)
-    assert result["launch"]["employer_verification"] is enabled
+    rendered = capsys.readouterr().out
+    assert "employer_verification" not in rendered
+    result = json.loads(rendered)
     assert result["launch"]["public_source_provider"] == provider
     assert result["live_runtime"] == result["ui"] == result["public_operations"] == "NOT_RUN"
     assert touched == journey.run_calls == []
@@ -484,8 +523,45 @@ def test_campaign_forwards_the_exact_employer_opt_in_boolean_once(
     assert journey.run_calls[0]["employer_verification"] is enabled
     assert journey.run_calls[0]["public_source_preflight"] is callback
     launch, result = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
-    assert launch["launch"]["employer_verification"] is enabled
+    assert "employer_verification" not in launch["launch"]
     assert result["result"] == "PARTIAL"
+
+
+def test_campaign_stdout_projects_fixed_fields_and_preserves_private_report_and_opt_in(
+        tmp_path, monkeypatch, capsys):
+    for name in ("COMPOSE_FILE", "COMPOSE_PROFILES", "COMPOSE_PROJECT_NAME", "MJOBS_PORT",
+                 "MJOBS_OPERATION_MODE", "MJOBS_COMPOSE_MOCK", "MJOBS_IMAGE"):
+        monkeypatch.setenv(name, "")
+    args, journey, _ = _prepared_plan(
+        tmp_path, monkeypatch, flags=("--employer-verification",))
+    monkeypatch.setattr(sys, "argv", ["PRIVATE-ARGV-SENTINEL"])
+    journey.result = {
+        "result": "PARTIAL", "run_id": "PRIVATE-RUN-ID-SENTINEL",
+        "scoreboard": {"observed_PASS": 4, "PRIVATE-UNKNOWN-KEY": 1,
+                       "unknown_nested": {"witness": "PRIVATE-WITNESS-SENTINEL",
+                                          "confirmation": "PRIVATE-CONFIRMATION-SENTINEL"}},
+        "unknown_nested": {"profile": "PRIVATE-REPORT-SENTINEL"},
+    }
+    callback = object()
+    monkeypatch.setattr(campaign, "_lazy_containment", lambda *a: callback)
+
+    assert campaign.run_campaign(args, journey=journey) == 2
+
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 2
+    launch, completion = [json.loads(line) for line in lines]
+    for sentinel in ("PRIVATE-ARGV-SENTINEL", "PRIVATE-RUN-ID-SENTINEL",
+                     "PRIVATE-WITNESS-SENTINEL", "PRIVATE-CONFIRMATION-SENTINEL",
+                     "PRIVATE-REPORT-SENTINEL"):
+        assert sentinel not in "\n".join(lines)
+    assert launch["launch"]["source_commit"] == SOURCE["commit"]
+    assert "command" not in launch["launch"]
+    assert "employer_verification" not in launch["launch"]
+    assert completion["result"] == "PARTIAL"
+    assert completion["scoreboard"]["observed_PASS"] == 4
+    assert "PRIVATE-UNKNOWN-KEY" not in completion["scoreboard"]
+    assert journey.run_calls[0]["employer_verification"] is True
+    assert journey.returned_report is journey.result
 
 
 def _bind_employer_opt_in_artifacts(journey, plan):

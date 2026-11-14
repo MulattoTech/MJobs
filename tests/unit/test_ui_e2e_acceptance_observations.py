@@ -2,9 +2,11 @@
 
 from pathlib import Path
 import hashlib
+import json
 
 import pytest
 
+from cli import ui_e2e
 from cli.ui_e2e_jobs_journey import build_observation
 
 
@@ -32,6 +34,52 @@ def test_observation_has_exact_runner_contract_shape_and_matching_run_id():
     assert observation["run_id"] == RUN_ID
     assert observation["step"] == 12
     assert observation["status"] == "PASS"
+
+
+def test_ui_console_summary_omits_private_fields_and_keeps_full_private_artifact(
+        tmp_path, capsys):
+    from tests.unit.test_acceptance_employer_verification_opt_in import (
+        _controlled_profile, _controlled_ui_artifact,
+    )
+
+    profile = _controlled_profile(profile_id="PRIVATE-PROFILE-ID-SENTINEL")
+    private = _controlled_ui_artifact(
+        profile=profile, source={"commit": SOURCE_COMMIT, "tree": "b" * 40},
+        run_id=RUN_ID, origin="http://127.0.0.1:18777")
+    evidence = {
+        **private,
+        "result": "PARTIAL",
+        "mode": "ONBOARDING_FIXTURE",
+        "checks": [{"action": "first", "result": "PASS"},
+                   {"action": "second", "result": "PASS"}],
+        "acceptance_observations": [{"step": 5, "status": "PASS"}],
+        "confirmation": {"nested": "PRIVATE-CONFIRMATION-SENTINEL"},
+        "unknown_nested": {"witness": "PRIVATE-UNKNOWN-FIELD-SENTINEL"},
+        "artifacts": ["PRIVATE-UI-PATH-SENTINEL"],
+    }
+    evidence_path = tmp_path / "PRIVATE-UI-PATH-SENTINEL.json"
+    journal = ui_e2e.EvidenceJournal(
+        evidence_path, {"source": private["source"]}, acceptance_run_id=RUN_ID)
+    ui_e2e.validate_employer_verification_witness(evidence, True)
+    journal.finish(evidence)
+
+    ui_e2e.print_console_summary(evidence)
+
+    rendered = capsys.readouterr().out
+    for sentinel in ("PRIVATE-PROFILE-ID-SENTINEL", "PRIVATE-CONFIRMATION-SENTINEL",
+                     "PRIVATE-UNKNOWN-FIELD-SENTINEL", "PRIVATE-UI-PATH-SENTINEL"):
+        assert sentinel not in rendered
+    summary = json.loads(rendered)
+    assert summary == {
+        "event": "ui_complete", "result": "PARTIAL", "mode": "ONBOARDING_FIXTURE",
+        "check_count": 2, "observation_count": 1, "artifact": "ui.json",
+    }
+    saved = json.loads(evidence_path.read_text(encoding="utf-8"))
+    assert saved["employer_verification_opt_in"] == private["employer_verification_opt_in"]
+    assert saved["confirmation"] == evidence["confirmation"]
+    assert saved["unknown_nested"] == evidence["unknown_nested"]
+    assert saved["artifacts"] == evidence["artifacts"]
+    assert ui_e2e.validate_employer_verification_witness(saved, True) is None
 
 
 def test_pass_requires_nonempty_successful_assertions():
