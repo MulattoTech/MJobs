@@ -200,3 +200,127 @@ describe('local application rehearsal', () => {
     expect(html).not.toContain('owned\\resume');
   });
 });
+describe('rehearsal field-key contract', () => {
+  it.each([
+    { description: 'nested', key: 'candidate[first_name]' },
+    { description: 'array', key: 'field[]' },
+    { description: 'leading underscore', key: '_custom' },
+    { description: '100-character', key: 'a'.repeat(100) },
+  ])('retains a backend-safe $description field key without rewriting it', async ({ key }) => {
+    const body = {
+      ...snapshot,
+      fields: [{ ...unresolved, key, label: key, reason_code: 'FORM_FIELD_REVIEW_REQUIRED' }],
+      blockers: ['FORM_FIELD_REVIEW_REQUIRED', 'REQUIRED_FIELD_UNRESOLVED'],
+    };
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(body));
+    const client = createApplicationRehearsalClient(profileId, applicationId, fetcher);
+
+    await expect(client.load()).resolves.toEqual(body);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps backend-safe unresolved fields and blockers visible', async () => {
+    const keys = ['candidate[first_name]', 'field[]', '_custom'];
+    const body = {
+      ...snapshot,
+      fields: [field, ...keys.map((key) => ({
+        ...unresolved, key, label: key, reason_code: 'FORM_FIELD_REVIEW_REQUIRED',
+      }))],
+      blockers: ['FORM_FIELD_REVIEW_REQUIRED', 'REQUIRED_FIELD_UNRESOLVED'],
+    };
+    const client = createApplicationRehearsalClient(profileId, applicationId,
+      vi.fn<typeof fetch>().mockResolvedValue(Response.json(body)));
+    const loaded = await client.load();
+    const html = renderToStaticMarkup(<ApplicationRehearsalView
+      snapshot={loaded} reviewChecked={false} reviewPending={false} notice={null}
+      onReviewCheck={vi.fn()} onRecordReview={vi.fn()}
+    />);
+
+    expect(loaded).toEqual(body);
+    for (const key of keys) {
+      expect(html).toContain('aria-label="' + key + ' rehearsal value">No value populated</output>');
+    }
+    expect(html.match(/>Unresolved<\/dd>/g)).toHaveLength(3);
+    expect(html).toContain('One or more form fields need manual review.');
+    expect(html).toContain('One or more required fields do not have a verified value.');
+    expect(html).toContain('local.person@example.test');
+    expect(html).toContain('External submission is disabled');
+    expect(html).not.toMatch(/<(input|textarea|select)[^>]*value=/i);
+  });
+
+  const invalidKeys: Array<{ description: string; key: unknown }> = [
+    { description: '101 characters', key: 'a'.repeat(101) },
+    { description: 'empty string', key: '' },
+    { description: 'leading whitespace', key: ' email' },
+    { description: 'embedded whitespace', key: 'first name' },
+    { description: 'trailing whitespace', key: 'email ' },
+    { description: 'embedded control', key: 'field\u0000name' },
+    { description: 'tab', key: 'field\tname' },
+    { description: 'trailing newline', key: 'email\n' },
+    { description: 'slash', key: 'candidate/name' },
+    { description: 'markup', key: '<input>' },
+    { description: 'leading bracket', key: '[field]' },
+    { description: 'leading dash', key: '-field' },
+    { description: 'non-ASCII character', key: 'na\u00efve' },
+    { description: 'number', key: 1 },
+    { description: 'null', key: null },
+    { description: 'array', key: ['name'] },
+    { description: 'object', key: { key: 'name' } },
+    { description: 'boolean', key: true },
+  ];
+  it.each(invalidKeys)('rejects a field key outside the backend contract: $description', async ({ key }) => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+      ...snapshot, fields: [{ ...field, key }],
+    }));
+    const client = createApplicationRehearsalClient(profileId, applicationId, fetcher);
+
+    await expect(client.load()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['candidate[first_name]', '_custom'])(
+    'does not accept a form key as review request ID: %s', async (requestId) => {
+      const fetcher = vi.fn<typeof fetch>();
+      const client = createApplicationRehearsalClient(profileId, applicationId, fetcher);
+
+      await expect(client.recordReview({
+        request_id: requestId, fingerprint: snapshot.fingerprint, acknowledged: true,
+      })).rejects.toMatchObject({ code: 'INVALID_REQUEST' });
+      expect(fetcher).not.toHaveBeenCalled();
+    });
+
+  it.each(['candidate[first_name]', '_custom'])(
+    'does not accept a form key as persisted receipt ID: %s', async (requestId) => {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+        ...snapshot,
+        latest_review: {
+          request_id: requestId, fingerprint: snapshot.fingerprint,
+          profile_version: profileVersion, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true,
+        },
+      }));
+      const client = createApplicationRehearsalClient(profileId, applicationId, fetcher);
+
+      await expect(client.load()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    });
+
+  it('preserves the distinct 128-character review request and receipt ID limit', async () => {
+    const requestId = 'r'.repeat(128);
+    const body = {
+      ...snapshot,
+      latest_review: {
+        request_id: requestId, fingerprint: snapshot.fingerprint,
+        profile_version: profileVersion, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true,
+      },
+    };
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(body))
+      .mockResolvedValueOnce(new Response('', { status: 201 }));
+    const client = createApplicationRehearsalClient(profileId, applicationId, fetcher);
+    const request = { request_id: requestId, fingerprint: snapshot.fingerprint, acknowledged: true as const };
+
+    await expect(client.load()).resolves.toEqual(body);
+    await client.recordReview(request);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[1][1]).toMatchObject({ method: 'POST', body: JSON.stringify(request) });
+  });
+});
