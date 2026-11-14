@@ -466,8 +466,13 @@ class BreezyApplicationAdapter:
                     timeout_kwargs["timeout"] = max(
                         1, min(10000, int(remaining() * 1000))
                     )
-            states = forms.first.locator("input, select, textarea").evaluate_all(
-                _CONTROL_STATE_SCRIPT, **timeout_kwargs
+            # Keep strict single-form resolution and the cooperative deadline.
+            # Locator.evaluate_all has no timeout argument; this timeout bounds
+            # locator resolution, not JavaScript execution in the renderer.
+            states = forms.evaluate(
+                "form => (" + _CONTROL_STATE_SCRIPT + ")("
+                "Array.from(form.querySelectorAll('input, select, textarea')))",
+                **timeout_kwargs,
             )
             if check is not None:
                 check()

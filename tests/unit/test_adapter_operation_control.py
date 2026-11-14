@@ -23,6 +23,7 @@ class ProbePage:
         self.failure = failure
         self.error = error
         self.reads = []
+        self.form_evaluation_stage = "form_evaluate"
 
     def read(self, stage):
         self.reads.append(stage)
@@ -54,11 +55,11 @@ class ProbeLocator:
         self.page.read("challenge_count")
         return 0
 
-    def evaluate(self, *args, **kwargs):
-        self.page.read("form_evaluate")
+    def evaluate(self, expression, arg=None, *, timeout=None):
+        self.page.read(self.page.form_evaluation_stage)
         return []
 
-    def evaluate_all(self, *args, **kwargs):
+    def evaluate_all(self, expression, arg=None):
         self.page.read("control_states")
         return []
 
@@ -89,10 +90,26 @@ ADAPTERS = {
 ERROR_TYPES = (OperationCancelled, OperationTimedOut, OperationControlUnavailable)
 
 
+class BudgetCheck:
+    def __call__(self):
+        pass
+
+    def remaining_seconds(self):
+        return 3.5
+
+
+def operation_check(mode):
+    if mode == "budget":
+        return BudgetCheck()
+    return (lambda: None) if mode else None
+
+
 def invoke(case, page, check):
     name, provider, *_ = case
     if provider == "shared":
         return analyze_form_page(page, check=check)
+    if name in {"breezy_states", "teamtailor_states"}:
+        page.form_evaluation_stage = "control_states"
     analysis = analyze_controls([{
         "tag": "input", "input_type": "email", "label": "Email",
         "name": "email", "id": "email",
@@ -109,11 +126,12 @@ def invoke(case, page, check):
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case[0])
 @pytest.mark.parametrize("error_type", ERROR_TYPES, ids=lambda kind: kind.__name__)
-@pytest.mark.parametrize("with_check", (False, True), ids=("no_callback", "callback"))
+@pytest.mark.parametrize("with_check", (False, True, "budget"),
+                         ids=("no_callback", "callback", "budget_callback"))
 def test_dom_probe_preserves_control_exception_identity(case, error_type, with_check):
     error = error_type()
     page = ProbePage(case[2], error)
-    check = (lambda: None) if with_check else None
+    check = operation_check(with_check)
 
     with pytest.raises(error_type) as caught:
         invoke(case, page, check)
@@ -123,10 +141,11 @@ def test_dom_probe_preserves_control_exception_identity(case, error_type, with_c
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case[0])
-@pytest.mark.parametrize("with_check", (False, True), ids=("no_callback", "callback"))
+@pytest.mark.parametrize("with_check", (False, True, "budget"),
+                         ids=("no_callback", "callback", "budget_callback"))
 def test_ordinary_dom_failure_keeps_existing_value_free_fallback(case, with_check):
     page = ProbePage(case[2], RuntimeError("SYNTHETIC_PRIVATE_FORM_TEXT"))
-    result = invoke(case, page, (lambda: None) if with_check else None)
+    result = invoke(case, page, operation_check(with_check))
 
     assert page.reads[-1] == case[2]
     assert result["status"] == case[3]

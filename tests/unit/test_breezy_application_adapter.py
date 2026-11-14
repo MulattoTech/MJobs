@@ -136,6 +136,15 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "unsafe_text_context": False, "options": [],
         }]
 
+        evaluations = []
+
+        class BudgetCheck:
+            def __call__(self):
+                pass
+
+            def remaining_seconds(self):
+                return 3.5
+
         class Controls:
             def evaluate_all(self, script):
                 return [{
@@ -156,8 +165,13 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def count(self):
                 return 1
 
-            def evaluate(self, script, arg=None, **kwargs):
-                return controls
+            def evaluate(self, script, arg=None, *, timeout=None):
+                evaluations.append(timeout)
+                if len(evaluations) == 1:
+                    return controls
+                if len(evaluations) == 2:
+                    return Controls().evaluate_all(script)
+                raise AssertionError("unexpected form evaluation")
 
             def locator(self, selector):
                 return Controls()
@@ -166,8 +180,9 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def locator(self, selector):
                 return Form()
 
-        result = self.adapter.analyze_page(Page())
+        result = self.adapter.analyze_page(Page(), check=BudgetCheck())
 
+        self.assertEqual(evaluations, [3500, 3500])
         self.assertEqual(result["fields"][0]["labels"], [])
         self.assertEqual(result["fields"][0]["aria_label"], "email address")
         self.assertIs(result["fields"][0]["user_visible"], True)
@@ -231,6 +246,8 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     "unsafe_text_context": False, "options": [],
                 }]
 
+                evaluations = []
+
                 class ControlLocator:
                     def evaluate_all(self, script):
                         return [state]
@@ -243,8 +260,13 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     def count(self):
                         return 1
 
-                    def evaluate(self, script, arg=None, **kwargs):
-                        return controls
+                    def evaluate(self, script, arg=None, *, timeout=None):
+                        evaluations.append(timeout)
+                        if len(evaluations) == 1:
+                            return controls
+                        if len(evaluations) == 2:
+                            return ControlLocator().evaluate_all(script)
+                        raise AssertionError("unexpected form evaluation")
 
                     def locator(self, selector):
                         return ControlLocator()
@@ -254,6 +276,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         return Form()
 
                 result = self.adapter.analyze_page(Page())
+                self.assertEqual(evaluations, [None, None])
                 self.assertTrue(self.adapter.requires_human_review(result))
 
     def test_real_dom_projection_rejects_hidden_clipped_and_occluded_controls(self):
@@ -896,10 +919,6 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "ambiguous": False, "labels": ["Email address"],
         }]}
 
-        class Controls:
-            def evaluate_all(self, script):
-                return []
-
         class Form:
             @property
             def first(self):
@@ -908,8 +927,8 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def count(self):
                 return 1
 
-            def locator(self, selector):
-                return Controls()
+            def evaluate(self, script, arg=None, *, timeout=None):
+                return []
 
         class Page:
             def locator(self, selector):
