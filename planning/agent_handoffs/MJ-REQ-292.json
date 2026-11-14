@@ -2,11 +2,11 @@
   "schema_version": 1,
   "task_id": "MJ-REQ-292",
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
-  "owner": "Codex root / codex:integration-01a1da02-20261114",
+  "owner": "Codex primary integration owner",
   "branch": "codex/p0-campaign-reconcile-20261114",
-  "head_sha": "4073db33edddf526de598101ceff1daaeaeeba26",
+  "head_sha": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Publish one reviewed combined update of PR973 after live preflight; run final owned44220090e592 native fixture on exact source with5/min primary. Require fresh hosted gates and protected merge separately; canonical60step acceptance remainsPARTIAL. Stop/reconcile at16:22:43Z.",
+  "next_action": "Publish the combined reviewed PR973 update through normal non-force publication and inspect exact-head required checks. No new full journey until a lawful positive current employer prerequisite is available. Preserve the selected mock application, whole same-employer23-31 chain, and independent acceptance gates. Current interactive continuation ends 2026-11-14T21:47:37Z; no unattended continuation is authorized.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -368,13 +368,31 @@
       "result": "FAIL",
       "tested_commit": "99b1ea3aabf64e3b6a2d4371e7c33d353c30e8b5",
       "observed": "49producerPASS4PARTIAL7NOT_RUN; native attempts persisted; public collectionPASS/100jobs; browser namespace join failed; exact owned runtime safely removed; no canonical promotion"
+    },
+    {
+      "command": "pytest integration/public_employer + unit public_source/journey/acceptance_ledger",
+      "result": "PASS",
+      "tested_commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+      "observed": "559 passed,128 subtests;2 existing Windows symlink skips;44.48s; controlled contracts only"
+    },
+    {
+      "command": "pytest browser/public_employer + browser/bootstrap_source_attribution + integration/public_source + unit/employer_verification_opt_in",
+      "result": "PASS",
+      "tested_commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+      "observed": "64 passed,26.71s; actual React/API with controlled provider transport; no live acceptance"
+    },
+    {
+      "command": "Exact committed-source public employer decoder and browser retests",
+      "result": "PASS",
+      "tested_commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+      "observed": "Whole-group decoder1PASS3.76s; actual React observer1PASS9.13s; mock application preserved; GET/HEAD-only API admission"
     }
   ],
   "blockers": [
-    "The dated 2026-11-13T09:00:53Z snapshot of PR973 showed draft head 96f12223152d9d73e292a8ea608c45a1e78d7ec9 with CONFLICTING/DIRTY state. Its fifteen completed check-runs contained two failures: Python / unit and integrity, and CI / required. The private 032081a5 tests are attributed to their own source. The actual publication requires a fresh complete check and review snapshot for the published head.",
-    "Literal steps 23-31 still require the connected chain for the same initially unmonitored real employer and job: official-domain corroboration, careers discovery, ATS identification, source enrollment, complete opening inventory, employer-only opening and cross-source merging. Runtime 04 recorded two BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE child blocks, unavailable domain proof and zero child enrollments.",
-    "The source-history recording defect is repaired and has controlled composed proof. Runtime 04's original failure and its completed-but-not-ingested public prefix remain unchanged. Steps 54-60 were not reached and require an eligible later connected campaign.",
-    "Publication, current-main reconciliation, required hosted checks, protected integration and independent acceptance remain pending. Full employer-verification V2 wiring, all four PostgreSQL write-order boundaries and actual worker no-retry proof remain incomplete. The separately qualified bd3 profile component is excluded from this candidate."
+    "No admissible live same-employer Greenhouse reciprocal chain was found in the actual admitted WWR/Remotive cohorts. Fresh guarded feed reads at18:57Z retained the same cohorts/hashes; existing profile relevance rules yield no eligible second-collection cohort. No cap bypass, profile tailoring, blocked-page retry or universal impossibility claim.",
+    "The complete connected journey at the new implementation source has NOT_RUN. Prior run mj292-44220090e592 at8e6ee187 ended FAIL with57 producer PASS, step25 PARTIAL,59-60 NOT_RUN; those are not canonical acceptance.",
+    "PR973 remains draft at the checkpoint. New candidate publication/exact-head hosted checks and protected integration are pending. Local review and controlled component tests do not substitute for same-run public evidence, independent numbered acceptance review and protected integration.",
+    "Continuation PostgreSQL/RQ execution and full regression are NOT_RUN. Targeted SQLite/API/real React controlled tests passed; two existing Windows symlink cases were skipped. Prior exact-source PG/Redis receipts remain historical only."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -427,61 +445,12 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-13T09:13:43.367123+00:00",
-  "acceptance_note": "Formal acceptance remains 0 VERIFIED PASS, 53 PARTIAL and 7 NOT_RUN out of 60 literal steps. The exact private 032081a5 composition passed 665 tests and 349 subtests, with two existing Windows symlink privilege-1314 skips and no failures or errors. This controlled qualification preserves the failed public runtime 04 and establishes no new numbered acceptance.",
+  "updated_at_utc": "2026-11-14T19:50:32.304275+00:00",
+  "acceptance_note": "Canonical acceptance remains0 VERIFIED PASS /53 PARTIAL /7 NOT_RUN. Reviewed implementation repairs at40be0537 have controlled component evidence only; no new live journey or numbered acceptance promotion.",
   "integration_authority": {
-    "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26; fresh native sole integration_steward/canonical-acceptance holder",
-    "authorization": "Authority follows current user/session authorization and exact native reserved-role records. This metadata change transfers no integration or canonical acceptance role.",
-    "previous_owner": "Historical Codex MJ-REQ-292 campaign assertion, preserved in session_notes; no current integration grant.",
-    "previous_owner_daemon": "UNAVAILABLE_NOT_RESTARTED",
-    "preserved_dependency": {
-      "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
-      "head": "358ee29",
-      "integration_commit": "e1da21e0585cbd839d518c134949af9015067df3"
-    },
-    "protected_main_merge": {
-      "result": "MERGED",
-      "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
-      "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-      "base_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-      "merged_commit": "fe7042676ffa0d1db530ce8b8eab80975a6e4be8",
-      "merged_at_utc": "2026-11-06T10:54:17Z",
-      "campaign_adoption_commit": "0f18b2498408db75612f52bee5015071e26d6b90",
-      "independent_local_review": "Leia approved exact unchanged PR-owned source and tests; GitHub COMMENT review 5798902110",
-      "unresolved_threads": 0,
-      "checks": [
-        {
-          "name": "CI / required",
-          "result": "SUCCESS",
-          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494796/job/127846183508"
-        },
-        {
-          "name": "Integration / PostgreSQL and Redis",
-          "result": "SUCCESS",
-          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494957/job/127852333569"
-        },
-        {
-          "name": "Disposable Compose / mock end-to-end",
-          "result": "SUCCESS",
-          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494772/job/127844283617"
-        },
-        {
-          "name": "Dependencies / introduced vulnerabilities",
-          "result": "SUCCESS",
-          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494703/job/127844282867"
-        },
-        {
-          "name": "Security / secret scan",
-          "result": "SUCCESS",
-          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494996/job/127844284596"
-        }
-      ]
-    }
+    "owner": "codex:integration-01a1da02-20261114",
+    "scope": "Single serialized integration owner; scoped worker branches are isolated; current native claims are authoritative",
+    "authorization": "Current human safe handoff and stale-session recovery authorization; no force push or protection bypass"
   },
   "integrated_slices": [
     {
@@ -691,17 +660,14 @@
   },
   "acceptance_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
   "runtime": {
-    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\_private_mjreq292_f9e21b82_04b",
-    "project": "mjobs-fixture-5ada69fd9475",
-    "api_url": "http://127.0.0.1:18744",
-    "source_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
-    "source_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
-    "image_id": "sha256:5356452211284442bad2162e75af6f89bc0c03355de0cba7c606ad147d1560f9",
-    "startup_receipt": "outputs/mj292-f9e21b82-5ada69fd9475/journey/startup-receipt.json",
-    "observed_status": "FAIL at original source-setup history validation after completed public collection/browser prefix and recorded release. Original scoreboard: 49 observed PASS / 4 PARTIAL / 7 NOT_RUN; public 11/16 observations were not ingested. Two children were budget-blocked and domain metadata unavailable. Later six-GET retained snapshot confirmed two disabled collectors, 13 company-source facts, zero child enrollments and 20 terminal operations. All 11 exact containers stopped/unpaused, 6 volumes and 3 networks retained, heavy RELEASED. No resume, restart/monitoring acceptance or formal promotion. This URL is historical and is not asserted reachable. The later implementation head has controlled source tests only; no later connected campaign is included."
+    "active": false,
+    "last_run_id": "mj292-44220090e592",
+    "source_commit": "8e6ee18757244b51630281eb191546461a0e7613",
+    "observed_status": "FAIL;57 producer PASS,25 PARTIAL,59-60 NOT_RUN",
+    "cleanup": "Exact owned run containers, networks and volumes removed and absence verified. No runtime started during this continuation; unrelated services preserved."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "The private 032081a5 composition contains the reviewed dbac source-binding repair and preserves every other tree entry from the qualified 9e source. Its exact twelve-module execution and independent root review bind 73 recorded raw source paths and twelve module hashes before, after and against current canonical Git exports: 78 unique paths, with six legitimate CRLF exports distinct from their Git blob bytes. Controlled WWR and Remotive producer/setup/journey regressions each retain 78 bound history rows with zero null policy digests. Their saved setup and numbered acceptance status remain NOT_RUN. Actual runtime 04 used source 9e and failed before restart and monitoring. The literal public proof chain for the same real employer remains incomplete.",
+  "current_evidence_boundary": "Code candidate40be0537 includes reviewed monitoring reread, native inventory/retry receipts, immutable native attachment, source-copy filtering/provenance, and whole same-employer source/browser/journey/ledger joins. Source/archive/runtime/artifact bindings remain required. Hash consistency and persisted receipt metadata do not independently attest public HTTP. Controlled transports never earn public employer credit.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -743,14 +709,14 @@
     "Preserved dated checkpoints, session boundary/extensions, pending source setup and prior source/integration records retain their original dates and contents as history. Their old owners, deadlines and runtime states are not current authority. Historical exclusive_source_ownership arrays grant no paths; fresh native scopes control current work.",
     "Proposal v3 5497c87ea41e0c5b4bed38eee310785b1125fcd85557da7bbd0159bc2419495f remains immutable historical planning. Its pending-correction/source-scope assertions are superseded by the actual fresh resolution d93139a89aa5a87088ed98076a663ce48cf57445960b7d99c4353c0570a86df5. Literal acceptance remains 0 / 53 / 7; metadata structural validation is not runtime certification."
   ],
-  "updated_at": "2026-11-14T15:59:41.905669+00:00",
+  "updated_at": "2026-11-14T19:50:32.304275+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "96f12223152d9d73e292a8ea608c45a1e78d7ec9",
-    "required_checks": "Published head 96f12223152d9d73e292a8ea608c45a1e78d7ec9: 15 check-runs; 2 failing/non-success terminal checks (CI / required, Python / unit and integrity); 0 commit-status entries. This snapshot does not qualify a new unpublished candidate or authorize protected integration.",
-    "next_candidate_source": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
-    "local_unpublished_head": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b"
+    "published_head": "8e6ee18757244b51630281eb191546461a0e7613",
+    "next_candidate_source": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+    "local_unpublished_head": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+    "required_checks": "The15 successful old-head checks at8e6ee187 do not qualify this new local source. New-head hosted checks NOT_RUN at this checkpoint. Fresh live PR readback:open/draft,base dc400b80,mergeable true."
   },
   "runtime_history": [
     {
@@ -881,19 +847,27 @@
       "image_id": "sha256:5356452211284442bad2162e75af6f89bc0c03355de0cba7c606ad147d1560f9",
       "status": "FAIL at original source-setup history validation after completed public collection/browser prefix and recorded release. Original scoreboard: 49 observed PASS / 4 PARTIAL / 7 NOT_RUN; public 11/16 observations were not ingested. Two children were budget-blocked and domain metadata unavailable. Later six-GET retained snapshot confirmed two disabled collectors, 13 company-source facts, zero child enrollments and 20 terminal operations. All 11 exact containers stopped/unpaused, 6 volumes and 3 networks retained, heavy RELEASED. No resume, restart/monitoring acceptance or formal promotion.",
       "diagnostic_evidence": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json"
+    },
+    {
+      "worktree": "C:\\Tools\\Dev\\MJobs-Web\\_private_mjreq292_f9e21b82_04b",
+      "project": "mjobs-fixture-5ada69fd9475",
+      "api_url": "http://127.0.0.1:18744",
+      "source_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "source_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "image_id": "sha256:5356452211284442bad2162e75af6f89bc0c03355de0cba7c606ad147d1560f9",
+      "startup_receipt": "outputs/mj292-f9e21b82-5ada69fd9475/journey/startup-receipt.json",
+      "observed_status": "FAIL at original source-setup history validation after completed public collection/browser prefix and recorded release. Original scoreboard: 49 observed PASS / 4 PARTIAL / 7 NOT_RUN; public 11/16 observations were not ingested. Two children were budget-blocked and domain metadata unavailable. Later six-GET retained snapshot confirmed two disabled collectors, 13 company-source facts, zero child enrollments and 20 terminal operations. All 11 exact containers stopped/unpaused, 6 volumes and 3 networks retained, heavy RELEASED. No resume, restart/monitoring acceptance or formal promotion. This URL is historical and is not asserted reachable. The later implementation head has controlled source tests only; no later connected campaign is included."
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
   "latest_diagnostic_review": "Root source review 8b42ae05651dfa5efe388f7fc19815a33d584a2634242f7391cf9d33b427321e verified the four-file dbac repair while preserving both strict validators. Exact composition qualification 742b341d73023d699a9afed8689e48f070618b69e8f2a2e05817c089b342ff5e binds source 032081a5/tree 606eb61e, actual test receipt 5498b6faf56532c5bddddbb65fb2b637af8f381d24fc2a879baa179e64716b0b, and JUnit totals of 1016 cases, zero failures, zero errors and two skips. Evidence v9 review 716fbf8d2402f75fa4f74da6b4a55a85a9c1104be27d19cca1463522954fea00 preserves every prior runtime, controlled RED result and preparation/inspection correction. Receipt reconciliation reused the existing merge without recreating or amending it.",
   "session_boundary": {
-    "four_hour_limit_utc": "2026-11-06T21:22:28Z",
-    "extension_request": "APPROVED_BY_USER",
+    "started_at_utc": "2026-11-14T17:47:37Z",
+    "four_hour_limit_utc": "2026-11-14T21:47:37Z",
     "goal_complete": false,
     "no_new_unattended_work_authorized_by_this_checkpoint": true,
     "paused_by_user": false,
-    "paused_at_utc": "2026-11-06T18:53:13.600752+00:00",
-    "new_work_stopped": false,
-    "resumed_at_utc": "2026-11-06T19:05:39.349365+00:00"
+    "new_work_stopped": false
   },
   "pending_source_setup": {
     "containment": "a9faa0ebbb7986bb4046cd7b56e4704c11c1630b",
@@ -904,7 +878,7 @@
     "validation": "Independent Yoda composed review approved; root combined472tests49subtestsPASS,2Windows-symlinkskips21.17s. Includes actual controlledbrowser producer artifact+strictv2join. Live source9 NOT_RUN.",
     "integrated_source": "2313c41c045fa94f4487e3399165b6f6fe10d070"
   },
-  "ownership_state": "At 2026-11-13T09:12:17.827141+00:00, the driver is root-owned at 032081a5beca7a5c5d1b652e032e3b58bbc2fa1b in C:\\Tools\\Dev\\MJobs-Web\\_private_mjreq292_f9e21b82_05. Other six implementation scopes retain their separately verified native worktrees/heads, shown in active_path_owners and campaign_workers. Reserved integration/canonical owner: WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26. No claim transfer is performed by this metadata operator.",
+  "ownership_state": "The current user authorized safe integration handoff and recovery of stale/timed-out locks. Native coordination has one primary integration owner for chat01a1da02-8cb2-72a2-b374-6873645204be. Older campaign_workers/active_path_owners entries are historical snapshots, not current lock authority; reconcile the native coordinator. Unrelated claims/worktrees/dirty data are preserved.",
   "session_extensions": [
     {
       "authorized_by": "user",
@@ -1046,5 +1020,105 @@
     "ledger_fixture_commit": "d6cb0a03eb44890b96e5fff1210bf01e2a8ebb27",
     "composed_source": "191fd88e3b3d596ced4f78d104f6ef6dad527ab9",
     "ledger_fixture_review": "Yoda approved exact d6cb0a03:15 test-only lines, validator and negative checks unchanged. Root composed420 tests passed."
-  }
+  },
+  "continuation_20261114": {
+    "started_at": "2026-11-14T17:47:37Z",
+    "deadline": "2026-11-14T21:47:37Z",
+    "status": "REVIEWED_IMPLEMENTATION_PENDING_PUBLICATION",
+    "source_commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+    "monitoring": {
+      "status": "IMPLEMENTED_LOCALLY_REVIEWED",
+      "commit": "96d606f96748ebc157f3b8d5d238e44d64099203",
+      "local_tests": "48 tests/49 subtests affected scope; 26 tests/40 subtests exact-commit scope; independent regression 1 PASS",
+      "review": "APPROVE; real Store/API/worker race reproduced and fresh monitor reread preserves strict negatives",
+      "historical_cause": "Run442 exact cause remains unproven; matching reachable race reproduced"
+    },
+    "employer_chain": {
+      "status": "PARTIAL",
+      "public_prerequisite": "No positive prerequisite found among inspected candidates. First two retained WWR feed candidates: Sehyog listing403, Blackstone ADP page200 without supported native link. First two Remotive candidates: readable employer pages without supported Greenhouse links. No universal external impossibility claim.",
+      "observer": "Implemented/reviewed40be0537: complete same-employer baseline/domain/native inventory, relevant native-only and canonical duplicate examples, actual React read-only UI, whole-group journey replay and authoritative ledger validation. Controlled scope earns no live credit.",
+      "native_inventory_receipt": "Implemented and locally reviewed at ed89b779; no all-openings acceptance from counts alone.",
+      "diagnosis": "outputs/p0-continuation-20261114/step25-diagnosis.md",
+      "dedupe": "Implemented/reviewedfa085f85: only exact corroborated new native posting attaches to original aggregator job; existing job/route/application ownership stays sticky.",
+      "source_attribution": "Implemented/reviewed930c5aca: original collector filtering and immutable provenance survive native canonical title/provider/native-ID changes. Distinct aggregator7331/native1001 real API/React regression passes."
+    },
+    "full_journey": "NOT_RUN in this continuation; required live positive prerequisite unavailable",
+    "canonical_acceptance": "UNCHANGED;0 VERIFIED PASS /53 PARTIAL /7 NOT_RUN",
+    "publication": "One combined normal non-force draft PR973 update pending; no merge/acceptance claim",
+    "team": "Small bounded main-lane implementer/reviewer; separately authorized Sol5.6/Luna backlog and Luna audit lanes retain isolated scopes and same deadline.",
+    "native_inventory": {
+      "status": "IMPLEMENTED_LOCALLY_REVIEWED",
+      "commits": [
+        "0135204ddeeb7dd0b7ee0930858aed157ed0fc36",
+        "ed89b7796c51332e175445c8a44bf8ef138c0033"
+      ],
+      "behavior": "Durable exact-child native manifest/completeness; overflow withholds evidence but preserves imports. Enrollment audit is idempotent across recovery; inventory receipt selects current attempt.",
+      "validation": "125 passed / 32 subtests, 16 PostgreSQL skips; exact-head recovery retest1PASS; independent review4PASS15deselected, APPROVE",
+      "limits": "SQLite controlled worker/API; PostgreSQL/live provider/full journey NOT_RUN",
+      "report": "outputs/p0-continuation-20261114/native-inventory-implementation.md",
+      "review": "outputs/p0-continuation-20261114/native-inventory-review.md"
+    },
+    "public_employer": {
+      "commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+      "review": "APPROVE; independent7PASS10deselected; implementation approval only",
+      "validation": "559 targeted tests+128subtests PASS;2existing Windows skips.64 affected integration/browser/consent tests PASS. Exact committed-source whole-group decoder1PASS and actual React employer observer1PASS. Cached frontend asset bytes verified against prior build; frontend inputs unchanged. No live acceptance.",
+      "limits": "No new Docker/full journey/live positive employer chain; no PostgreSQL/RQ continuation run; selected mock application unchanged."
+    }
+  },
+  "integration_authority_history": [
+    {
+      "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26; fresh native sole integration_steward/canonical-acceptance holder",
+      "authorization": "Authority follows current user/session authorization and exact native reserved-role records. This metadata change transfers no integration or canonical acceptance role.",
+      "previous_owner": "Historical Codex MJ-REQ-292 campaign assertion, preserved in session_notes; no current integration grant.",
+      "previous_owner_daemon": "UNAVAILABLE_NOT_RESTARTED",
+      "preserved_dependency": {
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
+        "head": "358ee29",
+        "integration_commit": "e1da21e0585cbd839d518c134949af9015067df3"
+      },
+      "protected_main_merge": {
+        "result": "MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
+        "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+        "base_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+        "merged_commit": "fe7042676ffa0d1db530ce8b8eab80975a6e4be8",
+        "merged_at_utc": "2026-11-06T10:54:17Z",
+        "campaign_adoption_commit": "0f18b2498408db75612f52bee5015071e26d6b90",
+        "independent_local_review": "Leia approved exact unchanged PR-owned source and tests; GitHub COMMENT review 5798902110",
+        "unresolved_threads": 0,
+        "checks": [
+          {
+            "name": "CI / required",
+            "result": "SUCCESS",
+            "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494796/job/127846183508"
+          },
+          {
+            "name": "Integration / PostgreSQL and Redis",
+            "result": "SUCCESS",
+            "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494957/job/127852333569"
+          },
+          {
+            "name": "Disposable Compose / mock end-to-end",
+            "result": "SUCCESS",
+            "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494772/job/127844283617"
+          },
+          {
+            "name": "Dependencies / introduced vulnerabilities",
+            "result": "SUCCESS",
+            "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494703/job/127844282867"
+          },
+          {
+            "name": "Security / secret scan",
+            "result": "SUCCESS",
+            "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494996/job/127844284596"
+          }
+        ]
+      }
+    }
+  ]
 }
