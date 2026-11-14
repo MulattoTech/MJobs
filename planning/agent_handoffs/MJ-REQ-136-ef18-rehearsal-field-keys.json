@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "draft_only": false,
+  "status": "READY_FOR_REVIEW",
+  "evidence_captured_at_utc": "2026-11-14T09:41:01.385627+00:00",
+  "requirement": "MJ-REQ-136",
+  "issue": 137,
+  "work_id": "MJ-REQ-136-rehearsal-field-keys-ef18",
+  "branch": "web/ef1809b6/rehearsal-field-keys",
+  "summary": "The local rehearsal parser preserves backend-safe bracketed and underscore keys and rejects out-of-contract keys. Five expected baseline failures and 39 fixed unit cases are independently qualified; the single browser case passed open, local acknowledgement and reopen without application/attempt changes. The later source commit matches the full frozen runtime tree.",
+  "source_identity": {
+    "runtime_source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+    "base_head": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "full_source_records": 3308,
+    "fixed_web": {
+      "tree_sha": "fbfeffeefda5d4f2dfe6bf944a5a090e9ea542a8",
+      "candidate_commit": null,
+      "source_manifest": {
+        "path": "mj136-verification-preparation-01/fixed-source-capsule.json",
+        "sha256": "e515db6c3cbf2c6400c9147e35e7b29768f578f01e496d6d56413a4a8fc67d81"
+      },
+      "runtime_binding": "QUALIFIED"
+    },
+    "fixed_browser": {
+      "tree_sha": "fbfeffeefda5d4f2dfe6bf944a5a090e9ea542a8",
+      "candidate_commit": null,
+      "source_manifest": {
+        "path": "mj136-verification-preparation-01/fixed-source-capsule.json",
+        "sha256": "e515db6c3cbf2c6400c9147e35e7b29768f578f01e496d6d56413a4a8fc67d81"
+      },
+      "runtime_binding": "QUALIFIED"
+    },
+    "builder_and_browser_source_identical": true,
+    "applied_source_files": [
+      {
+        "bytes": 19221,
+        "git_blob": "2d81d16d33b1717d5935bdba2bcaca186a3f7294",
+        "git_mode": "100644",
+        "path": "apps/web/src/application-rehearsal.tsx",
+        "sha256": "9f8d7835e19c699b128e2cf67af1e92ebbdfcb39cb887f9a86e4c780e39d7990"
+      },
+      {
+        "bytes": 14954,
+        "git_blob": "b12d230f1ed77f11fe5cbe83b30c3e9c87b39e71",
+        "git_mode": "100644",
+        "path": "apps/web/src/application-rehearsal.test.tsx",
+        "sha256": "43c31fa8a8184bcc66cbc921f8bcab95527d488184b95a242969a8109d865c06"
+      },
+      {
+        "bytes": 15644,
+        "git_blob": "ef74f29c681c6cc57c2e59cf4eab714ac18abbba",
+        "git_mode": "100644",
+        "path": "tests/browser/test_application_rehearsal.py",
+        "sha256": "1b8043f205decbfeb20dd826a3c43d460a63d0a4212654da058f158845126044"
+      }
+    ],
+    "later_source_commit": {
+      "status": "COMMITTED_EXACT_FROZEN_SOURCE",
+      "head_sha": "a2282ef3c2c9da95110b830d44c88dc707db3cac",
+      "tree_sha": "fbfeffeefda5d4f2dfe6bf944a5a090e9ea542a8",
+      "receipt": {
+        "path": "mj136-source-commit-01.json",
+        "sha256": "c522ade073c24fd81f92fc2c5f77b9da3b5845827971c0074fda8119bdba4e5f"
+      },
+      "independent_review": {
+        "path": "mj136-source-commit-independent-review-01.json",
+        "sha256": "9f6e1a4139f5930471a503a776164352f9a8e6e18cecd5cf9ce27a7f55718c03"
+      },
+      "full_tree_equivalent": true,
+      "three_source_blobs_equivalent": true,
+      "source_blobs": {
+        "apps/web/src/application-rehearsal.test.tsx": "b12d230f1ed77f11fe5cbe83b30c3e9c87b39e71",
+        "apps/web/src/application-rehearsal.tsx": "2d81d16d33b1717d5935bdba2bcaca186a3f7294",
+        "tests/browser/test_application_rehearsal.py": "ef74f29c681c6cc57c2e59cf4eab714ac18abbba"
+      },
+      "commit_attempts": 1,
+      "provenance_exit_code": 0,
+      "runtime_predates_commit": true
+    },
+    "metadata_publication_commit": {
+      "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+      "binding": "The containing Git commit and PR head bind these finalized metadata bytes externally."
+    },
+    "interpretation": "Web and browser validation ran on the same frozen uncommitted source tree. The later source commit matches that full tree and all three source blobs; no earlier run is attributed to the later commit."
+  },
+  "publication_scope": {
+    "planned_new_pull_requests": 1,
+    "source_paths": [
+      "apps/web/src/application-rehearsal.test.tsx",
+      "apps/web/src/application-rehearsal.tsx",
+      "tests/browser/test_application_rehearsal.py"
+    ],
+    "metadata_paths": [
+      "docs/evidence/2026-11-14-rehearsal-field-keys-ef18.json",
+      "planning/agent_handoffs/MJ-REQ-136-ef18-rehearsal-field-keys.json"
+    ]
+  },
+  "observed_validation": {
+    "baseline": "Five expected failures/34 filtered; the original wrapper remains UNQUALIFIED. Exact child behavior, full source/dependency postcheck, natural closure and release were independently qualified without replay.",
+    "fixed_web": "39/39 PASS; Vitest, TypeScript no-emit and Vite exit 0. Independent web review PASS; natural Job 8/0/0 and release.",
+    "fixed_browser": "Normal wrapper PASS: one primary and three pytest phases; opened/acknowledged/reopened;90 GET + 1 local metadata POST; unchanged application/attempt rows and identical receipt after reload. Independent browser review PASS.",
+    "source_commit": "One source commit a2282ef3c2c9da95110b830d44c88dc707db3cac; exact tree fbfeffeefda5d4f2dfe6bf944a5a090e9ea542a8 and all three source blobs match both frozen runtime phases. Commit provenance exited 0; runtime predates the commit.",
+    "dist": "Three files, 1,017,129 bytes; built fresh from the same fbfe/e515 source used by the browser."
+  },
+  "baseline_evidence": {
+    "result": "FIVE_EXPECTED_BEHAVIORAL_FAILURES_INDEPENDENTLY_QUALIFIED",
+    "attempt_id": "06a3395a8bc64ec29c95f791c8692ba0",
+    "executed_test_attempts": 1,
+    "source_tree": "f2d77421f12a56544bb7978b5bda0fad94cb2818",
+    "source_manifest_sha256": "135e5343ed92c92a0a01a0912c1adc3b7b747334b6973393395c094e8ae74c13",
+    "raw_parent_status": "UNQUALIFIED_AFTER_PROOF_HOLD_NATURAL_CLOSURE",
+    "raw_parent_automatic_qualification": false,
+    "raw_parent_reclassified_as_success": false,
+    "retained_failure": {
+      "type": "PermissionError",
+      "operation": "Canonical claims heartbeat atomic replacement after the single child launch.",
+      "underlying_cause": "NOT_ESTABLISHED"
+    },
+    "child_result": "BASELINE_FIVE_BEHAVIORAL_FAILURES",
+    "child_qualified": true,
+    "node_exit_code": 1,
+    "unit_counts": {
+      "failed": 5,
+      "filtered": 34,
+      "passed": 0,
+      "primary": 39,
+      "selected": 5
+    },
+    "global_errors": 0,
+    "independent_result": "PASS_INDEPENDENT_BASELINE_BEHAVIORAL_EVIDENCE_WITH_PRESERVED_PARENT_FAILURE",
+    "postcheck": {
+      "status": "PASS_INDEPENDENT_READ_ONLY_SUPPLEMENT",
+      "source_files": 3308,
+      "dependency_files": 6095,
+      "runtime_records": 9404,
+      "current_inventory_equals_child_after": true
+    },
+    "job_accounting": {
+      "total": 5,
+      "active": 0,
+      "terminated": 0
+    },
+    "natural_closure": true,
+    "compute_released": true,
+    "new_execution_required": false,
+    "receipt": {
+      "path": "mj136-baseline-unit-01/receipt.json",
+      "sha256": "49a5e668dd226cc1279fb86227730f2deaf80bc661813ae19bc36e25ce18226f"
+    },
+    "child": {
+      "path": "mj136-baseline-unit-01/child-outcome.json",
+      "sha256": "6bf77c5705056beff3ffbdb1d311ebd69e0ddce320133bb43edbc558dc371ab2"
+    },
+    "independent_review": {
+      "path": "mj136-baseline-runtime-review-01.json",
+      "sha256": "c4f6dbd2be8298cb80a97591fb286849b7cd722c0e492dfb5357952d3ab2d28b"
+    },
+    "independent_postcheck": {
+      "path": "mj136-baseline-independent-execution-postcheck-01.json",
+      "sha256": "c8fded714a01dc1341caa3ec776ed7b74e2579233618b91f918cb9b16fca36a4"
+    }
+  },
+  "requirement_scope": {
+    "connection": "Preserve valid field values and unresolved blockers in the local pre-action preview across review and reopen.",
+    "full_original_requirement_result": "NOT_ASSERTED",
+    "other_preview_items": "This slice does not requalify every job/company/route/document/answer/confidence acceptance item.",
+    "separate_formal_acceptance_ownership": "PRESERVED; this source slice does not adopt the legacy acceptance scope."
+  },
+  "preparation_history": [
+    {
+      "event": "Superseded six-failure baseline prediction",
+      "result": "NOT_EXECUTED",
+      "correction": "The original unflagged JavaScript regex already rejected the trailing-newline safety case. The actual selection was five expected failures and 34 filtered; all 39 fixed cases were retained.",
+      "artifact": {
+        "path": "mj136-preview-field-key-plan-02/test-selection.json",
+        "sha256": "2e3ceb2cf77e24c9499ca21b13dc646266e7b175b01d1dced7c65eadeece7b93"
+      }
+    },
+    {
+      "event": "Browser root preflight refusal",
+      "result": "NO_BROWSER_EXECUTION_OR_ADMISSION",
+      "cause": "Root binding used source_postcheck instead of the actual source_postcheck_status field.",
+      "correction": "Only the root input binding was corrected; the reviewed launcher was unchanged.",
+      "receipt": {
+        "path": "mj136-fixed-browser-root-preflight-refusal-01.json",
+        "sha256": "0878df3a610ca104f0d7ff78bcb0af6f2a5a9b3aeb3b865e982de849910d49bf"
+      }
+    }
+  ],
+  "build_warning": {
+    "kind": "VITE_LARGE_CHUNK",
+    "fatal": false,
+    "message": "A minified chunk exceeded 500 kB; Vite exited 0.",
+    "warning_limit_changed": false,
+    "log": {
+      "path": "mj136-fixed-web-01/build.log",
+      "sha256": "c97d25023366eaa609d2ce215d065e1205baa91fc28ec412779f0aaaead5a4b3"
+    }
+  },
+  "runtime_limit": {
+    "local_node": "v27.0.0-alpha.0.0.0",
+    "ci_node_major": "24",
+    "same_as_ci_runtime": false,
+    "hosted_checks": "NOT_RUN_FOR_THIS_CANDIDATE_AT_DRAFT_CAPTURE"
+  },
+  "artifacts": {
+    "reference_base": "run-relative",
+    "baseline": {
+      "path": "mj136-baseline-unit-01/receipt.json",
+      "sha256": "49a5e668dd226cc1279fb86227730f2deaf80bc661813ae19bc36e25ce18226f"
+    },
+    "baseline_child": {
+      "path": "mj136-baseline-unit-01/child-outcome.json",
+      "sha256": "6bf77c5705056beff3ffbdb1d311ebd69e0ddce320133bb43edbc558dc371ab2"
+    },
+    "baseline_review": {
+      "path": "mj136-baseline-runtime-review-01.json",
+      "sha256": "c4f6dbd2be8298cb80a97591fb286849b7cd722c0e492dfb5357952d3ab2d28b"
+    },
+    "baseline_postcheck": {
+      "path": "mj136-baseline-independent-execution-postcheck-01.json",
+      "sha256": "c8fded714a01dc1341caa3ec776ed7b74e2579233618b91f918cb9b16fca36a4"
+    },
+    "web": {
+      "path": "mj136-fixed-web-01/receipt.json",
+      "sha256": "5315a1559cf4671a905156377ac60a52c33e929c1e1d4bd7a9017de0c8b04da1"
+    },
+    "web_child": {
+      "path": "mj136-fixed-web-01/child-outcome.json",
+      "sha256": "a098c76e3a0ba7a2b26051ea9394e02f6e689b695cf6feea0a9b41b3933ef53b"
+    },
+    "web_review": {
+      "path": "mj136-fixed-web-runtime-review-01.json",
+      "sha256": "f1d3766f4315b8fe88f6d0660710b8b447d2889576bfd7bde33cb28c2198a449"
+    },
+    "browser": {
+      "path": "mj136-fixed-browser-01/receipt.json",
+      "sha256": "efd974d84049afbbfe81ac40dd541197c2c8beef78506aa1dece49450aa1d0e0"
+    },
+    "browser_child": {
+      "path": "mj136-fixed-browser-01/child-outcome.json",
+      "sha256": "61658cb6b359cce0fdf32bbf9dd3dab44e866215012f0a7e875c4cf3244fbe93"
+    },
+    "browser_properties": {
+      "path": "mj136-fixed-browser-01/pytest-properties.json",
+      "sha256": "8db68b036b23bade4727114514a3f75a326f154cc2e58cf5816deabdbe5f3c49"
+    },
+    "browser_junit": {
+      "path": "mj136-fixed-browser-01/result.xml",
+      "sha256": "78fd1fdeb32a21e00892bb76f0365c44f532f388ebb36c6f0b01031fecb1cacd"
+    },
+    "dist": {
+      "path": "mj136-fixed-web-01/dist-manifest.json",
+      "sha256": "89e93c5ec58c07b01d5ca1257785fdfe2ac544405c8a1b85c15908ac94f3c021"
+    },
+    "application": {
+      "path": "mj136-production-application-01/result.json",
+      "sha256": "cee83007e1c99dbf73fbf1360f5b4d6d590135d0efe12dd15e15f846a1ad3993"
+    },
+    "application_review": {
+      "path": "mj136-production-application-independent-review-01.json",
+      "sha256": "3fb6c531dc9917cc29794ae4811b2f7ffdbec3d51e6bfb8e4a54307d90a67d7e"
+    },
+    "source_review": {
+      "path": "mj136-preview-field-key-independent-review-01.json",
+      "sha256": "2984f435546430c1e9266e40b65a19102a0072815e9d1a8f199318955de95a49"
+    },
+    "browser_review": {
+      "path": "mj136-fixed-browser-runtime-review-01.json",
+      "sha256": "11c751845f7eb720b7641ba8a29a814f1849186e82cb5fe309666c02f2a7bd12"
+    },
+    "source_commit": {
+      "path": "mj136-source-commit-01.json",
+      "sha256": "c522ade073c24fd81f92fc2c5f77b9da3b5845827971c0074fda8119bdba4e5f"
+    },
+    "source_commit_review": {
+      "path": "mj136-source-commit-independent-review-01.json",
+      "sha256": "9f6e1a4139f5930471a503a776164352f9a8e6e18cecd5cf9ce27a7f55718c03"
+    }
+  },
+  "evidence_document": "docs/evidence/2026-11-14-rehearsal-field-keys-ef18.json",
+  "remaining_root_bindings": [],
+  "acceptance_delta": {
+    "original": 0,
+    "reference": 0
+  },
+  "canonical_promotion": "NONE",
+  "provider_or_apply_mock_proof": "NOT_PROVED_BY_THIS_VALIDATION",
+  "publication": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "binding": "The containing Git commit and PR head bind these metadata bytes externally."
+  }
+}
