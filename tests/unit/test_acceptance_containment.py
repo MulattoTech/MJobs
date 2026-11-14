@@ -321,6 +321,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
 
     def containment(self, **kwargs):
         containment_class = kwargs.pop("containment_class", OwnedPublicContainment)
+        lease_seconds = kwargs.pop("lease_seconds", 16)
         baseline = kwargs.pop(
             "baseline",
             {
@@ -349,7 +350,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             request=self.api.request,
             docker=self.docker,
             owner=OWNER,
-            lease_seconds=16,
+            lease_seconds=lease_seconds,
             utc_now=lambda: self.now[0],
             sleep=self._sleep,
             monotonic=lambda: self.clock[0],
@@ -986,6 +987,95 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                     datetime.fromisoformat(proof["lease_expires_at"]),
                     self.now[0] + timedelta(seconds=15),
                 )
+
+    def _delay_final_operations_read(self, containment, *, seconds, mutate_claim=None):
+        original_request = self.api.request
+
+        def request(method, path, **kwargs):
+            result = original_request(method, path, **kwargs)
+            if (method, path) == ("GET", "/operations"):
+                if mutate_claim is not None:
+                    mutate_claim()
+                self._sleep(seconds)
+            return result
+
+        containment._injected_request = request
+
+    def _set_claim_expiry(self, containment, expiry):
+        claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        claim["lease_expires_at"] = expiry.isoformat()
+        containment.claim_path.write_text(json.dumps(claim), encoding="utf-8")
+
+    def test_slow_admitted_read_renews_final_proof_headroom(self):
+        containment = self.containment(lease_seconds=17)
+        initial = containment("preflight", self.context())
+        claim_before = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual(claim_before["owner"], initial["owner"])
+        self.assertEqual(claim_before["token"], initial["token"])
+        self._set_claim_expiry(containment, self.now[0] + timedelta(seconds=17))
+        self._delay_final_operations_read(containment, seconds=3)
+
+        proof = containment("dispatch", self.context())
+
+        claim_after = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual((proof["owner"], proof["token"]), (initial["owner"], initial["token"]))
+        self.assertGreater(
+            datetime.fromisoformat(proof["lease_expires_at"]),
+            self.now[0] + timedelta(seconds=15),
+        )
+        self.assertEqual(claim_after["owner"], initial["owner"])
+        self.assertEqual(claim_after["token"], initial["token"])
+        self.assertEqual(claim_after["lease_expires_at"], proof["lease_expires_at"])
+
+    def test_slow_initial_admission_read_renews_final_proof_headroom(self):
+        containment = self.containment(lease_seconds=17)
+        self._delay_final_operations_read(containment, seconds=3)
+
+        proof = containment("preflight", self.context())
+
+        claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual((claim["owner"], claim["token"]), (proof["owner"], proof["token"]))
+        self.assertGreater(
+            datetime.fromisoformat(proof["lease_expires_at"]),
+            self.now[0] + timedelta(seconds=15),
+        )
+        self.assertEqual(claim["lease_expires_at"], proof["lease_expires_at"])
+
+    def test_lease_expiring_during_final_read_is_not_revived(self):
+        containment = self.containment(lease_seconds=17)
+        containment("preflight", self.context())
+        self._set_claim_expiry(containment, self.now[0] + timedelta(seconds=17))
+        self._delay_final_operations_read(containment, seconds=18)
+
+        with self.assertRaisesRegex(ContainmentError, "CONTAINMENT_LEASE_EXPIRED"):
+            containment("dispatch", self.context())
+
+        claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            datetime.fromisoformat(claim["lease_expires_at"]),
+            self.now[0] - timedelta(seconds=1),
+        )
+
+    def test_owner_token_drift_during_final_read_refuses_proof_and_renewal(self):
+        containment = self.containment(lease_seconds=17)
+        containment("preflight", self.context())
+        self._set_claim_expiry(containment, self.now[0] + timedelta(seconds=17))
+
+        def change_token():
+            claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+            claim["token"] = "foreign-token"
+            containment.claim_path.write_text(json.dumps(claim), encoding="utf-8")
+
+        self._delay_final_operations_read(containment, seconds=3, mutate_claim=change_token)
+        with self.assertRaisesRegex(ContainmentError, "CONTAINMENT_OWNERSHIP_CHANGED"):
+            containment("dispatch", self.context())
+
+        claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual(claim["token"], "foreign-token")
+        self.assertEqual(
+            datetime.fromisoformat(claim["lease_expires_at"]),
+            self.now[0] + timedelta(seconds=14),
+        )
 
     def test_new_source_policy_can_only_be_enabled_once_then_disabled_for_cleanup(self):
         containment = self.containment()

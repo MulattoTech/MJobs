@@ -1458,6 +1458,9 @@ class OwnedPublicContainment:
                 "scheduler_container_id": self._scheduler_id,
                 "lease_expired_at": self._lease_expiry.isoformat(),
             }
+        # Readbacks above can consume the renewal margin. Recheck claim
+        # ownership and expiry immediately before issuing an active proof.
+        self._ensure_lease()
         return {
             "scheduler_contained": True,
             "source_policy_exclusive": True,
