@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-024",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/394",
+  "slice": "durable-readback-consumer",
+  "run_id": "web-20261109T031419Z-b56246f255d3",
+  "recorded_utc": "2026-11-09T03:42:54.508943+00:00",
+  "baseline_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_commit": "abfa2f9d6a9ee1eb35110519c4b52e9d3de32127",
+  "tested_commit": "abfa2f9d6a9ee1eb35110519c4b52e9d3de32127",
+  "source_tree": "cf458e7d5880e1318d67343349507a052ebea233",
+  "environment": {
+    "os": "Linux isolated cloud workspace",
+    "python": "3.12",
+    "node": "24.22.1",
+    "vitest": "5.0.3",
+    "dependencies": "npm ci with existing lock; requirements.lock and .github/test-requirements.txt in isolated venv",
+    "workstation_heavy_operations": 0
+  },
+  "criterion_results": [
+    {
+      "criterion": "Detect configurable follow-up candidates from durable application events",
+      "result": "PARTIAL",
+      "verified_slice": "Current-profile application summaries and selected status/external-application event readbacks invalidate obsolete drafts on the first committed render; server remains eligibility authority.",
+      "tests": [
+        "REJECTED/WITHDRAWN/INTERVIEW first-commit invalidation",
+        "late stale GET ignored",
+        "APPLIED-to-APPLIED history renewal",
+        "external report readback",
+        "equivalent/reordered/note-only readbacks remain stable",
+        "other-profile changes ignored"
+      ],
+      "remaining": "Actual connected browser regression still needs successful execution; this slice does not prove every full requirement criterion."
+    },
+    {
+      "criterion": "Draft email and optional LinkedIn/DM wording grounded in submitted materials/job",
+      "result": "NOT_RUN",
+      "detail": "Not fully reverified by this bounded UI consumer slice; existing service behavior is preserved."
+    },
+    {
+      "criterion": "Never invent recruiter names, addresses, handles, or new accomplishments",
+      "result": "NOT_RUN",
+      "detail": "Not fully reverified by this slice; independent contact-scrubbing work remains separately owned."
+    },
+    {
+      "criterion": "Code-enforce length/contact-scrubbing constraints",
+      "result": "NOT_RUN",
+      "detail": "Existing focused unit/API checks pass as listed, but this slice is not full current acceptance of these constraints."
+    },
+    {
+      "criterion": "Sending remains outside this feature without separately approved integration",
+      "result": "PARTIAL",
+      "verified_slice": "Independent source review confirms no new send/submission path; wrapper only composes existing GET/copy-only child.",
+      "remaining": "The authored browser regression requires exactly one local synthetic tracking PUT and zero external requests, but successful connected execution remains pending."
+    }
+  ],
+  "checks": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/application-follow-up-readback.test.tsx src/application-follow-up-drafts.test.tsx --coverage.enabled=false --maxWorkers=1 --no-file-parallelism",
+      "cwd": "apps/web",
+      "result": "PASS",
+      "tests_passed": 14,
+      "tested_commit": "abfa2f9d6a9ee1eb35110519c4b52e9d3de32127"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "apps/web",
+      "result": "PASS",
+      "detail": "TypeScript typecheck and production Vite build; existing >500 kB chunk advisory remains."
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/application-follow-up-readback.tsx src/application-follow-up-readback.test.tsx src/main.tsx",
+      "cwd": "apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_follow_up_drafts.py tests/integration/test_application_follow_up_drafts.py -k 'not test_interval_validation_and_automation_only_submission_is_not_a_candidate'",
+      "result": "PASS_SCOPED",
+      "tests_passed": 14,
+      "subtests_passed": 8,
+      "deselected": 1,
+      "detail": "The excluded existing integration case needs bundled Chromium, which is unavailable in this execution environment."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_follow_up_drafts.py tests/integration/test_application_follow_up_drafts.py",
+      "result": "ENVIRONMENT_BLOCKED",
+      "exit_code": 1,
+      "tests_passed": 14,
+      "subtests_passed": 8,
+      "tests_failed": 1,
+      "detail": "Only failure: existing mock-submission case could not launch the missing pinned Chromium executable; not recorded as a green full suite."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS_CURRENT"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "source_files": 4
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_application_follow_up_drafts.py",
+      "result": "NOT_RUN_TO_BROWSER_ASSERTIONS",
+      "detail": "Bundled Chromium download returned an invalid/truncated archive. A temporary installed-Chromium launch attempt was rejected by the cloud runtime socket policy. No environment bypass; final test keeps standard bundled-browser launch. Hosted browser proof remains required."
+    }
+  ],
+  "negative_control": {
+    "method": "Temporarily remove the new wrapper key to reproduce the original unchanged mount behavior; restore exact source afterwards.",
+    "result": "EXPECTED_FAILURE",
+    "new_tests_failed": 6,
+    "new_tests_passed": 2,
+    "restored_targeted_tests_passed": 14
+  },
+  "review": {
+    "independent_static_reviewer": "pr_recon subagent",
+    "result": "No blocking source finding in wrapper/tests, exact main import/mount, and browser-regression safety assertions.",
+    "approval_scope": "Static review only; not GitHub APPROVED, merge permission, deployed verification, or whole-requirement acceptance."
+  },
+  "integration": {
+    "existing_component_owner": "web-20261109T031106Z-31f99071bbd9",
+    "boundary": "Does not edit application-follow-up-drafts.tsx or its existing test. Main change is only import and mount; PR973 status-write/showApp handlers remain byte-identical.",
+    "authority": "PR_ONLY"
+  },
+  "limitations": [
+    "Changing durable readback or selected-application context remounts the existing child and resets quietDays to 7; equivalent and note-only readbacks preserve the chosen value.",
+    "A committed write without successful readback cannot be inferred by this wrapper; failed/unknown write outcomes need the existing tracking retry/readback flow.",
+    "No authenticated Brave or production E2E claim.",
+    "No canonical acceptance status changed; fresh whole-requirement PASS count from this slice is zero."
+  ],
+  "rollback": "Revert the follow-up import/mount, remove the new wrapper/test, and restore the prior browser case through a normal reviewed revert PR."
+}
