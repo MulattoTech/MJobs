@@ -1090,6 +1090,12 @@ def print_console_summary(evidence):
     print(json.dumps(summary, sort_keys=True))
 
 
+def finish_console_evidence(journal, evidence):
+    """Persist complete evidence, then summarize the actual journal payload."""
+    journal.finish(evidence)
+    print_console_summary(journal.payload())
+
+
 def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         runtime_identity=None, employer_verification=False):
     if type(employer_verification) is not bool:
@@ -2968,8 +2974,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
     if employer_verification:
         evidence["employer_verification_opt_in"] = journal.binding["employer_verification_opt_in"]
         validate_employer_verification_witness({**journal.binding, **evidence}, True)
-    journal.finish(evidence)
-    print_console_summary(evidence)
+    finish_console_evidence(journal, evidence)
 
 
 if __name__ == "__main__":

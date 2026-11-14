@@ -50,8 +50,6 @@ def test_ui_console_summary_omits_private_fields_and_keeps_full_private_artifact
         **private,
         "result": "PARTIAL",
         "mode": "ONBOARDING_FIXTURE",
-        "checks": [{"action": "first", "result": "PASS"},
-                   {"action": "second", "result": "PASS"}],
         "acceptance_observations": [{"step": 5, "status": "PASS"}],
         "confirmation": {"nested": "PRIVATE-CONFIRMATION-SENTINEL"},
         "unknown_nested": {"witness": "PRIVATE-UNKNOWN-FIELD-SENTINEL"},
@@ -61,9 +59,12 @@ def test_ui_console_summary_omits_private_fields_and_keeps_full_private_artifact
     journal = ui_e2e.EvidenceJournal(
         evidence_path, {"source": private["source"]}, acceptance_run_id=RUN_ID)
     ui_e2e.validate_employer_verification_witness(evidence, True)
-    journal.finish(evidence)
-
-    ui_e2e.print_console_summary(evidence)
+    journal.complete({"action": "first"})
+    journal.complete({"action": "second"})
+    journal.record_observation(step=12, status="PASS", observable_result="Reviewed fixture",
+        evidence_kind="CONTROLLED_FIXTURE", checks=[{"name": "matching_job_visible", "passed": True},
+            {"name": "nonmatching_job_hidden", "passed": True}], continuity={"profile_id": "profile-123"})
+    ui_e2e.finish_console_evidence(journal, evidence)
 
     rendered = capsys.readouterr().out
     for sentinel in ("PRIVATE-PROFILE-ID-SENTINEL", "PRIVATE-CONFIRMATION-SENTINEL",
@@ -79,6 +80,8 @@ def test_ui_console_summary_omits_private_fields_and_keeps_full_private_artifact
     assert saved["confirmation"] == evidence["confirmation"]
     assert saved["unknown_nested"] == evidence["unknown_nested"]
     assert saved["artifacts"] == evidence["artifacts"]
+    assert len(saved["checks"]) == summary["check_count"]
+    assert len(saved["acceptance_observations"]) == summary["observation_count"]
     assert ui_e2e.validate_employer_verification_witness(saved, True) is None
 
 
