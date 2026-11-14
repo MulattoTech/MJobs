@@ -429,7 +429,22 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
                 aggregator_envelope_sha256=envelope['sha256'])
             if envelope['version'] == 2:
                 source_audit['verification_policy_sha256'] = envelope['binding']['verification_policy_sha256']
-        store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', source_audit)
+        existing_enrollment = []
+        if aggregator_bootstrap_authorization is not None:
+            # Enrollment owns the source across attempts. Reuse the exact
+            # durable audit on recovery so containment readback stays stable.
+            existing_enrollment = connection.execute(select(m.audit).where(
+                m.audit.c.action == 'COMPANY_SOURCE_DISCOVERED',
+                m.audit.c.payload['discovery_request_id'].as_string() == source_audit['discovery_request_id'],
+                m.audit.c.payload['discovery_operation_id'].as_string() == source_audit['discovery_operation_id']
+            ).limit(2)).mappings().all()
+            if (len(existing_enrollment) > 1 or (existing_enrollment and (
+                    existing_enrollment[0]['entity_id'] != fresh['company_id'] or any(
+                        type(existing_enrollment[0]['payload'].get(key)) is not type(value)
+                        or existing_enrollment[0]['payload'][key] != value for key, value in source_audit.items())))):
+                raise PublicFetchError('DISCOVERY_ENROLLMENT_RECEIPT_CHANGED')
+        if not existing_enrollment:
+            store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', source_audit)
     check()
     # Recurrence uses this same persisted binding; no parallel importer or job schema.
     retained = _retained_native_inventory(store, collector_id, source['id'], authorization, enrollment_guard)

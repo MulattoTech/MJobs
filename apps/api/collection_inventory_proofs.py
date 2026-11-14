@@ -36,10 +36,11 @@ def collection_inventory_proofs(store, profile_id, source_id, parent_operation_i
             native = enrolled[0]
             source = _one(connection, m.job_sources, native['source_id'])
             bound = _one(connection, m.company_sources, native['company_source_id'])
-            # Find by immutable operation ID, then reject wrong-attempt or duplicate
-            # evidence rather than selecting whichever receipt happens to be newest.
+            # A recovered operation can retain committed receipts from earlier
+            # attempts. Select this exact attempt; reject duplicates within it.
             events = connection.execute(select(m.audit).where(m.audit.c.action == ACTION,
-                m.audit.c.payload['native_inventory']['child_operation_id'].as_string() == operation['id']
+                m.audit.c.payload['native_inventory']['child_operation_id'].as_string() == operation['id'],
+                m.audit.c.payload['native_inventory']['child_operation_attempt'].as_integer() == operation['attempt_count']
             ).order_by(m.audit.c.id).limit(2)).mappings().all()
             _require(len(events) <= 1)
             if not events:

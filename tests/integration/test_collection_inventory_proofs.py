@@ -109,7 +109,7 @@ def native_audit(store):
             m.audit.c.payload['native_inventory']['schema_version'].as_integer() == 1)).mappings().one())
 
 
-@pytest.mark.parametrize('mutation', ['receipt-count', 'manifest', 'snapshot', 'child-attempt',
+@pytest.mark.parametrize('mutation', ['receipt-count', 'manifest', 'snapshot',
     'native-disabled', 'duplicate-audit', 'private-extension'])
 def test_changed_receipt_snapshot_attempt_or_source_fails_closed(staged, mutation):
     from uuid import uuid4
@@ -121,8 +121,6 @@ def test_changed_receipt_snapshot_attempt_or_source_fails_closed(staged, mutatio
         if mutation == 'snapshot':
             connection.execute(update(m.posting_snapshots).where(
                 m.posting_snapshots.c.id == receipt['manifest'][0]['snapshot_id']).values(raw={'changed': True}))
-        elif mutation == 'child-attempt':
-            connection.execute(update(m.operations).where(m.operations.c.id == staged.operation['id']).values(attempt_count=2))
         elif mutation == 'native-disabled':
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == receipt['collector_source_id']).values(enabled=False))
         elif mutation == 'duplicate-audit':
@@ -219,3 +217,109 @@ def assert_read_only(staged, expected_status):
     finally:
         event.remove(reopened.engine, 'before_cursor_execute', read_only)
         reopened.engine.dispose()
+
+
+def test_recovered_second_attempt_uses_its_own_receipt_not_previous_attempt(staged):
+    from services.discovery.sources.collect import collect_source
+    from workers.operations import recover_expired
+    from sqlalchemy import delete
+    from uuid import uuid4
+    def committed_then_exit(*args, **kwargs):
+        collect_source(*args, **kwargs)
+        raise SystemExit('controlled postcommit exit before finalization')
+    with patch('services.discovery.sources.collect.collect_source', committed_then_exit):
+        with pytest.raises(SystemExit):
+            staged._execute()
+    from apps.api.collection_children import collection_children
+    def enrolled():
+        return collection_children(staged.case.store, 'fixture', staged.case.source_id,
+            staged.parent_lineage['parent_operation_id'], 1)['enrolled_sources']
+    first_enrolled = enrolled()
+    assert len(first_enrolled) == 1
+    first = native_audit(staged.case.store)
+    assert first['payload']['native_inventory']['child_operation_attempt'] == 1
+    with staged.case.store.engine.begin() as connection:
+        connection.execute(update(m.operations).where(m.operations.c.id == staged.operation['id']).values(
+            lease_expires_at='2000-01-01T00:00:00+00:00'))
+        # Arrange an eligible source cadence in this isolated recovery fixture;
+        # the production collector's cooldown check remains active.
+        connection.execute(update(m.job_sources).where(m.job_sources.c.id ==
+            first['payload']['native_inventory']['collector_source_id']).values(last_attempt=None))
+    recover_expired(staged.case.store)
+    assert enrolled() == first_enrolled
+    outcome = staged._execute()
+    assert outcome['status'] == 'COMPLETED', outcome
+    response = readback(staged)
+    assert response.status_code == 200, response.text
+    observation = response.json()['observations'][0]
+    assert observation['status'] == 'AVAILABLE'
+    assert observation['proof']['child_operation_attempt'] == 2
+    assert enrolled() == first_enrolled
+    with staged.case.store.engine.connect() as connection:
+        events = [dict(row) for row in connection.execute(select(m.audit)).mappings()
+            if row['payload'].get('native_inventory')]
+    assert sorted(row['payload']['native_inventory']['child_operation_attempt'] for row in events) == [1, 2]
+    current = next(row for row in events if row['payload']['native_inventory']['child_operation_attempt'] == 2)
+    duplicate_id = uuid4().hex
+    with staged.case.store.engine.begin() as connection:
+        connection.execute(m.audit.insert().values({**current, 'id': duplicate_id}))
+    assert readback(staged).status_code == 409
+    with staged.case.store.engine.begin() as connection:
+        connection.execute(delete(m.audit).where(m.audit.c.id.in_([current['id'], duplicate_id])))
+    response = readback(staged)
+    assert response.status_code == 200, response.text
+    observation = response.json()['observations'][0]
+    assert observation['status'] == 'UNAVAILABLE'
+    assert observation['reason'] == 'NATIVE_INVENTORY_NOT_PERSISTED'
+    assert observation['proof'] is None
+
+
+@pytest.mark.parametrize('history', ['conflicting-binding', 'duplicate-enrollment', 'foreign-request-operation'])
+def test_recovery_enrollment_reuses_only_exact_ownership(staged, history):
+    from services.discovery.sources.collect import collect_source
+    from workers.operations import recover_expired
+    from uuid import uuid4
+    def committed_then_exit(*args, **kwargs):
+        collect_source(*args, **kwargs)
+        raise SystemExit('controlled postcommit exit')
+    with patch('services.discovery.sources.collect.collect_source', committed_then_exit):
+        with pytest.raises(SystemExit):
+            staged._execute()
+    first = native_audit(staged.case.store)
+    with staged.case.store.engine.begin() as connection:
+        enrollment = dict(connection.execute(select(m.audit).where(
+            m.audit.c.action == 'COMPANY_SOURCE_DISCOVERED',
+            m.audit.c.payload['discovery_operation_id'].as_string() == staged.operation['id'])).mappings().one())
+        payload = deepcopy(enrollment['payload'])
+        if history == 'duplicate-enrollment':
+            connection.execute(m.audit.insert().values({**enrollment, 'id': uuid4().hex}))
+        else:
+            if history == 'conflicting-binding':
+                payload['aggregator_receipt_sha256'] = 'a' * 64
+            else:
+                # Retained history for another request/operation must not be
+                # mistaken for ownership of this currently authorized child.
+                payload.update(discovery_request_id='historical-request', discovery_operation_id='historical-operation')
+            connection.execute(update(m.audit).where(m.audit.c.id == enrollment['id']).values(payload=payload))
+        connection.execute(update(m.operations).where(m.operations.c.id == staged.operation['id']).values(
+            lease_expires_at='2000-01-01T00:00:00+00:00'))
+        connection.execute(update(m.job_sources).where(m.job_sources.c.id ==
+            first['payload']['native_inventory']['collector_source_id']).values(last_attempt=None))
+    recover_expired(staged.case.store)
+    outcome = staged._execute()
+    with staged.case.store.engine.connect() as connection:
+        matching = connection.execute(select(m.audit).where(
+            m.audit.c.action == 'COMPANY_SOURCE_DISCOVERED',
+            m.audit.c.payload['discovery_operation_id'].as_string() == staged.operation['id'])).mappings().all()
+        current_receipts = connection.execute(select(m.audit).where(
+            m.audit.c.payload['native_inventory']['child_operation_id'].as_string() == staged.operation['id'],
+            m.audit.c.payload['native_inventory']['child_operation_attempt'].as_integer() == 2)).all()
+        if history == 'foreign-request-operation':
+            assert outcome['status'] == 'COMPLETED', outcome
+            assert len(matching) == 1 and matching[0]['id'] != enrollment['id']
+            assert len(current_receipts) == 1
+            assert connection.execute(select(m.audit.c.id).where(m.audit.c.id == enrollment['id'])).scalar_one() == enrollment['id']
+        else:
+            assert outcome['status'] != 'COMPLETED', outcome
+            assert not current_receipts
+            assert len(matching) == (2 if history == 'duplicate-enrollment' else 1)
