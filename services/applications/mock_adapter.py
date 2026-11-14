@@ -713,9 +713,15 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 return store.application(application_id)
             with sync_playwright() as playwright:
                 from services.applications.browser_profiles import browser_profile_path
-                context = playwright.chromium.launch_persistent_context(str(browser_profile_path(root, initialize=True)), headless=True,
+                browser_profile = browser_profile_path(root, initialize=True)
+                context = playwright.chromium.launch_persistent_context(str(browser_profile), headless=True,
                     args=["--disable-gpu"], timeout=_playwright_action_timeout_ms(check, 15000))
                 try:
+                    from services.applications.browser_profile_metadata import (
+                        record_browser_profile_auth_required, record_browser_profile_use,
+                    )
+                    record_browser_profile_use(
+                        root, browser_profile, provider=route["provider"], site=client.origin)
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
                     if debug_capture:
@@ -736,6 +742,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     if auth_required_detected:
                         store.transition(application_id, ["FILLING"], "AUTH_REQUIRED",
                                          "AUTH_REQUIRED")
+                        record_browser_profile_auth_required(
+                            root, browser_profile, provider=route["provider"], site=client.origin)
                         return store.application(application_id)
                     if intervention_detected:
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")

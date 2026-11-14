@@ -89,8 +89,9 @@ def run(stream) -> int:
                 pass
         return 2
     try:
-        options = {"debug_capture": True, "application_root": application} \
-            if payload.get("debug_capture", False) else {}
+        options = {"application_root": application}
+        if payload.get("debug_capture", False):
+            options["debug_capture"] = True
         status = run_browser(profile, login, client, check=check, **options)
         return 0 if status == MANUAL_AUTH_WINDOW_CLOSED else 2 if status in {OPEN_UNAVAILABLE, STALE} else 3
     except Exception:
