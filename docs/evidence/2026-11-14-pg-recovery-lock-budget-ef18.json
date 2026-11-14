@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-14T00:59:48.089207+00:00",
+  "requirement": "MJ-REQ-004",
+  "parent_requirement": "MJ-REQ-292",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/5",
+  "work_id": "MJ-REQ-004-PG-recovery-lock-budget-ef18",
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "repository": "MulattoTech/MJobs",
+  "base_sha": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+  "source_sha": "4d147330ab296b4c408b0004eef05a77dc15f7d4",
+  "source_tree": "455d5e4de6294cbe58054155d1df5da885bba9c4",
+  "source_blobs": {
+    "workers/operations.py": "ccf055dab8d2ca333215d4cd07450d466764bdd6",
+    "tests/integration/test_operation_recovery_lock_budget.py": "c0109e2d698a5556ca12381ca768c2dc04653975"
+  },
+  "source_file_sha256": {
+    "workers/operations.py": "a6d3cece14cb010bcd8f6155676f8058777e819b0157b10c61834d0d530904e7",
+    "tests/integration/test_operation_recovery_lock_budget.py": "d635758456071eee812472b98f355be17db0a7dfc1b13bd37d0250004404f853"
+  },
+  "result": "IMPLEMENTED_STATIC_REVIEWED_SQLITE_COMPATIBILITY_PASS_POSTGRES_NOT_RUN",
+  "source_gap": "The initial operation-row SKIP LOCKED query does not bound later application/receipt/state/audit lock acquisition in recover_expired. This is a source-confirmed gap, not a reproduced production incident.",
+  "change": "Set PostgreSQL transaction-local lock_timeout to min(existing nonzero setting, 1000 ms). Preserve stricter settings, leave statement_timeout and SQLite unchanged, and let the existing transaction and dispatcher handle rollback/error retry.",
+  "baseline": {
+    "head": "59a72b6c02540548730fbf4fea2ed80bd986a266",
+    "tree": "3d649a1dd8b2925817d085b63b2bf2be3cdec061",
+    "production_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+    "test_blob": "c0109e2d698a5556ca12381ca768c2dc04653975",
+    "runtime": "NOT_RUN",
+    "expected_not_observed": "The unlimited original-source case should retain lock_timeout=0 and reach fixture SQLSTATE 57014; the first test assertion may be the observed 0-versus-1000 ms setting. The stricter 500 ms control may already pass."
+  },
+  "executed_validation": {
+    "static": {
+      "AST_parse": "PASS",
+      "git_diff_check_both_commits": "PASS",
+      "commit_provenance_both_commits": "PASS",
+      "exact_two_path_scope": "PASS",
+      "identical_test_blob_baseline_and_fix": "PASS",
+      "baseline_production_equals_base268": "PASS",
+      "other_production_functions_unchanged": "PASS",
+      "existing_recovery_body_and_sqlite_branch_unchanged": "PASS"
+    },
+    "independent_review": {
+      "result": "PASS_IMMUTABLE_SOURCE_AND_FIXTURE_REVIEW",
+      "artifact": "pg-recovery-lock-budget-independent-review-4d147330.json",
+      "sha256": "fd72722facbcc0e6d765fdcace4b36e964af80a7a9c5d2bba8a1a9ac7c457e13"
+    },
+    "sqlite_compatibility": {
+      "source_sha": "4d147330ab296b4c408b0004eef05a77dc15f7d4",
+      "source_tree": "455d5e4de6294cbe58054155d1df5da885bba9c4",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_uncancelled_crashed_attempts_are_bounded",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_null_queued_worker_lease_at_attempt_limit_honors_cancel",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_null_manual_auth_lease_remains_reserved_and_holds_browser_capacity",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_final_attempt_receipt_completes_without_replay_and_survives_reopen",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_live_owner_is_not_finalized_by_receipt_probe",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_committed_receipt_wins_over_late_cancel_flag",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_cancelled_crashed_worker_without_receipt_remains_cancelled",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_rolled_back_recovery_emits_nothing_and_later_commit_logs_once",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\pg-recovery-sqlite-4d147330.junit.xml"
+      ],
+      "started_at_utc": "2026-11-14T00:57:49.679194+00:00",
+      "finished_at_utc": "2026-11-14T00:57:56.205555+00:00",
+      "exit_code": 0,
+      "counts": {
+        "primary_case_records": 8,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 8
+      },
+      "pytest_summary": "8 passed in 5.76s",
+      "receipt_sha256": "2ac302bb6df35e6e9d15fb4b0bc0f456b404885c81ce520b6c3809ef04ecef71",
+      "log_sha256": "efca3d1fd66444629ddf4f266a10561e078e2d98312d61346e38bb6b6c6bf842",
+      "junit_sha256": "2ddf8c4456545421b724e83243735b0b466cda172f5d79b39bc5c25d6b02c468",
+      "source_clean_after": true,
+      "compute_released": true,
+      "meaning": "Temporary SQLite lease/retry/cancellation/receipt/audit compatibility only; no PostgreSQL lock-wait proof."
+    }
+  },
+  "postgresql_regression": {
+    "status": "NOT_RUN",
+    "target_environment": "Existing hosted Integration workflow; Ubuntu 24.04/Python 3.12/PostgreSQL 17/psycopg; no workflow change",
+    "test_nodes": [
+      "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[unlimited]",
+      "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[stricter]"
+    ],
+    "design": {
+      "production_lock_timeout_ms": 1000,
+      "scope": "Per individual PostgreSQL lock acquisition within recover_expired transaction",
+      "existing_limit": "Preserve any shorter nonzero lock_timeout; leave statement_timeout untouched",
+      "setting_lifetime": "Transaction local; existing engine.begin context restores on commit/rollback",
+      "error_policy": "DBAPI error escapes; existing dispatcher retry path remains authoritative",
+      "fixture": "UUID schema, independent owned application-row blocker, real production Store in an owned spawned helper, exact backend and pg_blocking_pids witness",
+      "fixture_guard_statement_timeout_ms": 5000,
+      "fixture_phase_watchdog_seconds": 8,
+      "configurations_ms": [
+        0,
+        500
+      ],
+      "natural_oracle": "55P03 before fixture blocker release or helper intervention, while blocker remains held",
+      "rollback_and_retry": "Unchanged full operation/application/audit snapshot; independently NOWAIT-lock original operation; same physical backend settings restored; release blocker; one normal recovery and zero on repeat",
+      "baseline_expected_not_observed": "Unlimited original source should reach fixture-only 57014 statement guard and fail the 55P03 oracle",
+      "receipt_properties": [
+        "pg_recovery_lock_receipt",
+        "pg_recovery_lock_cleanup"
+      ]
+    },
+    "required_observation": "Natural 55P03 while exact separately owned application-row blocker remains held, bound backend/pg_blocking_pids witness, unchanged durable snapshot and released operation lock, same-physical-backend GUC restoration, one recovery and audit after release, no duplicate second recovery;forced helper cleanup is failure."
+  },
+  "next_action": "Publish one scoped candidate through fresh live admission, observe exact-head required checks and actual PostgreSQL JUnit receipts, preserve first failures and diagnose them before any justified correction. Only the sole integration steward may merge.",
+  "not_run": [
+    "Original-source PostgreSQL baseline",
+    "Fixed PostgreSQL contention/restoration cases",
+    "Final publication-head hosted required gates",
+    "Protected integration",
+    "Applicable deployment/runtime adoption",
+    "Full MJ-REQ-004 or MJ-REQ-292 acceptance"
+  ],
+  "limits": [
+    "No whole-sweep/transaction/call deadline",
+    "No connect, pool, pre-ping, network, or finalization deadline proof",
+    "No fairness guarantee under persistent contention",
+    "No change to Store, workers/tasks.py, source-setup lease semantics, or company_refresh_saved",
+    "No fixture provider, browser, Redis, Compose, or production database access by author",
+    "No source runtime PASS or MJ-REQ-004 acceptance claimed",
+    "No baseline production incident or runtime failure was reproduced locally.",
+    "The later metadata commit preserves these tested/reviewed code blobs but has its own required hosted gates."
+  ],
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "primary_semantic_sources": [
+    "https://www.postgresql.org/docs/17/runtime-config-client.html",
+    "https://www.postgresql.org/docs/17/sql-set.html",
+    "https://www.postgresql.org/docs/17/view-pg-settings.html"
+  ]
+}
