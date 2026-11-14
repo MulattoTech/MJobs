@@ -822,13 +822,16 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     policy = preferences.get('company_discovery') or {}
     if policy.get('company_discovery_enabled', True) is not True:
         return None
+    aggregator_bootstrap_manual_review = False
     if aggregator_bootstrap_candidate is not None:
         from packages.domain.employer_verification import verification_policy_snapshot
-        if verification_policy_snapshot(profile) is None:
-            # Returning a generic review request here would let this exact
-            # aggregator candidate bypass the separate employer-verification
-            # consent gate. Unrelated candidates keep generic discovery behavior.
-            return None
+        if not profile or verification_policy_snapshot(profile) is None:
+            # Keep an operator-reviewable request in PERSONAL mode, but never
+            # let it flow into automatic website, native-ATS, or bootstrap proof.
+            # FIXTURE and ownerless candidates remain conservatively suppressed.
+            if fixture or not profile:
+                return None
+            aggregator_bootstrap_manual_review = True
     minimum_match = policy.get('minimum_match_for_discovery', 60)
     priority_match = policy.get('priority_match_for_discovery', 80)
     hourly_cap = policy.get('max_new_company_discoveries_per_hour', 12)
@@ -879,6 +882,15 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     # preferences or high-score reasons into its existing authority.
     if request['profile_id'] != incoming_profile_id:
         return None
+    if aggregator_bootstrap_manual_review and (
+            request['state'] != 'NEEDS_ORIGIN_REVIEW'
+            or request['selected_website'] is not None
+            or request['authorization'] is not None
+            or request['operation_id'] is not None
+            or request['domain_evidence'] != []):
+        # A later intake without current opt-in cannot overwrite any reviewed,
+        # active, terminal, or previously authorized request state.
+        return request_id
     if profile and connection.execute(select(m.profiles.c.version).where(
             m.profiles.c.id == incoming_profile_id).with_for_update(
                 read=True, skip_locked=True)).scalar_one_or_none() != incoming_profile_version:
@@ -944,6 +956,8 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
         connection.execute(update(m.company_discovery_requests).where(
             m.company_discovery_requests.c.id == request_id).values(**renewed))
         request.update(renewed)
+    if aggregator_bootstrap_manual_review:
+        return request_id
     request['reasons'] = sorted(set(request['reasons']) | set(reasons))
     scores = [value for value in (score, request['highest_match_score']) if value is not None]
     connection.execute(update(m.company_discovery_requests).where(m.company_discovery_requests.c.id == request_id)
