@@ -148,4 +148,49 @@ describe('search history API client', () => {
     expect(loaded.items[0].error_detail).toBe('1 recorded error.');
     expect(loaded.items[0].error_detail).not.toContain('token=private');
   });
+
+  it.each([
+    ['201 ASCII code points', 'a'.repeat(201)],
+    ['256 ASCII code points', 'b'.repeat(256)],
+    ['256 mixed Unicode code points', 'c'.repeat(128) + '\u{1f680}'.repeat(128)],
+  ])('preserves backend-valid source lengths: %s', async (_case, source) => {
+    const client = createSearchHistoryClient({
+      fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+        profile_id: 'profile-1', items: [{ ...record, source }], next_cursor: null,
+      })),
+    });
+
+    await expect(client.loadHistory('profile-1')).resolves.toMatchObject({
+      items: [{ id: record.id, source }],
+    });
+  });
+
+  it('rejects source labels above 256 Unicode code points', async () => {
+    for (const source of [
+      'a'.repeat(257),
+      'b'.repeat(128) + '\u{1f680}'.repeat(129),
+    ]) {
+      const client = createSearchHistoryClient({
+        fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+          profile_id: 'profile-1', items: [{ ...record, source }], next_cursor: null,
+        })),
+      });
+
+      await expect(client.loadHistory('profile-1'))
+        .rejects.toMatchObject({ kind: 'INVALID_RESPONSE', retryable: false });
+    }
+  });
+
+  it('preserves existing blank and control-character source rejection', async () => {
+    for (const source of ['', '   ', '\t', 'source\nlabel', 'source\u0000label', 'source\u007flabel']) {
+      const client = createSearchHistoryClient({
+        fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+          profile_id: 'profile-1', items: [{ ...record, source }], next_cursor: null,
+        })),
+      });
+
+      await expect(client.loadHistory('profile-1'))
+        .rejects.toMatchObject({ kind: 'INVALID_RESPONSE', retryable: false });
+    }
+  });
 });

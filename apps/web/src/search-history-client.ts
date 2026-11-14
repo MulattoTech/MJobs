@@ -91,6 +91,11 @@ function nonemptyText(value: unknown, maxLength: number): value is string {
     !/[\u0000-\u001f\u007f]/.test(value);
 }
 
+function sourceText(value: unknown): value is string {
+  // Persistence allows 256 Unicode code points: at most 512 UTF-16 code units.
+  return nonemptyText(value, 512) && Array.from(value).length <= 256;
+}
+
 function timestampOrNull(value: unknown): value is string | null {
   return value === null || (typeof value === 'string' && value.length <= 100 &&
     Number.isFinite(Date.parse(value)) && !/[\u0000-\u001f\u007f]/.test(value));
@@ -104,7 +109,7 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
   if (!isRecord(value) ||
       !nonemptyText(value.id, 128) ||
       value.profile_id !== profileId ||
-      !nonemptyText(value.source, 200) ||
+      !sourceText(value.source) ||
       typeof value.query !== 'string' || value.query.length > 2000 || /[\u0000-\u001f\u007f]/.test(value.query) ||
       !(value.filters === null || isRecord(value.filters)) ||
       !timestampOrNull(value.started_at) || !timestampOrNull(value.finished_at) ||
