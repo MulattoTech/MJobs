@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-292-answer-resume-8966724d",
+  "objective": "Reject stale answer-review preflight at mock resume admission and dispatch",
+  "owner": "WEB-20261114T030910Z-8966724d-b851-435e-8966-7db737d60c21",
+  "branch": "web/8966724d/answer-resume-currentness",
+  "head_sha": "11bc96d6640971156e58ee564ce9bf75ce5d2cff",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed source with evidence; require current-head hosted checks and existing-steward integration; retain full MJ-REQ-292 as PARTIAL",
+  "created_at": "2026-11-14T03:23:41.198147+00:00",
+  "requirements": [
+    "MJ-REQ-292-answer-resume-8966724d"
+  ],
+  "tests": [
+    {
+      "command": "Source11bc96d6: full answer-resume API and worker module 9 PASS plus6 subtests;0 failure/error/skip;15.89s; independent exact-blob review PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "PostgreSQL qualification; actual browser journey; full60-step campaign; hosted checks on published successor; deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Existing2d4f integration/canonical ownership; base main268 has separate cancellation timing and public-worker deadline fixture failures"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "step_ids": [
+    44,
+    45,
+    46
+  ],
+  "scope": "Mock answer-review resume preflight currentness at API admission and worker dispatch",
+  "run_id": "WEB-20261114T030910Z-8966724d-b851-435e-8966-7db737d60c21",
+  "recorded_at_utc": "2026-11-14T03:23:40.943115Z",
+  "repository": "MulattoTech/MJobs",
+  "base_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+  "source_commit": "11bc96d6640971156e58ee564ce9bf75ce5d2cff",
+  "source_tree": "b459f54c5150343ab4774fb03c2b8f352de42704",
+  "source_blobs": {
+    "services/applications/answer_resume.py": "65e03d3939c959c2beaecc55e8ec62fd7ae66b46",
+    "tests/integration/test_application_answer_resume_api.py": "ecc514d158ebbad77c6e78e74d1fe0be8a9c450a"
+  },
+  "defect": {
+    "observation": "A cached approved-answer review was admitted after actual document regeneration left its preflight stale, despite unchanged profile, question, form fingerprint and preflight event.",
+    "baseline_result": "FAIL_EXPECTED",
+    "baseline_command": "python -X utf8 -m pytest -q -p no:cacheprovider tests/integration/test_application_answer_resume_api.py::ApplicationAnswerResumeApiTests::test_reprepared_documents_reject_cached_answer_review_before_admission",
+    "baseline_counts": {
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "baseline_observed_http": 202,
+    "baseline_required_http": 409,
+    "baseline_dirty_inputs": " M tests/integration/test_application_answer_resume_api.py\n",
+    "baseline_input_sha256": {
+      "services/applications/answer_resume.py": "04e5a6b0edb2c33feeea6147fb888ca9ce7ce45b662ac15e52a28b7e65ec6c4d",
+      "tests/integration/test_application_answer_resume_api.py": "fd8f17858ce9843f1c77e2a806dde93199a40ddd30d65ef7a6da6f6a110a9cd5"
+    },
+    "baseline_log_sha256": "96ac76c6f706686262ec4c9bb82d2a2e638045f68c8f363d9235087e1f7a1d76"
+  },
+  "verification": {
+    "result": "PASS",
+    "environment": "Windows Python3.12; temporary SQLite database and loopback mock HTTP; no browser or external provider",
+    "command": "python -X utf8 -m pytest -q -p no:cacheprovider tests/integration/test_application_answer_resume_api.py",
+    "started_at_utc": "2026-11-14T03:21:29.097252Z",
+    "finished_at_utc": "2026-11-14T03:21:46.230065Z",
+    "exit_code": 0,
+    "counts": {
+      "passed": 9,
+      "subtests_passed": 6,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "duration_seconds": 15.893,
+    "log_sha256": "c009ae09cfb1921bb6005637dbea105ffa6b55d9252112e6ecf3371df9e1a7ca",
+    "junit_sha256": "d5e488e65f6cd57981d84564817087016e77408f23441012b524c074cd7251b3",
+    "coverage": [
+      "Real document regeneration invalidates cached review before operation or request-audit admission",
+      "Current refreshed preflight permits the same approved answer again",
+      "Legacy queued resume with current operation snapshot and stale original review blocks before adapter access",
+      "Successful current review and immutable completed receipt replay",
+      "Existing wrong-profile, wrong-question, changed-answer, changed-form and missing-result refusals"
+    ]
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT Web independent subagent execution_contract_review",
+    "result": "APPROVED",
+    "binding": "Exact production and regression Git blobs listed above",
+    "limitations": [
+      "Review is separate from parent-executed runtime verification",
+      "No claim of a new transaction-atomicity guarantee"
+    ]
+  },
+  "states": {
+    "implemented": true,
+    "locally_verified": true,
+    "hosted_verified": "NOT_RUN",
+    "integrated": false,
+    "deployed": false,
+    "formal_requirement_status": "UNCHANGED_PARTIAL"
+  },
+  "known_limits": [
+    "Focused verification uses an isolated SQLite database and loopback fixture HTTP. PostgreSQL and full connected journey proof remain separate.",
+    "This is a MOCK/FIXTURE non-submitting path. External application submission stays OFF.",
+    "The full MJ-REQ-292 requirement and its formal 60-step ledger are not accepted by this contribution.",
+    "Base main has separately owned cancellation timing and public-worker deadline test failures; this change does not resolve or waive them."
+  ],
+  "related_baseline_failures": [
+    {
+      "name": "Cancellation timing / gen2 GC inside timed request",
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43486348979/job/132095729111",
+      "source_owner": "2d4f15a3",
+      "disposition": "UNRESOLVED_SEPARATE_SCOPE"
+    },
+    {
+      "name": "Public worker deadline expires before socket connect",
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43486348865/job/132095728385",
+      "source_owner": "2d4f15a3",
+      "disposition": "UNRESOLVED_SEPARATE_SCOPE"
+    }
+  ],
+  "acceptance_change": {
+    "original": 0,
+    "reference": 0
+  },
+  "next_action": "Complete bounded publication admission, require hosted checks at the published revision, and hand the immutable qualified candidate to the existing integration steward."
+}
