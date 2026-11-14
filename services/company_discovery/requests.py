@@ -394,6 +394,11 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
             or quality['source_endpoint'] != source['endpoint']
             or quality['company_source_id'] is not None):
         return None
+    # Aggregator-origin verification has its own explicit opt-in. Do not turn
+    # a missing/disabled policy into a legacy V1 bootstrap or a generic company
+    # discovery request for the same aggregator candidate.
+    if verification_policy is None:
+        return None
     if fixture and not ((policy['provider'] == 'wwr' and policy['strategy'] == 'FEED')
                         or (policy['provider'] == 'remotive' and policy['strategy'] == 'PUBLIC_JSON')):
         return None
@@ -817,6 +822,13 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     policy = preferences.get('company_discovery') or {}
     if policy.get('company_discovery_enabled', True) is not True:
         return None
+    if aggregator_bootstrap_candidate is not None:
+        from packages.domain.employer_verification import verification_policy_snapshot
+        if verification_policy_snapshot(profile) is None:
+            # Returning a generic review request here would let this exact
+            # aggregator candidate bypass the separate employer-verification
+            # consent gate. Unrelated candidates keep generic discovery behavior.
+            return None
     minimum_match = policy.get('minimum_match_for_discovery', 60)
     priority_match = policy.get('priority_match_for_discovery', 80)
     hourly_cap = policy.get('max_new_company_discoveries_per_hour', 12)

@@ -176,6 +176,13 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply to this job</a></p>'
         )
         self.raw_before = deepcopy(raw)
+        # Worker effect tests use an explicitly authorized, real V2 lineage.
+        # Legacy V1 behavior is isolated in its own compatibility regression.
+        profile = deepcopy(self.case.store.profile('fixture'))
+        profile['preferences']['company_discovery']['employer_verification'] = {
+            'version': 1, 'mode': 'GREENHOUSE_RECIPROCAL_V1', 'activation_id': None,
+        }
+        self.case.store.save_profile(profile, expected_version=profile['version'], require_expected_version=True)
         self.parent_lineage = self.case.parent_operation()
         self.collection = self.case.collect(**self.parent_lineage)
         with self.case.store.engine.connect() as connection:
@@ -197,6 +204,61 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.network = []
         self.saw_unconfigured_source_before_first_fetch = None
 
+    def test_queued_v1_without_employer_verification_consent_blocks_before_egress(self):
+        from services.company_discovery.aggregator_bootstrap import canonical_digest
+
+        # Reconstruct a valid historical V1 queue from the real V2 family,
+        # then model a legacy profile whose current consent is disabled.
+        pending = deepcopy(self.request['domain_evidence'][0])
+        pending['schema'] = 'AGGREGATOR_BOOTSTRAP_PENDING_V1'
+        pending['version'] = 1
+        for key in ('parent_request_id', 'verification_policy', 'verification_policy_sha256'):
+            pending['binding'].pop(key)
+        pending['sha256'] = canonical_digest({key: value for key, value in pending.items() if key != 'sha256'})
+        profile = self.case.store.profile('fixture')
+        preferences = deepcopy(profile['preferences'])
+        preferences['company_discovery']['employer_verification'] = {
+            'version': 1, 'mode': 'DISABLED', 'activation_id': None,
+        }
+        with self.case.store.engine.begin() as connection:
+            profile_version = connection.execute(select(m.profile_versions).where(
+                m.profile_versions.c.profile_id == 'fixture',
+                m.profile_versions.c.version == profile['version'])).mappings().one()
+            contact = deepcopy(profile_version['contact'])
+            contact['preferences'] = preferences
+            connection.execute(update(m.profile_versions).where(
+                m.profile_versions.c.id == profile_version['id']).values(contact=contact))
+            connection.execute(update(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == self.request['id']).values(domain_evidence=[pending]))
+            params = deepcopy(self.operation['params'])
+            params['aggregator_bootstrap'] = 'AGGREGATOR_BOOTSTRAP_PENDING_V1'
+            params['aggregator_bootstrap_version'] = 1
+            params['fixture_aggregator_bootstrap'] = 'fixture-aggregator-bootstrap-v1'
+            params['aggregator_bootstrap_pending_sha256'] = pending['sha256']
+            connection.execute(update(m.operations).where(m.operations.c.id == self.operation['id']).values(
+                params=params))
+        self.request['domain_evidence'] = [pending]
+        self.operation['params'] = params
+
+        outcome = self._execute()
+
+        self.assertEqual(outcome["status"], "BLOCKED", outcome)
+        self.assertEqual(self.network, [])
+        self.assertEqual(self.case.store.count("company_domains"), 0)
+        with self.case.store.engine.connect() as connection:
+            self.assertEqual(list(connection.execute(select(m.company_sources).where(
+                m.company_sources.c.provider == "greenhouse")).mappings()), [])
+        from services.company_discovery.public_client import PublicFetchError
+        renewed_profile = self.case.store.profile('fixture')
+        renewed_profile['preferences']['company_discovery']['employer_verification'] = {
+            'version': 1, 'mode': 'GREENHOUSE_RECIPROCAL_V1', 'activation_id': None,
+        }
+        self.case.store.save_profile(renewed_profile, expected_version=renewed_profile['version'],
+                                     require_expected_version=True)
+        from services.company_discovery.requests import authorize_discovery_request
+        with self.assertRaises(PublicFetchError):
+            authorize_discovery_request(self.case.store, self.operation)
+
     def test_personal_no_hint_job_cannot_replace_queued_typed_request(self):
         from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
 
@@ -204,12 +266,13 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         case.setUp()
         self.addCleanup(case.doCleanups)
         self.addCleanup(case.tearDown)
+        case._activate_v2()
         with case.store.engine.begin() as connection:
             connection.execute(update(m.workspace_identity).where(
                 m.workspace_identity.c.id == 'workspace').values(operation_mode='PERSONAL'))
         first = case.rows[0]
         first['description'] += '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a></p>'
-        case.collect()
+        case.collect(**case.parent_operation())
         before = case.pending()[0]
         with case.store.engine.connect() as connection:
             before_operation = dict(connection.execute(select(m.operations).where(
@@ -223,7 +286,7 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         with case.store.engine.begin() as connection:
             connection.execute(update(m.job_sources).where(
                 m.job_sources.c.id == case.source_id).values(last_attempt=None))
-        case.collect()
+        case.collect(**case.parent_operation())
         after = case.pending()[0]
         with case.store.engine.connect() as connection:
             after_operation = dict(connection.execute(select(m.operations).where(
@@ -248,7 +311,8 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         with self.case.store.engine.begin() as connection:
             parent_id = enqueue_operation(self.case.store, 'DISCOVER', 'fixture', {
                 'source_id': self.case.source_id, 'profile_ids': ['fixture'],
-                'profile_version': self.case.store.profile('fixture')['version']},
+                'profile_version': self.case.store.profile('fixture')['version'],
+                'request_id': 'parent-lineage-test'},
                 connection=connection, task_key='aggregator-parent-lineage-test')
             connection.execute(update(m.operations).where(m.operations.c.id == parent_id).values(
                 state='RUNNING', attempt_count=1, cancel_requested=False,
@@ -293,6 +357,7 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         case.setUp()
         self.addCleanup(case.doCleanups)
         self.addCleanup(case.tearDown)
+        case._activate_v2()
         lineage = case.parent_operation()
         case.collect(**lineage)
         pending = case.pending()[0]
@@ -378,13 +443,14 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
                    controlled_resolver):
             return execute_operation(self.request['operation_id'])
 
-    def test_impossible_inherited_rate_is_persisted_blocked_without_egress_or_retry(self):
+    def test_authorized_v2_incompatible_rate_window_blocks_before_egress(self):
         from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
 
         case = AggregatorBootstrapCollectionTests()
         case.setUp()
         self.addCleanup(case.doCleanups)
         self.addCleanup(case.tearDown)
+        case._activate_v2()
         raw = case.rows[0]
         self.assertEqual((raw['title'], raw['company_name']), (self.title, self.company))
         raw['description'] += '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a></p>'
@@ -395,7 +461,8 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.case = case
         with case.store.engine.connect() as connection:
             self.request = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
-            before_source = dict(connection.execute(select(m.job_sources)).mappings().one())
+            before_source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == case.source_id)).mappings().one())
             before_raw = list(connection.execute(select(m.posting_snapshots.c.raw)).scalars())
         clock = [100.0]
         created = []
@@ -414,8 +481,11 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             client._budget()
             return self._public_request(url, deadline)
 
+        from services.company_discovery.aggregator_bootstrap import BootstrapBudget
         with patch('services.company_discovery.aggregator_bootstrap.time.monotonic', lambda: clock[0]), \
              patch('services.company_discovery.aggregator_bootstrap.time.sleep', sleep), \
+             patch('services.company_discovery.aggregator_workflow.BootstrapBudget',
+                   return_value=BootstrapBudget(timeout_seconds=2.5)), \
              patch.object(BudgetedPublicClient, '__init__', create):
             outcome = self._execute(rate_aware_wire=wire)
         self.assertEqual(outcome['status'], 'BLOCKED', outcome)
@@ -434,8 +504,10 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             self.assertIsNone(operation['next_attempt_at'])
             self.assertEqual(operation['recovery_metadata'], {'action': 'MANUAL_REVIEW'})
             self.assertEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_PENDING')
+            self.assertEqual(request['domain_evidence'][0]['version'], 2)
             self.assertEqual(request['domain_evidence'], self.request['domain_evidence'])
-            self.assertEqual(dict(connection.execute(select(m.job_sources)).mappings().one()), before_source)
+            self.assertEqual(dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == case.source_id)).mappings().one()), before_source)
             self.assertEqual(list(connection.execute(select(m.posting_snapshots.c.raw)).scalars()), before_raw)
             self.assertEqual(list(connection.execute(select(m.company_domains)).mappings()), [])
             self.assertEqual(list(connection.execute(select(m.company_sources).where(
@@ -494,6 +566,7 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         case.setUp()
         self.addCleanup(case.doCleanups)
         self.addCleanup(case.tearDown)
+        case._activate_v2()
         with case.store.engine.begin() as connection:
             connection.execute(update(m.workspace_identity).where(
                 m.workspace_identity.c.id == 'workspace').values(operation_mode='PERSONAL'))
@@ -502,7 +575,7 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.case = case
         self.raw_before = deepcopy(raw)
         self.title, self.company = raw['title'], raw['company_name']
-        self.collection = case.collect()
+        self.collection = case.collect(**case.parent_operation())
         self.network = []
         self.saw_unconfigured_source_before_first_fetch = None
         self.job_url = 'https://acme.example/careers/listing/senior-python-engineer/1001'

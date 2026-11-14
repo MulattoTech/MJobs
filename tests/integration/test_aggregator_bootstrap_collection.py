@@ -271,8 +271,10 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
             authorize_discovery_request(self.store, operation)
 
     def test_collection_stages_exact_candidate_without_granting_employer_authority(self):
+        self._activate_v2()
         original = deepcopy(self.rows[0])
-        result = self.collect()
+        lineage = self.parent_operation()
+        result = self.collect(**lineage)
         self.assertEqual(result["jobs_seen"], 1)
         self.assertEqual(len(self.http_requests), 1)
         pending = self.pending()
@@ -281,8 +283,11 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(request["profile_id"], "fixture")
         self.assertEqual(request["profile_version"], self.store.profile("fixture")["version"])
         self.assertEqual(request["state"], "QUEUED")
-        self.assertNotIn("parent_operation_id", json.dumps(request["domain_evidence"]))
-        self.assertNotIn("parent_operation_attempt", json.dumps(request["domain_evidence"]))
+        self.assertEqual(request['domain_evidence'][0]['version'], 2)
+        self.assertEqual(request['domain_evidence'][0]['binding']['parent_operation_id'],
+                         lineage['parent_operation_id'])
+        self.assertEqual(request['domain_evidence'][0]['binding']['parent_operation_attempt'],
+                         lineage['parent_operation_attempt'])
         reopened = Store(self.url)
         self.addCleanup(reopened.engine.dispose)
         self.assertEqual(self.pending(reopened), pending)
@@ -296,12 +301,13 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(candidate["id"], request["candidate_id"])
         self.assertEqual(candidate["posting_snapshot_id"], snapshot["id"])
         self.assertEqual(operation["kind"], "COMPANY_DISCOVER")
-        self.assertEqual(operation["params"]["aggregator_bootstrap"], "AGGREGATOR_BOOTSTRAP_PENDING_V1")
+        self.assertEqual(operation["params"]["aggregator_bootstrap"], "AGGREGATOR_BOOTSTRAP_PENDING_V2")
         self.assertEqual([row["provider"] for row in sources], ["remotive"])
         self.assertEqual(reopened.count("company_domains"), 0)
         self.assertEqual(reopened.count("applications"), 0)
 
     def test_cap_is_two_distinct_employers_without_truncating_collected_jobs(self):
+        self._activate_v2()
         template = self.rows[0]
         self.rows = []
         for index, company in enumerate(("Alpha", "Alpha", "Bravo", "Charlie", "Delta")):
@@ -309,7 +315,7 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
             self.rows.append(dict(template, id=identifier, company_name=company,
                 title=f"Python Engineer {index}",
                 url=f"https://remotive.com/remote-jobs/software-dev/python-engineer-{identifier}"))
-        result = self.collect()
+        result = self.collect(**self.parent_operation())
         self.assertEqual(result["jobs_seen"], 5)
         self.assertEqual(self.store.count("posting_snapshots"), 5)
         pending = self.pending()
@@ -335,13 +341,14 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(len(self.http_requests), 1)
 
     def test_inbound_proof_fields_remain_raw_data_and_do_not_supply_authority(self):
+        self._activate_v2()
         self.rows[0]["aggregator_bootstrap_candidate"] = {
             "schema": "AGGREGATOR_BOOTSTRAP_HINT_V1", "candidate_url": "https://attacker.example/apply"}
         self.rows[0]["domain_evidence"] = {
             "schema": "AGGREGATOR_NATIVE_BOOTSTRAP_V1", "verified": True,
             "employer_url": "https://attacker.example/apply"}
         original = deepcopy(self.rows[0])
-        self.collect()
+        self.collect(**self.parent_operation())
         pending = self.pending()
         self.assertEqual(len(pending), 1)
         self.assertNotIn("attacker.example", json.dumps(pending[0]["domain_evidence"]))
@@ -356,6 +363,39 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(self.collect()["jobs_seen"], 1)
         self.assertEqual(self.pending(), [])
         self.assertEqual(self.store.count("worker_operations"), 0)
+
+    def test_employer_verification_opt_out_does_not_route_aggregator_through_generic_discovery(self):
+        profile = deepcopy(PROFILE)
+        profile["preferences"] = {"company_discovery": {
+            "company_discovery_enabled": True,
+            "employer_verification": {"version": 1, "mode": "DISABLED", "activation_id": None},
+        }}
+        self.store.save_profile(profile)
+        self.rows[0]["description"] += (
+            '<a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>'
+        )
+
+        self.assertEqual(self.collect(**self.parent_operation())["jobs_seen"], 1)
+
+        self.assertEqual(self.pending(), [])
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.company_discovery_requests)).all(), [])
+            self.assertEqual(connection.execute(select(m.operations.c.id).where(
+                m.operations.c.kind == "COMPANY_DISCOVER")).all(), [])
+        self.assertEqual(self.store.count("company_domains"), 0)
+
+    def test_missing_employer_verification_policy_does_not_stage_aggregator(self):
+        profile = deepcopy(PROFILE)
+        profile["preferences"] = {"company_discovery": {"company_discovery_enabled": True}}
+        self.store.save_profile(profile)
+        self.rows[0]["description"] += (
+            '<a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>'
+        )
+
+        self.assertEqual(self.collect(**self.parent_operation())["jobs_seen"], 1)
+
+        self.assertEqual(self.pending(), [])
+        self.assertEqual(self.store.count("company_discovery_requests"), 0)
 
     def test_profile_revision_during_feed_read_does_not_stage_stale_intent(self):
         profile = deepcopy(PROFILE)

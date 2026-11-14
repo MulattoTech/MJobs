@@ -74,6 +74,8 @@ class AggregatorBootstrapCollectionPostgresTests(collection.AggregatorBootstrapC
 
     def test_positive_native_hint_parsing_can_lock_source_before_staging(self):
         from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+        self._activate_v2()
+        lineage = self.parent_operation()
         self.rows[0]['description'] += '<a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>'
         def probe(raw, normalized):
             with self.store.engine.begin() as connection:
@@ -81,7 +83,7 @@ class AggregatorBootstrapCollectionPostgresTests(collection.AggregatorBootstrapC
                     m.job_sources.c.id == self.source_id).with_for_update(nowait=True)).scalar_one(), self.source_id)
             return extract_bootstrap_hint(raw, normalized)
         with patch('services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint', side_effect=probe) as extract:
-            self.assertEqual(self.collect()['jobs_seen'], 1)
+            self.assertEqual(self.collect(**lineage)['jobs_seen'], 1)
         extract.assert_called_once()
         self.assertEqual(len(self.pending()), 1)
 
