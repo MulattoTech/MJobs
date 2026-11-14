@@ -95,4 +95,5 @@ def execute_aggregator_bootstrap(store, operation, *, check, total_timeout,
         profile_version=authorization['aggregator_bootstrap_pending']['binding']['profile_version'],
         check=authorized_check, enrollment_guard=enrollment_guard,
         provider='greenhouse', aggregator_bootstrap_authorization=authorization,
+        collection_operation=operation,
     )

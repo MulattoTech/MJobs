@@ -310,7 +310,7 @@ def _retained_native_inventory(store, collector_id, source_id, authorization, en
 def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_id,
                       profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
                       identity_confirmation=None, provider='greenhouse', native_apply_proof=None,
-                      native_apply_authorization=None, aggregator_bootstrap_authorization=None):
+                      native_apply_authorization=None, aggregator_bootstrap_authorization=None, collection_operation=None):
     """Enroll once, then use the normal bounded collector, normalization and dedupe."""
     from services.discovery.sources.collect import configure_source, collect_source
 
@@ -437,7 +437,7 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
         return {'company': fresh, 'company_source_id': source['id'], 'provider': provider,
             'tenant': tenant, 'careers_url': career_url, 'endpoint': endpoint, **retained}
     result = collect_source(store, collector_id, profile_id, profile_version, check=check,
-                            import_guard=enrollment_guard)
+                            import_guard=enrollment_guard, collection_operation=collection_operation)
     return {'company': fresh, 'company_source_id': source['id'], 'provider': provider,
             'tenant': tenant, 'careers_url': career_url, 'endpoint': endpoint,
             'jobs_enumerated': result['jobs_seen'], 'jobs_imported': result['jobs_seen']}

@@ -480,7 +480,8 @@ def _collection_parent_lineage(connection, source_id, profile, operation_id, att
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
                    *, refresh_matches=True, import_guard=None, registry=None,
-                   collection_contract=None, parent_operation_id=None, parent_operation_attempt=None):
+                   collection_contract=None, parent_operation_id=None, parent_operation_attempt=None,
+                   collection_operation=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
@@ -740,7 +741,6 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(**({"name": batch.source_company.name} if batch.source_company else {}),
                 last_success=timestamp, consecutive_failures=0, last_error=None, backoff_until=None,
                 health_status="PARTIAL" if rejected else "HEALTHY", jobs_seen=len(normalized)))
-            store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]})
             observation_at = now()
             observation_id = record_observation(connection, configured_source_id=source_id, observed_at=observation_at,
                 source_endpoint=observed_endpoint,
@@ -769,6 +769,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
                     new_company_ids=new_companies,
                     **({'aggregator_bootstrap_candidates': bootstrap, **parent_lineage} if bootstrap else {}))
+            completion = {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]}
+            if collection_operation is not None:
+                from services.discovery.source_collection_receipts import build_native_inventory
+                completion['native_inventory'] = build_native_inventory(
+                    connection, store, collection_operation, profile, source, bound,
+                    observation_id=observation_id, started_at=timestamp,
+                    provider_complete=batch.complete_inventory, enumerated=enumerated,
+                    accepted=accepted, rejected=rejected)
+            store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", completion)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application,
                 "collection_result": ({

@@ -191,4 +191,13 @@ def create_collection_children_router(store):
         except (ValueError, KeyError, TypeError, AttributeError, NoResultFound):
             raise HTTPException(409, 'COLLECTION_DOMAIN_PROOF_CHANGED') from None
 
+    @router.get('/profiles/{profile_id}/sources/{source_id}/collections/{parent_operation_id}/inventory-proofs')
+    def inventory_proofs(profile_id: str, source_id: str, parent_operation_id: str, attempt: int = Query(ge=1)):
+        from apps.api.collection_inventory_proofs import collection_inventory_proofs
+
+        try:
+            return collection_inventory_proofs(store, profile_id, source_id, parent_operation_id, attempt)
+        except (ValueError, KeyError, TypeError, AttributeError, NoResultFound):
+            raise HTTPException(409, 'COLLECTION_INVENTORY_PROOF_CHANGED') from None
+
     return router
