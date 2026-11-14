@@ -674,6 +674,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 connection.execute(update(m.company_sources).where(m.company_sources.c.id == company_source['id'])
                                    .values(collector_source_id=source_id))
                 company_sources[company_id] = company_source['id']
+            receipt_candidate_id = None
+            if collection_operation is not None:
+                from services.company_discovery.bootstrap_posting_identity import receipt_native_job_id
+                receipt_candidate_id = receipt_native_job_id(connection, collection_operation)
             for item, job in sorted(normalized, key=lambda pair: (company_identity(pair[0].company), pair[1]['requisition'])):
                 company_id = company_identity(item.company)
                 native_job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
@@ -684,6 +688,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     proposed_id=native_job_id, posting_id=posting_id, application_url=url,
                     provider=source['provider'], tenant=source['tenant'], requisition=job['requisition'],
                     batch_identities=batch_identities)
+                if (canonical is None and collection_operation is not None
+                        and str(item.raw.get('id')) == receipt_candidate_id):
+                    from services.company_discovery.bootstrap_posting_identity import bootstrap_posting_job
+                    canonical = bootstrap_posting_job(connection, store, operation=collection_operation,
+                        profile=profile, source=source, bound=bound, raw=item.raw,
+                        requisition=job['requisition'], proposed_id=native_job_id,
+                        posting_id=posting_id, source_job_id=source_job_id, batch_identities=batch_identities)
                 job_id = canonical['id'] if canonical else native_job_id
                 batch_identities.setdefault(job_id, []).append((source['provider'], source['tenant'], job['requisition']))
                 existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()

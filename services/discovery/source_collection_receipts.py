@@ -3,7 +3,7 @@
 These describe a committed provider batch, not public-network or acceptance proof.
 Legacy/ordinary collectors do not emit this optional receipt.
 """
-from datetime import datetime, timezone
+from datetime import datetime
 import hashlib
 import json
 
@@ -76,23 +76,11 @@ def bounded_receipt(binding, manifest):
 def build_native_inventory(connection, store, operation, profile, source, bound, *,
                            observation_id, started_at, provider_complete, enumerated, accepted, rejected):
     """Called inside the existing import transaction after the normal guards."""
-    from services.company_discovery.requests import authorize_discovery_request
+    from services.company_discovery.bootstrap_posting_identity import authorized_native_context
 
-    current = connection.execute(select(m.operations).where(
-        m.operations.c.id == operation['id']).with_for_update()).mappings().one()
-    _require(current['kind'] == 'COMPANY_DISCOVER' and current['state'] == 'RUNNING'
-        and current['attempt_count'] == operation['attempt_count'] and current['params'] == operation['params']
-        and not current['cancel_requested'] and current['lease_expires_at'] is not None
-        and datetime.fromisoformat(current['lease_expires_at']) > datetime.now(timezone.utc))
-    authorization = authorize_discovery_request(store, dict(current), connection=connection)
-    _require(authorization['authorization'] == 'AGGREGATOR_BOOTSTRAP_VERIFIED')
-    pending = authorization['aggregator_bootstrap_pending']
+    current, authorization, pending = authorized_native_context(
+        connection, store, operation, profile, source, bound)
     parent = pending['binding']
-    _require(bound is not None and bound['company_id'] == current['entity_id'] == authorization['company_id']
-        and parent['profile_id'] == profile['id'] and parent['profile_version'] == profile['version']
-        and parent['company_id'] == bound['company_id'] and source['enabled'] and bound['enabled']
-        and source['provider'] == bound['provider'] == 'greenhouse'
-        and source['tenant'] == bound['tenant'] and bound['collector_source_id'] == source['id'])
     binding = dict(schema_version=1, **source_binding(source, bound),
         child_operation_id=current['id'], child_operation_attempt=current['attempt_count'],
         operation_params_sha256=canonical_digest(current['params']),
