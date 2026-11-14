@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-292",
+  "issue": 293,
+  "slice_steps": [
+    36,
+    37,
+    38
+  ],
+  "result": "VERIFIED_LOCAL_PREREQUISITE",
+  "canonical_acceptance_promoted": false,
+  "created_at_utc": "2026-11-14T04:13:01.689358+00:00",
+  "run_id": "WEB-20261114T030910Z-8966724d-b851-435e-8966-7db737d60c21",
+  "source": {
+    "base_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "tested_commit": "9776a511c2efd3398463fbb746fb839aa3c92044",
+    "tested_tree": "47876c34d6f149c2c3c91c2434888f4de3bab012",
+    "clean_at_qualification": true,
+    "files": [
+      {
+        "path": "services/documents/generate.py",
+        "git_blob": "244fc4cec8bbb71bba46ec1fbf27d9a79e88ca98",
+        "sha256": "6894d8fa1696659051177a5d5bff0c1fbda056e3def8a1c5896110cbc44d930b"
+      },
+      {
+        "path": "tests/integration/test_application_prepare_route_binding.py",
+        "git_blob": "e94d3a9ae6bd635d5dbd4962261a6326bab4652d",
+        "sha256": "3915a3e082ed321614533bdc32899566bcd485b249ae4619532ae54af692d21e"
+      },
+      {
+        "path": "tests/integration/test_application_reprepare.py",
+        "git_blob": "47e9e39ef18b40f0cd5eae6463dd16c84cdab8a7",
+        "sha256": "c60aa8c47228dc3396fa9a542d674413b3955bb94862f468a3772c0ea26ac905"
+      }
+    ]
+  },
+  "problem": "Repeated explicit THIS_ROUTE preparation selected routeB in API admission and durable worker parameters but the unchanged-document fast path left the application pinned to routeA.",
+  "implementation": [
+    "Require selected-route identity before reusing the prior document revision.",
+    "For a changed route, preserve the existing historical-state refusal before regeneration.",
+    "Refuse a changed route while a RUNNING attempt, queued/running APPLY_MOCK or MANUAL_AUTH, unconfirmed browser-release MANUAL_AUTH, or RUNNING form-review/dry-run operation owns the application.",
+    "Exclude the current PREPARE operation from that application-work check; preserve the existing lock order and explicit saved-config reprepare route pin."
+  ],
+  "baseline": {
+    "result": "EXPECTED_REGRESSION_FAILURE",
+    "source_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "dirty_inputs": "?? tests/integration/test_application_prepare_route_binding.py",
+    "input_files": [
+      {
+        "path": "services/documents/generate.py",
+        "git_blob": "f2245628b5574b1bf29621ca84da07212e27f503",
+        "sha256": "a85bd87a27f18ee4c28379d4d3d2013d8ee03c9199285f58603e5cf4b8bce03a"
+      },
+      {
+        "path": "tests/integration/test_application_prepare_route_binding.py",
+        "git_blob": "71bfc85ecd9c5689122242c69763130a3aa0f695",
+        "sha256": "b3a1bd10ea29222df3c8762d2a116d576274ac5e4150ce57a8621e63bea064a0"
+      }
+    ],
+    "test": "tests/integration/test_application_prepare_route_binding.py::ApplicationPrepareRouteBindingTests::test_explicit_route_change_rebinds_prepared_application_after_worker_completion",
+    "observed": "Both real PREPARE operations completed; public application route_id was prepare-route-a instead of requested prepare-route-b.",
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 3.046,
+    "started_at": "2026-11-14T04:01:27.669712Z",
+    "finished_at": "2026-11-14T04:01:31.242805Z",
+    "exact_raw_input_copies_preserved": true
+  },
+  "qualification": {
+    "source_commit": "9776a511c2efd3398463fbb746fb839aa3c92044",
+    "command": "python -X utf8 -B -m pytest -q -p no:cacheprovider tests/integration/test_application_prepare_route_binding.py tests/integration/test_application_reprepare.py::ApplicationReprepareTests::test_default_route_is_pinned_when_higher_authority_route_appears",
+    "result": "PASS",
+    "primary_tests_passed": 7,
+    "subtests_passed": 12,
+    "junit_reported_tests": 19,
+    "primary_testcase_nodes": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 11.854,
+    "started_at": "2026-11-14T04:10:51.410601Z",
+    "finished_at": "2026-11-14T04:11:04.433607Z",
+    "scope": "Windows Python3.12; isolated temporary SQLite, synthetic approved profiles, local document generation, API admission and durable worker execution; existing saved-config pinning control uses a local fixture.",
+    "network_requests_instrumented": false,
+    "adapter_not_called_assertion": "Enforced by new route-binding module; no real-provider acceptance is claimed.",
+    "coverage": [
+      "A-to-B route and saved preparation configuration update with a new revision",
+      "Prior document rows, artifact digests and receipts remain unchanged; prior preflight becomes stale",
+      "Same-route idempotence, including an existing RUNNING attempt",
+      "Three locked application states and seven durable operation-owner forms refuse changed routes",
+      "Unrelated active application work and released/terminal/non-release-blocked work do not overblock route changes",
+      "Existing higher-authority-discovery reprepare test preserves its original pinned route"
+    ]
+  },
+  "historical_fixed_run": {
+    "source_commit": "138aa20322262b6030dff3f31f643237f077168f",
+    "primary_tests_passed": 7,
+    "subtests_passed": 12,
+    "elapsed_seconds": 12.187,
+    "superseded_by": "Test-import-only successor9776a511 was independently reviewed and actually requalified; original run remains preserved."
+  },
+  "static_checks": {
+    "new_test_ruff": "PASS after three new import/UTC style findings were corrected",
+    "whole_generator_ruff": "10 pre-existing diagnostics; not a whole-file lint pass",
+    "generator_diagnostics_identical_to_base": true,
+    "introduced_generator_diagnostics": 0,
+    "git_diff_check": "PASS",
+    "commit_provenance": "PASS"
+  },
+  "artifact_hashes": [
+    {
+      "filename": "prepare-route-baseline-01.json",
+      "sha256": "90647597f5599537016a3a71c3148847dc4d936f9f84c727369010aacf18dc71"
+    },
+    {
+      "filename": "prepare-route-baseline-01.log",
+      "sha256": "da49230d366cfdedc69e0a00c306ebc7471bf4298d710333afadacd18e863c2e"
+    },
+    {
+      "filename": "prepare-route-baseline-01.xml",
+      "sha256": "9bc2b4d8726437a81e54f196f696c2ecc00e7280d7a13447969f0a96b51e56e2"
+    },
+    {
+      "filename": "prepare-route-fixed-01.json",
+      "sha256": "69b817d5458546a1ec54f4c374efab7c5aa1f55b01ad2bc92cee146f8be06818"
+    },
+    {
+      "filename": "prepare-route-fixed-01.log",
+      "sha256": "966768e9ae5f31b7a12e9d6b33f836c82efa32c947f6e71e122bd4c1488a823c"
+    },
+    {
+      "filename": "prepare-route-fixed-01.xml",
+      "sha256": "e9ab5785b58eb9c62e9c22d08f76eb2462e781f2ee2f9d8ec6101f56fffc95c2"
+    },
+    {
+      "filename": "prepare-route-fixed-02.json",
+      "sha256": "f061c9a194fe2c440eb6bfb0e766cf3d95dc12dfb24f4b738fb5c391ca1f0915"
+    },
+    {
+      "filename": "prepare-route-fixed-02.log",
+      "sha256": "24f20d21aebd7b1c1434c707d8bd5f90a69790227f5bbd108fbcb8dd1ad85103"
+    },
+    {
+      "filename": "prepare-route-fixed-02.xml",
+      "sha256": "2320b7e9c7b7cf1cba0bb56541d8616206afaddf969076e4f53413e64d74d96e"
+    },
+    {
+      "filename": "prepare-route-static.json",
+      "sha256": "7e3f32db887603fa6ffc131713864a28cfa3a40548509f50c8c886960ceb5002"
+    },
+    {
+      "filename": "prepare-route-lint-delta.json",
+      "sha256": "64b757086f3e655710944be610e41c27138f4f6ddb61a48de820e184d44c2f49"
+    },
+    {
+      "filename": "qualify_prepare_route.py",
+      "sha256": "8e823ea27292c1b24bea5332a26ac37fff8ea65b9a49c0c01eb71d3d8be7131f"
+    },
+    {
+      "filename": "qualify_prepare_route_v2.py",
+      "sha256": "27e16e8712edf63f5bacc2d4312f70e1fd15ca2312b71790f81c5249bdbd112c"
+    }
+  ],
+  "limitations": [
+    "Local proof is not PostgreSQL, actual-browser or full connected60-step campaign acceptance.",
+    "The new durable-owner guard is not a universal inline-admission atomicity redesign.",
+    "The source slice does not modify separately owned route-choice alias persistence or PR972 generated-destination containment.",
+    "Hosted qualification, protected integration, deployment and canonical parent acceptance remain separate unfinished gates.",
+    "External application submission remains OFF; no provider-send behavior was added."
+  ]
+}
