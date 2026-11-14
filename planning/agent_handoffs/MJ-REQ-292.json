@@ -2,11 +2,11 @@
   "schema_version": 1,
   "task_id": "MJ-REQ-292",
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
-  "owner": "ChatGPT-Web /root; MJ-REQ-292 driver WEB-20261113T024520Z-f9e21b82-ed4e-401f-abf2-c06dde7956c7",
-  "branch": "private/mjreq292-f9e21b82-source-binding-05",
-  "head_sha": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+  "owner": "Codex root / codex:integration-01a1da02-20261114",
+  "branch": "codex/p0-campaign-reconcile-20261114",
+  "head_sha": "475bb7b432e1da6294d9670868949851db9c027c",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Commit the scoped evidence and handoff checkpoint after its native structural validation, then provide the actual candidate commit/tree and exact ownership-transfer manifest for 2d4's proposed PR973 destination. Complete the ordinary update to the existing PR, reconcile current main, and verify the actual published head, required hosted checks and review resolution before protected integration. Continue the separately scoped employer-verification V2 implementation and PostgreSQL concurrency proof so a later eligible connected campaign can address the remaining literal criteria.",
+  "next_action": "Independent fixed475bb7b4 review approved; publish bounded normal update to existing draftPR973 after live ownership/preflight checks; execute fresh OCI-bound native-greenhouse fixture with read-only prerequisites and all campaign flags. Preserve Windows baseline failures and PARTIAL ledger; protected integration only after exact gates.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -320,6 +320,30 @@
       "result": "PASS",
       "tested_commit": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
       "observed": "Exact controlled private composition: 665 passed, 349 subtests, 2 skipped in 96.92s. Receipt 5498b6faf56532c5bddddbb65fb2b637af8f381d24fc2a879baa179e64716b0b. Recorded source/module hashes matched before/after; these are not an all-repository manifest or connected runtime acceptance. Prior failed 0b composition remains preserved."
+    },
+    {
+      "command": "Pinned Python pytest PostgreSQL bootstrap, policy Postgres and idempotency Postgres classes",
+      "result": "PASS",
+      "tested_commit": "c0ba9b7ae4c4a659c823297410d521db710db26a",
+      "observed": "87passed58subtests0skips245.22s; disposablePG16.15, controlled network scope; no connected acceptance credit"
+    },
+    {
+      "command": "Pinned Python affected containment/public/source-setup suite",
+      "result": "PASS",
+      "tested_commit": "475bb7b432e1da6294d9670868949851db9c027c",
+      "observed": "145passed299subtests2skips39.26s; four timing regressions failed first then passed; independent Sol review approved; additional17tests40subtests passed"
+    },
+    {
+      "command": "Full Windows unit qualification and isolated remote-provider cancellation recheck",
+      "result": "FAIL",
+      "tested_commit": "c0ba9b7ae4c4a659c823297410d521db710db26a",
+      "observed": "fcntl collection blocker, baseline NTFS ancestor-ACL rejection, reproduced baseline socket cancellation timeouts; causes/limits recorded in SESSION_HANDOFF; no test weakening"
+    },
+    {
+      "command": "Frozen c0ba connected campaign mjobs-fixture-3ee917c4cf65",
+      "result": "FAIL",
+      "tested_commit": "c0ba9b7ae4c4a659c823297410d521db710db26a",
+      "observed": "43 producerPASS10PARTIAL7NOT_RUN; public lease headroom failure before collection; sources disabled/exact owned runtime removed; canonical acceptance unchanged"
     }
   ],
   "blockers": [
@@ -695,7 +719,7 @@
     "Preserved dated checkpoints, session boundary/extensions, pending source setup and prior source/integration records retain their original dates and contents as history. Their old owners, deadlines and runtime states are not current authority. Historical exclusive_source_ownership arrays grant no paths; fresh native scopes control current work.",
     "Proposal v3 5497c87ea41e0c5b4bed38eee310785b1125fcd85557da7bbd0159bc2419495f remains immutable historical planning. Its pending-correction/source-scope assertions are superseded by the actual fresh resolution d93139a89aa5a87088ed98076a663ce48cf57445960b7d99c4353c0570a86df5. Literal acceptance remains 0 / 53 / 7; metadata structural validation is not runtime certification."
   ],
-  "updated_at": "2026-11-13T09:13:43.367123+00:00",
+  "updated_at": "2026-11-14T15:18:41.203010+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
