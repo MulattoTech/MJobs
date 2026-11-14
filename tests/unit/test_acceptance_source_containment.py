@@ -19,6 +19,8 @@ from cli.acceptance_source_containment import (
 from cli.acceptance_public_source import FINGERPRINT_FIELDS, child_containment_context, run as run_public_source
 from tests.unit import test_acceptance_containment as containment_fixtures
 
+PUBLIC_SOURCE_ID = containment_fixtures.PUBLIC_SOURCE_ID
+
 
 def digest(value):
     return hashlib.sha256(
@@ -406,7 +408,7 @@ class AsyncChildAPI(containment_fixtures.FakeAPI):
     def children_response(self):
         parent = self.operations[0]
         value = response(children=[self.child], enrolled=self.enrolled)
-        value.update(profile_id="profile", profile_version="v1", source_id="public-source",
+        value.update(profile_id="profile", profile_version="v1", source_id=PUBLIC_SOURCE_ID,
                      parent_operation_id="own-operation", parent_request_id=parent["params"]["request_id"])
         value["sha256"] = digest({key: val for key, val in value.items() if key != "sha256"})
         return value
@@ -444,11 +446,13 @@ class AsyncChildAPI(containment_fixtures.FakeAPI):
             self.sources[1].update(deepcopy(kwargs["json"]))
             return {"id": "collector-gh"}
         result = super().request(method, path, **kwargs)
-        if method == "POST" and path == "/sources/public-source/collect":
+        if method == "POST" and path == f"/sources/{PUBLIC_SOURCE_ID}/collect":
             self.child = child_row(
-                state="RUNNING", profile_id="profile", profile_version="v1", source_id="public-source",
+                state="RUNNING", profile_id="profile", profile_version="v1", source_id=PUBLIC_SOURCE_ID,
                 parent_operation_id="own-operation", company_source_id="aggregator-source",
-                trigger_job_id="real-job", posting_id="public-posting", snapshot_id="snapshot",
+                company_id=self.public["company_id"], trigger_job_id="real-job",
+                posting_id=self.public["postings"][0]["id"],
+                snapshot_id=self.public["postings"][0]["snapshots"][0]["id"],
                 snapshot_sha256=self.public["postings"][0]["snapshots"][0]["sha256"],
             )
             self.operations.append({
@@ -686,9 +690,9 @@ class OwnedSnapshotReconciliationTests(_PublicSourceFixture, unittest.TestCase):
             "poll_interval": 604800, "concurrency": 1, "request_timeout": 10,
             "rate_limit": 1, "jitter_seconds": 0,
         })
-        self.api.request("POST", "/sources/public-source/collect",
+        self.api.request("POST", f"/sources/{PUBLIC_SOURCE_ID}/collect",
                          json={"profile_id": "profile", "request_id": "parent-request"})
-        self.ctx = self.context(source_id="public-source", collection_operation_id="own-operation",
+        self.ctx = self.context(source_id=PUBLIC_SOURCE_ID, collection_operation_id="own-operation",
             collection_request_id="parent-request", collection_operation_attempt=1,
             **{**ChildContextInitializationTests.projection(), "child_discovery_requested": False})
         self.owner._capture_collection_identity(self.ctx)

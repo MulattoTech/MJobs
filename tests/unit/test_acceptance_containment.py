@@ -25,6 +25,8 @@ from cli.acceptance_containment import (
 )
 from cli.acceptance_public_source import run as run_public_source, child_containment_context, _digest
 from services.discovery.sources.registry import source_adapter
+from services.discovery.sources.wwr import company_slug
+from packages.persistence.store import identity
 
 STAMP = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
 PROJECT = "mjobs-fixture-012345abcdef"
@@ -33,6 +35,12 @@ REVISION = "1" * 40
 TREE = "2" * 40
 OWNER = "mjreq292-test-operator"
 SOURCE_URL = "https://github.com/MulattoTech/MJobs"
+# Match the production WWR collector/company/posting namespaces so positive
+# containment controls exercise their safety gates with valid source evidence.
+PUBLIC_SOURCE_ID = identity("wwr", "default")
+PUBLIC_COMPANY_ID = identity("wwr", company_slug("Public Employer"))
+PUBLIC_STORAGE_ID = identity(PUBLIC_COMPANY_ID, "provider-job")
+PUBLIC_POSTING_ID = identity(PUBLIC_SOURCE_ID, PUBLIC_STORAGE_ID)
 ADDITIONAL_POLICY = {
     "provider": "remotive",
     "tenant": "default",
@@ -165,7 +173,12 @@ class FakeAPI:
             "attributes": {"fictional": True},
             "routes": [{"id": "fixture-route", "provider": "mock-ats"}],
         }
-        raw = {"id": "provider-job", "title": "Public role"}
+        raw = {
+            "guid": "https://weworkremotely.com/remote-jobs/provider-job",
+            "link": "https://weworkremotely.com/remote-jobs/provider-job",
+            "title": "Public Employer: Public role",
+            "description": "Build public Python services.",
+        }
         checksum = hashlib.sha256(
             json.dumps(
                 raw, sort_keys=True, ensure_ascii=False, separators=(",", ":")
@@ -173,10 +186,14 @@ class FakeAPI:
         ).hexdigest()
         self.public = {
             "id": "real-job",
+            "company_id": PUBLIC_COMPANY_ID,
+            "company": "Public Employer",
+            "title": "Public role",
+            "requisition": "provider-job",
             "attributes": {
                 "fictional": False,
                 "provider": "wwr",
-                "source_id": "public-source",
+                "source_id": PUBLIC_SOURCE_ID,
                 "source_endpoint": "https://weworkremotely.com/remote-jobs.rss",
                 "native_posting_id": "provider-job",
                 "submission_capability": "MANUAL_ONLY",
@@ -184,13 +201,15 @@ class FakeAPI:
             "match": {"profile_id": "profile", "profile_version": "v1"},
             "postings": [
                 {
-                    "id": "public-posting",
+                    "id": PUBLIC_POSTING_ID,
+                    "job_id": "real-job",
+                    "source_job_id": PUBLIC_STORAGE_ID,
                     "source": "https://weworkremotely.com/remote-jobs.rss",
                     "fetched_at": "2026-11-06T12:00:00+00:00",
                     "raw": raw,
                     "snapshots": [
                         {
-                            "id": "snapshot",
+                            "id": identity(PUBLIC_POSTING_ID, checksum),
                             "sha256": checksum,
                             "retrieved_at": "2026-11-06T12:00:00+00:00",
                         }
@@ -222,7 +241,7 @@ class FakeAPI:
                 capabilities = source_adapter(kwargs["json"]).capabilities()
                 self.sources = [
                     {
-                        "id": "public-source",
+                        "id": PUBLIC_SOURCE_ID,
                         "strategy": capabilities.strategy.value,
                         "capabilities": capabilities.as_dict(),
                         "last_attempt": None,
@@ -235,7 +254,7 @@ class FakeAPI:
                 ]
             else:
                 self.sources[0].update(deepcopy(kwargs["json"]))
-            return {"id": "public-source"}
+            return {"id": PUBLIC_SOURCE_ID}
         if path == "/profiles/profile" and method == "GET":
             return deepcopy(self.profile)
         if path == "/profiles/profile/applications/application" and method == "GET":
@@ -246,7 +265,7 @@ class FakeAPI:
             return deepcopy(self.public)
         if path == "/jobs" and method == "GET":
             return {"jobs": [{"id": "real-job"}]}
-        if method == "POST" and path == "/sources/public-source/collect":
+        if method == "POST" and path == f"/sources/{PUBLIC_SOURCE_ID}/collect":
             self.sources[0].update(
                 last_attempt="2026-11-06T12:00:00+00:00",
                 last_success="2026-11-06T12:00:00+00:00",
@@ -254,7 +273,7 @@ class FakeAPI:
                 jobs_seen=1,
             )
             params = {
-                "source_id": "public-source",
+                "source_id": PUBLIC_SOURCE_ID,
                 "request_id": kwargs["json"]["request_id"],
                 "profile_version": "v1",
             }
@@ -280,12 +299,12 @@ class FakeAPI:
                 "retry_count": 0,
                 "started_at": "2026-11-06T12:00:00+00:00",
             }
-        if path == "/profiles/profile/sources/public-source/collections/own-operation/children" and method == "GET":
+        if path == f"/profiles/profile/sources/{PUBLIC_SOURCE_ID}/collections/own-operation/children" and method == "GET":
             assert kwargs.get("params") == {"attempt": 1}
             parent = next(row for row in self.operations if row["id"] == "own-operation")
-            assert parent["params"]["source_id"] == "public-source"
+            assert parent["params"]["source_id"] == PUBLIC_SOURCE_ID
             result = dict(schema_version=1, profile_id=parent["entity_id"],
-                profile_version=parent["params"]["profile_version"], source_id="public-source",
+                profile_version=parent["params"]["profile_version"], source_id=PUBLIC_SOURCE_ID,
                 parent_operation_id=parent["id"], parent_operation_attempt=1,
                 parent_request_id=parent["params"]["request_id"],
                 complete=parent["state"] == "COMPLETED", limit=2,
@@ -534,7 +553,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
     def test_only_the_matching_queued_collection_is_allowed(self):
         self.api.sources = [
             {
-                "id": "public-source",
+                "id": PUBLIC_SOURCE_ID,
                 "provider": "wwr",
                 "tenant": "default",
                 "enabled": True,
@@ -552,7 +571,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertEqual(
             containment.request(
                 "POST",
-                "/sources/public-source/collect",
+                f"/sources/{PUBLIC_SOURCE_ID}/collect",
                 json={
                     "profile_id": "profile",
                     "request_id": "public-observation-owned",
@@ -567,13 +586,13 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "state": "QUEUED",
                 "entity_id": "another-profile",
                 "params": {
-                    "source_id": "public-source",
+                    "source_id": PUBLIC_SOURCE_ID,
                     "request_id": "another-request",
                 },
             }
         )
         with self.assertRaisesRegex(ContainmentError, "ACTIVE_COLLECTION_EXISTS"):
-            containment("poll", self.context(source_id="public-source"))
+            containment("poll", self.context(source_id=PUBLIC_SOURCE_ID))
         self.assertTrue(proof["scheduler_contained"])
         self.assertEqual(self.docker.unpause_calls, [])
         self.assertTrue(containment.claim_path.exists())
@@ -583,7 +602,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
     ):
         self.api.sources = [
             {
-                "id": "public-source",
+                "id": PUBLIC_SOURCE_ID,
                 "provider": "wwr",
                 "tenant": "default",
                 "enabled": True,
@@ -605,14 +624,14 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "entity_id": "profile",
                 "state": "QUEUED",
                 "params": {
-                    "source_id": "public-source",
+                    "source_id": PUBLIC_SOURCE_ID,
                     "request_id": "public-observation-request",
                 },
             }
         ]
 
         joined_context = self.context(
-            source_id="public-source",
+            source_id=PUBLIC_SOURCE_ID,
             source_policy_sha256=containment._policy_digest(self.api.sources[0]),
             newly_created=False,
             collection_operation_id="response-operation",
@@ -1093,7 +1112,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             "jitter_seconds": 0,
         }
         containment.request("PUT", "/sources", json=policy)
-        source_context = self.context(source_id="public-source", newly_created=True)
+        source_context = self.context(source_id=PUBLIC_SOURCE_ID, newly_created=True)
         containment("read", source_context)
         with self.assertRaisesRegex(ContainmentError, "SOURCE_WRITE_STAGE_INVALID"):
             containment.request("PUT", "/sources", json=policy)
@@ -1110,7 +1129,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         containment("dispatch", source_context)
         containment.request(
             "POST",
-            "/sources/public-source/collect",
+            f"/sources/{PUBLIC_SOURCE_ID}/collect",
             json={"profile_id": "profile", "request_id": "public-observation-owned"},
         )
         containment("poll", source_context)
@@ -1210,7 +1229,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "jitter_seconds": 0,
             },
         )
-        containment("read", self.context(source_id="public-source", newly_created=True))
+        containment("read", self.context(source_id=PUBLIC_SOURCE_ID, newly_created=True))
         with self.assertRaises(ContainmentError):
             containment("release", self.context(cleanup_status="RESTORED_DISABLED"))
         self.assertEqual(self.docker.unpause_calls, [])
@@ -1298,7 +1317,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "jitter_seconds": 0,
             },
         )
-        created = self.context(source_id="public-source", newly_created=True)
+        created = self.context(source_id=PUBLIC_SOURCE_ID, newly_created=True)
         containment("read", created)
         containment("cleanup", created)
         self.api.sources[0]["rate_limit"] = 7
@@ -1327,7 +1346,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         for method, path in (
             ("POST", "/applications/app/submit"),
             ("PUT", "/jobs/job"),
-            ("DELETE", "/sources/public-source"),
+            ("DELETE", f"/sources/{PUBLIC_SOURCE_ID}"),
         ):
             with (
                 self.subTest(method=method, path=path),
