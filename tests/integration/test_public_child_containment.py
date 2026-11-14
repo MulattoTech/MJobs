@@ -80,7 +80,7 @@ def joined(request):
         if state['new_primary']:
             owner('enable', state['context'])
             policy = dict(provider='remotive', tenant='default', enabled=True,
-                poll_interval=604800, concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
+                poll_interval=604800, concurrency=1, request_timeout=10, rate_limit=5, jitter_seconds=0)
             case.source_id = api.request('PUT', '/sources', json=policy)['id']
             source = next(row for row in api.request('GET', '/sources')['sources'] if row['id'] == case.source_id)
             state['context'].update(source_id=source['id'], source_policy_sha256=owner.policy_sha256(source), newly_created=True)
@@ -192,18 +192,20 @@ def test_actual_enrollment_is_disabled_by_exact_audit_before_release(joined):
 
 
 @pytest.mark.parametrize('joined', [True], indirect=True)
-def test_new_primary_budget_block_preserves_exact_child_and_releases(joined):
-    # Newly created acceptance sources must remain at one request per minute.
-    # Their V1 bootstrap cannot complete inside the preserved 30-second budget;
-    # the compatible pre-existing source above retains the actual enrollment case.
+def test_new_primary_short_budget_block_preserves_exact_child_and_releases(joined):
+    # V2 direct hints use their separately authorized verification rate. Exercise
+    # a real bounded-window rejection without misclassifying that valid route.
+    from services.company_discovery.aggregator_bootstrap import BootstrapBudget
     owner, worker = joined['owner'], joined['worker']
     owner('poll', joined['context'])
     finish_parent(joined)
     with worker.case.store.engine.connect() as connection:
         primary_before = dict(connection.execute(select(m.job_sources).where(
             m.job_sources.c.id == worker.case.source_id)).mappings().one())
-    assert primary_before['rate_limit'] == 1
-    with patch('tests.integration.test_aggregator_bootstrap_worker.BudgetedPublicClient') as client_factory:
+    assert primary_before['rate_limit'] == 5
+    with patch('services.company_discovery.aggregator_workflow.BootstrapBudget',
+               return_value=BootstrapBudget(timeout_seconds=2.5)), \
+         patch('tests.integration.test_aggregator_bootstrap_worker.BudgetedPublicClient') as client_factory:
         outcome = worker._execute()
     client_factory.assert_not_called()
     assert outcome['status'] == 'BLOCKED', outcome
