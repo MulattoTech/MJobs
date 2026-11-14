@@ -566,8 +566,8 @@ class DeliveryLedger:
         try:
             events.extend(_captured_transitions(self.progress_history, seeds))
             coverage["captures"] = {"available": True}
-        except (OSError, ValueError, TypeError) as exc:
-            coverage["captures"] = {"available": False, "reason": str(exc)[:140]}
+        except (OSError, ValueError, TypeError):
+            coverage["captures"] = {"available": False, "reason": "Capture history unavailable"}
         github_events, github_sources = _github_events()
         events.extend(github_events)
         # Remote GitHub branches may have unique commits not present in locally
