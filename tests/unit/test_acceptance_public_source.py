@@ -42,21 +42,26 @@ class ControlledAPI:
             target='MOCK', state='CONFIRMED', confirmation={'receipt': 'mock-only'})
         self.fixture = dict(id='fixture-job', attributes={'fictional': True}, routes=[
             dict(id='fixture-route', job_id='fixture-job', provider='mock-ats', url='http://127.0.0.1:1/apply')])
-        raw = {'id': 'provider-job', 'title': 'Public Python role'}
+        from packages.persistence.store import identity
+        raw = dict(guid='https://weworkremotely.com/remote-jobs/provider-job',
+            link='https://weworkremotely.com/remote-jobs/provider-job',
+            title='Public Employer: Public Python role', description='Build Python services.')
+        company_id = identity('wwr', 'public-employer')
+        storage_id = identity(company_id, 'provider-job')
         checksum = hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False,
             separators=(',', ':')).encode()).hexdigest()
-        self.public = dict(id='real-job', attributes=dict(fictional=False, provider='wwr',
-            source_id='public-source', source_endpoint='https://weworkremotely.com/remote-jobs.rss',
+        self.public = dict(id='real-job', company_id=company_id, company='Public Employer', title='Public Python role', attributes=dict(fictional=False, provider='wwr',
+            source_id='9999999999999999999999999999999999999999999999999999999999999999', source_endpoint='https://weworkremotely.com/remote-jobs.rss',
             native_posting_id='provider-job', submission_capability='MANUAL_ONLY'),
             match=dict(profile_id='profile', profile_version=VERSION), postings=[dict(
-                id='public-posting', source='https://weworkremotely.com/remote-jobs.rss',
+                id=identity('9999999999999999999999999999999999999999999999999999999999999999', storage_id), job_id='real-job', source_job_id=storage_id, source='https://weworkremotely.com/remote-jobs.rss',
                 fetched_at=STAMP, raw=raw, snapshots=[dict(id='snapshot', sha256=checksum, retrieved_at=STAMP)])])
 
     def configured(self, enabled=True, provider='wwr'):
         policy = dict(provider=provider, tenant='default', enabled=enabled, poll_interval=604800,
             concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
         capabilities = source_adapter(policy).capabilities()
-        self.source = dict(id='public-source', **policy,
+        self.source = dict(id='9999999999999999999999999999999999999999999999999999999999999999', **policy,
             strategy=capabilities.strategy.value, capabilities=capabilities.as_dict(), last_attempt=None,
             last_success=None, backoff_until=None, health_status='NOT_CHECKED', jobs_seen=0)
         return self.source
@@ -77,9 +82,9 @@ class ControlledAPI:
             if self.source is None:
                 self.configured(provider=kwargs['json']['provider'])
             self.source.update(kwargs['json'])
-            return {'id': 'public-source'}
-        if (method, path) == ('POST', '/sources/public-source/collect'):
-            self.params = dict(kwargs['json'], source_id='public-source', profile_version=VERSION)
+            return {'id': '9999999999999999999999999999999999999999999999999999999999999999'}
+        if (method, path) == ('POST', '/sources/9999999999999999999999999999999999999999999999999999999999999999/collect'):
+            self.params = dict(kwargs['json'], source_id='9999999999999999999999999999999999999999999999999999999999999999', profile_version=VERSION)
             self.source.update(last_attempt=STAMP, last_success=STAMP, jobs_seen=1, health_status='HEALTHY')
             self.after_collection()
             return {'operation_id': 'public-operation'}
@@ -87,11 +92,11 @@ class ControlledAPI:
             return dict(id='public-operation', kind='DISCOVER', entity_id='profile', params=self.params,
                 state=self.state, error='SOURCE_UNAVAILABLE' if self.state == 'BLOCKED' else None,
                 attempt_count=1, retry_count=0, started_at=STAMP, completed_at=STAMP)
-        if (method, path) == ('GET', '/profiles/profile/sources/public-source/collections/public-operation/children'):
+        if (method, path) == ('GET', '/profiles/profile/sources/9999999999999999999999999999999999999999999999999999999999999999/collections/public-operation/children'):
             self.child_polls += 1
             self.after_child_poll()
             value = dict(schema_version=1, profile_id='profile', profile_version=VERSION,
-                source_id='public-source', parent_operation_id='public-operation', parent_operation_attempt=1,
+                source_id='9999999999999999999999999999999999999999999999999999999999999999', parent_operation_id='public-operation', parent_operation_attempt=1,
                 parent_request_id=self.params['request_id'], complete=self.children_complete, limit=2,
                 children=deepcopy(self.children), enrolled_sources=deepcopy(self.enrolled_sources))
             value['lineage_sha256'] = _digest([{key: val for key, val in row.items()
@@ -100,7 +105,7 @@ class ControlledAPI:
             value['sha256'] = _digest(value)
             self.last_children = deepcopy(value)
             return value
-        if (method, path) == ('GET', '/profiles/profile/sources/public-source/collections/public-operation/domain-proofs'):
+        if (method, path) == ('GET', '/profiles/profile/sources/9999999999999999999999999999999999999999999999999999999999999999/collections/public-operation/domain-proofs'):
             assert kwargs.get('params') == {'attempt': 1}
             assert self.source['enabled'] is True
             collection = deepcopy(self.last_children)
@@ -214,10 +219,10 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
 
     def child(self, state='RUNNING'):
-        return dict(request_id='child-request', revision=2, company_id='company', company_source_id='company-source',
-            profile_id='profile', profile_version=VERSION, source_id='public-source',
+        return dict(request_id='child-request', revision=2, company_id=self.api.public['company_id'], company_source_id='company-source',
+            profile_id='profile', profile_version=VERSION, source_id='9999999999999999999999999999999999999999999999999999999999999999',
             parent_operation_id='public-operation', parent_operation_attempt=1, trigger_job_id='real-job',
-            candidate_id='candidate', posting_id='public-posting', snapshot_id='snapshot',
+            candidate_id='candidate', posting_id=self.api.public['postings'][0]['id'], snapshot_id='snapshot',
             snapshot_sha256=self.api.public['postings'][0]['snapshots'][0]['sha256'],
             quality_observation_id='quality', operation_id='child-operation', state=state,
             authorization='AGGREGATOR_BOOTSTRAP_PENDING', reason=None, operation_attempt=1,
@@ -231,7 +236,7 @@ class PublicSourceObservationTests(unittest.TestCase):
         source = self.api.configured()
         source["rate_limit"] = 5  # The absent primary is created with this fixed policy.
         self.api.source = None
-        proof = dict(company_id='company', request_id='child-request', request_revision=2,
+        proof = dict(company_id=child['company_id'], request_id='child-request', request_revision=2,
             operation_id='child-operation', domain_id='domain', domain='acme.example',
             domain_verification_method='FIRST_PARTY_JOB_LINK', domain_evidence_sha256='1' * 64,
             corroboration_method='AGGREGATOR_NATIVE_BOOTSTRAP_V1', execution_scope='CONTROLLED_TRANSPORT',
@@ -240,8 +245,8 @@ class PublicSourceObservationTests(unittest.TestCase):
                 native_response_sha256='2' * 64, native_json_sha256='3' * 64),
             pending_sha256=child['pending_sha256'], receipt_sha256='4' * 64,
             envelope_sha256='5' * 64, raw_sha256=child['snapshot_sha256'], normalized_sha256='6' * 64,
-            source_snapshot_sha256=_digest(dict(company_id='company', provider='wwr', tenant='default',
-                endpoint='https://weworkremotely.com/remote-jobs.rss', collector_source_id='public-source')),
+            source_snapshot_sha256=_digest(dict(company_id=child['company_id'], provider='wwr', tenant='default',
+                endpoint='https://weworkremotely.com/remote-jobs.rss', collector_source_id='9999999999999999999999999999999999999999999999999999999999999999')),
             source_policy_sha256=_digest({key: source[key] for key in ('id', 'provider', 'tenant', 'strategy',
                 'capabilities', 'enabled', 'request_timeout', 'rate_limit', 'concurrency')}),
             employer_response_sha256='7' * 64, apply_response_sha256=None, audit_id='domain-audit',
@@ -871,6 +876,17 @@ class PublicSourceObservationTests(unittest.TestCase):
         original = self.api.request
         jobs = {f'real-job-{number}': dict(deepcopy(self.api.public), id=f'real-job-{number}')
                 for number in range(5)}
+        from packages.persistence.store import identity
+        for number, job in enumerate(jobs.values()):
+            native = 'provider-job-' + str(number)
+            posting = job['postings'][0]
+            posting['job_id'] = job['id']
+            posting['raw'].update(guid='https://weworkremotely.com/remote-jobs/' + native,
+                link='https://weworkremotely.com/remote-jobs/' + native)
+            posting['source_job_id'] = identity(job['company_id'], native)
+            posting['id'] = identity(self.api.public['attributes']['source_id'], posting['source_job_id'])
+            posting['snapshots'][0]['sha256'] = _digest(posting['raw'])
+            job['attributes']['native_posting_id'] = native
         def five(method, path, **kwargs):
             if method == 'GET' and path.removeprefix('/jobs/') in jobs:
                 return jobs[path.removeprefix('/jobs/')]
@@ -1012,7 +1028,7 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.api.configured()
         def containment(stage, context):
             if stage == 'dispatch':
-                self.assertEqual(context['source_id'], 'public-source')
+                self.assertEqual(context['source_id'], '9999999999999999999999999999999999999999999999999999999999999999')
                 self.assertEqual(len(context['source_policy_sha256']), 64)
             return deepcopy(PROOF)
         result = self.observe(containment_preflight=containment)

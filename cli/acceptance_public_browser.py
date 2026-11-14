@@ -206,37 +206,16 @@ def _join_postings(job: dict, observation: dict, provider: str) -> list[dict]:
             _require(actual is not None and actual.get("sha256") == expected.get("sha256")
                      and expected.get("sha256") == proof.get("raw_sha256"),
                      "PUBLIC_BROWSER_POSTING_SNAPSHOT_MISMATCH")
-        if provider == "remotive":
-            _require(str(raw.get("id")) == str(observation.get("native_posting_id"))
-                     and raw.get("title") == job.get("title")
-                     and raw.get("company_name") == job.get("company"),
-                     "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
-        else:
-            from packages.persistence.store import identity
-            from services.discovery.sources.wwr import WeWorkRemotely, SourceError
-
-            # Aggregator storage IDs are company-namespaced; native feed IDs are not.
-            # Reuse the real adapter's normalization and official-origin admission.
-            try:
-                normalized = WeWorkRemotely().normalize(raw)
-            except (SourceError, ValueError, TypeError):
-                raise ValueError("PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH") from None
-            native_id = normalized["requisition"]
-            company_id, source_id = job.get("company_id"), observation.get("source_id")
-            _require(provider == "wwr" and observation.get("source_endpoint") == _ENDPOINTS["wwr"]
-                     and isinstance(company_id, str) and re.fullmatch(r"[a-f0-9]{64}", company_id)
-                     and isinstance(source_id, str) and re.fullmatch(r"[a-f0-9]{64}", source_id)
-                     and normalized["application_url"]
-                     and native_id == observation.get("native_posting_id") == job.get("requisition")
-                     and normalized["title"] == job.get("title")
-                     and normalized["attributes"]["company_name"] == job.get("company"),
-                     "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
-            storage_id = identity(company_id, native_id)
-            _require(posting.get("source_job_id") == storage_id
-                     and posting.get("id") == identity(source_id, storage_id),
-                     "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
+        from cli.acceptance_public_source import _source_copy_identity
+        try:
+            native_id = _source_copy_identity(job, posting, provider,
+                observation.get('source_id'), observation.get('source_endpoint'))
+        except ValueError:
+            raise ValueError("PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH") from None
+        _require(type(native_id) is type(observation.get('native_posting_id'))
+            and native_id == observation['native_posting_id'], "PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH")
         joined.append(posting)
-    _require(joined, "PUBLIC_BROWSER_POSTING_SNAPSHOT_MISMATCH")
+    _require(len(joined) == len(proved), "PUBLIC_BROWSER_POSTING_SNAPSHOT_MISMATCH")
     return joined
 
 
@@ -272,9 +251,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
             attrs = job.get("attributes") or {}
             evidence = observations[job_id]
             _require(job.get("id") == job_id and job_id != receipt["selected_application_job_id"]
-                     and attrs.get("fictional") is False and attrs.get("provider") == receipt["provider"]
-                     and attrs.get("source_id") == receipt["source_id"]
-                     and attrs.get("native_posting_id") == evidence["native_posting_id"]
+                     and attrs.get("fictional") is False
                      and isinstance(job.get("title"), str) and isinstance(job.get("company"), str),
                      "PUBLIC_BROWSER_JOB_READBACK_INVALID")
             joined = _join_postings(job, evidence, receipt["provider"])
@@ -351,7 +328,8 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                          and selected_job.get("company") == company
                          and (selected_job.get("attributes") or {}).get("native_posting_id")
                              == (job.get("attributes") or {}).get("native_posting_id")
-                         and (selected_job.get("attributes") or {}).get("source_id") == receipt["source_id"],
+                         and (selected_job.get("attributes") or {}).get("source_id") == (job.get("attributes") or {}).get("source_id")
+                         and (selected_job.get("attributes") or {}).get("provider") == (job.get("attributes") or {}).get("provider"),
                          "PUBLIC_BROWSER_SELECTED_JOB_READBACK_MISMATCH")
                 selected_postings = _join_postings(selected_job, observations[job_id],
                                                    receipt["provider"])
@@ -365,7 +343,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                 remote_type_visible = bool(remote_type) and remote_type in detail_text
                 expect(detail).to_contain_text(location_text)
                 expect(detail).to_contain_text(remote_type)
-                native_id = str((job.get("attributes") or {}).get("native_posting_id"))
+                native_id = str(observations[job_id]["native_posting_id"])
                 source_evidence = detail.locator(".provenance").filter(
                     has_text=source_postings[0].get("source", ""))
                 expect(source_evidence).to_have_count(len(source_postings))
@@ -411,12 +389,14 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                     "company": company[:200],
                     "provider": provider_text[:80],
                     "source_id": receipt["source_id"],
+                    "primary_source_id": (selected_job.get("attributes") or {}).get("source_id"),
+                    "primary_provider": (selected_job.get("attributes") or {}).get("provider"),
                     "source_endpoint": receipt["endpoint"],
                     "native_posting_id": native_id[:128],
                     "selected_job_api_readback_sha256": _digest({
                         "id": selected_job["id"], "title": selected_job["title"],
                         "company": selected_job["company"],
-                        "native_posting_id": (selected_job.get("attributes") or {}).get("native_posting_id"),
+                        "native_posting_id": observations[job_id]["native_posting_id"],
                         "source_posting_ids": [posting["id"] for posting in selected_postings],
                     }),
                     "checks": check_map,

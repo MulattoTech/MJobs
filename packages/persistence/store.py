@@ -1146,10 +1146,28 @@ class Store:
             if provider:
                 statement = statement.where(m.jobs.c.id.in_(select(m.routes.c.job_id).where(m.routes.c.provider == provider)))
             if job_source_id:
-                # Collector attribution is stored on the canonical job during
-                # collection; keep it distinct from application route providers.
-                statement = statement.where(
-                    m.jobs.c.attributes["source_id"].as_string() == job_source_id)
+                # Canonical values can move to a verified first-party source.
+                # Retain exact collector attribution through captured candidates
+                # and their successful configured-source quality observations.
+                # IN avoids duplicating jobs across repeated source captures.
+                attributed_job = m.jobs.alias('source_attributed_job')
+                captured_jobs = select(m.postings.c.job_id).select_from(
+                    m.source_quality_observations.join(m.posting_value_candidates,
+                        m.posting_value_candidates.c.quality_observation_id == m.source_quality_observations.c.id)
+                    .join(m.postings, m.postings.c.id == m.posting_value_candidates.c.posting_id)
+                    .join(m.posting_snapshots,
+                        (m.posting_snapshots.c.id == m.posting_value_candidates.c.posting_snapshot_id)
+                        & (m.posting_snapshots.c.posting_id == m.postings.c.id))
+                    .join(m.company_sources, m.company_sources.c.id == m.posting_value_candidates.c.company_source_id)
+                    .join(attributed_job, attributed_job.c.id == m.postings.c.job_id)
+                ).where(m.source_quality_observations.c.configured_source_id == job_source_id,
+                        m.company_sources.c.company_id == attributed_job.c.company_id,
+                        m.source_quality_observations.c.source_endpoint == m.postings.c.source,
+                        m.source_quality_observations.c.succeeded.is_(True),
+                        m.source_quality_observations.c.available.is_(True))
+                statement = statement.where(or_(
+                    m.jobs.c.attributes["source_id"].as_string() == job_source_id,
+                    m.jobs.c.id.in_(captured_jobs)))
             if sort == "score":
                 statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id)
             elif sort == "title":

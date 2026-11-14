@@ -201,6 +201,35 @@ def _selection(request, baseline):
         sha256=_digest({'profile': profile, 'application': app, 'job': job}))
 
 
+def _source_copy_identity(job, posting, provider, source_id, endpoint):
+    """Normalize immutable source data without assuming it wins canonical values."""
+    from packages.persistence.store import identity
+    from services.discovery.sources import remotive, wwr
+    from services.discovery.sources.collect import _legacy_company_label
+    from services.discovery.sources.errors import SourceError
+
+    _require(provider in ENDPOINTS and endpoint == ENDPOINTS[provider]
+        and isinstance(source_id, str) and re.fullmatch('[a-f0-9]{64}', source_id),
+        'PUBLIC_JOB_PROVENANCE_INVALID')
+    raw = posting.get('raw')
+    try:
+        adapter = {'wwr': wwr.WeWorkRemotely, 'remotive': remotive.Remotive}[provider]()
+        normalized = adapter.normalize(raw)
+        _, company_id = _legacy_company_label(provider, raw)
+    except (SourceError, ValueError, TypeError, KeyError):
+        raise ObservationError('PUBLIC_JOB_PROVENANCE_INVALID') from None
+    native_id = normalized['attributes']['native_posting_id']
+    storage_id = identity(company_id, normalized['requisition'])
+    _require(normalized.get('application_url') and normalized['attributes'].get('fictional') is False
+        and normalized['attributes'].get('submission_capability') == 'MANUAL_ONLY'
+        and job.get('company_id') == company_id
+        and normalized['attributes'].get('company_name') == job.get('company')
+        and posting.get('job_id') == job.get('id')
+        and posting.get('source') == endpoint and posting.get('source_job_id') == storage_id
+        and posting.get('id') == identity(source_id, storage_id), 'PUBLIC_JOB_PROVENANCE_INVALID')
+    return native_id
+
+
 def _public_jobs(request, source, operation, selection, profile_id, endpoint):
     rows = request('GET', '/jobs', params={'profile_id': profile_id,
         'job_source_id': source['id'], 'limit': 5})['jobs']
@@ -211,13 +240,10 @@ def _public_jobs(request, source, operation, selection, profile_id, endpoint):
         job = request('GET', '/jobs/' + quote(row['id'], safe=''), params={'profile_id': profile_id})
         attrs, match = job.get('attributes') or {}, job.get('match') or {}
         _require(job['id'] == row['id'] and job['id'] != selection['job_id'] and job['id'] not in seen
-            and attrs.get('fictional') is False and attrs.get('provider') == source['provider']
-            and attrs.get('source_id') == source['id'] and attrs.get('source_endpoint') == endpoint
-            and attrs.get('submission_capability') == 'MANUAL_ONLY'
-            and attrs.get('native_posting_id') is not None
+            and attrs.get('fictional') is False
             and match.get('profile_id') == profile_id and match.get('profile_version') == selection['profile_version'],
             'PUBLIC_JOB_PROVENANCE_INVALID')
-        proofs = []
+        proofs, native_ids = [], []
         for posting in job.get('postings', []):
             if posting.get('source') != endpoint:
                 continue
@@ -226,6 +252,7 @@ def _public_jobs(request, source, operation, selection, profile_id, endpoint):
             if (posting.get('fetched_at') != source.get('last_attempt')
                     or _timestamp(posting['fetched_at']) < _timestamp(operation['started_at'])):
                 continue
+            native_ids.append(_source_copy_identity(job, posting, source['provider'], source['id'], endpoint))
             raw_hash = _digest(posting.get('raw'))
             snapshots = [item for item in posting.get('snapshots', []) if item.get('sha256') == raw_hash]
             if not snapshots or not isinstance(posting.get('raw'), dict):
@@ -233,8 +260,10 @@ def _public_jobs(request, source, operation, selection, profile_id, endpoint):
             proofs.append(dict(posting_id=posting['id'], fetched_at=posting['fetched_at'],
                 raw_sha256=raw_hash, snapshots=[{key: item[key] for key in ('id', 'sha256', 'retrieved_at')}
                                              for item in snapshots]))
-        _require(proofs, 'PUBLIC_JOB_PROVENANCE_INVALID')
-        observed.append(dict(job_id=job['id'], native_posting_id=attrs['native_posting_id'],
+        _require(proofs and native_ids and all(value == native_ids[0] for value in native_ids),
+            'PUBLIC_JOB_PROVENANCE_INVALID')
+        observed.append(dict(job_id=job['id'], native_posting_id=native_ids[0],
+            primary_source_id=attrs.get('source_id'), primary_provider=attrs.get('provider'),
             source_id=source['id'], source_endpoint=endpoint, fictional=False, postings=proofs))
         seen.add(job['id'])
     return observed
