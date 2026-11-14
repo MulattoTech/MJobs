@@ -292,6 +292,13 @@ def _wait_refresh(session, context, expected, previous_id):
                     and _instant(operation['completed_at']) >= _instant(operation['started_at']), 'MONITOR_OPERATION_BEFORE_DUE')
                 _require(type(operation.get('attempt_count')) is int and operation['attempt_count'] == 1
                     and not operation.get('cancel_requested') and operation.get('error') is None, 'MONITOR_OPERATION_NOT_SINGLE_ATTEMPT')
+                # The worker commits the refresh receipt before finalizing the
+                # operation. Separate GETs can straddle both commits, leaving
+                # our earlier monitor row SCHEDULED while this operation is now
+                # COMPLETED. Read the receipt after completion and bind it again
+                # to the reviewed configuration and the exact operation.
+                row = _monitor(session, context, expected)
+                _require(row.get('operation_id') == identifier, 'MONITOR_OPERATION_REPLACED')
                 _require(row['status'] == 'HEALTHY' and row['completed_operation_id'] == identifier, 'MONITOR_RECEIPT_POINTER_MISMATCH')
                 source = _source(session, context['source_id'])
                 _require(_instant(row['next_due']) > due and _instant(source['last_success']) >= due

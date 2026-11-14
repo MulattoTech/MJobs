@@ -366,6 +366,70 @@ class AcceptanceMonitoringTests(unittest.TestCase):
         with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, 'ADMITTED_BEFORE_DUE'):
             self.restart(prepared, request=early)
 
+    def test_fresh_receipt_read_rejects_pointer_replacement_and_configuration_drift(self):
+        cases = [
+            ('completed_operation_id', 'wrong', 'RECEIPT_POINTER_MISMATCH'),
+            ('operation_id', 'replacement', 'OPERATION_REPLACED'),
+            ('status', 'SCHEDULED', 'RECEIPT_POINTER_MISMATCH'),
+            ('status', 'FAILED', 'REFRESH_BLOCKED'),
+            ('status', 'BLOCKED', 'REFRESH_BLOCKED'),
+            ('profile_id', 'other', 'CONFIGURATION_CHANGED'),
+            ('profile_version', 'stale', 'CONFIGURATION_CHANGED'),
+            ('source_id', 'other', 'CONFIGURATION_CHANGED'),
+            ('source_version', 'stale', 'CONFIGURATION_CHANGED'),
+            ('revision', 2, 'CONFIGURATION_CHANGED'),
+            ('search_fingerprint', 'changed', 'CONFIGURATION_CHANGED'),
+            ('next_due', '2026-01-01T00:05:00+00:00', 'NEXT_DUE_NOT_ADVANCED'),
+        ]
+        for field, value, code in cases:
+            with self.subTest(field=field, value=value):
+                world = World()
+                expected = world.request('PUT', '/profiles/profile1/company-sources/source1/fixture-monitoring')
+                world.sleep(300)
+                completed_read = False
+                def request(method, path, **kwargs):
+                    nonlocal completed_read
+                    row = world.request(method, path, **kwargs)
+                    if path == '/operations/refresh1':
+                        completed_read = True
+                    elif path.endswith('/fixture-monitoring') and completed_read:
+                        row[field] = value
+                    return row
+                with acceptance._Session('http://127.0.0.1:18700', world.baseline, self.root/'unused.json',
+                        'run1', **{**world.options(), 'request': request}) as session:
+                    with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, code):
+                        acceptance._wait_refresh(session, dict(source_id='source1', source_version=expected['source_version'],
+                            profile_version=world.profile_version), expected, None)
+
+    def test_completed_read_keeps_failed_cancelled_identity_and_timing_controls(self):
+        cases = [
+            ('state', 'FAILED', 'OPERATION_FAILED'),
+            ('state', 'CANCELLED', 'OPERATION_FAILED'),
+            ('state', 'BLOCKED', 'OPERATION_FAILED'),
+            ('cancel_requested', True, 'NOT_SINGLE_ATTEMPT'),
+            ('error', 'broken', 'NOT_SINGLE_ATTEMPT'),
+            ('attempt_count', 2, 'NOT_SINGLE_ATTEMPT'),
+            ('started_at', '2026-01-01T00:04:59+00:00', 'OPERATION_BEFORE_DUE'),
+            ('completed_at', '2026-01-01T00:04:59+00:00', 'OPERATION_BEFORE_DUE'),
+            ('id', 'replacement', 'NOT_NATURALLY_BOUND'),
+            ('params', {}, 'NOT_NATURALLY_BOUND'),
+        ]
+        for field, value, code in cases:
+            with self.subTest(field=field, value=value):
+                world = World()
+                expected = world.request('PUT', '/profiles/profile1/company-sources/source1/fixture-monitoring')
+                world.sleep(300)
+                def request(method, path, **kwargs):
+                    row = world.request(method, path, **kwargs)
+                    if path == '/operations/refresh1':
+                        row[field] = value
+                    return row
+                with acceptance._Session('http://127.0.0.1:18700', world.baseline, self.root/'unused.json',
+                        'run1', **{**world.options(), 'request': request}) as session:
+                    with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, code):
+                        acceptance._wait_refresh(session, dict(source_id='source1', source_version=expected['source_version'],
+                            profile_version=world.profile_version), expected, None)
+
     def test_immediately_due_review_survives_response_latency(self):
         self.world.source['last_success'] = (self.world.start-timedelta(seconds=600)).isoformat()
         original = self.world.request
