@@ -250,7 +250,8 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.job_sources).where(
                 m.job_sources.c.id == source_id).values(rate_limit=1))
-        payload = dict(RAW_REMOTIVE_PAYLOAD, jobs=[RAW_REMOTIVE_PAYLOAD['jobs'][0]])
+        original_payload = deepcopy(RAW_REMOTIVE_PAYLOAD)
+        payload = dict(RAW_REMOTIVE_PAYLOAD, jobs=[deepcopy(RAW_REMOTIVE_PAYLOAD['jobs'][0])])
         payload['jobs'][0]['description'] += (
             '<a href="https://job-boards.greenhouse.io/example/jobs/101">Apply</a>')
         parent_lineage = self._start_parent_collection_attempt(source_id)
@@ -343,6 +344,8 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         self.assertEqual(candidates[0]['normalized']['attributes']['salary_min'], 150000)
         self.assertTrue(any(route['requisition'] == '102' and route['job_id'] == distinct_job['id']
                             for route in routes))
+
+        self.assertEqual(RAW_REMOTIVE_PAYLOAD, original_payload)
 
     def test_initial_provider_failure_recovers_through_persisted_collector(self):
         from services.discovery.sources.collect import collect_source
