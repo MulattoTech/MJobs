@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
+import re
 import shutil
+from pathlib import Path
 from uuid import uuid4
 
 from docx import Document
@@ -15,10 +16,10 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.documents.artifacts import atomic_generate, publish_directory
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
+from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
 from services.documents.failure_status import validate_generated_outputs
 from services.documents.render import render_pdf
 from services.documents.validation import validate_assertions
-from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
 
 
 class ReviewedCoverLetterError(ValueError):
@@ -182,6 +183,12 @@ def materialize_reviewed_preview(
     request_id: str,
 ) -> dict:
     """Persist one immutable future-version row without promoting the application."""
+    if (not isinstance(application_id, str)
+            or re.fullmatch(r"[0-9a-f]{64}", application_id) is None):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    # Application IDs are identity() digests. Reconstruct the validated path
+    # component so request text never becomes a filesystem path directly.
+    application_path_id = f"{int(application_id, 16):064x}"
     if hashlib.sha256(preview["preview_text"].encode("utf-8")).hexdigest() != preview_sha256:
         raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PREVIEW_MISMATCH")
     application = store.application(application_id)
@@ -221,13 +228,22 @@ def materialize_reviewed_preview(
     )
     context["claim_validation"] = claim_validation
 
-    output_root = Path(output_dir).resolve()
-    application_root = (output_root / application_id).resolve()
-    if not application_root.is_relative_to(output_root):
-        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    configured_root = Path(output_dir)
+    configured_application_root = configured_root / application_path_id
     relative = f"{profile['version']}/reviewed-{document_id}"
-    destination = (application_root / relative).resolve()
-    if not destination.is_relative_to(application_root):
+    configured_destination = configured_application_root / relative
+    # Check the lexical path before resolve() hides aliases. Fresh approval must
+    # enforce the same boundary as saved-artifact replay, even for in-root targets.
+    if _has_reparse_component(configured_destination):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    try:
+        output_root = configured_root.resolve()
+        application_root = configured_application_root.resolve()
+        destination = configured_destination.resolve()
+    except (OSError, RuntimeError, ValueError):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID") from None
+    if (not application_root.is_relative_to(output_root)
+            or not destination.is_relative_to(application_root)):
         raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
     staging = destination.with_name(f".{destination.name}.staging-{uuid4().hex}")
     staging.mkdir(parents=True, exist_ok=False)

@@ -4,13 +4,16 @@ Browser and adapter upload remain outside this precursor test surface.
 """
 from __future__ import annotations
 
-from copy import deepcopy
-from concurrent.futures import ThreadPoolExecutor
 import hashlib
-from pathlib import Path
+import os
+import shutil
+import subprocess
 import tempfile
-from threading import Barrier
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
+from pathlib import Path
+from threading import Barrier
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -20,12 +23,13 @@ from sqlalchemy.engine import Connection
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
+from services.applications.upload_integrity import snapshot_prepared
 from services.discovery.pipeline import discover
+from services.documents import reviewed_cover_letter
 from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
 from services.documents.generate import prepare
 from services.documents.reviewed_cover_letter import materialize_reviewed_preview
-from services.applications.upload_integrity import snapshot_prepared
 from tests.integration.test_spine import PROFILE
 
 
@@ -111,9 +115,139 @@ class ReviewedCoverLetterPrepareBindingTests(unittest.TestCase):
                 raise SimulatedProcessCrash("after directory publication")
             return original_execute(connection, statement, *args, **kwargs)
 
-        with patch.object(Connection, "execute", new=crash_on_document_insert):
-            with self.assertRaises(SimulatedProcessCrash):
-                self._approve(request_id="reviewed-cover-letter-crash-window")
+        with (patch.object(Connection, "execute", new=crash_on_document_insert),
+              self.assertRaises(SimulatedProcessCrash)):
+            self._approve(request_id="reviewed-cover-letter-crash-window")
+
+    def _assert_fresh_review_rejects_directory_alias(self, component):
+        """Exercise real junctions on Windows and symlinks on POSIX."""
+        profile = self.store.profile("fixture")
+        base = self.store.application(self.application_id)
+        application_root = self.output / self.application_id
+        version_root = application_root / str(profile["version"])
+        document_id = identity(
+            "reviewed-cover-letter", self.application_id,
+            base["document_version"], base["document_version"] + 1,
+        )
+        candidates = {
+            "output": self.output,
+            "application": application_root,
+            "version": version_root,
+            "destination": version_root / f"reviewed-{document_id}",
+        }
+        original = candidates[component]
+        target = original.with_name(original.name + "-alias-target")
+        existed = original.exists()
+        if existed:
+            original.rename(target)
+        else:
+            target.mkdir(parents=True)
+            (target / "sentinel.txt").write_bytes(b"synthetic unrelated document")
+
+        def files():
+            return {
+                str(path.relative_to(target)): (
+                    None if path.is_dir() else path.read_bytes()
+                )
+                for path in target.rglob("*")
+            }
+
+        def database(store):
+            with store.engine.connect() as connection:
+                return {
+                    table.name: [dict(row) for row in
+                                 connection.execute(select(table)).mappings()]
+                    for table in m.metadata.sorted_tables
+                }
+
+        try:
+            if os.name == "nt":
+                linked = subprocess.run(
+                    ["cmd", "/d", "/c", "mklink", "/J", str(original), str(target)],
+                    check=False, capture_output=True, text=True, timeout=10,
+                )
+                self.assertEqual(linked.returncode, 0,
+                                 "Synthetic directory junction could not be created")
+                self.assertTrue(original.is_junction())
+            else:
+                original.symlink_to(target, target_is_directory=True)
+                self.assertTrue(original.is_symlink())
+            before_files = files()
+            before_database = database(self.store)
+            with patch.object(reviewed_cover_letter, "Document",
+                              wraps=reviewed_cover_letter.Document) as generate:
+                approved, _, _ = self._approve(
+                    request_id=f"reviewed-cover-letter-alias-{component}",
+                )
+            self.assertEqual(approved.status_code, 422, approved.text)
+            self.assertEqual(approved.json()["detail"]["code"],
+                             "COVER_LETTER_REVIEW_PATH_INVALID")
+            generate.assert_not_called()
+            self.assertEqual(files(), before_files)
+            self.assertEqual(database(self.store), before_database)
+            reopened = Store(str(self.store.engine.url))
+            try:
+                self.assertEqual(database(reopened), before_database)
+            finally:
+                reopened.engine.dispose()
+        finally:
+            if os.name == "nt" and original.is_junction():
+                original.rmdir()
+            elif original.is_symlink():
+                original.unlink()
+            if existed:
+                target.rename(original)
+            else:
+                shutil.rmtree(target)
+
+        # Removing the alias permits an ordinary approval and idempotent replay.
+        approved, _, _ = self._approve(
+            request_id=f"reviewed-cover-letter-alias-{component}",
+        )
+        self.assertEqual(approved.status_code, 201, approved.text)
+        replay, _, _ = self._approve(
+            request_id=f"reviewed-cover-letter-alias-{component}",
+        )
+        self.assertEqual(replay.status_code, 201, replay.text)
+        self.assertEqual(replay.json()["document_id"], approved.json()["document_id"])
+        self.assertTrue(replay.json()["replayed"])
+
+    def test_approval_refuses_noncanonical_application_path_ids_before_lookup(self):
+        profile = self.store.profile("fixture")
+        preview = {"preview_text": "Synthetic preview"}
+        digest = hashlib.sha256(preview["preview_text"].encode("utf-8")).hexdigest()
+        invalid_ids = (
+            None, 1, True, "", "a" * 63, "a" * 65, "g" * 64, "AB" * 32,
+            "../" + self.application_id, self.application_id + "/suffix",
+            "C:\\documents\\" + self.application_id, self.application_id + "\n",
+        )
+        with (patch.object(self.store, "application") as lookup,
+              patch.object(reviewed_cover_letter, "Document") as generate):
+            for invalid_id in invalid_ids:
+                with self.subTest(application_id=invalid_id):
+                    with self.assertRaises(
+                            reviewed_cover_letter.ReviewedCoverLetterError) as caught:
+                        materialize_reviewed_preview(
+                            self.store, self.output, profile=profile, job=self.job,
+                            application_id=invalid_id, expected_base_document_version=1,
+                            preview=preview, preview_sha256=digest,
+                            request_id="reviewed-invalid-path-token",
+                        )
+                    self.assertEqual(caught.exception.code, "COVER_LETTER_REVIEW_PATH_INVALID")
+            lookup.assert_not_called()
+            generate.assert_not_called()
+
+    def test_fresh_review_rejects_aliased_output_directory_before_writes(self):
+        self._assert_fresh_review_rejects_directory_alias("output")
+
+    def test_fresh_review_rejects_aliased_application_directory_before_writes(self):
+        self._assert_fresh_review_rejects_directory_alias("application")
+
+    def test_fresh_review_rejects_aliased_version_directory_before_writes(self):
+        self._assert_fresh_review_rejects_directory_alias("version")
+
+    def test_fresh_review_rejects_aliased_destination_directory_before_writes(self):
+        self._assert_fresh_review_rejects_directory_alias("destination")
 
     def test_review_approval_materializes_one_future_revision_without_promoting_it(self):
         approved, base, _profile = self._approve()
@@ -438,10 +572,10 @@ class ReviewedCoverLetterPrepareBindingTests(unittest.TestCase):
         self.assertEqual(approved.status_code, 201, approved.text)
         reviewed = approved.json()
 
-        with patch("services.documents.generate._generate_document_artifact",
-                   side_effect=RuntimeError("synthetic generation failure")):
-            with self.assertRaises(RuntimeError):
-                self._reprepare(reviewed, base, profile)
+        with (patch("services.documents.generate._generate_document_artifact",
+                    side_effect=RuntimeError("synthetic generation failure")),
+              self.assertRaises(RuntimeError)):
+            self._reprepare(reviewed, base, profile)
         self.assertEqual(self.store.application(self.application_id)["document_version"],
                          base["document_version"])
         generated_root = (self.output / self.application_id / profile["version"]
