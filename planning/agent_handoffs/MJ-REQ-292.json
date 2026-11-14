@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex root / codex:integration-01a1da02-20261114",
   "branch": "codex/p0-campaign-reconcile-20261114",
-  "head_sha": "475bb7b432e1da6294d9670868949851db9c027c",
+  "head_sha": "4073db33edddf526de598101ceff1daaeaeeba26",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Independent fixed475bb7b4 review approved; publish bounded normal update to existing draftPR973 after live ownership/preflight checks; execute fresh OCI-bound native-greenhouse fixture with read-only prerequisites and all campaign flags. Preserve Windows baseline failures and PARTIAL ledger; protected integration only after exact gates.",
+  "next_action": "Publish one reviewed combined update of PR973 after live preflight; run final owned44220090e592 native fixture on exact source with5/min primary. Require fresh hosted gates and protected merge separately; canonical60step acceptance remainsPARTIAL. Stop/reconcile at16:22:43Z.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -344,6 +344,30 @@
       "result": "FAIL",
       "tested_commit": "c0ba9b7ae4c4a659c823297410d521db710db26a",
       "observed": "43 producerPASS10PARTIAL7NOT_RUN; public lease headroom failure before collection; sources disabled/exact owned runtime removed; canonical acceptance unchanged"
+    },
+    {
+      "command": "Affected public/browser/containment/bootstrap suites",
+      "result": "PASS",
+      "tested_commit": "e595c93752676e6725316222d61cdf87e1490ed6",
+      "observed": "287passed307subtests2Windows skips47.28s; real persistence/API join plus strict negatives; scoped independent review approved"
+    },
+    {
+      "command": "Actual PostgreSQL consent/manual review qualification",
+      "result": "PASS",
+      "tested_commit": "2d5f329000798ea9256052c548964900b89ede75",
+      "observed": "111passed68subtests7reviewed-identity-env skips203.65s; clean frozen head"
+    },
+    {
+      "command": "Actual PostgreSQL additional reviewed identity/Greenhouse contracts with both env names",
+      "result": "PASS",
+      "tested_commit": "4073db33edddf526de598101ceff1daaeaeeba26",
+      "observed": "15passed7subtests0skips27.58s; clean frozen head; previous7skips exercised; isolated PG removed"
+    },
+    {
+      "command": "Frozen99b1ea3a connected campaign",
+      "result": "FAIL",
+      "tested_commit": "99b1ea3aabf64e3b6a2d4371e7c33d353c30e8b5",
+      "observed": "49producerPASS4PARTIAL7NOT_RUN; native attempts persisted; public collectionPASS/100jobs; browser namespace join failed; exact owned runtime safely removed; no canonical promotion"
     }
   ],
   "blockers": [
@@ -719,7 +743,7 @@
     "Preserved dated checkpoints, session boundary/extensions, pending source setup and prior source/integration records retain their original dates and contents as history. Their old owners, deadlines and runtime states are not current authority. Historical exclusive_source_ownership arrays grant no paths; fresh native scopes control current work.",
     "Proposal v3 5497c87ea41e0c5b4bed38eee310785b1125fcd85557da7bbd0159bc2419495f remains immutable historical planning. Its pending-correction/source-scope assertions are superseded by the actual fresh resolution d93139a89aa5a87088ed98076a663ce48cf57445960b7d99c4353c0570a86df5. Literal acceptance remains 0 / 53 / 7; metadata structural validation is not runtime certification."
   ],
-  "updated_at": "2026-11-14T15:18:41.203010+00:00",
+  "updated_at": "2026-11-14T15:59:41.905669+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
