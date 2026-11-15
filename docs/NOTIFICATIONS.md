@@ -35,6 +35,38 @@ and employer-discovery notifications are not implemented by this slice.
 The API acknowledgement confirms that the ntfy server accepted the generic
 message. It does **not** prove a phone/browser displayed it.
 
+## Discord webhook provider
+
+Discord uses the same opt-in server worker and durable delivery journal. Select
+`"provider": "discord"`, set the numeric `webhook_id`, and supply its token
+through `token_env` or an absolute private `token_file` path. Do not put the
+token into the configuration URL or repository. For example:
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "discord",
+  "profile_id": "your-existing-profile-id",
+  "webhook_id": "12345678901234567",
+  "token_env": "MJOBS_DISCORD_WEBHOOK_TOKEN",
+  "state_path": "C:/private/mjobs/discord-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+The provider sends only fixed generic text, disables all mentions, uses the
+fixed `discord.com` HTTPS endpoint, disables proxies and redirects, and limits
+request time. HTTPX request logs redact the webhook token. A 429 preserves its
+retry delay for explicit operator retry; uncertain delivery is never replayed
+automatically. `DELIVERED` means Discord returned an accepted response, not that
+a person saw the message. Attachments, embeds, mention delivery, thread routing,
+device receipts, exactly-once delivery, email, and direct application submission
+are unsupported. Contract tests use synthetic tokens and a mock transport; they
+do not contact Discord.
+
 ## Private configuration
 
 Create a private JSON file outside the repository and outside public/shared
@@ -97,10 +129,10 @@ file. Scheduling after reservation can bunch actual socket writes; exact network
 request spacing is not guaranteed.
 MJobs CLI status reports event hashes, attempts and fixed diagnostic codes; its
 output omits topic, server URL, tokens, provider response bodies and operation contents.
-Publishing uses ntfy's JSON POST at the server root, so ordinary HTTPX INFO request
-logs also omit the topic and token. Separately enabled third-party HTTP tracing
-can expose the server origin or message body; do not enable payload tracing for
-private destinations.
+ntfy publishes JSON to its server root. Discord uses a fixed `discord.com`
+webhook path and its token is redacted from ordinary HTTPX request logs.
+Separately enabled third-party HTTP tracing can expose destinations or message
+bodies; do not enable payload tracing for private destinations.
 
 The first enabled run persists an activation timestamp. Older completed operations
 are excluded. Stable-ID sweeps revisit current terminal records without unbounded
@@ -117,9 +149,9 @@ to defeat deduplication.
 | --- | --- |
 | PENDING | Queued, not sent yet |
 | SENDING | A reserved request may be active |
-| DELIVERED | Matching ntfy server acknowledgement observed |
-| REJECTED | Credential problem, explicit 401/403/429 rejection, or failed connection before HTTP request bytes |
-| UNKNOWN | Timeout, uncertain transport, invalid/missing acknowledgement, non-200 uncertain result, or interrupted attempt |
+| DELIVERED | ntfy matching JSON acknowledgement or Discord accepted HTTP response observed |
+| REJECTED | Credential/destination problem, explicit 401/403/404/429 rejection, or failed connection before HTTP request bytes |
+| UNKNOWN | Timeout, uncertain transport, invalid/missing acknowledgement, uncertain HTTP result, or interrupted attempt |
 | FAILED | Invalid local event; no send |
 
 A stale SENDING attempt is displayed as UNKNOWN. It is never automatically
