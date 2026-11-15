@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-13T13:54:32.089277+00:00",
+  "timestamp": "2026-11-14T19:58:30.913144+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3942,9 +3942,12 @@
     },
     {
       "requirement_id": "MJ-REQ-017.F07",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-14-arbeitnow-acceptance.json"
+      ],
+      "note": "Accepted by the MJobs integration owner on 2026-11-14 for the five scoped optional Arbeitnow adapter criteria. Protected PR #1019 merged at 268c5c9f from exact head 786d0a46 with 15/15 checks; bounded latest-page live GET normalized 300 records without persistence or submission. Limitations remain; parent MJ-REQ-017 stays PARTIAL and no deployment/broad provider coverage is claimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
