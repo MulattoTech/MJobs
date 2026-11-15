@@ -647,7 +647,7 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
 @pytest.mark.parametrize("change", [
     "queued", "running", "retryable", "unattempted", "cancelled", "cancel_requested",
     "no_completion", "leased", "review", "foreign_profile", "profile_version",
-    "source_policy", "pending_digest", "parent_authority", "incoming_raw",
+    "source_policy", "pending_digest", "parent_authority", "incoming_raw", "malformed_candidate",
 ])
 def test_bootstrap_continuation_preserves_nonconsumed_or_changed_heads(change):
     from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
@@ -698,8 +698,16 @@ def test_bootstrap_continuation_preserves_nonconsumed_or_changed_heads(change):
                 parent_ids = {row["domain_evidence"][0]["binding"]["parent_operation_id"] for row in heads}
                 connection.execute(update(m.operations).where(
                     m.operations.c.id.in_(parent_ids)).values(state="FAILED"))
+            elif change == "malformed_candidate":
+                for operation in connection.execute(select(m.operations).where(operations)).mappings():
+                    params = deepcopy(operation["params"])
+                    params["candidate"] = []
+                    connection.execute(update(m.operations).where(
+                        m.operations.c.id == operation["id"]).values(params=params))
             connection.execute(update(m.job_sources).where(
                 m.job_sources.c.id == case.source_id).values(last_attempt=None))
+            terminal_before = {row["id"]: dict(row) for row in connection.execute(
+                select(m.operations).where(operations)).mappings()}
         if change == "foreign_profile":
             other = deepcopy(PROFILE)
             other["id"] = "other"
@@ -717,9 +725,20 @@ def test_bootstrap_continuation_preserves_nonconsumed_or_changed_heads(change):
 
         with patch("services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint",
                    wraps=extract_bootstrap_hint) as extract:
-            case.collect(**case.parent_operation())
+            result = case.collect(**case.parent_operation())
         expected = ["Alpha", "Charlie"] if change == "incoming_raw" else ["Alpha", "Bravo"]
         assert [call.args[0]["company_name"] for call in extract.call_args_list] == expected
         assert len(case.http_requests) == 2
+        if change == "malformed_candidate":
+            assert result["jobs_seen"] == 4
+            assert len(case.pending()) == 2
+            with case.store.engine.connect() as connection:
+                source = connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == case.source_id)).mappings().one()
+                assert source["health_status"] == "HEALTHY"
+                assert source["last_error"] is None and source["consecutive_failures"] == 0
+                for operation in connection.execute(select(m.operations).where(
+                        m.operations.c.id.in_(identifiers))).mappings():
+                    assert dict(operation) == terminal_before[operation["id"]]
     finally:
         case.doCleanups()

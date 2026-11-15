@@ -426,7 +426,7 @@ def _prepare_aggregator_bootstrap_hints(store, source, profile, normalized, chec
                     authority = _authorize_discovery_request(
                         store, terminal[company_id], connection, lock=False)
                     consumed[company_id] = authority['aggregator_bootstrap_pending']['binding']
-                except (PublicFetchError, KeyError, TypeError, ValueError):
+                except (PublicFetchError, AttributeError, KeyError, TypeError, ValueError):
                     consumed[company_id] = None
             prior = consumed.get(company_id)
             if (prior is not None and prior['selected_requisition'] == job['requisition']
