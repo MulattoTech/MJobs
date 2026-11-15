@@ -5,13 +5,16 @@ from dataclasses import replace
 import smtplib
 import ssl
 import threading
+import time
 
 import pytest
 
 from services.notifications.configuration import parse_config
 from services.notifications.contract import DeliveryResult, NotificationError
 from services.notifications.events import event_from_row
-from services.notifications.providers.email import EmailProvider
+from services.notifications.providers.email import (
+    EmailProvider, _Cancelled, _Deadline, _DeadlineExpired, _DeadlineSMTP_SSL,
+)
 
 
 def config_data(tmp_path, **changes):
@@ -199,3 +202,196 @@ def test_non_email_configuration_cannot_construct_email_provider(tmp_path):
     })
     with pytest.raises(NotificationError, match="NOTIFICATION_PROVIDER_DISABLED"):
         EmailProvider(config)
+
+
+def test_drip_fed_multiline_smtp_reply_cannot_extend_total_deadline():
+    class DripSocket:
+        def __init__(self):
+            self.data = bytearray(b"250-" + b"x" * 24 + b"\r\n250 ok\r\n")
+            self.timeout = None
+            self.closed = False
+
+        def settimeout(self, timeout):
+            self.timeout = timeout
+
+        def recv(self, size):
+            time.sleep(.003)
+            return bytes([self.data.pop(0)]) if self.data else b""
+
+        def makefile(self, _mode):
+            return self
+
+        def readline(self, limit):
+            line = bytearray()
+            while len(line) < limit:
+                byte = self.recv(1)
+                if not byte:
+                    break
+                line.extend(byte)
+                if byte == b"\n":
+                    break
+            return bytes(line)
+
+        def close(self):
+            self.closed = True
+
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(.025)
+    smtp.sock = DripSocket()
+    smtp.file = None
+    smtp.debuglevel = 0
+    with pytest.raises(_DeadlineExpired):
+        smtp.getreply()
+    assert smtp.sock is None
+
+
+def test_multiline_smtp_reply_keeps_standard_response_shape():
+    class ReplySocket:
+        def __init__(self):
+            self.data = bytearray(b"250-first line\r\n250 second line\r\n")
+            self.closed = False
+
+        def settimeout(self, _timeout):
+            pass
+
+        def recv(self, _size):
+            return bytes([self.data.pop(0)]) if self.data else b""
+
+        def close(self):
+            self.closed = True
+
+    sock = ReplySocket()
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(1)
+    smtp.sock = sock
+    smtp.file = None
+    smtp.debuglevel = 0
+    assert smtp.getreply() == (250, b"first line\nsecond line")
+    assert not sock.closed
+
+
+def test_cancellation_during_multiline_reply_closes_socket():
+    stopped = threading.Event()
+
+    class CancelDuringReplySocket:
+        def __init__(self):
+            self.data = bytearray(b"250-" + b"x" * 32 + b"\r\n250 ok\r\n")
+            self.closed = False
+            self.read_count = 0
+
+        def settimeout(self, _timeout):
+            pass
+
+        def recv(self, _size):
+            self.read_count += 1
+            if self.read_count == 12:
+                stopped.set()
+            return bytes([self.data.pop(0)]) if self.data else b""
+
+        def close(self):
+            self.closed = True
+
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(1, stopped)
+    smtp.sock = CancelDuringReplySocket()
+    smtp.file = None
+    smtp.debuglevel = 0
+    with pytest.raises(_Cancelled):
+        smtp.getreply()
+    assert smtp.sock is None
+
+
+@pytest.mark.parametrize("want_error,want_read,want_write", [
+    (ssl.SSLWantReadError, True, False),
+    (ssl.SSLWantWriteError, False, True),
+])
+def test_tls_handshake_waits_remain_inside_total_deadline(
+        monkeypatch, want_error, want_read, want_write):
+    class HandshakeSocket:
+        def __init__(self):
+            self.closed = False
+
+        def setblocking(self, _value):
+            pass
+
+        def settimeout(self, _value):
+            pass
+
+        def do_handshake(self):
+            raise want_error(2, "synthetic handshake wait")
+
+        def close(self):
+            self.closed = True
+
+    class Context:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+
+        def wrap_socket(self, *_args, **_kwargs):
+            return self.wrapped
+
+    wrapped = HandshakeSocket()
+    raw = HandshakeSocket()
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(.025)
+    smtp.context = Context(wrapped)
+    smtp._host = "smtp.example.test"
+    waits = []
+
+    def slow_select(readers, writers, _errors, timeout):
+        waits.append((bool(readers), bool(writers)))
+        time.sleep(timeout)
+        return [], [], []
+
+    monkeypatch.setattr("services.notifications.providers.email.smtplib.SMTP._get_socket",
+                        lambda *_args: raw)
+    monkeypatch.setattr("services.notifications.providers.email.select.select", slow_select)
+    with pytest.raises(_DeadlineExpired):
+        smtp._get_socket("smtp.example.test", 465, 10)
+    assert wrapped.closed
+    assert waits and waits[0] == (want_read, want_write)
+
+
+def test_cancellation_interrupts_tls_handshake_poll_and_closes_socket(monkeypatch):
+    stopped = threading.Event()
+
+    class HandshakeSocket:
+        def __init__(self):
+            self.closed = False
+
+        def setblocking(self, _value):
+            pass
+
+        def settimeout(self, _value):
+            pass
+
+        def do_handshake(self):
+            raise ssl.SSLWantReadError(2, "synthetic handshake wait")
+
+        def close(self):
+            self.closed = True
+
+    class Context:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+
+        def wrap_socket(self, *_args, **_kwargs):
+            return self.wrapped
+
+    wrapped = HandshakeSocket()
+    raw = HandshakeSocket()
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(1, stopped)
+    smtp.context = Context(wrapped)
+    smtp._host = "smtp.example.test"
+
+    def cancel_select(*_args):
+        stopped.set()
+        return [], [], []
+
+    monkeypatch.setattr("services.notifications.providers.email.smtplib.SMTP._get_socket",
+                        lambda *_args: raw)
+    monkeypatch.setattr("services.notifications.providers.email.select.select", cancel_select)
+    with pytest.raises(_Cancelled):
+        smtp._get_socket("smtp.example.test", 465, 10)
+    assert wrapped.closed

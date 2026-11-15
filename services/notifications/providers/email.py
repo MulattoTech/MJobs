@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from email import policy
 from email.message import EmailMessage
+import select
 import smtplib
 import ssl
 import time
@@ -33,25 +34,127 @@ class _Deadline:
         remaining = self.ends - time.monotonic()
         if remaining <= 0:
             raise _DeadlineExpired()
-        return max(.001, remaining)
+        return remaining
 
 
 class _DeadlineSMTP_SSL(smtplib.SMTP_SSL):
-    """Reset the socket timeout to the remaining provider budget per protocol I/O."""
+    """Apply one operation deadline across connect, TLS, and SMTP reply parsing."""
+
+    _CANCELLATION_POLL_SECONDS = .1
 
     def __init__(self, host, port, *, timeout, context, deadline):
         self._deadline = deadline
         super().__init__(host, port, timeout=timeout, context=context)
 
+    def _get_socket(self, host, port, timeout):
+        raw_socket = smtplib.SMTP._get_socket(
+            self, host, port, self._deadline.remaining_seconds(),
+        )
+        tls_socket = None
+        try:
+            raw_socket.settimeout(self._deadline.remaining_seconds())
+            tls_socket = self.context.wrap_socket(
+                raw_socket, server_hostname=self._host, do_handshake_on_connect=False,
+            )
+            self._perform_tls_handshake(tls_socket)
+            return tls_socket
+        except BaseException:
+            (tls_socket or raw_socket).close()
+            raise
+
+    def _wait_for_socket(self, sock, *, want_read, want_write):
+        remaining = self._deadline.remaining_seconds()
+        timeout = min(remaining, self._CANCELLATION_POLL_SECONDS)
+        readable, writable, _ = select.select(
+            [sock] if want_read else [], [sock] if want_write else [], [], timeout,
+        )
+        self._deadline.remaining_seconds()
+        return bool(readable or writable)
+
+    def _perform_tls_handshake(self, sock):
+        sock.setblocking(False)
+        while True:
+            self._deadline.remaining_seconds()
+            try:
+                sock.do_handshake()
+                sock.settimeout(self._deadline.remaining_seconds())
+                return
+            except ssl.SSLWantReadError:
+                self._wait_for_socket(sock, want_read=True, want_write=False)
+            except ssl.SSLWantWriteError:
+                self._wait_for_socket(sock, want_read=False, want_write=True)
+
+    def _receive_byte(self):
+        while True:
+            remaining = self._deadline.remaining_seconds()
+            timeout = remaining
+            if self._deadline.cancellation_event is not None:
+                timeout = min(remaining, self._CANCELLATION_POLL_SECONDS)
+            self.sock.settimeout(timeout)
+            try:
+                return self.sock.recv(1)
+            except TimeoutError:
+                self._deadline.remaining_seconds()
+            except ssl.SSLWantReadError:
+                self._wait_for_socket(self.sock, want_read=True, want_write=False)
+            except ssl.SSLWantWriteError:
+                self._wait_for_socket(self.sock, want_read=False, want_write=True)
+
+    def _read_reply_line(self):
+        line = bytearray()
+        try:
+            while len(line) <= smtplib._MAXLINE:
+                byte = self._receive_byte()
+                if not byte:
+                    self.close()
+                    raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+                line.extend(byte)
+                if byte == b"\n":
+                    if len(line) > smtplib._MAXLINE:
+                        self.close()
+                        raise smtplib.SMTPResponseException(500, "Line too long.")
+                    return bytes(line)
+        except (_Cancelled, _DeadlineExpired):
+            self.close()
+            raise
+        except OSError as exc:
+            self.close()
+            raise smtplib.SMTPServerDisconnected(
+                "Connection unexpectedly closed: " + str(exc),
+            ) from None
+        self.close()
+        raise smtplib.SMTPResponseException(500, "Line too long.")
+
     def send(self, data):
         if self.sock is not None:
-            self.sock.settimeout(self._deadline.remaining_seconds())
+            try:
+                self.sock.settimeout(self._deadline.remaining_seconds())
+            except (_Cancelled, _DeadlineExpired):
+                self.close()
+                raise
         return super().send(data)
 
     def getreply(self):
-        if self.sock is not None:
-            self.sock.settimeout(self._deadline.remaining_seconds())
-        return super().getreply()
+        if self.sock is None:
+            raise smtplib.SMTPServerDisconnected("please run connect() first")
+        response = []
+        while True:
+            line = self._read_reply_line()
+            if self.debuglevel > 0:
+                self._print_debug("reply:", repr(line))
+            response.append(line[4:].strip(b" \t\r\n"))
+            code = line[:3]
+            try:
+                error_code = int(code)
+            except ValueError:
+                error_code = -1
+                break
+            if line[3:4] != b"-":
+                break
+        message = b"\n".join(response)
+        if self.debuglevel > 0:
+            self._print_debug("reply: retcode (%s); Msg: %a" % (error_code, message))
+        return error_code, message
 
 
 class EmailProvider:

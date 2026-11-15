@@ -147,14 +147,15 @@ certificate and hostname verification guidance.
 
 The message is plain text with a fixed subject and generic allowlisted activity
 description. Exactly one configured recipient is used; message content cannot
-set headers or recipients. The timeout bounds socket connection and SMTP
-protocol operations. Name resolution is delegated to the operating system and
-is not independently cancellable by this provider. Cancellation before message
-submission is safe; interruption during or after submission is `UNKNOWN` and is
-not replayed automatically. A successful SMTP response means the server
-accepted the message, not that it reached an inbox or was read. SMTP has no
-read-only receipt query in this integration, and no live message was sent for
-validation.
+set headers or recipients. One deadline covers socket connection, the TLS
+handshake, and the complete SMTP protocol exchange, including each byte in a
+multiline reply. TLS handshake waits poll the remaining budget and cancellation.
+Name resolution is delegated to the operating system and is not independently
+cancellable by this provider. Cancellation before message submission is safe;
+interruption during or after submission is `UNKNOWN` and is not replayed
+automatically. A successful SMTP response means the server accepted the message,
+not that it reached an inbox or was read. SMTP has no read-only receipt query in
+this integration, and no live message was sent for validation.
 
 Supported capabilities are implicit TLS on port 465, verified server
 certificates/hostnames, SMTP AUTH username/password, one exact recipient, and
