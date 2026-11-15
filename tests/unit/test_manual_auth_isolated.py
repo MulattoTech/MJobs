@@ -1,7 +1,10 @@
 """Composition fences the original admission before any isolated host launch."""
 from hashlib import sha256
+import os
 import json
 from pathlib import Path
+import subprocess
+import sys
 from unittest.mock import Mock, patch
 import unittest
 
@@ -63,6 +66,49 @@ class ManualAuthIsolatedTests(unittest.TestCase):
         self.query.close.assert_called_once()
         self.job.close.assert_called_once()
         self.assertEqual(self.row()['state'], 'RUNNING')
+
+    def test_private_host_runtime_site_packages_precede_global_dependencies(self):
+        """The real base interpreter must select the validated MJobs runtime first."""
+        from services.applications.manual_auth_isolated import _manual_auth_host_bootstrap
+        from services.applications.browser_tree import _host_environment
+
+        root = Path(self.directory.name)
+        runtime_site = root / 'runtime-site'
+        global_site = root / 'global-site'
+        for location, marker in ((runtime_site, 'runtime'), (global_site, 'global')):
+            package = location / 'playwright'
+            package.mkdir(parents=True)
+            (package / '__init__.py').write_text(
+                f"ORIGIN = {marker!r}\n", encoding='utf-8')
+        stdlib_shadow = runtime_site / 'json'
+        stdlib_shadow.mkdir()
+        (stdlib_shadow / '__init__.py').write_text(
+            "ORIGIN = 'runtime-shadow'\n", encoding='utf-8')
+        probe_module = root / 'mjobs_bootstrap_probe.py'
+        probe_module.write_text(
+            'import json,playwright\n'
+            'print(playwright.ORIGIN)\n'
+            'print(json.__file__)\n', encoding='utf-8')
+
+        # Execute the actual production site bootstrap with the same base
+        # interpreter; model a conflicting system package ahead of the venv.
+        bootstrap = (
+            'import os,site,sys;_mjobs_global=' + repr(str(global_site)) + ';'
+            '_mjobs_original_getsitepackages=site.getsitepackages;'
+            'site.getsitepackages=lambda:[_mjobs_global]+_mjobs_original_getsitepackages();'
+            '_mjobs_global_index=next((i for i,p in enumerate(sys.path) if '
+            'os.path.normcase(os.path.abspath(p or os.curdir)) in '
+            '{os.path.normcase(os.path.abspath(s)) for s in _mjobs_original_getsitepackages()}),len(sys.path));'
+            'sys.path.insert(_mjobs_global_index,_mjobs_global);'
+            + _manual_auth_host_bootstrap(
+                runtime_site, module='mjobs_bootstrap_probe'))
+        completed = subprocess.run(
+            [sys._base_executable, '-c', bootstrap], env=_host_environment(),
+            cwd=root, capture_output=True, text=True, timeout=15, check=False)
+        self.assertEqual(completed.returncode, 0, completed.stderr[-1000:])
+        imported, json_path = completed.stdout.strip().splitlines()
+        self.assertEqual(imported, 'runtime')
+        self.assertFalse(Path(json_path).resolve().is_relative_to(runtime_site.resolve()))
 
     def test_wrong_owner_attempt_application_or_operation_never_launches(self):
         from contextlib import ExitStack
