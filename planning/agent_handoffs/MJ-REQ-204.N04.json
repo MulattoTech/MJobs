@@ -4,9 +4,9 @@
   "objective": "Implement and verify a bounded Slack incoming-webhook provider through the existing opt-in notification CLI and durable runner",
   "owner": "Codex",
   "branch": "ao/discord-notifications/slack-provider",
-  "head_sha": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
+  "head_sha": "c82b6c76ec5285bcea80c186e95f6721326cfb3f",
   "routing_state": "VERIFY",
-  "next_action": "Repeat candidate preflight on the checkpoint-complete head, publish one focused PR if allowed, then yield for sequential review coordination; do not merge",
+  "next_action": "Reconcile current PR #1043 review threads and exact-head checks; after required checks pass and threads are resolved, await the Orchestrator's protected-integration decision. Do not repeat publication preflight or open another PR.",
   "created_at": "2026-11-15T20:58:21Z",
   "requirements": ["MJ-REQ-204.N04"],
   "dependency": {
@@ -52,19 +52,28 @@
       "detail": "Ruff was unavailable in the environment"
     },
     {
-      "command": "Hosted exact-head checks and live Slack request",
+      "command": "gh pr checks 1043 --repo MulattoTech/MJobs; gh api repos/MulattoTech/MJobs/commits/c82b6c76ec5285bcea80c186e95f6721326cfb3f/check-runs",
+      "result": "PASS",
+      "detail": "Snapshot 2026-11-15T21:17:19Z: exact head c82b6c76ec5285bcea80c186e95f6721326cfb3f/base 86f8c78abb872306ac37f974d1fc9195a536279e; 11 checks succeeded, Integration shards 0-2 pending. PR #1043 OPEN, unmerged."
+    },
+    {
+      "command": "Live Slack webhook request",
       "result": "NOT_RUN",
-      "detail": "PR not yet published; external webhook POST would publish a message and no live send is authorized"
+      "detail": "No external message send authorized; the inbound webhook API has no read-only validation operation"
     }
   ],
   "source_evidence": {
-    "source_commit": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
-    "source_tree": "83eccfc6bfe21bcd43b27ade93d7dfc34ce70bd6",
+    "source_commit": "c82b6c76ec5285bcea80c186e95f6721326cfb3f",
+    "source_tree": "f08048dc1c365b080651336ef0bc7a72f38d80ea",
+    "runtime_tested_commit": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
+    "runtime_tested_tree": "83eccfc6bfe21bcd43b27ade93d7dfc34ce70bd6",
+    "runtime_source_blob_equivalence": "PASS: product source blobs match between runtime_tested_commit and source_commit; this follow-up changes only this handoff JSON",
     "base_commit": "86f8c78abb872306ac37f974d1fc9195a536279e",
     "issue": "https://github.com/MulattoTech/MJobs/issues/365",
     "issue_state": "OPEN",
     "changed_paths": [
       "docs/NOTIFICATIONS.md",
+      "planning/agent_handoffs/MJ-REQ-204.N04.json",
       "services/notifications/configuration.py",
       "services/notifications/providers/__init__.py",
       "services/notifications/providers/slack.py",
@@ -88,7 +97,7 @@
       "dependency_open": 2,
       "capacity_behavior": "warn",
       "candidate_preflight": {
-        "evaluated_head": "beaa545d201cbe0d02861207e45b8fb9b8fd5bf7",
+        "evaluated_head": "c82b6c76ec5285bcea80c186e95f6721326cfb3f",
         "result": "ALLOWED_WITH_WARNING",
         "projected_development_open": 60,
         "capacity_behavior": "warn",
@@ -97,6 +106,16 @@
       },
       "known_queue_condition": "WARNING: open development PR count is 59 against 32 capacity threshold; conflicts remain unknown without reviewed metadata"
     }
+  },
+  "publication": {
+    "result": "PUBLISHED",
+    "pull_request": 1043,
+    "url": "https://github.com/MulattoTech/MJobs/pull/1043",
+    "state": "OPEN",
+    "base_ref": "main",
+    "base_sha": "86f8c78abb872306ac37f974d1fc9195a536279e",
+    "head_sha_at_handoff_correction": "c82b6c76ec5285bcea80c186e95f6721326cfb3f",
+    "check_snapshot_utc": "2026-11-15T21:17:19Z"
   },
   "acceptance": {
     "child_requirement_status": "PARTIAL",
@@ -116,7 +135,7 @@
   },
   "blockers": [
     "Two PostgreSQL-only test parameterizations skipped because no PostgreSQL URL was configured",
-    "No hosted exact-head checks yet; candidate publication preflight pending",
-    "No live Slack request is authorized; the bounded read-only criterion is not applicable to the outbound-only webhook API"
+    "Integration shards 0-2 were pending in the 2026-11-15T21:17:19Z exact-head check snapshot",
+    "No live Slack request is authorized; read-only validation is not applicable to the outbound-only webhook API"
   ]
 }
