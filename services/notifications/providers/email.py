@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from email import policy
 from email.message import EmailMessage
+import errno
 import select
+import socket
 import smtplib
 import ssl
 import time
@@ -46,10 +48,67 @@ class _DeadlineSMTP_SSL(smtplib.SMTP_SSL):
         self._deadline = deadline
         super().__init__(host, port, timeout=timeout, context=context)
 
+    def _connect_tcp_socket(self, host, port):
+        """Try resolved addresses under one deadline, with cancellable waits."""
+        addresses = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+        in_progress = {
+            errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY,
+            getattr(errno, "EINTR", errno.EINPROGRESS),
+            getattr(errno, "WSAEWOULDBLOCK", errno.EWOULDBLOCK),
+            getattr(errno, "WSAEINPROGRESS", errno.EINPROGRESS),
+            getattr(errno, "WSAEALREADY", errno.EALREADY),
+        }
+        connected = {0, errno.EISCONN}
+        first_error = None
+
+        for family, socktype, proto, _canonname, address in addresses:
+            self._deadline.remaining_seconds()
+            raw_socket = None
+            try:
+                raw_socket = socket.socket(family, socktype, proto)
+                raw_socket.settimeout(self._deadline.remaining_seconds())
+                raw_socket.setblocking(False)
+                if self.source_address:
+                    raw_socket.bind(self.source_address)
+
+                result = raw_socket.connect_ex(address)
+                if result not in connected:
+                    if result not in in_progress:
+                        raise OSError(result, "SMTP connection attempt failed")
+                    self._wait_for_connection(raw_socket)
+                self._deadline.remaining_seconds()
+                return raw_socket
+            except (_Cancelled, _DeadlineExpired):
+                if raw_socket is not None:
+                    raw_socket.close()
+                raise
+            except OSError as exc:
+                if raw_socket is not None:
+                    raw_socket.close()
+                if first_error is None:
+                    first_error = exc
+
+        if first_error is not None:
+            raise first_error
+        raise OSError("SMTP hostname resolved to no stream addresses")
+
+    def _wait_for_connection(self, sock):
+        while True:
+            remaining = self._deadline.remaining_seconds()
+            timeout = remaining
+            if self._deadline.cancellation_event is not None:
+                timeout = min(remaining, self._CANCELLATION_POLL_SECONDS)
+            _readable, writable, exceptional = select.select([], [sock], [sock], timeout)
+            self._deadline.remaining_seconds()
+            if not writable and not exceptional:
+                continue
+            error = sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+            if error:
+                raise OSError(error, "SMTP connection attempt failed")
+            return
+
     def _get_socket(self, host, port, timeout):
-        raw_socket = smtplib.SMTP._get_socket(
-            self, host, port, self._deadline.remaining_seconds(),
-        )
+        raw_socket = self._connect_tcp_socket(host, port)
         tls_socket = None
         try:
             raw_socket.settimeout(self._deadline.remaining_seconds())

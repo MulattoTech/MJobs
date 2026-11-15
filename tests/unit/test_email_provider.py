@@ -2,7 +2,9 @@
 from email import policy
 from email.message import EmailMessage
 from dataclasses import replace
+import errno
 import smtplib
+import socket
 import ssl
 import threading
 import time
@@ -343,8 +345,7 @@ def test_tls_handshake_waits_remain_inside_total_deadline(
         time.sleep(timeout)
         return [], [], []
 
-    monkeypatch.setattr("services.notifications.providers.email.smtplib.SMTP._get_socket",
-                        lambda *_args: raw)
+    monkeypatch.setattr(smtp, "_connect_tcp_socket", lambda *_args: raw)
     monkeypatch.setattr("services.notifications.providers.email.select.select", slow_select)
     with pytest.raises(_DeadlineExpired):
         smtp._get_socket("smtp.example.test", 465, 10)
@@ -389,9 +390,202 @@ def test_cancellation_interrupts_tls_handshake_poll_and_closes_socket(monkeypatc
         stopped.set()
         return [], [], []
 
-    monkeypatch.setattr("services.notifications.providers.email.smtplib.SMTP._get_socket",
-                        lambda *_args: raw)
+    monkeypatch.setattr(smtp, "_connect_tcp_socket", lambda *_args: raw)
     monkeypatch.setattr("services.notifications.providers.email.select.select", cancel_select)
     with pytest.raises(_Cancelled):
         smtp._get_socket("smtp.example.test", 465, 10)
     assert wrapped.closed
+
+
+def test_multiple_address_connect_fallback_uses_only_remaining_deadline(monkeypatch):
+    class FakeDeadline:
+        def __init__(self):
+            self.now = 0.0
+            self.ends = 1.0
+            self.cancellation_event = None
+
+        def remaining_seconds(self):
+            remaining = self.ends - self.now
+            if remaining <= 0:
+                raise _DeadlineExpired()
+            return remaining
+
+    class FakeSocket:
+        def __init__(self, refusal=False):
+            self.refusal = refusal
+            self.closed = False
+            self.timeout_history = []
+
+        def settimeout(self, timeout):
+            self.timeout_history.append(timeout)
+
+        def setblocking(self, _blocking):
+            pass
+
+        def do_handshake(self):
+            pass
+
+        def connect(self, _address):
+            if self.refusal:
+                deadline.now += .75
+                raise OSError(errno.ECONNREFUSED, "synthetic refusal")
+
+        def connect_ex(self, _address):
+            return errno.EINPROGRESS
+
+        def getsockopt(self, _level, _option):
+            return errno.ECONNREFUSED if self.refusal else 0
+
+        def close(self):
+            self.closed = True
+
+    class TLSContext:
+        def wrap_socket(self, raw_socket, **_kwargs):
+            return raw_socket
+
+    deadline = FakeDeadline()
+    first, second = FakeSocket(refusal=True), FakeSocket()
+    sockets = iter((first, second))
+    waits = []
+
+    monkeypatch.setattr(socket, "getaddrinfo", lambda *_args: [
+        (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("192.0.2.1", 465)),
+        (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("192.0.2.2", 465)),
+    ])
+    monkeypatch.setattr(socket, "socket", lambda *_args: next(sockets))
+
+    def select_ready(_readers, writers, _errors, timeout):
+        sock = writers[0]
+        waits.append((sock, timeout))
+        if sock is first:
+            deadline.now += .75
+        return [], [sock], []
+
+    monkeypatch.setattr("services.notifications.providers.email.select.select", select_ready)
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = deadline
+    smtp.context = TLSContext()
+    smtp._host = "smtp.example.test"
+    smtp.source_address = None
+    smtp.debuglevel = 0
+
+    connected = smtp._get_socket("smtp.example.test", 465, 1.0)
+
+    assert connected is second
+    assert first.closed
+    assert not second.closed
+    assert second.timeout_history[0] == pytest.approx(.25)
+    assert any(sock is second and timeout == pytest.approx(.25) for sock, timeout in waits)
+
+
+@pytest.mark.parametrize("stop_reason", ["deadline", "cancel"])
+def test_address_iteration_stops_and_closes_socket_on_deadline_or_cancel(
+        monkeypatch, stop_reason):
+    stopped = threading.Event()
+
+    class FakeDeadline:
+        def __init__(self):
+            self.now = 0.0
+            self.ends = 1.0
+            self.cancellation_event = stopped if stop_reason == "cancel" else None
+
+        def remaining_seconds(self):
+            if self.cancellation_event is not None and self.cancellation_event.is_set():
+                raise _Cancelled()
+            remaining = self.ends - self.now
+            if remaining <= 0:
+                raise _DeadlineExpired()
+            return remaining
+
+    class FakeSocket:
+        def __init__(self):
+            self.closed = False
+
+        def settimeout(self, _timeout):
+            pass
+
+        def setblocking(self, _blocking):
+            pass
+
+        def connect(self, _address):
+            if stop_reason == "cancel":
+                stopped.set()
+            else:
+                deadline.now = deadline.ends
+            raise OSError(errno.ECONNREFUSED, "synthetic refusal")
+
+        def connect_ex(self, _address):
+            return errno.EINPROGRESS
+
+        def getsockopt(self, _level, _option):
+            return errno.ECONNREFUSED
+
+        def close(self):
+            self.closed = True
+
+    class TLSContext:
+        def wrap_socket(self, raw_socket, **_kwargs):
+            return raw_socket
+
+    deadline = FakeDeadline()
+    created = []
+
+    def make_socket(*_args):
+        sock = FakeSocket()
+        created.append(sock)
+        return sock
+
+    monkeypatch.setattr(socket, "getaddrinfo", lambda *_args: [
+        (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("192.0.2.1", 465)),
+        (socket.AF_INET, socket.SOCK_STREAM, 0, "", ("192.0.2.2", 465)),
+    ])
+    monkeypatch.setattr(socket, "socket", make_socket)
+
+    def stop_wait(*_args):
+        if stop_reason == "cancel":
+            stopped.set()
+        else:
+            deadline.now = deadline.ends
+        return [], [], []
+
+    monkeypatch.setattr("services.notifications.providers.email.select.select", stop_wait)
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = deadline
+    smtp.context = TLSContext()
+    smtp._host = "smtp.example.test"
+    smtp.source_address = None
+    smtp.debuglevel = 0
+
+    expected = _Cancelled if stop_reason == "cancel" else _DeadlineExpired
+    with pytest.raises(expected):
+        smtp._get_socket("smtp.example.test", 465, 1.0)
+
+    assert len(created) == 1
+    assert created[0].closed
+
+
+def test_bounded_tcp_connect_succeeds_and_closes_on_loopback_only():
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    listener.settimeout(2)
+    accepted = []
+    accept_thread = threading.Thread(
+        target=lambda: accepted.append(listener.accept()[0]), daemon=True,
+    )
+    accept_thread.start()
+
+    smtp = object.__new__(_DeadlineSMTP_SSL)
+    smtp._deadline = _Deadline(1)
+    smtp.source_address = None
+    try:
+        connected = smtp._connect_tcp_socket("127.0.0.1", listener.getsockname()[1])
+        connected.close()
+        accept_thread.join(timeout=2)
+        assert not accept_thread.is_alive()
+        assert len(accepted) == 1
+        assert connected.fileno() == -1
+    finally:
+        listener.close()
+        for peer in accepted:
+            peer.close()
