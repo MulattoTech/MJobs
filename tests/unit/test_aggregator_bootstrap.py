@@ -1,12 +1,15 @@
 """Controlled transport proofs for the aggregator bootstrap boundary."""
 import copy
 import json
+import threading
+import time
 from unittest.mock import patch
 
 import httpx
 import pytest
 
 from services.company_discovery import aggregator_bootstrap as subject
+from services.company_discovery import public_client
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 
 
@@ -95,8 +98,10 @@ def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, 
             return httpx.Response(200, text='User-agent: *\nAllow: /', request=httpx.Request('GET', url))
         return responses[url]
 
-    with patch.object(subject.time, 'monotonic', clock.monotonic), \
-         patch.object(subject.time, 'sleep', clock.sleep), \
+    # Replace each consumer's module binding, never the shared time module:
+    # dashboard monitor threads must retain their real sleeps and deadlines.
+    with patch.object(subject, 'time', clock), \
+         patch.object(public_client, 'time', clock), \
          patch.object(PublicCompanyClient, '_request_once', wire):
         return subject.corroborate_aggregator_job(raw, normalized, source, profile,
             source_policy=policy, check=check or (lambda: None),
@@ -129,6 +134,48 @@ def test_compatible_rate_window_keeps_real_cross_origin_waits(rate):
     stamps = [stamp for _, stamp in trace['requests']]
     assert all(second - first >= 60.0 / rate - 1e-9 for first, second in zip(stamps, stamps[1:]))
     assert stamps[-1] - stamps[0] < proof['budget']['timeout_seconds']
+
+
+def test_rate_clock_does_not_replace_time_used_by_unrelated_threads():
+    """A background monitor must not consume this proof's synthetic deadline."""
+    original_monotonic, original_sleep = time.monotonic, time.sleep
+    active, finished = threading.Event(), threading.Event()
+    main_thread = threading.get_ident()
+    observed, foreign_fake_sleeps = [], []
+
+    class Clock(_RateClock):
+        released = False
+
+        def sleep(self, seconds):
+            if threading.get_ident() != main_thread:
+                foreign_fake_sleeps.append(seconds)
+            elif not self.released:
+                self.released = True
+                active.set()
+                assert finished.wait(2), 'Unrelated thread did not observe the active rate wait'
+            super().sleep(seconds)
+
+    def unrelated_thread():
+        try:
+            if active.wait(2):
+                observed.append((time.monotonic is original_monotonic, time.sleep is original_sleep))
+                time.sleep(0)
+        finally:
+            finished.set()
+
+    worker = threading.Thread(target=unrelated_thread, name='bootstrap-clock-isolation')
+    worker.start()
+    try:
+        values, trace = inputs(), {}
+        values[3]['rate_limit'] = 7
+        proof = resolve_with_real_rate_gate(values, clock=Clock(), trace=trace)
+    finally:
+        active.set()
+        worker.join(2)
+    assert not worker.is_alive()
+    assert observed == [(True, True)]
+    assert foreign_fake_sleeps == []
+    assert proof is not None and len(trace['requests']) == 4
 
 
 def test_authorization_time_consumes_the_rate_window_without_restarting_deadline():
@@ -269,7 +316,8 @@ def test_request_budget_counts_robots_and_document_reads():
 
 
 def test_total_deadline_is_not_restarted_for_a_new_origin():
-    with patch.object(subject.time, 'monotonic', side_effect=[0., 0., 31., 31., 31.]):
+    with patch.object(subject, 'time') as clock:
+        clock.monotonic.side_effect = [0., 0., 31., 31., 31.]
         assert resolve()[0] is None
 
 
