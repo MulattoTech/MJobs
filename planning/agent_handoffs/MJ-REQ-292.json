@@ -2,12 +2,12 @@
   "schema_version": 1,
   "task_id": "MJ-REQ-292",
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
-  "owner": "Codex primary integration owner",
-  "branch": "codex/p0-campaign-reconcile-20261114",
-  "head_sha": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
+  "owner": "Codex MJ292 integration 01a1dcec",
+  "branch": "codex/mj292-integration-01a1dcec",
+  "head_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Publish the combined reviewed PR973 update through normal non-force publication and inspect exact-head required checks. No new full journey until a lawful positive current employer prerequisite is available. Preserve the selected mock application, whole same-employer23-31 chain, and independent acceptance gates. Current interactive continuation ends 2026-11-14T21:47:37Z; no unattended continuation is authorized.",
-  "created_at": "2026-11-06T09:36:42.894560+00:00",
+  "next_action": "Finish M1 strict verifier repair and nonauthor review; compose current main; one bounded PR973 draft update with exact-head checks. Public full-run prerequisites remain blocked.",
+  "created_at": "2026-11-15T02:33:09.947499+00:00",
   "requirements": [
     "MJ-REQ-292"
   ],
@@ -386,13 +386,14 @@
       "result": "PASS",
       "tested_commit": "40be05378f10d290b83b9ea71082ea8f8e32e57e",
       "observed": "Whole-group decoder1PASS3.76s; actual React observer1PASS9.13s; mock application preserved; GET/HEAD-only API admission"
+    },
+    {
+      "command": "M1 regression execution pending; full connected journey NOT_RUN",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "No admissible live same-employer Greenhouse reciprocal chain was found in the actual admitted WWR/Remotive cohorts. Fresh guarded feed reads at18:57Z retained the same cohorts/hashes; existing profile relevance rules yield no eligible second-collection cohort. No cap bypass, profile tailoring, blocked-page retry or universal impossibility claim.",
-    "The complete connected journey at the new implementation source has NOT_RUN. Prior run mj292-44220090e592 at8e6ee187 ended FAIL with57 producer PASS, step25 PARTIAL,59-60 NOT_RUN; those are not canonical acceptance.",
-    "PR973 remains draft at the checkpoint. New candidate publication/exact-head hosted checks and protected integration are pending. Local review and controlled component tests do not substitute for same-run public evidence, independent numbered acceptance review and protected integration.",
-    "Continuation PostgreSQL/RQ execution and full regression are NOT_RUN. Targeted SQLite/API/real React controlled tests passed; two existing Windows symlink cases were skipped. Prior exact-source PG/Redis receipts remain historical only."
+    "Public same-employer prerequisite unproven; foreign reserved runtime 0068d92da7c0 actually running and untouched"
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -1120,5 +1121,124 @@
         ]
       }
     }
-  ]
+  ],
+  "transfer_history": [
+    {
+      "from_owner": "Codex primary integration owner",
+      "to_owner": "Codex MJ292 integration 01a1dcec",
+      "reason": "Current user authorized implementing verifier-first plan; native source/publication and integration scopes acquired without altering older driver/runtime roles",
+      "transferred_at": "2026-11-15T02:33:09.737532+00:00"
+    }
+  ],
+  "milestone_id": "M0",
+  "execution_01a1dcec": {
+    "started_at_utc": "2026-11-15T02:30:43Z",
+    "deadline_utc": "2026-11-15T06:30:43Z",
+    "milestone": "M1_RED_M3_BLOCKED_M4_COMPONENT_PASS",
+    "base_main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "pr_head": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "integration_claim": "codex:mj292-integration-01a1dcec",
+    "prior_fields_note": "Other historical handoff fields and tests retained; this execution record and live source/claims supersede old routing/ownership/runtime metadata.",
+    "runtime": {
+      "owned": false,
+      "foreign_project": "mjobs-fixture-0068d92da7c0",
+      "observed_running_services": 10,
+      "action": "PRESERVED_NO_MUTATION"
+    },
+    "tasks": [
+      {
+        "id": "verifier_impl",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "claim": "codex:mj292-verifier-01a1dcec",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-verifier-01a1dcec/MJobs",
+        "owned_paths": [
+          "tools/verification/acceptance_ledger.py",
+          "cli/acceptance_journey.py",
+          "tests/unit/test_acceptance_ledger.py",
+          "tests/unit/test_acceptance_journey.py"
+        ],
+        "oracle": "Both intended RED reproductions then GREEN genuine helper/producer paths; corrupted identity/baseline/hash and false PASS rejected",
+        "reviewer": "Separate nonauthor Sol reviewer after frozen commit",
+        "output": "Clean source commit, red/green logs and hashes; no publication/runtime",
+        "deadline_utc": "2026-11-15T03:15:00Z"
+      },
+      {
+        "id": "public_prerequisite",
+        "model": "gpt-6-luna",
+        "effort": "high",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "mode": "READ_ONLY_NO_HTTP",
+        "oracle": "Find safe existing bounded scout route and truthful prerequisite gaps; no gated URL retries",
+        "output": "Scoped source/retained-evidence findings; no new live claim",
+        "status": "COMPLETE_READ_ONLY"
+      },
+      {
+        "id": "recovery_qualification",
+        "model": "gpt-6.1-terra",
+        "effort": "high",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-recovery-01a1dcec/MJobs",
+        "mode": "READ_ONLY_SOURCE; writes only ignored outputs/test caches",
+        "resource": "Own ephemeral SQLite/loopback component tests; NO Docker/PostgreSQL/Redis/browser stack or external HTTP",
+        "oracle": "Existing restart/identity/monitoring positive and rejection contracts; explicitly distinguish controlled mock and no natural live resumption",
+        "negative_tests": "stale receipt, wrong operation, cancelled/replaced source/profile, duplicate work, incomplete inventory",
+        "expected_output": "Exact commands/exit/counts/hashes + missing runtime evidence; no source commit",
+        "reviewer": "Root validates receipts; nonauthor Sol reviews any future source fix",
+        "deadline_utc": "2026-11-15T03:00:00Z",
+        "dependencies": "No touching verifier files or shared stack; run only after M1 RED notification"
+      },
+      {
+        "id": "public_prerequisite_fresh",
+        "model": "gpt-6-luna",
+        "effort": "high",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-recovery-01a1dcec/MJobs",
+        "read_write": "Read-only pinned source; write ignored outputs/mj292-public-scout-01a1dcec only",
+        "resource": "One guarded production feed request per WWR/Remotive; no store writes/queues/stack/candidate pages",
+        "oracle": "Fresh feed candidate identities compared with retained cohorts; unchanged cohort means NO_GO, not new positive employer evidence",
+        "negatives": "No filters/reordering/profile tailoring, no retries/cap changes/gated URL visits",
+        "dependency": "Both M1 RED findings reproduced",
+        "reviewer": "Root receipt/source check",
+        "deadline_utc": "2026-11-15T02:50:00Z",
+        "output": "Exact command, UTC, counts, source/policy/hash manifest, original errors and candidate identity delta"
+      }
+    ],
+    "public_prerequisite": {
+      "result": "BLOCKED_EXTERNAL",
+      "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+      "executed_at_utc": "2026-11-15T02:36:02Z",
+      "observed": "One production feed read each: WWR100/Remotive16 rows; first two distinct companies unchanged; no direct Greenhouse hint; no candidate-page fetch",
+      "receipt_sha256": "7fc6caa4f3534a3bc1eafcac686d0ca9399006a6b6456b39d05be0f26fb50270",
+      "limit": "Fresh-empty-profile selection assumption only; existing-profile database state not read. Prior gated-page evidence remains historical. No connected acceptance."
+    },
+    "recovery_component": {
+      "result": "PASS",
+      "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -v -p no:cacheprovider tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py tests/unit/test_persisted_job_inventory_recovery.py tests/unit/test_acceptance_monitoring.py tests/integration/test_acceptance_monitoring_read_consistency.py tests/integration/test_fixture_monitoring_worker_recovery.py",
+      "exit_code": 0,
+      "observed": "61 tests and77subtests passed;0skips",
+      "log_sha256": "0c455d765de9090f492b47595bc32ed4581aee8232c25cf5bcd69fe302aae7b1",
+      "limit": "SQLite/ephemeral loopback mock-ats FIXTURE; no actual Compose restart/PostgreSQL/Redis/RQ/browser/public-company resumption",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+      }
+    },
+    "overlap_boundaries": {
+      "1028": "OPEN6fda4190; answer_resume.py and API test owned separately; secret scanFAIL. Not adopted or reimplemented.",
+      "1029": "OPEN925eb2b4; generate.py route-currentness owned separately; secret scanFAIL. Not adopted or reimplemented.",
+      "938": "OPEN5efd5801; browser-profile/sitemap paths; integration shard2/aggregateFAIL. Not adopted.",
+      "1040": "No dependency established; preserve hold."
+    },
+    "verifier_red": {
+      "initial_tests": 3,
+      "exit_code": 1,
+      "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+      "log_sha256": "cb46fc8704367ff9cfb7c41ca7cf98f6c41616a9e7863998fab53529c386efff",
+      "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py -k 'real_monitoring_baseline or real_producer_failure'",
+      "additional_findings": "Relabelled terminal FAIL as PARTIAL currently accepted; completed monitored recovery prefix uses wrong baseline after monitor_after fails. Separate red receipts retained by verifier implementer."
+    }
+  }
 }
