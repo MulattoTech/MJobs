@@ -215,6 +215,40 @@ def test_pending_real_loopback_connect_observes_worker_stop(trigger, monkeypatch
     assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
 
 
+class _PendingConnectClock:
+    """Start only the worker's test budget after real pending-connect admission."""
+
+    def __init__(self, clock=time.monotonic):
+        self._clock = clock
+        self._origin = clock()
+        self._admitted_at = None
+
+    def admit(self):
+        # Admission is one-way: teardown or a repeated call cannot reset expiry.
+        if self._admitted_at is None:
+            self._admitted_at = self._clock()
+
+    def monotonic(self):
+        admitted_at = self._admitted_at
+        if admitted_at is None:
+            return self._origin
+        return self._origin + self._clock() - admitted_at
+
+
+def test_pending_connect_clock_excludes_preparation_but_cannot_extend_admitted_budget():
+    wall = [10.0]
+    clock = _PendingConnectClock(lambda: wall[0])
+    deadline = clock.monotonic() + .8
+    wall[0] += 30
+    assert clock.monotonic() == 10
+    clock.admit()
+    wall[0] += .4
+    assert clock.monotonic() == pytest.approx(10.4)
+    clock.admit()
+    wall[0] += .41
+    assert clock.monotonic() > deadline
+
+
 class _PublicWorkerPhases:
     """Bounded observations of the owned worker, without payloads or SQL values."""
 
@@ -359,9 +393,9 @@ class _PublicWorkerPhases:
         stack.enter_context(patch.object(engine.dialect, 'do_commit', observed_commit))
         stack.enter_context(patch.object(engine, 'dispose', self.span('store_dispose', engine.dispose)))
 
-    def describe_failed_join(self, worker):
-        # Capture only our exact Thread objects; never retain frames or locals.
-        self.record('join_failed')
+    def describe_failure(self, worker, *, phase):
+        # Fixed call-site phases; exact Thread objects, never frames or locals.
+        self.record(phase)
         frames = sys._current_frames()
         stacks = {}
         try:
@@ -378,8 +412,16 @@ class _PublicWorkerPhases:
         finally:
             frames.clear()
         self.failure_snapshot = {
+            'failure_phase': phase,
             'records': tuple(self.records),
             'stacks': stacks,
+            'worker_alive': worker.is_alive(),
+            'worker_result_count': self.worker_result_count,
+            'worker_error_types': tuple(self.worker_error_types),
+            'watcher_alive': self.watcher.is_alive() if self.watcher is not None else None,
+            'transport_unwound': self.transport_unwound,
+            'http_client_closed': self.http_client.is_closed if self.http_client is not None else None,
+            'connect_attempts': len(self.sockets),
             'open_connect_sockets': sum(sock.fileno() != -1 for sock in self.sockets),
         }
         return repr(self.failure_snapshot)
@@ -393,9 +435,10 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
     from apps.api.main import create_app
     from packages.persistence.store import Store
     from tests.integration.test_spine import PROFILE
-    from workers.tasks import execute_operation
+    from workers import tasks
 
     phases = phases or _PublicWorkerPhases()
+    worker_clock = _PendingConnectClock()
     store = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
     store.migrate()
     store.bind_workspace_mode('FIXTURE')
@@ -404,6 +447,11 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
     observers = ExitStack()
     try:
         phases.observe(observers, store.url)
+        # Replace this module's clock reference, never the shared time module.
+        # Socket, database, admission and cleanup watchdogs retain real time.
+        # The unchanged .8s/2s worker budget starts only after the fixture has
+        # proved the pending-connect condition that this test is meant to cover.
+        observers.enter_context(patch.object(tasks, 'time', worker_clock))
         with saturated_loopback_listener() as origin:
             connecting = threading.Event()
             sockets = []
@@ -438,7 +486,7 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 def execute():
                     phases.record('worker_enter')
                     try:
-                        results.append(execute_operation(identifier))
+                        results.append(tasks.execute_operation(identifier))
                         phases.worker_result_count = len(results)
                     except BaseException as error:
                         errors.append(error)
@@ -448,17 +496,20 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
 
                 worker = threading.Thread(target=execute, name='mock004-public-worker')
                 worker.start()
-                assert connecting.wait(2), 'public worker did not attempt loopback connection'
+                assert connecting.wait(2), ('public worker did not attempt loopback connection; phases='
+                                            + phases.describe_failure(worker, phase='connect_entry_failed'))
                 time.sleep(.1)
                 assert sockets and not select.select([], [sockets[-1]], [], 0)[1], 'TCP connect not pending'
                 phases.record('pending_connect_confirmed')
+                worker_clock.admit()
+                phases.record('worker_deadline_admitted')
                 if trigger == 'cancel':
                     assert api.post(f'/operations/{identifier}/cancel').status_code == 202
                 phases.record('join_enter')
                 worker.join(timeout=1.2)
                 phases.record('join_exit')
                 assert not worker.is_alive(), ('public fixture worker remained blocked in connect; phases='
-                                               + phases.describe_failed_join(worker))
+                                               + phases.describe_failure(worker, phase='join_failed'))
                 assert not errors and len(results) == 1
                 saved = api.get(f'/operations/{identifier}').json()
                 expected = ('CANCELLED', 'CANCEL_REQUESTED') if trigger == 'cancel' else ('DEAD_LETTERED', 'OPERATION_TIMEOUT')
@@ -474,6 +525,9 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 reopened.engine.dispose()
     finally:
         try:
+            # A failed admission must still release the real worker to its
+            # finite deadline before the existing cleanup watchdog waits.
+            worker_clock.admit()
             phases.release_terminal.set()
             if worker is not None:
                 worker.join(timeout=11)
@@ -487,6 +541,102 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
 @pytest.mark.parametrize('trigger', ['cancel', 'deadline'])
 def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigger, tmp_path, monkeypatch):
     _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch)
+
+
+def test_public_worker_pending_connect_budget_excludes_slow_client_preparation(tmp_path, monkeypatch):
+    """Constructor work longer than the budget cannot consume connect coverage."""
+    original_init = MockClient.__init__
+    preparation_seconds = []
+    phases = _PublicWorkerPhases()
+
+    def slow_init(client, *args, **kwargs):
+        if threading.current_thread().name != 'mock004-public-worker':
+            return original_init(client, *args, **kwargs)
+        started = time.monotonic()
+        time.sleep(.9)
+        original_init(client, *args, **kwargs)
+        preparation_seconds.append(time.monotonic() - started)
+
+    with monkeypatch.context() as scoped:
+        scoped.setattr(MockClient, '__init__', slow_init)
+        _exercise_public_fixture_worker('deadline', tmp_path, scoped, phases=phases)
+    assert len(preparation_seconds) == 1 and preparation_seconds[0] > .8
+    labels = [record[0] for record in phases.records]
+    assert labels.index('deadline_budget') < labels.index('mock_get_enter')
+    assert labels.index('pending_connect_confirmed') < labels.index('worker_deadline_admitted')
+    assert labels.count('backend_connect_OperationTimedOut') == 1
+    assert phases.http_client.is_closed
+    assert phases.worker_store.engine.pool.checkedout() == 0
+
+
+def test_public_worker_entry_diagnostic_records_pre_connect_failure(tmp_path, monkeypatch):
+    """A controlled resolver failure finishes without an observed OS connect."""
+    from sqlalchemy import select
+    from packages.persistence import models as m
+    from packages.persistence.store import Store
+    from services.discovery.sources import http_transport
+
+    phases = _PublicWorkerPhases()
+    private_message = 'controlled-private-diagnostic-value-must-not-appear'
+    original_resolve = http_transport._resolve
+    originals = (Store.__init__, http_transport._Backend.connect_tcp, MockClient.get,
+                 MockClient.close, httpx.Client.close, socket.socket, original_resolve)
+
+    def fail_before_connect(host, port, check, deadline):
+        if threading.current_thread().name != 'mock004-public-worker':
+            return original_resolve(host, port, check, deadline)
+        phases.record('controlled_pre_connect_failure')
+        raise RuntimeError(private_message)
+
+    with monkeypatch.context() as scoped:
+        scoped.setattr(http_transport, '_resolve', fail_before_connect)
+        with pytest.raises(
+            AssertionError, match='^public worker did not attempt loopback connection; phases='
+        ) as failure:
+            # Use the unchanged cancel case's existing budget. No cancellation
+            # is issued: the entry predicate fails after the controlled error.
+            _exercise_public_fixture_worker('cancel', tmp_path, scoped, phases=phases)
+
+    snapshot = phases.failure_snapshot
+    assert snapshot is not None
+    assert snapshot['failure_phase'] == 'connect_entry_failed'
+    assert not snapshot['worker_alive'] and snapshot['worker_result_count'] == 1
+    assert not snapshot['worker_error_types']
+    assert snapshot['watcher_alive'] in (None, False)
+    assert snapshot['transport_unwound'] and snapshot['http_client_closed']
+    assert snapshot['connect_attempts'] == snapshot['open_connect_sockets'] == 0
+    assert snapshot['stacks']['mock004-public-worker'] == []
+    labels = [record[0] for record in snapshot['records']]
+    assert labels.count('controlled_pre_connect_failure') == 1, snapshot
+    assert labels.count('backend_connect_RuntimeError') == 1, snapshot
+    assert labels.index('backend_connect_exit') < labels.index('mock_get_exit')
+    assert labels.index('mock_get_exit') < labels.index('store_dispose_exit')
+    assert labels.index('store_dispose_exit') < labels.index('worker_exit')
+    assert labels.index('worker_exit') < labels.index('connect_entry_failed')
+    assert 'join_enter' not in labels
+    assert len(snapshot['records']) <= 128
+    assert set(snapshot['stacks']) <= {
+        'mock004-public-worker', 'mjobs-fixture-discovery-cancellation',
+    }
+    assert all(len(frames) <= 16 for frames in snapshot['stacks'].values())
+    assert private_message not in str(failure.value)
+    assert private_message not in repr(snapshot)
+    assert phases.worker_store.engine.pool.checkedout() == 0
+    assert phases.http_client.is_closed
+    assert phases.watcher is None or not phases.watcher.is_alive()
+    assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
+    assert originals == (Store.__init__, http_transport._Backend.connect_tcp, MockClient.get,
+                         MockClient.close, httpx.Client.close, socket.socket, http_transport._resolve)
+
+    reopened = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
+    try:
+        with reopened.engine.connect() as connection:
+            row = connection.execute(select(
+                m.operations.c.state, m.operations.c.error, m.operations.c.attempt_count,
+            ).where(m.operations.c.id == phases.operation_id)).one()
+        assert tuple(row) == ('DEAD_LETTERED', 'RuntimeError', 1)
+    finally:
+        reopened.engine.dispose()
 
 
 def test_public_worker_phase_diagnostic_separates_terminal_commit_delay(tmp_path, monkeypatch):

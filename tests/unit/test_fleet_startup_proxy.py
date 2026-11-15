@@ -38,4 +38,4 @@ def test_startup_writes_keep_origin_header_and_no_retry_guards(tail):
         assert client.post("/fleet/" + tail, json={}, headers={"X-AO-Fleet": "1", "Origin": "http://127.0.0.1:18729"}).status_code == 503
     assert len(calls) == 1
     assert calls[0][:2] == ("POST", tail)
-    assert calls[0][2]["Origin"] == "http://127.0.0.1:8787"
+    assert calls[0][2]["Origin"] == "http://127.0.0.1:4320"

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-031-capture-bounds",
+  "objective": "Prevent oversized extraction provenance from reaching manual capture; preserve reviewed removal and recovery",
+  "owner": "Codex-01a1da02",
+  "branch": "codex/p0-acceptance-20261114",
+  "head_sha": "c3ccd90e013aba2f9c58093e3a52c0bef6be9843",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Complete final local review, bounded PR publication and exact-head hosted gates; integration requires owner handoff",
+  "created_at": "2026-11-14T12:49:28.670907+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Client14; API/browser7+8subtests; webbuild/typecheck; ESLint; provenance; diff check",
+      "result": "PASS"
+    },
+    {
+      "command": "Full60-step campaign; production deployment; real application submission",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Existing integration lock and campaign source claims preserved; ownership transfer unresolved"
+  ]
+}

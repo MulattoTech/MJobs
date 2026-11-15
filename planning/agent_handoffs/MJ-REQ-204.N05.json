@@ -2,11 +2,11 @@
   "schema_version": 1,
   "task_id": "MJ-REQ-204.N05",
   "objective": "Deliver and verify the opt-in browser Desktop provider with honest capability and evidence scope.",
-  "owner": "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
-  "branch": "web/ca95dbc6/desktop-notifications",
-  "head_sha": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
-  "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Publish the reviewed public-identifier scanner correction to existing PR1017, observe exact current-head required checks, then obtain verified integration/canonical ownership before protected merge and full acceptance review.",
+  "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "branch": "web/20261113-2d4f/ntfy-provider",
+  "head_sha": "4466d0321f5f08a1a59243174a20383592d6ddf5",
+  "routing_state": "VERIFY",
+  "next_action": "Validate the corrected Ntfy publication candidate and publish N05-only acceptance through PR1021 protected gates; N02, parent204 and production remain unchanged",
   "created_at": "2026-11-13T03:31:45.369754Z",
   "requirements": [
     "MJ-REQ-204.N05",
@@ -14,48 +14,45 @@
   ],
   "tests": [
     {
-      "command": "npm --prefix apps/web test -- src/desktop-notification-provider.test.ts src/desktop-notifications.test.tsx src/operation-notifications.test.tsx --maxWorkers=1 --coverage.enabled=false",
+      "command": "Historical exact a0de frontend 28 tests (23 Desktop+5 Activity)",
       "result": "PASS"
     },
     {
-      "command": "npm --prefix apps/web run build",
+      "command": "Historical exact a0de TypeScript/Vite production build",
       "result": "PASS"
     },
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q -s tests/browser/test_desktop_notifications.py tests/browser/test_operation_notifications.py --junitxml=<owned-run>/desktop-browser-a0de7db56eaf-attempt2.junit.xml",
+      "command": "Historical exact a0de mounted native Chromium/API browser 5 cases; 3 constructors / 3 show / 1 close events",
       "result": "PASS"
     },
     {
-      "command": "Independent immutable source review",
+      "command": "Independent immutable Desktop source review and ten-path tested/published/integrated blob equivalence",
       "result": "PASS"
     },
     {
-      "command": "Protected hosted checks on eventual published metadata head",
-      "result": "NOT_RUN"
+      "command": "All five required hosted checks at exact published b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+      "result": "PASS"
     },
     {
-      "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
-      "result": "NOT_RUN"
+      "command": "Protected PR 1017 integration as 1f1a578ee84554e81c76df59b28d88f008a93815",
+      "result": "PASS"
     },
     {
-      "command": "Security / secret scan on60dd9d4a: one public requirement identifier false positive; reviewed exact historical fingerprint correction prepared",
-      "result": "FAIL"
+      "command": "Canonical candidate handoff/catalogue/journal/reconcile/dashboard validations after root materialization",
+      "result": "PASS"
     },
     {
-      "command": "Required hosted gates on corrected publication head",
+      "command": "Exact acceptance commit provenance and protected acceptance publication gates",
       "result": "NOT_RUN"
     }
   ],
-  "blockers": [
-    "Exact November 9 resumed integration steward claim remains ACTIVE with no matching release/transfer: web:web-20261109T132018Z-0d9f5a0511ab:resume-20261109T153054Z:steward.",
-    "Exact November 9 resumed canonical-acceptance and derived-support claims remain ACTIVE; no canonical acceptance update is authorized by a general release of another generation."
-  ],
+  "blockers": [],
   "evidence_file": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
   "source_test_revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
   "source_tree": "6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9",
-  "source_binding": "head_sha identifies the tested source preceding this metadata-only checkpoint; subsequent checkpoint ancestry and source equivalence must be read explicitly.",
-  "canonical_status": "NOT_RUN",
-  "original_acceptance": "183/366 unchanged",
+  "source_binding": "head_sha is the known operational checkpoint recorded by the actual ownership transfer; source_test_revision a0de7db56eafced3f78f14c37e3d0045244ee66a and source_tree 6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9 identify actual execution. Ten-path equivalence to published b9 and integrated1f1 is recorded separately; no new execution is inferred from operational HEAD.",
+  "canonical_status": "PASS",
+  "original_acceptance": "184/366 in proposed canonical candidate; integrated baseline 183/366 until protected acceptance publication",
   "reference_acceptance": "19/59 unchanged",
   "scope_limits": [
     "Native construction and browser show events were observed; OS-visible Windows toast was not inspected.",
@@ -74,6 +71,110 @@
     "integration_by_F07_owner": "b954747e2ff6446f41c2fb8a0276b455e29d0943",
     "main_tsx_claim": "Transferred atomically to F07 owner; Desktop source frozen and further edits require reacquisition."
   },
-  "updated_at": "2026-11-13T03:40:01.005228Z",
-  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017"
+  "updated_at": "2026-11-13T08:14:40.751686+00:00",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017",
+  "test_history": [
+    {
+      "recorded_at": "2026-11-13T03:40:01.005228Z",
+      "source_head": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+      "tests": [
+        {
+          "command": "npm --prefix apps/web test -- src/desktop-notification-provider.test.ts src/desktop-notifications.test.tsx src/operation-notifications.test.tsx --maxWorkers=1 --coverage.enabled=false",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --prefix apps/web run build",
+          "result": "PASS"
+        },
+        {
+          "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q -s tests/browser/test_desktop_notifications.py tests/browser/test_operation_notifications.py --junitxml=<owned-run>/desktop-browser-a0de7db56eaf-attempt2.junit.xml",
+          "result": "PASS"
+        },
+        {
+          "command": "Independent immutable source review",
+          "result": "PASS"
+        },
+        {
+          "command": "Protected hosted checks on eventual published metadata head",
+          "result": "NOT_RUN"
+        },
+        {
+          "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
+          "result": "NOT_RUN"
+        },
+        {
+          "command": "Security / secret scan on60dd9d4a: one public requirement identifier false positive; reviewed exact historical fingerprint correction prepared",
+          "result": "FAIL"
+        },
+        {
+          "command": "Required hosted gates on corrected publication head",
+          "result": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "recorded_at": "2026-11-13T08:45:59.809753+00:00",
+      "source_head": "4466d0321f5f08a1a59243174a20383592d6ddf5",
+      "tests": [
+        {
+          "command": "python -m tools.verification.progress sync on the exact composed candidate",
+          "result": "PASS"
+        },
+        {
+          "command": "python -m tools.agent_context validate --task MJ-REQ-204.N05 on the exact composed candidate",
+          "result": "FAIL"
+        }
+      ],
+      "diagnosis": "The actual validator returned OTHER_BRANCH_CHECK_OWNERSHIP because this checkpoint still named the N05 preparation branch. Same-root transfer to the actual ntfy publication branch is recorded in transfer_history. The command and validator are unchanged; corrected-candidate validation is pending.",
+      "execution_receipt_sha256": "97b13bc92a8c5eb82ff46a32dec887fe50dc9f68923e58d61ce31fc7fa1770ab",
+      "child_result_sha256": "81ea75b007b6e7a7200f42b676fb5baf70f91ec6885513677843c0b5075d87b8",
+      "scope": "Operational continuity metadata only; no application/runtime test or acceptance status changed."
+    }
+  ],
+  "blocker_history": [
+    {
+      "recorded_at": "2026-11-13T03:40:01.005228Z",
+      "blockers": [
+        "Exact November 9 resumed integration steward claim remains ACTIVE with no matching release/transfer: web:web-20261109T132018Z-0d9f5a0511ab:resume-20261109T153054Z:steward.",
+        "Exact November 9 resumed canonical-acceptance and derived-support claims remain ACTIVE; no canonical acceptance update is authorized by a general release of another generation."
+      ],
+      "resolution": "Exact user-authorized three-claim transfer applied 2026-11-13T04:25:53Z; root later acquired the N05 metadata scopes after author release and protected PR 1017 integration.",
+      "resolution_receipt_sha256": "6b7808fd11fd70afe0a1a1e2289e17f157425c4b820656ecde7b19173e322458"
+    }
+  ],
+  "canonical_publication_status": "PROPOSED_PASS_PENDING_PROTECTED_PUBLICATION",
+  "current_reconciliation": {
+    "source_pr": "https://github.com/MulattoTech/MJobs/pull/1017",
+    "published_source_head": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+    "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+    "integrated_at": "2026-11-13T07:22:38Z",
+    "criterion_decision": "ALL_FIVE_SATISFIED_WITH_DECLARED_LIMITS",
+    "parent204": "NOT_RUN_UNCHANGED",
+    "production": "NOT_DEPLOYED_NOT_VERIFIED",
+    "acceptance_preparation_branch": "web/20261113-2d4f/n05-acceptance",
+    "publication_route": "Pending protected publication; may be composed into the next owned ntfy PR update without accepting ntfy.",
+    "metadata_transfer": "The root executed tools.agent_context transfer after applying the authored handoff. Its actual owner/branch/head and transfer_history are retained; the separately documented source_binding correction distinguishes that operational checkpoint from executed a0de.",
+    "canonical_materialization": {
+      "recorded_at": "2026-11-13T08:14:40.751686+00:00",
+      "result": "PASS",
+      "execution_receipt_sha256": "a60bf1765a60cffcd81828d86b394ab767aabd85a56f9fa650f8689154bb5e2f",
+      "command_receipt_sha256": "9a9340221746466d16c79ead6dc02e41ab90b7ec2890f2ef4f6b3211341b10f4",
+      "commands_completed": 10,
+      "publication": "PENDING"
+    }
+  },
+  "transfer_history": [
+    {
+      "from_owner": "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
+      "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "reason": "User-authorized canonical stewardship and fresh exact N05 metadata ownership after protected source integration",
+      "transferred_at": "2026-11-13T08:05:30.127900+00:00"
+    },
+    {
+      "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "reason": "Same authorized root owner moves the frozen N05 acceptance checkpoint from its preparation branch to the actual Ntfy publication branch after exact composition; preserve actual a0de runtime identity and failed branch-mismatch validation",
+      "transferred_at": "2026-11-13T08:45:59.800682+00:00"
+    }
+  ]
 }

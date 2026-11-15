@@ -82,21 +82,31 @@ class AuditDisplayPrivacyTests(unittest.TestCase):
 
     def test_unknown_private_document_kinds_and_payload_fields_never_reach_history(self):
         row = self.prepared_rows()[0]
+        untrusted_application_id = "a" * 64
+        untrusted_job_id = "b" * 64
         for kinds in (None, {}, "resume", [], ["RESUME_SYNTHETIC_PRIVATE"],
                       ["resume", {"api_key": "SYNTHETIC_PRIVATE"}], ["resume"] * 100):
             with self.subTest(kinds=kinds), self.store.engine.begin() as connection:
                 connection.execute(update(m.audit).where(m.audit.c.id == row["id"]).values(payload={
                     "document_kinds": kinds, "api_key": "SYNTHETIC_PRIVATE_KEY",
                     "document_text": "SYNTHETIC_PRIVATE_DOCUMENT", "file": "/private/profile.pdf",
+                    "application_id": untrusted_application_id, "job_id": untrusted_job_id,
                 }))
             response = self.client.get("/profiles/fixture/audit-history")
             self.assertEqual(response.status_code, 200, response.text)
             self.assertNotIn("SYNTHETIC_PRIVATE", response.text)
             self.assertNotIn("/private/", response.text)
+            self.assertNotIn(untrusted_application_id, response.text)
+            self.assertNotIn(untrusted_job_id, response.text)
             documents = self.document_events()
             self.assertEqual([event["type"] for event in documents], ["DOCUMENTS_PREPARED"])
             self.assertIn("unavailable", documents[0]["summary"])
-            self.assertEqual(set(documents[0]), {"id", "type", "summary", "subject", "company", "timestamp"})
+            self.assertEqual(set(documents[0]), {
+                "id", "type", "summary", "subject", "company", "timestamp", "application_id",
+            })
+            # Legacy payloads use the profile-owned application row, never an
+            # arbitrary payload identifier, for this value-free attribution.
+            self.assertEqual(documents[0]["application_id"], self.application_id)
 
 
 @unittest.skipUnless(os.environ.get("MJOBS_TEST_POSTGRES_URL"), "Requires isolated disposable PostgreSQL")
