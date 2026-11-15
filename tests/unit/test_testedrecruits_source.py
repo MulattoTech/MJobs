@@ -192,6 +192,19 @@ def test_normalize_rejects_untrusted_external_posting_url():
         adapter.normalize(raw)
 
 
+@pytest.mark.parametrize('company_name', [None, '', 17])
+def test_normalize_rejects_missing_empty_or_non_string_observed_company(company_name):
+    adapter, _ = adapter_for(listing())
+    raw = dict(adapter.search().items[0].raw)
+    if company_name is None:
+        raw.pop('company_name')
+    else:
+        raw['company_name'] = company_name
+
+    with pytest.raises(SourceError, match='SOURCE_INVALID_JOB'):
+        adapter.normalize(raw)
+
+
 def test_listing_body_overflow_is_rejected():
     adapter, _ = adapter_for(listing(extra='x' * 2_100_000))
     with pytest.raises(SourceError, match='SOURCE_PAYLOAD_LIMIT'):

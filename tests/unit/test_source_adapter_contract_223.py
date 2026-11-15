@@ -37,7 +37,7 @@ FIXTURES = {
     'remoteok': {'id': 101, 'position': 'Platform Engineer', 'description': DESCRIPTION,
                  'company': 'Acme', 'date': POSTED,
                  'url': 'https://remoteok.com/remote-jobs/platform-engineer-101'},
-    'testedrecruits': {'id': '101', 'title': 'Platform Engineer',
+    'testedrecruits': {'id': '101', 'title': 'Platform Engineer', 'company_name': 'Acme',
                        'description': 'Build Python systems.',
                        'posting_url': 'https://app.testedrecruits.com/posting/101'},
     'wwr': {'title': 'Acme: Platform Engineer', 'description': DESCRIPTION,
@@ -51,7 +51,7 @@ MINIMAL_FIELDS = {
     'lever': ('id', 'text', 'hostedUrl'),
     'remotive': ('id', 'title'),
     'remoteok': ('id', 'position'),
-    'testedrecruits': ('id', 'title'),
+    'testedrecruits': ('id', 'title', 'company_name'),
     'wwr': ('title', 'guid'),
 }
 

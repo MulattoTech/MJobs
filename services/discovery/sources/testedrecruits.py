@@ -321,7 +321,12 @@ class TestedRecruits:
             raise SourceError("SOURCE_INVALID_JOB")
         title = _plain_text(title_raw, 500)
         description = structured_text(raw.get("description"))[:50_000]
-        company_name = _plain_text(raw.get("company_name"), 200) or self.slug.replace("-", " ").title()
+        observed_company_name = raw.get("company_name")
+        if not isinstance(observed_company_name, str) or not observed_company_name.strip():
+            raise SourceError("SOURCE_INVALID_JOB")
+        company_name = _plain_text(observed_company_name, 200)
+        if not company_name:
+            raise SourceError("SOURCE_INVALID_JOB")
         posting_url = raw.get("posting_url") or f"{HOST}/posting/{posting_id}"
         try:
             valid_posting_id = self._posting_id(posting_url)
