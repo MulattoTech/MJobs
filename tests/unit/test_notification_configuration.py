@@ -1,4 +1,5 @@
 """Strict, side-effect-free configuration and public capability contracts."""
+import hashlib
 import json
 from pathlib import Path
 
@@ -71,6 +72,11 @@ def test_origin_is_canonical_and_binding_excludes_rotatable_credentials(tmp_path
     assert config.server_url == "https://example.test:443"
     assert config.binding == other.binding
     assert config.binding != parse_config(config_data(tmp_path, topic="new-destination")).binding
+    legacy_binding = hashlib.sha256(json.dumps(
+        ["ntfy", "fixture", "https://example.test:443", "synthetic-topic"],
+        separators=(",", ":"),
+    ).encode()).hexdigest()
+    assert config.binding == legacy_binding
 
 
 def test_token_env_or_private_file_is_bounded_and_never_in_error(tmp_path):
@@ -100,13 +106,18 @@ def test_bad_or_oversized_private_config_never_echoes_content(tmp_path, capsys):
 
 
 def test_capabilities_distinguish_server_delivery_and_unsupported_guarantees(capsys):
-    descriptor, = capability_descriptors()
+    descriptor, discord = capability_descriptors()
     assert descriptor["provider"] == "ntfy"
     assert descriptor["execution_surface"] == "server"
     assert "exactly_once_delivery" in descriptor["unsupported"]
     assert "device_delivery_receipt" in descriptor["unsupported"]
     assert main(["capabilities"]) == 0
-    assert json.loads(capsys.readouterr().out)["providers"][0] == json.loads(json.dumps(descriptor))
+    providers = json.loads(capsys.readouterr().out)["providers"]
+    assert providers == json.loads(json.dumps([descriptor, discord]))
+    assert discord["provider"] == "discord"
+    assert "mentions_disabled" in discord["guarantees"]
+    assert "exactly_once_delivery" in discord["unsupported"]
+    assert "device_delivery_receipt" in discord["unsupported"]
 
 
 def test_duplicate_configuration_keys_cannot_silently_enable_delivery(tmp_path):
@@ -114,3 +125,35 @@ def test_duplicate_configuration_keys_cannot_silently_enable_delivery(tmp_path):
     path.write_text('{"version":1,"enabled":false,"enabled":true}', encoding="utf-8")
     with pytest.raises(NotificationError, match="NOTIFICATION_CONFIG_INVALID"):
         load_config(path)
+
+
+@pytest.mark.parametrize("change", [
+    {"webhook_id": "123"}, {"webhook_id": "x" * 18},
+    {"token_env": "", "token_file": ""},
+    {"webhook_id": "12345678901234567", "token_file": "relative.token"},
+    {"webhook_id": "12345678901234567", "token_env": "BAD NAME"},
+    {"webhook_id": "12345678901234567", "token_env": "TOKEN", "token_file": "C:/secret"},
+    {"webhook_id": "12345678901234567", "token_env": "TOKEN", "topic": "unexpected"},
+    {"webhook_id": "12345678901234567", "token_env": "TOKEN", "server_url": "https://evil.test"},
+])
+def test_discord_configuration_requires_fixed_webhook_id_and_private_token(tmp_path, change):
+    raw = {
+        "version": 1, "enabled": True, "provider": "discord", "profile_id": "fixture",
+        "webhook_id": "12345678901234567", "token_env": "DISCORD_TOKEN",
+        "state_path": str(tmp_path / "discord.db"), **change,
+    }
+    with pytest.raises(NotificationError, match="NOTIFICATION_CONFIG_INVALID"):
+        parse_config(raw)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_discord_configuration_binding_excludes_rotatable_secret(tmp_path):
+    raw = {
+        "version": 1, "enabled": True, "provider": "discord", "profile_id": "fixture",
+        "webhook_id": "12345678901234567", "token_env": "DISCORD_TOKEN",
+        "state_path": str(tmp_path / "discord.db"),
+    }
+    first = parse_config(raw)
+    rotated = parse_config({**raw, "token_env": "DISCORD_TOKEN_ROTATED"})
+    assert first.binding == rotated.binding
+    assert first.webhook_id == "12345678901234567"

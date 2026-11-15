@@ -16,6 +16,7 @@ from services.notifications.contract import NotificationError
 CONFIG_ENV = "MJOBS_NOTIFICATION_CONFIG"
 _FIELDS = {
     "version", "enabled", "provider", "profile_id", "server_url", "topic",
+    "webhook_id",
     "state_path", "token_env", "token_file", "allow_loopback_http",
     "poll_seconds", "batch_size", "request_timeout",
 }
@@ -31,6 +32,7 @@ class NotificationConfig:
     profile_id: str = ""
     server_url: str = ""
     topic: str = ""
+    webhook_id: str = ""
     state_path: str = ""
     token_env: str = ""
     token_file: str = ""
@@ -42,6 +44,8 @@ class NotificationConfig:
     @property
     def binding(self) -> str:
         value = [self.provider, self.profile_id, self.server_url, self.topic]
+        if self.provider == "discord":
+            value.append(self.webhook_id)
         return hashlib.sha256(json.dumps(value, separators=(",", ":")).encode()).hexdigest()
 
 
@@ -70,57 +74,70 @@ def parse_config(raw) -> NotificationConfig:
         _invalid()
     if not raw["enabled"]:
         return NotificationConfig()
-    if raw.get("provider", "ntfy") != "ntfy":
+    provider = raw.get("provider", "ntfy")
+    if not isinstance(provider, str) or provider not in {"ntfy", "discord"}:
         raise NotificationError("NOTIFICATION_PROVIDER_UNSUPPORTED")
     profile = raw.get("profile_id")
-    topic = raw.get("topic")
     if not isinstance(profile, str) or not _PROFILE.fullmatch(profile):
         _invalid()
-    if not isinstance(topic, str) or not _TOPIC.fullmatch(topic):
-        _invalid()
-    allow_http = raw.get("allow_loopback_http", False)
-    if type(allow_http) is not bool:
-        _invalid()
-    url = raw.get("server_url")
-    if (not isinstance(url, str) or len(url) > 2048 or not url.isascii()
-            or any(ord(c) < 33 or c == "\\" for c in url)):
-        _invalid()
-    if "?" in url or "#" in url:
-        _invalid()
-    try:
-        parsed = urlsplit(url)
-        port = parsed.port
-        host = parsed.hostname
-        if (not host or parsed.username is not None or parsed.password is not None
-                or parsed.query or parsed.fragment or parsed.path not in ("", "/")
-                or (port is not None and not 1 <= port <= 65535)):
+    topic = ""
+    url = ""
+    allow_http = False
+    webhook_id = ""
+    if provider == "ntfy":
+        topic = raw.get("topic")
+        if not isinstance(topic, str) or not _TOPIC.fullmatch(topic):
+            _invalid()
+        allow_http = raw.get("allow_loopback_http", False)
+        if type(allow_http) is not bool:
+            _invalid()
+        url = raw.get("server_url")
+        if (not isinstance(url, str) or len(url) > 2048 or not url.isascii()
+                or any(ord(c) < 33 or c == "\\" for c in url)):
+            _invalid()
+        if "?" in url or "#" in url:
             _invalid()
         try:
-            ip = ipaddress.ip_address(host)
-        except ValueError:
-            ip = None
-            if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?", host):
+            parsed = urlsplit(url)
+            port = parsed.port
+            host = parsed.hostname
+            if (not host or parsed.username is not None or parsed.password is not None
+                    or parsed.query or parsed.fragment or parsed.path not in ("", "/")
+                    or (port is not None and not 1 <= port <= 65535)):
                 _invalid()
-        if parsed.scheme != "https":
-            if not (parsed.scheme == "http" and allow_http and ip is not None and ip.is_loopback):
-                _invalid()
-        authority = f"[{host.lower()}]" if ip is not None and ip.version == 6 else host.lower()
-        if port is not None:
-            authority += f":{port}"
-        url = f"{parsed.scheme}://{authority}"
-    except (ValueError, TypeError):
-        _invalid()
+            try:
+                ip = ipaddress.ip_address(host)
+            except ValueError:
+                ip = None
+                if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?", host):
+                    _invalid()
+            if parsed.scheme != "https":
+                if not (parsed.scheme == "http" and allow_http and ip is not None and ip.is_loopback):
+                    _invalid()
+            authority = f"[{host.lower()}]" if ip is not None and ip.version == 6 else host.lower()
+            if port is not None:
+                authority += f":{port}"
+            url = f"{parsed.scheme}://{authority}"
+        except (ValueError, TypeError):
+            _invalid()
+    else:
+        webhook_id = raw.get("webhook_id")
+        if (not isinstance(webhook_id, str) or not re.fullmatch(r"[0-9]{17,20}", webhook_id)
+                or "server_url" in raw or "topic" in raw or "allow_loopback_http" in raw):
+            _invalid()
     token_env = raw.get("token_env", "")
     token_file = raw.get("token_file", "")
     if not isinstance(token_env, str) or not isinstance(token_file, str) or (token_env and token_file):
+        _invalid()
+    if provider == "discord" and not (token_env or token_file):
         _invalid()
     if token_env and not _ENV.fullmatch(token_env):
         _invalid()
     if token_file:
         token_file = _absolute_path(token_file)
     return NotificationConfig(
-        enabled=True, profile_id=profile, server_url=url, topic=topic,
-        state_path=_absolute_path(raw.get("state_path")),
+        enabled=True, provider=provider, profile_id=profile, server_url=url, topic=topic,
+        webhook_id=webhook_id, state_path=_absolute_path(raw.get("state_path")),
         token_env=token_env, token_file=token_file, allow_loopback_http=allow_http,
         poll_seconds=_integer(raw.get("poll_seconds", 10), 2, 300),
         batch_size=_integer(raw.get("batch_size", 50), 1, 200),

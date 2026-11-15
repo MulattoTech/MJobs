@@ -20,6 +20,7 @@ from services.notifications.contract import DeliveryResult, NotificationError
 from services.notifications.events import event_from_row, read_event_page
 from services.notifications.journal import DeliveryJournal
 from services.notifications.providers.ntfy import NtfyProvider
+from services.notifications.providers import create_provider
 from services.notifications.runner import run_once
 from tests.unit.test_notification_configuration import config_data
 from tests.unit.test_ntfy_provider import acknowledgement
@@ -400,3 +401,36 @@ def test_mock_notifications_accept_actual_current_and_legacy_producers_only(tmp_
             run_once(store, config, journal, Sender())
             clock.advance()
         assert set(sent) == {current["operation_id"], legacy} and len(sent) == 2
+
+
+def test_discord_selection_runs_through_the_durable_notification_runner(tmp_path, monkeypatch):
+    clock = Clock()
+    store = make_store(tmp_path)
+    try:
+        add_operation(store, clock, "discord-operation")
+        raw = {
+            "version": 1, "enabled": True, "provider": "discord", "profile_id": "fixture",
+            "webhook_id": "12345678901234567", "token_env": "DISCORD_SYNTHETIC_TOKEN",
+            "state_path": str(tmp_path / "discord-state.db"),
+        }
+        config = parse_config(raw)
+        requests = []
+
+        def handler(request):
+            requests.append(request)
+            assert request.url.host == "discord.com"
+            assert b"PRIVATE_ERROR_DO_NOT_EXPORT" not in request.content
+            return httpx.Response(204)
+
+        provider = create_provider(
+            config, transport=httpx.MockTransport(handler),
+            environ={"DISCORD_SYNTHETIC_TOKEN": "synthetic_webhook_token"},
+        )
+        journal = DeliveryJournal(config, clock=clock)
+        result = run_once(store, config, journal, provider)
+        assert result == {"enabled": True, "queued": 1, "attempted": 1,
+                          "outcome": "NOTIFICATION_SERVER_ACCEPTED"}
+        assert len(requests) == 1
+        assert journal.status()["counts"] == {"DELIVERED": 1}
+    finally:
+        store.engine.dispose()
