@@ -4,9 +4,9 @@
   "objective": "Implement bounded opt-in SMTP-over-verified-TLS email notifications through the existing notification runner",
   "owner": "Codex",
   "branch": "ao/discord-notifications/email-provider",
-  "head_sha": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+  "head_sha": "28735bab216aca34f09f2cd8d82a5cd214b2402e",
   "routing_state": "VERIFY",
-  "next_action": "Reconcile live PR #1044 state/head first. If still OPEN, run fresh existing-PR preflight and ordinary non-force push; if merged, do not push and read back the integrated source. Then inspect exact-head checks/review and await protected integration. Never duplicate publication or merge yourself.",
+  "next_action": "Reconcile live PR #1044 head/state. If OPEN at the prior published head, run fresh existing-PR preflight and ordinary non-force update once; if OPEN at this candidate head, inspect exact-head checks/review and await protected integration; if merged, read back integrated source and acceptance. Never duplicate publication or merge yourself.",
   "created_at": "2026-11-15T15:50:09.014919-06:00",
   "requirements": [
     "MJ-REQ-204.N01"
@@ -36,14 +36,44 @@
       "command": "Hosted exact-head checks for the repaired PR source",
       "detail": "Await fresh preflight and ordinary push; CI has not run on dcbb9738",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_email_provider.py -k multiple_address_connect_fallback_uses_only_remaining_deadline (before TCP fix, on PR head c5386071)",
+      "detail": "Expected red: after the first address consumed 0.75s, the second socket received 1.0s instead of the 0.25s remaining.",
+      "result": "FAIL"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_email_provider.py -k \"multiple_address_connect_fallback_uses_only_remaining_deadline or address_iteration_stops_and_closes_socket_on_deadline_or_cancel or bounded_tcp_connect_succeeds_and_closes_on_loopback_only\"",
+      "detail": "4 passed, 18 deselected on source tree db8db8a4a293d3c4f9c12a4dd95b34acffc2f7cd; same-deadline fallback, stop on exhausted budget, cancellation cleanup, and loopback TCP connect/close.",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_email_provider.py",
+      "detail": "22 passed on source tree db8db8a4a293d3c4f9c12a4dd95b34acffc2f7cd.",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/unit/test_slack_provider.py tests/integration/test_notification_delivery.py",
+      "detail": "209 passed, 2 skipped on source tree db8db8a4a293d3c4f9c12a4dd95b34acffc2f7cd; PostgreSQL-only integration parameterizations skipped without configured PostgreSQL URL.",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD; git diff --check",
+      "detail": "Provenance passed for 2 source files. Metadata amendment changed commit message only; amended commit 28735bab has the identical tree db8db8a4a293d3c4f9c12a4dd95b34acffc2f7cd as pre-amendment 76baa0fa.",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted exact-head checks and native review for the new candidate",
+      "detail": "Not run yet; wait for existing-PR preflight and ordinary update.",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Existing PR update preflight/push pending; after publication exact-head CI, review and protected integration remain pending",
-    "No external SMTP message or inbox receipt was sent"
+    "Fresh existing-PR update preflight and push pending; then exact-head hosted checks, native review, and protected integration remain pending.",
+    "No external SMTP message or inbox receipt was sent."
   ],
   "base_sha": "02a291ebced34144498a5b1d6cfebdcdad106583",
-  "checkpoint_snapshot_utc": "2026-11-15T21:50:27.4669046Z",
+  "checkpoint_snapshot_utc": "2026-11-15T23:03:19Z",
   "dirty_owned_files": [
     {
       "path": "cli/notifications.py",
@@ -81,9 +111,9 @@
   "dirty_owned_paths": [
     "planning/agent_handoffs/MJ-REQ-204.N01.json"
   ],
-  "test_snapshot_utc": "2026-11-15T22:41:30.6807236Z",
-  "source_commit": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
-  "updated_at": "2026-11-15T22:41:30.6807236Z",
+  "test_snapshot_utc": "2026-11-15T23:03:19Z",
+  "source_commit": "28735bab216aca34f09f2cd8d82a5cd214b2402e",
+  "updated_at": "2026-11-15T23:03:19Z",
   "source_files": [
     {
       "path": "cli/notifications.py",
@@ -91,7 +121,7 @@
     },
     {
       "path": "docs/NOTIFICATIONS.md",
-      "sha1": "10ffe7410b04a7d3206ced43cd55585ed023be5a"
+      "sha1": "2a3cb37d336488adef0b2aeb107d7ed1c7c0d0a7"
     },
     {
       "path": "services/notifications/configuration.py",
@@ -103,7 +133,7 @@
     },
     {
       "path": "services/notifications/providers/email.py",
-      "sha1": "3fd0038f064d40f8f17c7a59cadeba42eb226cda"
+      "sha1": "787a60f8951f02ea311c75b1e09549556a7dbac6"
     },
     {
       "path": "tests/integration/test_notification_delivery.py",
@@ -115,13 +145,13 @@
     },
     {
       "path": "tests/unit/test_email_provider.py",
-      "sha1": "abcfa4c253ece7aa421a57d940e111c3147e8c8c"
+      "sha1": "e1f3d057e14b1f64e22c7831e8774552b87784a8"
     }
   ],
   "acceptance_snapshot": {
     "gaps": [
       "No real external SMTP send or inbox receipt proof, by scope",
-      "No hosted exact-head checks or native review for Email yet",
+      "No hosted checks or new native review for the current source candidate yet",
       "Parent MJ-REQ-204 remains unchanged and unaccepted"
     ],
     "criteria": {
@@ -135,14 +165,14 @@
     "issue": "https://github.com/MulattoTech/MJobs/issues/362"
   },
   "publication_snapshot": {
-    "timestamp_utc": "2026-11-15T22:41:30.6807236Z",
+    "timestamp_utc": "2026-11-15T23:03:19Z",
     "pr": 1044,
     "pr_state": "OPEN",
-    "published_head": "241c27ef96151e9b60808c4c783317a3d4109867",
-    "local_head": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+    "published_head": "c538607129c46773ddbb0ac79b2de446ac3d9d4c",
+    "local_head": "28735bab216aca34f09f2cd8d82a5cd214b2402e",
     "base": "02a291ebced34144498a5b1d6cfebdcdad106583",
     "update_preflight": "PENDING",
-    "action": "Reconcile live PR before existing-PR preflight and ordinary non-force push"
+    "action": "Run fresh live existing-PR update preflight, then one ordinary non-force push if still open at the recorded published head."
   },
   "review_finding": {
     "base": "02a291ebced34144498a5b1d6cfebdcdad106583",
@@ -155,6 +185,19 @@
     "reviewer_tests": "NONE",
     "submission": "Native run ended failed at submission; no retry or AO ledger rewrite",
     "reviewed_head": "241c27ef96151e9b60808c4c783317a3d4109867",
+    "type": "native GPT-6 Luna static"
+  },
+  "review_finding_address_iteration": {
+    "base": "02a291ebced34144498a5b1d6cfebdcdad106583",
+    "finding": "socket.create_connection can spend a fresh timeout for each resolved address, exceeding the single operation deadline.",
+    "repair": "Nonblocking connect_ex/select iteration checks one monotonic deadline and cancellation across all addresses and closes every failed/interrupted socket.",
+    "github_comment_review_id": "5913376377",
+    "repair_commit": "28735bab216aca34f09f2cd8d82a5cd214b2402e",
+    "run_id": "05f85138-108d-4abe-bd3e-d7badb2cb0da",
+    "github_event": "COMMENTED, not APPROVED",
+    "reviewer_tests": "NONE",
+    "submission": "Native report submission failed because printf was unavailable and Bash startup was denied; no retry or AO ledger rewrite.",
+    "reviewed_head": "c538607129c46773ddbb0ac79b2de446ac3d9d4c",
     "type": "native GPT-6 Luna static"
   }
 }
