@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204.N01",
+  "objective": "Implement bounded opt-in SMTP-over-verified-TLS email notifications through the existing notification runner",
+  "owner": "Codex",
+  "branch": "ao/discord-notifications/email-provider",
+  "head_sha": "86f8c78abb872306ac37f974d1fc9195a536279e",
+  "routing_state": "EXECUTE",
+  "next_action": "Continue Email provider docs and focused regression coverage. Commit the scoped Email implementation, then reconcile onto current origin/main containing Slack merge 02a291ebced34144498a5b1d6cfebdcdad106583; preserve Slack files and rerun combined notification checks. Map all five N04 criteria to evidence; update only the N04 acceptance row if every criterion qualifies. Prepare at most one PR and yield for review, CI, and protected integration; do not merge.",
+  "created_at": "2026-11-15T15:50:09.014919-06:00",
+  "requirements": [
+    "MJ-REQ-204.N01"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest --basetemp=.pytest-email-run -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/integration/test_notification_delivery.py -k \"email or capabilities or discord or notification_configuration\"",
+      "result": "PASS: 82 passed, 12 deselected"
+    },
+    {
+      "command": "python -m pytest --basetemp=.pytest-email-run -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/integration/test_notification_delivery.py",
+      "result": "PASS: 161 passed, 2 skipped"
+    },
+    {
+      "command": "python -m cli.notifications capabilities",
+      "result": "PASS: listed ntfy, discord, email capability descriptors"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "External SMTP delivery/read-only receipt query",
+      "result": "NOT_RUN: no read-only SMTP receipt route; no external message authorized"
+    }
+  ],
+  "blockers": [],
+  "base_sha": "86f8c78abb872306ac37f974d1fc9195a536279e",
+  "checkpoint_snapshot_utc": "2026-11-15T21:50:27.4669046Z",
+  "dirty_owned_files": [
+    {
+      "path": "cli/notifications.py",
+      "sha1": "9aff00bf59f7dd151204295db260cff1e85b992e"
+    },
+    {
+      "path": "docs/NOTIFICATIONS.md",
+      "sha1": "2dafaa052a5d7e70ea389356490efd326071b593"
+    },
+    {
+      "path": "services/notifications/configuration.py",
+      "sha1": "d68e85cdf3d04c531498b6998b799548761dd398"
+    },
+    {
+      "path": "services/notifications/providers/__init__.py",
+      "sha1": "34276850704f4b124e33457e40cd4eb8985ad274"
+    },
+    {
+      "path": "services/notifications/providers/email.py",
+      "sha1": "24605a87d4b11ea744d101d00ec13ebe4cf4cfa3"
+    },
+    {
+      "path": "tests/integration/test_notification_delivery.py",
+      "sha1": "c8b89147ab919ee3c457e291f2b089ae50cbc66c"
+    },
+    {
+      "path": "tests/unit/test_notification_configuration.py",
+      "sha1": "88e8d07475f840341c9f26c94b34c55371b0861a"
+    },
+    {
+      "path": "tests/unit/test_email_provider.py",
+      "sha1": "6afcc080d4cfe1d2d85cdbd692eb299b9f171965"
+    }
+  ],
+  "dirty_owned_paths": [
+    "cli/notifications.py",
+    "docs/NOTIFICATIONS.md",
+    "services/notifications/configuration.py",
+    "services/notifications/providers/__init__.py",
+    "services/notifications/providers/email.py",
+    "tests/integration/test_notification_delivery.py",
+    "tests/unit/test_notification_configuration.py",
+    "tests/unit/test_email_provider.py"
+  ],
+  "test_snapshot_utc": "2026-11-15T21:52:53.5431197Z"
+}

@@ -7,6 +7,7 @@ import pytest
 
 from cli.notifications import main
 from services.notifications.configuration import load_config, parse_config, read_token
+from services.notifications.configuration import read_smtp_password
 from services.notifications.contract import NotificationError
 from services.notifications.providers import capability_descriptors, create_provider
 
@@ -31,7 +32,7 @@ def test_missing_or_disabled_configuration_has_no_side_effects(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("change", [
-    {"version": True}, {"version": 2}, {"enabled": "true"}, {"provider": "bluesky"},
+    {"version": True}, {"version": 2}, {"enabled": "true"}, {"provider": "unknown-provider"},
     {"topic": "../other"}, {"topic": "a/b"}, {"topic": "secret\r\nOther"},
     {"topic": ""}, {"topic": "x" * 65}, {"profile_id": ""}, {"profile_id": []},
     {"state_path": "relative.db"}, {"state_path": None},
@@ -106,20 +107,23 @@ def test_bad_or_oversized_private_config_never_echoes_content(tmp_path, capsys):
 
 
 def test_capabilities_distinguish_server_delivery_and_unsupported_guarantees(capsys):
-    descriptor, discord, slack = capability_descriptors()
+    descriptor, discord, slack, email = capability_descriptors()
     assert descriptor["provider"] == "ntfy"
     assert descriptor["execution_surface"] == "server"
     assert "exactly_once_delivery" in descriptor["unsupported"]
     assert "device_delivery_receipt" in descriptor["unsupported"]
     assert main(["capabilities"]) == 0
     providers = json.loads(capsys.readouterr().out)["providers"]
-    assert providers == json.loads(json.dumps([descriptor, discord, slack]))
+    assert providers == json.loads(json.dumps([descriptor, discord, slack, email]))
     assert discord["provider"] == "discord"
     assert "mentions_disabled" in discord["guarantees"]
     assert "exactly_once_delivery" in discord["unsupported"]
     assert "device_delivery_receipt" in discord["unsupported"]
     assert slack["provider"] == "slack"
     assert "mentions_disabled" in slack["guarantees"]
+    assert email["provider"] == "email"
+    assert "smtp_ssl_implicit_tls_port_465" in email["authentication"]
+    assert "inbox_delivery_receipt" in email["unsupported"]
 
 
 def test_duplicate_configuration_keys_cannot_silently_enable_delivery(tmp_path):
@@ -193,3 +197,63 @@ def test_slack_configuration_rejects_unsafe_or_mixed_destinations(tmp_path, chan
     with pytest.raises(NotificationError, match="NOTIFICATION_CONFIG_INVALID"):
         parse_config(raw)
     assert list(tmp_path.iterdir()) == []
+
+
+def email_config_data(tmp_path, **changes):
+    return {
+        "version": 1, "enabled": True, "provider": "email", "profile_id": "fixture",
+        "smtp_host": "SMTP.Example.Test", "smtp_sender": "notify@example.test",
+        "smtp_recipient": "owner@example.test", "smtp_username": "mjobs-app",
+        "smtp_password_env": "SMTP_PASSWORD",
+        "state_path": str(tmp_path / "email.db"), **changes,
+    }
+
+
+def test_email_configuration_binds_tls_host_sender_recipient_user_but_not_password(tmp_path):
+    raw = email_config_data(tmp_path)
+    config = parse_config(raw)
+    rotated = parse_config({**raw, "smtp_password_env": "SMTP_PASSWORD_ROTATED"})
+    assert config.provider == "email"
+    assert config.smtp_host == "smtp.example.test"
+    assert config.binding == rotated.binding
+    assert config.binding != parse_config({**raw, "smtp_recipient": "other@example.test"}).binding
+    assert config.binding != parse_config({**raw, "smtp_host": "relay.example.test"}).binding
+
+
+@pytest.mark.parametrize("change", [
+    {"smtp_host": "smtp.example.test:587"},
+    {"smtp_host": "smtp.example.test\r\nMAIL FROM:<bad@example.test>"},
+    {"smtp_host": "https://smtp.example.test"},
+    {"smtp_sender": "notify@example.test\r\nBcc: other@example.test"},
+    {"smtp_recipient": "owner@example.test\r\nBcc: other@example.test"},
+    {"smtp_recipient": "Display Name <owner@example.test>"},
+    {"smtp_username": "mjobs\r\nAUTH PLAIN"},
+    {"smtp_password_env": "BAD NAME"},
+    {"smtp_password_env": "SMTP_PASSWORD", "smtp_password_file": "C:/secret"},
+    {"smtp_password_env": ""},
+    {"smtp_password_file": "relative.secret", "smtp_password_env": ""},
+    {"smtp_port": 587},
+    {"server_url": "smtp://mail.example.test"},
+    {"token_env": "SMTP_PASSWORD"},
+])
+def test_email_configuration_rejects_injection_and_unsupported_transport(tmp_path, change):
+    with pytest.raises(NotificationError, match="NOTIFICATION_CONFIG_INVALID"):
+        parse_config(email_config_data(tmp_path, **change))
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_smtp_password_environment_and_private_file_are_bounded(tmp_path):
+    config = parse_config(email_config_data(tmp_path))
+    assert read_smtp_password(config, environ={"SMTP_PASSWORD": "synthetic !pass+word"}) == "synthetic !pass+word"
+    for password in ("", "bad\r\nAUTH PLAIN", "x" * 1025, "secret☃"):
+        with pytest.raises(NotificationError, match="NOTIFICATION_CREDENTIAL_UNAVAILABLE"):
+            read_smtp_password(config, environ={"SMTP_PASSWORD": password})
+    secret = tmp_path / "smtp.secret"
+    secret.write_bytes(b"synthetic-file-password" + bytes([10]))
+    file_config = parse_config(email_config_data(
+        tmp_path, smtp_password_env="", smtp_password_file=str(secret),
+    ))
+    assert read_smtp_password(file_config) == "synthetic-file-password"
+    secret.write_bytes(b"x" * 4097)
+    with pytest.raises(NotificationError, match="NOTIFICATION_CREDENTIAL_UNAVAILABLE"):
+        read_smtp_password(file_config)

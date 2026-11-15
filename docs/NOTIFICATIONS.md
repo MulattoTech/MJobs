@@ -111,6 +111,53 @@ available through this interface. No live Slack request was made; local tests
 use synthetic credentials and `MockTransport`. The child requirement remains
 PARTIAL pending its acceptance review; no live-send evidence is claimed.
 
+## SMTP email provider
+
+Email is opt-in through the same server-side worker and durable journal. Select
+`"provider": "email"` and configure one SMTP host, sender, exact recipient, and
+username. SMTP password comes from either a named environment variable or an
+absolute private file path; it is never part of the JSON configuration. The
+provider uses implicit TLS with certificate and hostname verification on port
+465, and Python's SMTP AUTH login. It does not downgrade to plaintext or
+STARTTLS. For example:
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "email",
+  "profile_id": "your-existing-profile-id",
+  "smtp_host": "smtp.example.com",
+  "smtp_sender": "mjobs@example.com",
+  "smtp_recipient": "operator@example.com",
+  "smtp_username": "mjobs@example.com",
+  "smtp_password_env": "MJOBS_SMTP_PASSWORD",
+  "state_path": "C:/private/mjobs/email-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+The message is plain text with a fixed subject and generic allowlisted activity
+description. Exactly one configured recipient is used; message content cannot
+set headers or recipients. The timeout bounds socket connection and SMTP
+protocol operations. Name resolution is delegated to the operating system and
+is not independently cancellable by this provider. Cancellation before message
+submission is safe; interruption during or after submission is `UNKNOWN` and is
+not replayed automatically. A successful SMTP response means the server
+accepted the message, not that it reached an inbox or was read. SMTP has no
+read-only receipt query in this integration, and no live message was sent for
+validation.
+
+Supported capabilities are implicit TLS on port 465, verified server
+certificates/hostnames, SMTP AUTH username/password, one exact recipient, and
+generic plain-text activity messages. Other ports, plaintext, STARTTLS,
+multiple recipients, attachments, HTML, delivery/read receipts, inbox
+verification, exactly-once delivery, and arbitrary event streams are
+unsupported. Contract tests use an injected synthetic SMTP transport and do not
+contact an external mail server.
+
 ## Private configuration
 
 Create a private JSON file outside the repository and outside public/shared
