@@ -40,7 +40,14 @@ class ManualAuthIsolatedTests(unittest.TestCase):
             self.assertEqual(kwargs, {'store': self.store, 'owner_token': self.token})
             self.assertEqual(args[1], self.binding)
             return self.observer
+        # The production path derives its strict host runtime from sys.prefix.
+        # These unit tests emulate Windows admission on any platform, so give
+        # that path a real disposable site-packages directory instead of
+        # borrowing the Linux interpreter's unrelated prefix.
+        synthetic_prefix = Path(self.directory.name) / 'synthetic-win-prefix'
+        (synthetic_prefix / 'Lib' / 'site-packages').mkdir(parents=True, exist_ok=True)
         stack.enter_context(patch.object(module.sys, 'platform', 'win32'))
+        stack.enter_context(patch.object(module.sys, 'prefix', str(synthetic_prefix)))
         stack.enter_context(patch.object(module, '_resolve_auth_attempt', return_value=(
             {'url': 'http://127.0.0.1:8123/ats/apply/job_1', 'requisition': 'job_1'},
             Path(self.directory.name) / 'synthetic-app/browser-profile')))
