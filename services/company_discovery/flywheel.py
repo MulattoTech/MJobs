@@ -125,7 +125,7 @@ def _career_feed_candidates(page, homepage_url=None, *, require_explicit_job_fee
     return []
 
 
-def _career_page_is_corroborated(page, fixture, *, homepage_url=None):
+def _career_page_is_corroborated(page, fixture, *, homepage_url=None, native_apply_proof=None):
     html = page.text
     fixture_ats = BeautifulSoup(html, "html.parser").find(
         "a", attrs={"data-provider": True, "data-tenant": True}
@@ -137,7 +137,9 @@ def _career_page_is_corroborated(page, fixture, *, homepage_url=None):
     # Ambiguous but structurally supported ATS evidence still establishes that
     # this is a career page. Preserve it for the explicit review outcome below;
     # otherwise an earlier thin/culture link can mask the ambiguous careers page.
-    return ((fixture and fixture_ats is not None) or detected.status in {"MATCH", "AMBIGUOUS"}
+    native_job_page = bool(native_apply_proof and
+        native_apply_proof.get("employer_url") == str(page.url))
+    return (native_job_page or (fixture and fixture_ats is not None) or detected.status in {"MATCH", "AMBIGUOUS"}
             or bool(_career_feed_candidates(page, homepage_url)))
 
 
@@ -171,10 +173,24 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     fixture = bool(getattr(client, "fixture_only", False))
     initial_authorization = check()
     acquired_page = None
+    native_apply_proof = None
     if not fixture and initial_authorization and initial_authorization.get('authorization') == 'ATS_JOB_LINK_CANDIDATE':
-        from services.company_discovery.domain_acquisition import acquire_official_domain
-        acquired_page = acquire_official_domain(store, initial_authorization, client, check, enrollment_guard)
+        from services.company_discovery.domain_acquisition import acquire_official_domain_with_native_proof
+        acquired_page, native_apply_proof = acquire_official_domain_with_native_proof(
+            store, initial_authorization, client, check, enrollment_guard)
         initial_authorization = check()
+        if (not initial_authorization or initial_authorization.get('authorization') != 'ATS_JOB_LINK_VERIFIED'
+                or native_apply_proof.get('request_id') != initial_authorization.get('request_id')
+                or native_apply_proof.get('company_id') != initial_authorization.get('company_id')
+                or native_apply_proof.get('profile_id') != (initial_authorization.get('native_job_link') or {}).get('profile_id')
+                or native_apply_proof.get('profile_version') != (initial_authorization.get('native_job_link') or {}).get('profile_version')):
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+        bound_link = initial_authorization.get('native_job_link') or {}
+        if any(native_apply_proof.get(field) != bound_link.get(field) for field in (
+                'source_id', 'collector_source_id', 'candidate_id', 'snapshot_id',
+                'snapshot_sha256', 'quality_observation_id', 'provider', 'tenant',
+                'native_job_id', 'title')):
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
     identity_confirmation = (initial_authorization if initial_authorization and
         initial_authorization.get('authorization') == 'USER_CONFIRMED_DOMAIN' else None)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
@@ -269,10 +285,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     careers_links = internal_career_links(str(homepage.url), homepage.text)
     # A supplied/search-selected URL may already be the recruiting page. Do
     # not discard its proven ATS/feed evidence or replace it with a guessed URL.
-    careers = homepage if _career_page_is_corroborated(homepage, fixture, homepage_url=homepage.url) else None
+    careers = homepage if _career_page_is_corroborated(
+        homepage, fixture, homepage_url=homepage.url, native_apply_proof=native_apply_proof) else None
     careers_url = str(homepage.url) if careers is not None else ""
     for linked_url in careers_links[:_MAX_LINKED_CAREER_PAGES]:
-        if careers is not None and _career_page_is_corroborated(careers, fixture, homepage_url=homepage.url):
+        if careers is not None and _career_page_is_corroborated(
+                careers, fixture, homepage_url=homepage.url, native_apply_proof=native_apply_proof):
             break
         check()
         try:
@@ -284,7 +302,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             continue
         # Keep an uncorroborated linked page for the existing review outcome,
         # but allow a later official navigation link to supply usable evidence.
-        if careers is None or _career_page_is_corroborated(linked_page, fixture, homepage_url=homepage.url):
+        if careers is None or _career_page_is_corroborated(
+                linked_page, fixture, homepage_url=homepage.url, native_apply_proof=native_apply_proof):
             careers_url, careers = linked_url, linked_page
     # A linked careers page remains authoritative when its content exposes an ATS or
     # supported public feed. If it is absent or too thin to identify either, inspect
@@ -354,8 +373,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
         # Supported official APIs keep priority. An unsupported ATS does not
         # invalidate an independently advertised same-origin job feed, while
         # conflicting ATS identities still require explicit review.
-        supported_api = (detected.status == "MATCH"
-                         and detected.provider in {"greenhouse", "lever"})
+        supported_api = (native_apply_proof is not None or (detected.status == "MATCH"
+                         and detected.provider in {"greenhouse", "lever"}))
         feeds = (_career_feed_candidates(careers, homepage.url,
                  require_explicit_job_feed=detected.status == "MATCH")
                  if not supported_api and detected.status != "AMBIGUOUS" else [])
@@ -507,14 +526,30 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 "jobs": feed_jobs, "jobs_enumerated": len(feed_jobs), "jobs_imported": jobs_imported,
                 "company_domain": company_domain,
             }
-        if detected.status != "MATCH" or not detected.provider:
+        native_provider = None
+        if native_apply_proof:
+            from services.ats_detection.board_links import greenhouse_board_tenants, lever_board_tenants
+            try:
+                page_tenants = greenhouse_board_tenants(str(careers.url), careers.text)
+                conflicting_lever = lever_board_tenants(str(careers.url), careers.text)
+            except ValueError:
+                raise PublicFetchError("COMPANY_ATS_TENANT_REVIEW_REQUIRED") from None
+            if (detected.status == "AMBIGUOUS" or conflicting_lever
+                    or (page_tenants and page_tenants != {native_apply_proof['tenant']})
+                    or (detected.status == "MATCH" and detected.provider != "greenhouse")):
+                raise PublicFetchError("COMPANY_ATS_TENANT_REVIEW_REQUIRED")
+            native_provider = "greenhouse"
+        if (detected.status != "MATCH" or not detected.provider) and not native_provider:
             raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_REVIEW_REQUIRED")
-        if not fixture and detected.provider in {'greenhouse','lever'}:
+        enrollment_provider = native_provider or detected.provider
+        if not fixture and enrollment_provider in {'greenhouse','lever'}:
             from services.company_discovery.ats_enrollment import enroll_public_ats
             return enroll_public_ats(store, candidate, resolved, str(careers.url), careers.text,
                 profile_id=profile_id, profile_version=profile_version, check=check,
                 enrollment_guard=enrollment_guard, preserve_source_id=preserve_source_id,
-                identity_confirmation=identity_confirmation, provider=detected.provider)
+                identity_confirmation=identity_confirmation, provider=enrollment_provider,
+                native_apply_proof=native_apply_proof,
+                native_apply_authorization=initial_authorization if native_apply_proof else None)
         raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()

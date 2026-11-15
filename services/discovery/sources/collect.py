@@ -363,13 +363,176 @@ def _approved_source_capabilities(source, adapter):
     return capabilities
 
 
+def _terminal_bootstrap_heads(connection, source, profile, company_ids):
+    """Prefilter consumed attempts, never authorize a new request or retry."""
+    request, operation, bound = m.company_discovery_requests, m.operations, m.company_sources
+    rows = connection.execute(select(request.c.company_id, operation).select_from(
+        request.join(operation, operation.c.id == request.c.operation_id)
+        .join(bound, bound.c.id == request.c.company_source_id)).where(
+            request.c.company_id.in_(sorted(company_ids)),
+            request.c.profile_id == profile['id'], request.c.profile_version == profile['version'],
+            request.c.authorization.in_({'AGGREGATOR_BOOTSTRAP_PENDING', 'AGGREGATOR_BOOTSTRAP_VERIFIED'}),
+            bound.c.collector_source_id == source['id'], bound.c.provider == source['provider'],
+            bound.c.tenant == source['tenant'], operation.c.kind == 'COMPANY_DISCOVER',
+            operation.c.state.in_({'BLOCKED', 'FAILED', 'DEAD_LETTERED', 'COMPLETED'}),
+            operation.c.attempt_count > 0, operation.c.completed_at.is_not(None),
+            operation.c.next_attempt_at.is_(None), operation.c.lease_expires_at.is_(None),
+            operation.c.cancel_requested.is_(False))).mappings()
+    return {row['company_id']: {key: row[key] for key in operation.c.keys()} for row in rows}
+
+
+def _prepare_aggregator_bootstrap_hints(store, source, profile, normalized, check):
+    """Parse at most two untrusted pointers without holding a DB transaction."""
+    if (not profile or source['provider'] not in {'wwr', 'remotive'}
+            or source['tenant'] != 'default' or not normalized):
+        return {}
+    policy = (profile.get('preferences') or {}).get('company_discovery') or {}
+    if policy.get('company_discovery_enabled', True) is not True:
+        return {}
+    company_ids = {identity(*item.company.identity_parts) for item, _ in normalized}
+    from services.company_discovery.aggregator_bootstrap import (
+        canonical_digest, extract_bootstrap_hint, normalized_projection,
+    )
+    from services.company_discovery.requests import _authorize_discovery_request
+    from services.company_discovery.public_client import PublicFetchError
+    from services.discovery.matching import build_explanation
+
+    planned = []
+    attempted_companies = set()
+    with store.engine.connect() as connection:
+        if connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']:
+            return {}
+        existing = set(connection.execute(select(m.companies.c.id).where(
+            m.companies.c.id.in_(sorted(company_ids)))).scalars())
+        terminal = _terminal_bootstrap_heads(connection, source, profile, company_ids)
+        consumed = {}
+        for item, job in normalized:
+            check()
+            if len(attempted_companies) >= 2:
+                break
+            company_id = identity(*item.company.identity_parts)
+            if company_id in attempted_companies or job['attributes'].get('fictional'):
+                continue
+            if company_id in existing and build_explanation(job, profile)['score'] < policy.get(
+                    'minimum_match_for_discovery', 60):
+                continue
+            if company_id in terminal and company_id not in consumed:
+                try:
+                    # Reuse the canonical observational validator, without its
+                    # write-lock path. Validate only terminal heads encountered
+                    # before the fresh budget fills; malformed/stale authority
+                    # must not let a caller steer selection past an employer.
+                    authority = _authorize_discovery_request(
+                        store, terminal[company_id], connection, lock=False)
+                    consumed[company_id] = authority['aggregator_bootstrap_pending']['binding']
+                except (PublicFetchError, AttributeError, KeyError, TypeError, ValueError):
+                    consumed[company_id] = None
+            prior = consumed.get(company_id)
+            if (prior is not None and prior['selected_requisition'] == job['requisition']
+                    and prior['raw_sha256'] == canonical_digest(item.raw)
+                    and prior['normalized_sha256'] == canonical_digest(normalized_projection(job))):
+                continue
+            attempted_companies.add(company_id)
+            planned.append((item, job))
+
+    hints = {}
+    for item, job in planned:
+        check()
+        company_id = identity(*item.company.identity_parts)
+        hint = extract_bootstrap_hint(item.raw, job)
+        check()
+        if hint is not None:
+            hints[(company_id, job['requisition'])] = hint
+    return hints
+
+
+def _aggregator_bootstrap_candidates(connection, profile, candidate_ids, new_company_ids, prepared, check):
+    """Bind generated hints to exact current winners; hints grant no authority."""
+    if not profile or not candidate_ids or not prepared:
+        return {}
+    policy = (profile.get('preferences') or {}).get('company_discovery') or {}
+    if policy.get('company_discovery_enabled', True) is not True:
+        return {}
+    if connection.execute(select(m.profiles.c.version).where(
+            m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']:
+        return {}
+    from services.company_discovery.aggregator_bootstrap import canonical_digest, normalized_projection
+
+    candidate = m.posting_value_candidates
+    snapshot = m.posting_snapshots
+    rows = connection.execute(select(
+        candidate.c.id, candidate.c.normalized, candidate.c.application_url,
+        snapshot.c.raw, m.jobs.c.company_id, m.jobs.c.attributes.label('job_attributes'),
+        m.matches.c.score,
+    ).select_from(candidate.join(m.postings, m.postings.c.id == candidate.c.posting_id)
+        .join(m.jobs, m.jobs.c.id == m.postings.c.job_id)
+        .join(snapshot, and_(snapshot.c.id == candidate.c.posting_snapshot_id,
+                             snapshot.c.posting_id == candidate.c.posting_id))
+        .outerjoin(m.matches, and_(m.matches.c.job_id == m.jobs.c.id,
+            m.matches.c.profile_id == profile['id'], m.matches.c.profile_version == profile['version']))
+    ).where(candidate.c.id.in_(sorted(candidate_ids)), candidate.c.application_url.in_(
+        [hint['listing_url'] for hint in prepared.values()]))).mappings()
+    ordered = sorted(rows, key=lambda row: (-(row['score'] or 0), row['company_id'], row['id']))
+    hints = {}
+    for row in ordered:
+        check()
+        attrs = row['job_attributes'] or {}
+        if ((attrs.get('source_resolution') or {}).get('selected_candidate_id') != row['id']
+                or attrs.get('fictional')):
+            continue
+        if row['company_id'] not in new_company_ids and (
+                row['score'] is None or row['score'] < policy.get('minimum_match_for_discovery', 60)):
+            continue
+        normalized = dict(row['normalized'], application_url=row['application_url'])
+        hint = prepared.get((row['company_id'], normalized['requisition']))
+        if (hint is not None and hint['raw_sha256'] == canonical_digest(row['raw'])
+                and hint['normalized_sha256'] == canonical_digest(normalized_projection(normalized))):
+            hints[row['id']] = hint
+    return hints
+
+
+def _collection_parent_lineage(connection, source_id, profile, operation_id, attempt):
+    """Bind a staged child to the currently running source-collection attempt."""
+    if operation_id is None and attempt is None:
+        return {}
+    if (not isinstance(operation_id, str) or not operation_id or len(operation_id) > 128
+            or type(attempt) is not int or attempt < 1 or profile is None):
+        raise SourceError('SOURCE_CHANGED')
+    operation = connection.execute(select(m.operations).where(
+        m.operations.c.id == operation_id)).mappings().one_or_none()
+    if (operation is None or operation['kind'] != 'DISCOVER'
+            or operation['state'] != 'RUNNING' or operation['cancel_requested']
+            or operation['attempt_count'] != attempt or operation['entity_id'] != profile['id']):
+        raise SourceError('SOURCE_CHANGED')
+    try:
+        lease = datetime.fromisoformat(operation['lease_expires_at'])
+        live = lease.tzinfo is not None and lease > datetime.now(timezone.utc)
+    except (TypeError, ValueError):
+        live = False
+    params = operation['params']
+    if (not live or not isinstance(params, dict) or params.get('source_id') != source_id
+            or params.get('rescore_only')
+            or ('profile_version' in params and params['profile_version'] != profile['version'])
+            or ('profile_ids' in params and (
+                not isinstance(params['profile_ids'], list) or not params['profile_ids']
+                or any(not isinstance(value, str) or not value for value in params['profile_ids'])
+                or params['profile_ids'][0] != profile['id']))
+            or connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']):
+        raise SourceError('SOURCE_CHANGED')
+    return {'parent_operation_id': operation_id, 'parent_operation_attempt': attempt}
+
+
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
                    *, refresh_matches=True, import_guard=None, registry=None,
-                   collection_contract=None):
+                   collection_contract=None, parent_operation_id=None, parent_operation_attempt=None,
+                   collection_operation=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
     The profile still supplies discovery-request ownership during capture.
+    A supplied parent pair identifies only that live source-collection attempt.
     """
     check = check or (lambda: None)
     profile = store.profile(profile_id, profile_version) if profile_id is not None else None
@@ -378,6 +541,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
+        _collection_parent_lineage(connection, source_id, profile,
+                                   parent_operation_id, parent_operation_attempt)
         source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one())
         from services.company_discovery.ats_enrollment import bound_company_source
         bound = bound_company_source(store, connection, source, lock=True)
@@ -464,6 +629,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             raise
         strategy = capabilities.strategy.value
         direct_application = capabilities.supports(SourceCapability.DIRECT_APPLICATION)
+        prepared_bootstrap = _prepare_aggregator_bootstrap_hints(store, source, profile, normalized, check)
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
@@ -482,6 +648,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     raise SourceError('SOURCE_CHANGED')
                 if (fresh_bound or {}).get('id') != (bound or {}).get('id'):
                     raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
+                _collection_parent_lineage(connection, source_id, profile,
+                                           parent_operation_id, parent_operation_attempt)
             except Exception:
                 authority_rejected = True
                 raise
@@ -552,6 +720,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 connection.execute(update(m.company_sources).where(m.company_sources.c.id == company_source['id'])
                                    .values(collector_source_id=source_id))
                 company_sources[company_id] = company_source['id']
+            receipt_candidate_id = None
+            if collection_operation is not None:
+                from services.company_discovery.bootstrap_posting_identity import receipt_native_job_id
+                receipt_candidate_id = receipt_native_job_id(connection, collection_operation)
             for item, job in sorted(normalized, key=lambda pair: (company_identity(pair[0].company), pair[1]['requisition'])):
                 company_id = company_identity(item.company)
                 native_job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
@@ -562,6 +734,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     proposed_id=native_job_id, posting_id=posting_id, application_url=url,
                     provider=source['provider'], tenant=source['tenant'], requisition=job['requisition'],
                     batch_identities=batch_identities)
+                if (canonical is None and collection_operation is not None
+                        and str(item.raw.get('id')) == receipt_candidate_id):
+                    from services.company_discovery.bootstrap_posting_identity import bootstrap_posting_job
+                    canonical = bootstrap_posting_job(connection, store, operation=collection_operation,
+                        profile=profile, source=source, bound=bound, raw=item.raw,
+                        requisition=job['requisition'], proposed_id=native_job_id,
+                        posting_id=posting_id, source_job_id=source_job_id, batch_identities=batch_identities)
                 job_id = canonical['id'] if canonical else native_job_id
                 batch_identities.setdefault(job_id, []).append((source['provider'], source['tenant'], job['requisition']))
                 existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
@@ -619,15 +798,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(**({"name": batch.source_company.name} if batch.source_company else {}),
                 last_success=timestamp, consecutive_failures=0, last_error=None, backoff_until=None,
                 health_status="PARTIAL" if rejected else "HEALTHY", jobs_seen=len(normalized)))
-            store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]})
             observation_at = now()
             observation_id = record_observation(connection, configured_source_id=source_id, observed_at=observation_at,
                 source_endpoint=observed_endpoint,
                 succeeded=True, available=available, enumerated=enumerated, accepted=accepted,
                 completeness_sum=completeness_sum, salary_known=salary_known)
+            generated_candidate_ids = set()
             for posting_id, company_source_id, _, values in pending_candidates:
-                record_candidate(connection, posting_id=posting_id, company_source_id=company_source_id,
-                                 observation_id=observation_id, normalized=values)
+                generated_candidate_ids.add(record_candidate(connection, posting_id=posting_id,
+                    company_source_id=company_source_id, observation_id=observation_id, normalized=values))
             for job_id in sorted({entry[2] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp,
                                    profile=profile if refresh_matches else None)
@@ -636,8 +815,26 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 reconcile_inventory(connection, endpoint=batch.endpoint, posting_ids=set(batch_postings),
                                     observation_id=observation_id)
             if profile is not None:
+                bootstrap = _aggregator_bootstrap_candidates(connection, profile,
+                    generated_candidate_ids, new_companies, prepared_bootstrap, check)
+                try:
+                    parent_lineage = _collection_parent_lineage(connection, source_id, profile,
+                        parent_operation_id, parent_operation_attempt)
+                except SourceError:
+                    authority_rejected = True
+                    raise
                 record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
-                                          new_company_ids=new_companies)
+                    new_company_ids=new_companies,
+                    **({'aggregator_bootstrap_candidates': bootstrap, **parent_lineage} if bootstrap else {}))
+            completion = {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]}
+            if collection_operation is not None:
+                from services.discovery.source_collection_receipts import build_native_inventory
+                completion['native_inventory'] = build_native_inventory(
+                    connection, store, collection_operation, profile, source, bound,
+                    observation_id=observation_id, started_at=timestamp,
+                    provider_complete=batch.complete_inventory, enumerated=enumerated,
+                    accepted=accepted, rejected=rejected)
+            store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", completion)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application,
                 "collection_result": ({

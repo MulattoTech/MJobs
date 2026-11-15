@@ -37,14 +37,30 @@ class ManualAuthIsolatedBrowserTests(unittest.TestCase):
         from pathlib import Path
         import subprocess
         from services.applications.attempt_history import read_attempt_history
+        from services.applications.browser_profile_metadata import read_browser_profile_metadata
+        from services.applications.browser_profiles import browser_profile_path
         from tests.fixtures.manual_auth_isolated_owner import controlled_job
         original = read_attempt_history(self.store, 'fixture', self.application_id)['attempts']
+        application_root = self.root / self.application_id
+        profile = browser_profile_path(application_root, initialize=False)
+        metadata = lambda: read_browser_profile_metadata(
+            application_root, profile, provider='mock-ats', site=self.origin)
+        before_metadata = metadata()
+        self.assertIsNotNone(before_metadata)
+        self.assertEqual(before_metadata['status'], 'AUTH_REQUIRED')
+        self.assertFalse(before_metadata['likely_authenticated'])
         (self.root / 'close-browser').touch()
         with patch('services.applications.manual_auth_isolated.BrowserTreeJob',
                    controlled_job(self.root, sign_in=True)):
             response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(self.store.application(self.application_id)['state'], 'AUTH_REQUIRED')
+        after_host_metadata = metadata()
+        self.assertEqual(after_host_metadata['status'], 'AUTHENTICATION_UNKNOWN')
+        self.assertIsNone(after_host_metadata['likely_authenticated'])
+        self.assertEqual(after_host_metadata['profile_id'], before_metadata['profile_id'])
+        self.assertEqual(after_host_metadata['created_at'], before_metadata['created_at'])
+        self.assertGreaterEqual(after_host_metadata['last_used'], before_metadata['last_used'])
         self.assertEqual(read_attempt_history(self.store, 'fixture', self.application_id)['attempts'], original)
         self.assertEqual(httpx.get(self.origin + '/_test/request-counts').json(), {'review': 0, 'submit': 0})
         body = {'submit': False, 'request_id': 'native-sign-in-dry-run'}
@@ -61,6 +77,12 @@ class ManualAuthIsolatedBrowserTests(unittest.TestCase):
         self.assertEqual(child.returncode, 0, child.stderr[-1500:])
         self.assertEqual(json.loads(child.stdout.strip().splitlines()[-1])['status'], 'COMPLETED')
         self.assertEqual(self.store.application(self.application_id)['state'], 'DRY_RUN_COMPLETE')
+        after_worker_metadata = metadata()
+        self.assertEqual(after_worker_metadata['status'], 'AUTHENTICATION_UNKNOWN')
+        self.assertIsNone(after_worker_metadata['likely_authenticated'])
+        self.assertEqual(after_worker_metadata['profile_id'], before_metadata['profile_id'])
+        self.assertEqual(after_worker_metadata['created_at'], before_metadata['created_at'])
+        self.assertGreaterEqual(after_worker_metadata['last_used'], after_host_metadata['last_used'])
         after = read_attempt_history(self.store, 'fixture', self.application_id)['attempts']
         self.assertEqual(len(after), len(original) + 1)
         self.assertTrue(all(attempt in after for attempt in original))
