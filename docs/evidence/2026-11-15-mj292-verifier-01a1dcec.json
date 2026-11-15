@@ -230,5 +230,147 @@
       "No MJ-REQ-292 acceptance promotion; incoming main Arbeitnow017.F07 PASS preserved",
       "No connected campaign, hosted gate or merge readiness certification"
     ]
+  },
+  "hosted_followup": {
+    "first_candidate": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+    "unit_failure": {
+      "status": "FAIL",
+      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "run": 43670021815,
+      "failure": "test_compatible_rate_window_keeps_real_cross_origin_waits[7]: proofNone",
+      "counts": "1failed5334passed55skipped5203subtests",
+      "log_sha256": "f7454bcfd3484ba06ed1484890864ed8bca19136f963fa8b327e3336d1ec1574",
+      "other_jobs": "integration/Compose still running",
+      "cause": "UNPROVEN; local3ratevariants pass; bounded read-only diagnosis delegated"
+    },
+    "synthetic_compose": "PASS run43670021823 on first candidate; not public acceptance",
+    "repair": {
+      "commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
+      "author_receipt_sha256": "6d34760cf014878ec73f8caedc7cf50fd59ec325b7aabec56b42184b111e6abd",
+      "validation": "174tests26subtests PASS; independent same suite PASS; baseline negative independently reproduced",
+      "review": "APPROVE",
+      "scope": "One test file only; module-scoped fake clocks; production unchanged",
+      "historical_cause": "Matching clock-interference failure path reproduced; exact hosted interleaving not traced"
+    },
+    "review": {
+      "decision": "APPROVE",
+      "findings": [],
+      "review_type": "Independent NONAUTHOR local review",
+      "requirement": "MJ-REQ-292",
+      "reviewed_commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
+      "base_commit": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "captured_utc": "2026-11-15T03:11:14.527590+00:00",
+      "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "python_version": "3.12.10",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "source_sha256": "0e42fa8ecf395dd9b0281bfc728cb172fa908dd2f3bee9f535699bf0ef25c3a8",
+      "author_receipt_sha256": "6d34760cf014878ec73f8caedc7cf50fd59ec325b7aabec56b42184b111e6abd",
+      "verified_author_artifacts": {
+        "diff-check.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frozen.patch": "9bd4aff1b735d3a82da36b4e94f41ee8273c4be7697d5686464d9ed42ef390c8",
+        "green-rate-neighbors.txt": "b7f12ab8cc59d1370fbd817e82c90e1796f25560bd3b06e08477b63862f0aa4b",
+        "red-clock-isolation.txt": "e0dffaa77f60c5ba0a148de1c3fb8a0b705199f15d0ab480248a733175bc47a1",
+        "tests-only-red.patch": "19b2bb085bed84a05a00d39d0a636e034f2e67f6c99d58dc80c92583fb75fb01"
+      },
+      "verified_diagnostic_script_sha256": "df34e0c5f6071ad87e8c42434d7c3bcee9a79f5d2f97d4b7f7ddff0cbb3ec08e",
+      "diagnostic_result_sha256": "637be1f255160b5cf9e6050ae5654221a72cdc563efb356b70ab7da78a1c3572",
+      "artifacts_sha256": {
+        "green-junit.xml": "a61ad3163e3b6c482f724740fa2c082fe82c3381703dd6c9153d287a82d84b1a",
+        "green.txt": "2b6395f034aec9ff766f699542bebe65a2f33174e91ac6f372f0951f8ae44c7a",
+        "record-review.py": "73d8af715ffaa18743845a04d2fb03672984e33c04141c2b0bb1b01aaff3c9d6",
+        "red-green-probe.json": "0485176c1ddd7f8ff0dcb42be88e4ee2521a82ed89f9b9bda5b0cff036b43b7c",
+        "red-green-probe.py": "9d547ad8dc7abfa99b1de891bbcb42e2d28cbd0624e65486f81946687ff4a96b",
+        "review.md": "f54def9aa07b163b44282bebd72075ac748a9c4d53f8ada9ed13638829b8c9db"
+      },
+      "checks": [
+        {
+          "command": "python -m pytest -q tests/unit/test_aggregator_bootstrap.py tests/unit/test_public_company_client.py tests/unit/test_public_company_response_cleanup.py tests/unit/test_company_fetch_policy.py --junitxml=outputs/mj292-rate-review-01a1dcec/green-junit.xml",
+          "exit_code": 0,
+          "result": "174 passed, 26 subtests passed in 2.24s",
+          "log": "green.txt"
+        },
+        {
+          "command": "python outputs/mj292-rate-review-01a1dcec/red-green-probe.py",
+          "exit_code": 0,
+          "result": "Expected isolated baseline RED then candidate GREEN; global time restored; no source edits",
+          "log": "red-green-probe.json"
+        },
+        {
+          "command": "git diff --check 4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a c65ca5183ac2719dc981ea7777eab13192a05616",
+          "exit_code": 0
+        },
+        {
+          "command": "python -m tools.verification.commit_provenance --commit c65ca5183ac2719dc981ea7777eab13192a05616",
+          "exit_code": 0
+        }
+      ],
+      "tracked_status": "",
+      "limits": [
+        "Exact historical hosted interference remains inferential",
+        "No production limits or acceptance promoted",
+        "Full local unit, hosted candidate rerun, live network/provider and stack NOT_RUN"
+      ]
+    },
+    "review_receipt_sha256": "f460309940c04fd57b690cfc864869642af7299c04c90112d1df0f9a7376401e",
+    "composed_tests": {
+      "head": "4b7a0b19de9fad7a134328d44f4a27d20da2b7a7",
+      "started_utc": "2026-11-15T03:11:48.572484+00:00",
+      "checks": [
+        {
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/unit/test_acceptance_ledger.py",
+            "tests/unit/test_acceptance_journey.py",
+            "tests/unit/test_acceptance_monitoring.py",
+            "tests/unit/test_compose_recovery.py",
+            "tests/unit/test_compose_recovery_target.py",
+            "tests/unit/test_cli_operation_progress.py",
+            "tests/unit/test_operation_progress.py",
+            "tests/unit/test_arbeitnow_source.py",
+            "tests/unit/test_arbeitnow_provenance.py",
+            "tests/integration/test_acceptance_monitoring_read_consistency.py",
+            "tests/integration/test_fixture_monitoring_worker_recovery.py",
+            "tests/unit/test_aggregator_bootstrap.py",
+            "tests/unit/test_public_company_client.py",
+            "tests/unit/test_public_company_response_cleanup.py",
+            "tests/unit/test_company_fetch_policy.py"
+          ],
+          "exit_code": 0,
+          "log": "composed-rate-tests.txt",
+          "sha256": "454a9064b8de26cbeeb6272870611c99534e3fb621bd940f26a7d22d3c1c8f0a"
+        },
+        {
+          "command": [
+            "git",
+            "diff",
+            "--check",
+            "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "final-diff.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.commit_provenance",
+            "--commit",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "final-provenance.txt",
+          "sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657"
+        }
+      ],
+      "ended_utc": "2026-11-15T03:12:27.148072+00:00"
+    },
+    "composed_receipt_sha256": "161cc31d34d5ee2159635c4f241f1908fa4f0c3f24bd4c5dfb2b24b22d059fd7",
+    "latest_candidate_hosted": "NOT_RUN at recording; previous failures preserved",
+    "composition": "Exact test fix blobs retained; all executable files identical to independently reviewed c65ca518; only handoff differs"
   }
 }
