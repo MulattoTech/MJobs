@@ -96,15 +96,17 @@ class TestedRecruits:
                 rate_limit=self.rate_limit,
                 concurrency=self.concurrency,
             )
-            with PublicCompanyClient(
+            client = PublicCompanyClient(
                 self.endpoint, check=self.check,
                 total_timeout=min(90, max(2, self.request_timeout * 2)),
                 policy=policy,
-            ) as client:
-                try:
-                    response = client.get(self.endpoint)
-                except PublicFetchError as error:
-                    raise SourceError(error.code) from None
+            )
+            try:
+                response = client.get(self.endpoint)
+            except PublicFetchError as error:
+                raise SourceError(error.code) from None
+            finally:
+                client.close()
             if response.history:
                 raise SourceError("SOURCE_REDIRECT_BLOCKED")
             content_type = response.headers.get("content-type", "").lower()
@@ -116,8 +118,6 @@ class TestedRecruits:
             if not content.rstrip().lower().endswith(b"</html>"):
                 raise SourceError("SOURCE_TRUNCATED")
             self.check()
-            with self._status_lock:
-                self.status = "HEALTHY"
             return content
 
         # Injected transports are for deterministic tests only. Production
@@ -235,9 +235,11 @@ class TestedRecruits:
             raise SourceError("SOURCE_JOB_LIMIT")
 
         title = soup.title.get_text(" ", strip=True) if soup.title else ""
-        company_name = re.sub(r"\s+Jobs\s*&\s*Careers\s*$", "", _plain_text(title, 200), flags=re.I).strip()
-        if not company_name:
-            company_name = self.slug.replace("-", " ").title()
+        title = _plain_text(title, 200)
+        company_match = re.fullmatch(r"(.+?)\s+Jobs\s*&\s*Careers", title, re.I)
+        if not company_match or not company_match.group(1).strip():
+            raise SourceError("SOURCE_INVALID_FORMAT")
+        company_name = company_match.group(1).strip()
         # The vendor company number is the stable identity; its routing slug
         # may change without changing the employer account.
         company = SourceCompany(("testedrecruits", self.company_number), company_name, "")
