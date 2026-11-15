@@ -6,7 +6,7 @@
   "branch": "ao/discord-notifications/slack-provider",
   "head_sha": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
   "routing_state": "VERIFY",
-  "next_action": "Run publication candidate preflight, publish one focused PR if allowed, then yield for sequential review coordination; do not merge",
+  "next_action": "Repeat candidate preflight on the checkpoint-complete head, publish one focused PR if allowed, then yield for sequential review coordination; do not merge",
   "created_at": "2026-11-15T20:58:21Z",
   "requirements": ["MJ-REQ-204.N04"],
   "dependency": {
@@ -87,8 +87,15 @@
       "development_open": 59,
       "dependency_open": 2,
       "capacity_behavior": "warn",
-      "preflight": "inventory passed; candidate-specific preflight pending",
-      "known_queue_condition": "WARNING at configured capacity; conflicts are unknown for open PRs without reviewed metadata"
+      "candidate_preflight": {
+        "evaluated_head": "beaa545d201cbe0d02861207e45b8fb9b8fd5bf7",
+        "result": "ALLOWED_WITH_WARNING",
+        "projected_development_open": 60,
+        "capacity_behavior": "warn",
+        "conflicts": "unknown for 59 open PRs without reviewed metadata",
+        "ci": "NOT_QUERIED"
+      },
+      "known_queue_condition": "WARNING: open development PR count is 59 against 32 capacity threshold; conflicts remain unknown without reviewed metadata"
     }
   },
   "acceptance": {
