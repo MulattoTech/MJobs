@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-292",
+  "issue": 293,
+  "pr": 973,
+  "state": "DRAFT_PARTIAL",
+  "recorded_at_utc": "2026-11-15T02:52:45.677929+00:00",
+  "baseline_pr_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+  "main_sha": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+  "implementation_sha": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+  "composed_tested_sha": "a544104cd0fc436f17704fb79c310b1919a85a97",
+  "merged_sha": null,
+  "behavior": [
+    "Use actual acceptance_journey.monitoring_recovery_baseline helper, not nonexistent monitoring member",
+    "Admit genuine terminal failed-segment evidence without relabeling unchanged numbered rows; reject forged PARTIAL/PASS and invalid state/category/order/timestamps",
+    "Validate preparation-bound monitoring baseline for completed recovery prefix after monitor_after failure"
+  ],
+  "review": {
+    "requirement": "MJ-REQ-292",
+    "milestone": "M1 verifier integrity",
+    "decision": "APPROVE",
+    "review_type": "Independent NONAUTHOR local review",
+    "findings": [],
+    "reviewed_commit": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+    "base_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "captured_at_utc": "2026-11-15T02:47:03.268373+00:00",
+    "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "python_version": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "source_sha256": {
+      "tools/verification/acceptance_ledger.py": "fd113fdac5c5bcc83a64543589979bb2a7154435a6f946fb36baca7a370c8016",
+      "tests/unit/test_acceptance_ledger.py": "7c4821fdbe5082eb3fa959c15a22194794b04c3d1dec8087c5fc51baae0cc54d"
+    },
+    "artifacts_sha256": {
+      "green-junit.xml": "d286c02fbdb13c73d85efd30173ce259b39390ac7e1e71b15099c181cd5768c8",
+      "green.txt": "1238ef0968871695b636940ba432b8d4be1277994d86765a1946ec874753e3e1",
+      "independent-probes.json": "f70a9438053fd396c31d1c893aa2d76b6f7fbf3a4dbae75aa96ae1bdbeb11032",
+      "independent-probes.py": "080e8d740742009e08dde647e95fec16a77f7e2d35f3d3d44213cb8c195c3b3f",
+      "record-review.py": "55f3d862a437b5398dc4574209880ea5642af19e9ba80b0ef88c1e930d4b6e64",
+      "red.txt": "bbf92e2efbb37788ed62b20efdf6fd0cee3eb8fb4147390745dae5b9b6d87a80",
+      "review.md": "4ad4350539d556510b43cb0e9bd2381ac9705e75b9b9f8756839d6aa629201dc"
+    },
+    "baseline_patch_sha256": "8baf869ea86fc13298a2ad3c83ff213f99d1738c5cd962d0e1e868e40153d172",
+    "checks": [
+      {
+        "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py tests/unit/test_acceptance_journey.py tests/unit/test_acceptance_monitoring.py tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py --junitxml=outputs/mj292-review-01a1dcec/green-junit.xml",
+        "exit_code": 0,
+        "result": "551 passed, 64 subtests passed in 12.51s",
+        "output": "green.txt"
+      },
+      {
+        "command": "python outputs/mj292-review-01a1dcec/independent-probes.py",
+        "exit_code": 0,
+        "result": "18 negative controls rejected",
+        "output": "independent-probes.json"
+      },
+      {
+        "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py -k 'real_monitoring_baseline or real_producer_failure'",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-review-red-01a1dcec/MJobs",
+        "exit_code": 1,
+        "result": "3 failed, 124 deselected in 2.57s",
+        "output": "red.txt",
+        "expected": "RED baseline production unchanged"
+      },
+      {
+        "command": "git diff --check 3605e2c96e87467312bd32711a12af7579fb9fcf ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+        "exit_code": 0
+      },
+      {
+        "command": "python -m tools.verification.commit_provenance --commit ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+        "exit_code": 0,
+        "result": "provenance complete for 2 source files"
+      }
+    ],
+    "tracked_status": "",
+    "scope_limits": [
+      "offline verifier patch only",
+      "intersegment fail without active segment rejected diagnostic evidence",
+      "third edge baseline RED not independently isolated",
+      "full unit/services/browser/provider/connected60/hosted gates/merge readiness NOT_RUN"
+    ]
+  },
+  "composed_validation": {
+    "head": "a544104cd0fc436f17704fb79c310b1919a85a97",
+    "started_utc": "2026-11-15T02:50:52.189443+00:00",
+    "checks": [
+      {
+        "name": "composed-tests",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/unit/test_acceptance_ledger.py",
+          "tests/unit/test_acceptance_journey.py",
+          "tests/unit/test_acceptance_monitoring.py",
+          "tests/unit/test_compose_recovery.py",
+          "tests/unit/test_compose_recovery_target.py",
+          "tests/unit/test_cli_operation_progress.py",
+          "tests/unit/test_operation_progress.py",
+          "tests/unit/test_arbeitnow_source.py",
+          "tests/unit/test_arbeitnow_provenance.py",
+          "tests/integration/test_acceptance_monitoring_read_consistency.py",
+          "tests/integration/test_fixture_monitoring_worker_recovery.py"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\composed-tests.txt",
+        "sha256": "bb15357915b876e0d663f1b48c5cc26cb274d85cc185d62933a89f8536d825ee"
+      },
+      {
+        "name": "catalogue",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\catalogue.txt",
+        "sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "name": "progress",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\progress.txt",
+        "sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+      },
+      {
+        "name": "dashboard",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\dashboard.txt",
+        "sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4"
+      },
+      {
+        "name": "skills",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\skills.txt",
+        "sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      },
+      {
+        "name": "diff",
+        "command": [
+          "git",
+          "diff",
+          "--check",
+          "3605e2c96e87467312bd32711a12af7579fb9fcf",
+          "HEAD"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\diff.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "provenance",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.commit_provenance",
+          "--commit",
+          "HEAD"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\provenance.txt",
+        "sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657"
+      }
+    ],
+    "ended_utc": "2026-11-15T02:51:30.832357+00:00"
+  },
+  "composed_receipt_sha256": "966c0e5618aec440460e8d783a92c3eec81454ca635aaf2a4a0bc7029b5edbf0",
+  "public_prerequisite": {
+    "result": "BLOCKED_EXTERNAL",
+    "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "executed_at_utc": "2026-11-15T02:36:02Z",
+    "observed": "One production feed read each: WWR100/Remotive16 rows; first two distinct companies unchanged; no direct Greenhouse hint; no candidate-page fetch",
+    "receipt_sha256": "7fc6caa4f3534a3bc1eafcac686d0ca9399006a6b6456b39d05be0f26fb50270",
+    "limit": "Fresh-empty-profile selection assumption only; existing-profile database state not read. Prior gated-page evidence remains historical. No connected acceptance."
+  },
+  "recovery_component": {
+    "result": "PASS",
+    "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -v -p no:cacheprovider tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py tests/unit/test_persisted_job_inventory_recovery.py tests/unit/test_acceptance_monitoring.py tests/integration/test_acceptance_monitoring_read_consistency.py tests/integration/test_fixture_monitoring_worker_recovery.py",
+    "exit_code": 0,
+    "observed": "61 tests and77subtests passed;0skips",
+    "log_sha256": "0c455d765de9090f492b47595bc32ed4581aee8232c25cf5bcd69fe302aae7b1",
+    "limit": "SQLite/ephemeral loopback mock-ats FIXTURE; no actual Compose restart/PostgreSQL/Redis/RQ/browser/public-company resumption",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+    }
+  },
+  "acceptance_delta": {
+    "promoted_steps": [],
+    "verified_pass": 0,
+    "partial": 53,
+    "not_run": 7
+  },
+  "limits": [
+    "No numbered acceptance promoted; canonical MJ292 ledger unchanged",
+    "No actual local stack restart or natural RQ/scheduler resumption; foreign10service stack preserved",
+    "No public same-employer chain or employer submission",
+    "Hosted checks on new candidate NOT_RUN at recording; previous head success does not transfer",
+    "No merge, deployment, release readiness, or same-merged-SHA acceptance claimed",
+    "Intersegment failures without active_segment remain rejected diagnostic evidence"
+  ],
+  "rollback": "Preserve3605e2c9/ed046f93/a544104c and raw ignored receipts. Revert reviewed two-file source commit through normal protected PR if needed; no reset/force push. No data/schema/runtime mutations.",
+  "composition_review": {
+    "decision": "APPROVE",
+    "source": "a544104cd0fc436f17704fb79c310b1919a85a97",
+    "receipt_sha256": "a5e333a6f97759a6ab973a26fbff72d1536e1e418cf14336335b24ee553a94d6",
+    "metadata_review_sha256": "50040207bd53150f724cb14b412d1a45734157cca44afd3ea1e3c8ee5095894d",
+    "limits": [
+      "No test suite rerun by composition reviewer; exact-head integrator receipt logs and hashes verified",
+      "M1 independent tests remain attached to M1 source; exact M1 blobs retained",
+      "No MJ-REQ-292 acceptance promotion; incoming main Arbeitnow017.F07 PASS preserved",
+      "No connected campaign, hosted gate or merge readiness certification"
+    ]
+  }
+}

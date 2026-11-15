@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex MJ292 integration 01a1dcec",
   "branch": "codex/mj292-integration-01a1dcec",
-  "head_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+  "head_sha": "a544104cd0fc436f17704fb79c310b1919a85a97",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Compose reviewed ed046f93 and current main80eec0ba in owned integration branch; retest exact candidate; bounded draft PR973 update.",
+  "next_action": "Finish nonauthor composition review; normal nonforce draft PR973 update after live preflight; inspect exact-head hosted checks. Public-chain and local heavy-runtime gates remain blocked.",
   "created_at": "2026-11-15T02:33:09.947499+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -446,7 +446,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-14T19:50:32.304275+00:00",
+  "updated_at_utc": "2026-11-15T02:52:45.675928+00:00",
   "acceptance_note": "Canonical acceptance remains0 VERIFIED PASS /53 PARTIAL /7 NOT_RUN. Reviewed implementation repairs at40be0537 have controlled component evidence only; no new live journey or numbered acceptance promotion.",
   "integration_authority": {
     "owner": "codex:integration-01a1da02-20261114",
@@ -1134,7 +1134,7 @@
   "execution_01a1dcec": {
     "started_at_utc": "2026-11-15T02:30:43Z",
     "deadline_utc": "2026-11-15T06:30:43Z",
-    "milestone": "M1_REVIEW_APPROVED_M2_COMPOSITION",
+    "milestone": "M2_REVIEW_APPROVED_PUBLICATION_READY",
     "base_main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
     "pr_head": "3605e2c96e87467312bd32711a12af7579fb9fcf",
     "integration_claim": "codex:mj292-integration-01a1dcec",
@@ -1318,6 +1318,130 @@
         "intersegment fail without active segment rejected diagnostic evidence",
         "third edge baseline RED not independently isolated",
         "full unit/services/browser/provider/connected60/hosted gates/merge readiness NOT_RUN"
+      ]
+    },
+    "composed_source_sha": "a544104cd0fc436f17704fb79c310b1919a85a97",
+    "composed_checks": {
+      "head": "a544104cd0fc436f17704fb79c310b1919a85a97",
+      "started_utc": "2026-11-15T02:50:52.189443+00:00",
+      "checks": [
+        {
+          "name": "composed-tests",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/unit/test_acceptance_ledger.py",
+            "tests/unit/test_acceptance_journey.py",
+            "tests/unit/test_acceptance_monitoring.py",
+            "tests/unit/test_compose_recovery.py",
+            "tests/unit/test_compose_recovery_target.py",
+            "tests/unit/test_cli_operation_progress.py",
+            "tests/unit/test_operation_progress.py",
+            "tests/unit/test_arbeitnow_source.py",
+            "tests/unit/test_arbeitnow_provenance.py",
+            "tests/integration/test_acceptance_monitoring_read_consistency.py",
+            "tests/integration/test_fixture_monitoring_worker_recovery.py"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\composed-tests.txt",
+          "sha256": "bb15357915b876e0d663f1b48c5cc26cb274d85cc185d62933a89f8536d825ee"
+        },
+        {
+          "name": "catalogue",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.catalogue"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\catalogue.txt",
+          "sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+        },
+        {
+          "name": "progress",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.progress",
+            "validate"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\progress.txt",
+          "sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+        },
+        {
+          "name": "dashboard",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.progress_dashboard",
+            "--check"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\dashboard.txt",
+          "sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4"
+        },
+        {
+          "name": "skills",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.agent_skills"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\skills.txt",
+          "sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+        },
+        {
+          "name": "diff",
+          "command": [
+            "git",
+            "diff",
+            "--check",
+            "3605e2c96e87467312bd32711a12af7579fb9fcf",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\diff.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "provenance",
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.commit_provenance",
+            "--commit",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "outputs\\mj292-integration-01a1dcec\\provenance.txt",
+          "sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657"
+        }
+      ],
+      "ended_utc": "2026-11-15T02:51:30.832357+00:00"
+    },
+    "composed_receipt_sha256": "966c0e5618aec440460e8d783a92c3eec81454ca635aaf2a4a0bc7029b5edbf0",
+    "merged_sha": null,
+    "hosted_checks": "NOT_RUN on new candidate; prior head checks historical",
+    "acceptance_delta": {
+      "promoted_steps": [],
+      "verified_pass": 0,
+      "partial": 53,
+      "not_run": 7
+    },
+    "composition_review": {
+      "decision": "APPROVE",
+      "source": "a544104cd0fc436f17704fb79c310b1919a85a97",
+      "receipt_sha256": "a5e333a6f97759a6ab973a26fbff72d1536e1e418cf14336335b24ee553a94d6",
+      "metadata_review_sha256": "50040207bd53150f724cb14b412d1a45734157cca44afd3ea1e3c8ee5095894d",
+      "limits": [
+        "No test suite rerun by composition reviewer; exact-head integrator receipt logs and hashes verified",
+        "M1 independent tests remain attached to M1 source; exact M1 blobs retained",
+        "No MJ-REQ-292 acceptance promotion; incoming main Arbeitnow017.F07 PASS preserved",
+        "No connected campaign, hosted gate or merge readiness certification"
       ]
     }
   }
