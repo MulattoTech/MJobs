@@ -7,7 +7,7 @@
   "issue": 316,
   "provider": "usajobs",
   "created_at_utc": "2026-11-13T05:52:58.517Z",
-  "last_updated_at_utc": "2026-11-13T09:10:40.294083+00:00",
+  "last_updated_at_utc": "2026-11-15T23:37:06Z",
   "prepared_by": "/root/campaign_review",
   "repository": "MulattoTech/MJobs",
   "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
@@ -34,7 +34,7 @@
     "required_hosted_checks": "NOT_RUN_FOR_FUTURE_METADATA_SUCCESSOR",
     "protected_integration": "NOT_RUN",
     "deployment": "NOT_RUN",
-    "formal_acceptance": "NOT_RUN",
+    "formal_acceptance": "PASS_SCOPED_ISSUE_316_CRITERIA; publication, hosted checks, protected integration and deployment remain separate pending gates",
     "canonical_requirement_index_status": "NOT_RUN",
     "acceptance_promoted": false,
     "native_repository_integrity": "PASS_AT_163db72d",
@@ -2383,6 +2383,80 @@
       "existing_pr": 1022,
       "observed_published_predecessor": "36c72a5386a1fb43818311d6d863256e2209dcaf",
       "fresh_api_requery_before_publication": "REQUIRED"
+    }
+  },
+  "candidate_qualification": {
+    "assessment_at_utc": "2026-11-15T23:37:06Z",
+    "issue": 316,
+    "requirement_id": "MJ-REQ-017.F06",
+    "scoped_issue_acceptance": "PASS",
+    "candidate_head": "e58d3d200391f18ce9c253cfecdf781a7acbf03d",
+    "candidate_tree": "f281993138f430f96be54a62069b12733eee0f08",
+    "candidate_main_base": "1c1884e8cf69bb189ebd6bd725ed0a42ece0aab8",
+    "candidate_merge_head": "e58d3d200391f18ce9c253cfecdf781a7acbf03d",
+    "candidate_merge_tree": "f281993138f430f96be54a62069b12733eee0f08",
+    "source_test_merge_head": "a1bfd71c25e0b7f0ee32f82b18e89242b0004d14",
+    "source_test_merge_tree": "a92e29160d40f5c660e8083cd3bb846d9c72797d",
+    "source_equivalence": {
+      "comparison": "Resolved candidate index/worktree blobs at e58d3d2 compared to exact earlier tested merge a1bfd71c; no relevant F06 source/test/UI changes were present in the later Email-only merge.",
+      "live_adapter_inputs": {
+        "services/discovery/sources/usajobs.py": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd"
+      },
+      "executed_test_inputs": {
+        "tests/unit/test_usajobs_source.py": "95fd3f1fc9fc313a69ade7d5d530e3cbb84e50eb",
+        "tests/integration/test_usajobs.py": "fa7e9618a2fe904f0bd9441813b39b332b47ac1e",
+        "tests/unit/test_usajobs_provenance.py": "e903b53e2071e7ef23adfb34ff6592cbb8dd7927",
+        "tests/unit/test_source_adapter_contract_223.py": "d538c593428af7cc4e3143ba4c256d2a3f63d648",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "services/discovery/sources/registry.py": "e879d2c625499798774fd2f9b089ab1b879f9fb5",
+        "apps/web/src/main.tsx": "04d958241e45d2440af2141a5a7e6a4ba14b817d",
+        "tests/browser/test_usajobs_source_enrollment.py": "75f1be2e61f2539e03a132fdeeb633c8a7c93c5d"
+      },
+      "adapter_and_transport_equal_live_tested_e9594dd8": true,
+      "all_listed_test_inputs_equal_executed_a1bfd71c": true
+    },
+    "issue_316_acceptance": [
+      {
+        "criterion": "Declare exact capabilities supported rather than implying unsupported behavior.",
+        "result": "PASS",
+        "evidence": "Provider declares DISCOVERY and APPLICATION_REDIRECT only. docs/sources/USAJOBS.md defines the seven-day series-2210/25-item scope, constructed manual-only routes, and excluded capabilities."
+      },
+      {
+        "criterion": "Add deterministic fixtures/contract tests.",
+        "result": "PASS",
+        "evidence": "Fictional metadata/text fixtures and deterministic unit, provenance, integration, and shared provider-contract tests. On a1bfd71c: 262 passed, 59 subtests passed, 4 skipped; the exact listed inputs are unchanged at e58d3d2."
+      },
+      {
+        "criterion": "Perform bounded live read-only validation where appropriate and safe.",
+        "result": "PASS_DATED_OBSERVATION",
+        "evidence": "Existing 2026-11-13 bounded production-adapter receipt at e9594dd8: one search, at most two fixed-origin API GETs, 20-second per-request ceiling, one concurrency, 5 MB/1000-row response caps, 25 selected items; both adapter and verified-TLS transport blobs match the candidate. No new live request was made in this batch and the observation is not called fresh/current."
+      },
+      {
+        "criterion": "Record limitations and last-tested evidence.",
+        "result": "PASS",
+        "evidence": "docs/sources/USAJOBS.md and this evidence retain request bounds, dated source observation, pass/failure history, test revisions, unsupported capabilities, incomplete inventory, manual-only route limits, and non-claims."
+      },
+      {
+        "criterion": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+        "result": "PASS",
+        "evidence": "Fixed documented public endpoints only; verified TLS; redirects and environment proxies disabled; no CAPTCHA, access-control, anti-bot, retry, or alternate-endpoint circumvention."
+      }
+    ],
+    "executed_verification": {
+      "backend_command": "python -m pytest -q tests/unit/test_usajobs_source.py tests/integration/test_usajobs.py tests/unit/test_usajobs_provenance.py tests/unit/test_source_adapter_contract_223.py tests/unit/test_company_source_capabilities.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_extension_point_contracts.py tests/integration/test_company_source_view.py",
+      "backend_result": "262 passed, 59 subtests passed, 4 skipped; executed on a1bfd71c; all listed F06 inputs equal candidate e58d3d2.",
+      "build_result": "PASS; npm --prefix apps/web run build at a1bfd71c; candidate app/web source inputs unchanged at e58d3d2.",
+      "vitest_result": "PASS; npm --prefix apps/web test: 164 files, 1261 tests passed at a1bfd71c; candidate frontend/test inputs unchanged at e58d3d2.",
+      "browser_result": "PASS; tests/browser/test_usajobs_source_enrollment.py: 1 passed using installed local Chrome at a1bfd71c; isolated local fixtures, no external application action; browser input unchanged at e58d3d2.",
+      "scope_note": "These are exact a1bfd71c execution receipts bound to e58d3d2 by listed blob equality; no test is represented as freshly rerun at the later merge commit."
+    },
+    "separate_gates": {
+      "hosted_checks_on_updated_pr_head": "NOT_RUN",
+      "protected_integration_of_pr1022": "PENDING",
+      "deployment": "NOT_RUN",
+      "parent_requirement_MJ_REQ_017": "PARTIAL_UNCHANGED",
+      "reference_gap_matrix": "UNCHANGED"
     }
   }
 }

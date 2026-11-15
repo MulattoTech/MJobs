@@ -706,7 +706,7 @@
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-017.F07",
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 86,
-    "PASS": 206,
-    "NOT_RUN": 133
+    "PASS": 207,
+    "NOT_RUN": 132
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

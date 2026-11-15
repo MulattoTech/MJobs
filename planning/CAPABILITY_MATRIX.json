@@ -3933,9 +3933,11 @@
     },
     {
       "requirement_id": "MJ-REQ-017.F06",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-usajobs-source.json"
+      ],
+      "note": "Issue #316 scoped acceptance PASS at candidate source tree f2819931: exact DISCOVERY and manual-only APPLICATION_REDIRECT capabilities; deterministic fixtures/contracts; bounded read-only public API observation at e9594dd8 with unchanged adapter and verified-TLS transport blobs; limitations and dated evidence recorded; no anti-bot or access-control circumvention. The post-email-merge candidate inherits the executed F06 backend/UI checks by exact relevant input-blob equivalence to a1bfd71c. Hosted checks, protected integration, deployment, and parent MJ-REQ-017 completion remain separate and unclaimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
