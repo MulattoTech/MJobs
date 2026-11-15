@@ -37,6 +37,9 @@ FIXTURES = {
     'remoteok': {'id': 101, 'position': 'Platform Engineer', 'description': DESCRIPTION,
                  'company': 'Acme', 'date': POSTED,
                  'url': 'https://remoteok.com/remote-jobs/platform-engineer-101'},
+    'testedrecruits': {'id': '101', 'title': 'Platform Engineer',
+                       'description': 'Build Python systems.',
+                       'posting_url': 'https://app.testedrecruits.com/posting/101'},
     'wwr': {'title': 'Acme: Platform Engineer', 'description': DESCRIPTION,
             'pubDate': 'Tue, 20 Oct 2026 12:00:00 +0000',
             'guid': 'https://weworkremotely.com/remote-jobs/acme-platform-engineer',
@@ -48,6 +51,7 @@ MINIMAL_FIELDS = {
     'lever': ('id', 'text', 'hostedUrl'),
     'remotive': ('id', 'title'),
     'remoteok': ('id', 'position'),
+    'testedrecruits': ('id', 'title'),
     'wwr': ('title', 'guid'),
 }
 
@@ -64,6 +68,14 @@ def adapter(provider, requests):
             payload = {'jobs': [raw]} if request.url.path.endswith('/jobs') else {'name': 'Acme'}
         elif provider == 'remotive':
             payload = {'jobs': [raw]}
+        elif provider == 'testedrecruits':
+            body = '''<html><head><title>Acme Jobs &amp; Careers</title></head><body>
+              <p>Current Job Postings: 1</p><table><tr>
+              <td class="job-title"><a href="https://app.testedrecruits.com/posting/101">Platform Engineer</a></td>
+              <td class="job-description">Build Python systems.</td>
+              <td class="job-apply-btn"><a href="https://app.testedrecruits.com/posting/101">Apply</a></td>
+              </tr></table></body></html>'''
+            return httpx.Response(200, content=body, headers={'content-type': 'text/html'})
         elif provider in {'lever', 'remoteok'}:
             payload = [raw]
         else:
@@ -73,6 +85,7 @@ def adapter(provider, requests):
         return httpx.Response(200, json=payload)
 
     tenant = ('default' if provider == 'arbeitnow' else
+              '7/acme-company' if provider == 'testedrecruits' else
               'global:acme' if provider == 'lever' else 'acme')
     return source_adapter({'provider': provider, 'tenant': tenant},
                           transport=httpx.MockTransport(respond))
@@ -105,7 +118,7 @@ def test_source_search_returns_stable_jobs_and_valid_normalized_fields(provider)
         assert url.username is None and url.password is None
         assert job['attributes']['provider'] == provider
         posted = job['attributes']['reported_posted_at']
-        if provider == 'lever':
+        if provider in {'lever', 'testedrecruits'}:
             # This public inventory has no posting timestamp; do not invent one.
             assert posted is None
         else:
