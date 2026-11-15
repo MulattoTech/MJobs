@@ -317,17 +317,6 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                 raise ValueError("synthetic monitoring row is not a named positive observation")
         return rows
 
-    class MonitoringModule:
-        @staticmethod
-        def monitoring_recovery_baseline(original, preparation, preparation_sha):
-            updated = deepcopy(original)
-            updated["monitoring_preparation"] = {
-                "artifact": "monitor_prepare.json", "artifact_sha256": preparation_sha,
-                "monitoring_binding": preparation["monitoring_binding"],
-                "refresh_operation": preparation["refresh_operation"],
-                "refresh_receipt": preparation["refresh_receipt"]}
-            return updated
-
     monkeypatch.setattr(journey, "validate_runtime_identity", validate_runtime_identity, raising=False)
     monkeypatch.setattr(journey, "validate_stage_lineage", validate_stage_lineage, raising=False)
     monkeypatch.setattr(journey, "validate_monitoring_result", validate_monitoring_result, raising=False)
@@ -336,7 +325,6 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     monkeypatch.setattr(journey, "validate_public_artifact", lambda *_args, **_kwargs: True,
                         raising=False)
     monkeypatch.setattr(journey, "numbered_observations", numbered_observations)
-    monkeypatch.setattr(journey, "_monitoring_module", lambda: MonitoringModule(), raising=False)
 
     source = {"commit": "a" * 40, "tree": "b" * 40,
               "working_tree_diff_sha256": hashlib.sha256(b"").hexdigest(),
@@ -604,6 +592,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         "origin": "fixture", "search_fingerprint": "a" * 64, "revision": 1,
         "enabled": True, "poll_interval": 300, "external_submission_enabled": False,
         "next_due": "2026-01-01T00:30:00+00:00",
+        "operation_id": "refresh-1", "completed_operation_id": "refresh-1",
     }
     refresh_operation = {"id": "refresh-1", "state": "COMPLETED", "attempt_count": 1,
                         "started_at": "2026-01-01T00:01:00+00:00",
@@ -686,6 +675,16 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                 }
             else:
                 payload = {**monitor_payload, "stage": "after_restart", "stage_result": "PASS",
+                           "timestamp": "2026-01-01T00:32:00+00:00",
+                           "monitoring_binding": {**monitoring_binding,
+                               "operation_id": "refresh-2", "completed_operation_id": "refresh-2",
+                               "next_due": "2026-01-01T01:00:00+00:00"},
+                           "refresh_operation": {"id": "refresh-2", "state": "COMPLETED", "attempt_count": 1,
+                               "started_at": "2026-01-01T00:30:00+00:00",
+                               "completed_at": "2026-01-01T00:31:00+00:00",
+                               "params": {"predecessor_operation_id": "refresh-1",
+                                          "scheduled_for": monitoring_binding["next_due"]}},
+                           "refresh_receipt": {**refresh_receipt, "operation_id": "refresh-2"},
                            "baseline_sha256": journey.digest(monitoring_source_baseline),
                            "preparation_sha256": journey.digest(preparation_payload),
                            "recovery_evidence_sha256": "pending",
@@ -1014,6 +1013,205 @@ def test_umbrella_pass_claim_fails_without_all_steps_and_separate_review_merge(t
     assert any("cannot be certified by structural validation" in error for error in report.errors)
 
 
+def replace_runtime_report(root, data, report):
+    """Keep outer byte bindings coherent while testing report semantics."""
+    path = root / data["journey_report"]["artifact"]
+    report_sha, _ = _write_json_lf(path, report)
+    data["journey_report"]["sha256"] = report_sha
+    review_path = path.parent / "review.json"
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    review["evidence_sha256"] = report_sha
+    review_sha, _ = _write_json_lf(review_path, review)
+    for step in data["steps"]:
+        if step["status"] == "PASS":
+            step["review"]["evidence_sha256"] = review_sha
+
+
+def failed_runtime_proof(root, data, monkeypatch, error, *, begin_segment=True):
+    from cli import acceptance_journey as journey
+
+    build_runtime_proof(root, data, [2], monkeypatch)
+    path = root / data["journey_report"]["artifact"]
+    template = json.loads(path.read_text(encoding="utf-8"))
+    checkpoint = journey.JourneyCheckpoint.create(
+        path, template["run_id"], template["source"], template["target"])
+    checkpoint.binding.update(started_at_utc=template["started_at_utc"],
+                              runtime=template["runtime"], frontend_build=template["frontend_build"])
+    checkpoint.begin("ui")
+    checkpoint.complete_segment("ui", json.loads((path.parent / "ui.json").read_text(encoding="utf-8")),
+                                template["segments"]["ui"]["sha256"])
+    completed_rows = deepcopy(checkpoint.binding["steps"])
+    if begin_segment:
+        checkpoint.begin("recovery")
+    checkpoint.fail(error)
+    report = json.loads(path.read_text(encoding="utf-8"))
+    assert report["steps"] == completed_rows
+    assert report["scoreboard"]["FAIL"] == 0
+    data["steps"][1]["verification"]["command"] = report["steps"][1]["verification"]["command"]
+    replace_runtime_report(root, data, report)
+    return report
+
+
+@pytest.mark.parametrize("error", [RuntimeError("private diagnostic"), KeyboardInterrupt()])
+def test_runtime_evidence_retains_completed_rows_after_real_producer_failure(tmp_path, monkeypatch, error):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    report = failed_runtime_proof(root, data, monkeypatch, error)
+    assert report["result"] == "FAIL"
+    assert report["segments"]["recovery"]["status"] == (
+        "INTERRUPTED" if isinstance(error, KeyboardInterrupt) else "FAIL")
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors == []
+    assert verified.runtime_evidence_validated is True
+    assert verified.counts["PASS"] == 1
+    assert verified.umbrella_result == "PARTIAL"
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda report: report.pop("failure"),
+    lambda report: report.update(failure={"category": "UNKNOWN"}),
+    lambda report: report.update(failure={"category": "INTERRUPTED"}),
+    lambda report: report.update(failure={"category": "SEGMENT_FAILED", "detail": "invented"}),
+    lambda report: report.pop("active_segment"),
+    lambda report: report.update(active_segment="unknown"),
+    lambda report: report["segments"].update(unknown={"status": "FAIL"}),
+    lambda report: report["segments"]["recovery"].update(status="IN_PROGRESS"),
+    lambda report: report["segments"]["recovery"].update(status="COMPLETE"),
+    lambda report: report["segments"]["recovery"].update(artifact="recovery.json", sha256="a" * 64),
+    lambda report: report["segments"]["recovery"].pop("started_at_utc"),
+    lambda report: report["segments"]["recovery"].update(started_at_utc="invalid"),
+    lambda report: report.update(result="PARTIAL"),
+    lambda report: report["segments"]["ui"].update(status="FAIL"),
+])
+def test_runtime_evidence_rejects_incoherent_terminal_failure(tmp_path, monkeypatch, mutate):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    report = failed_runtime_proof(root, data, monkeypatch, RuntimeError())
+    mutate(report)
+    replace_runtime_report(root, data, report)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors
+    assert verified.runtime_evidence_validated is False
+
+
+def test_runtime_evidence_rejects_fabricated_failure_on_completed_producers(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55], monkeypatch)
+    path = root / data["journey_report"]["artifact"]
+    report = json.loads(path.read_text(encoding="utf-8"))
+    report.update(result="FAIL", failure={"category": "SEGMENT_FAILED"})
+    replace_runtime_report(root, data, report)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors
+    assert verified.runtime_evidence_validated is False
+
+
+def test_real_failure_between_segments_remains_unqualified(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    report = failed_runtime_proof(root, data, monkeypatch, RuntimeError(), begin_segment=False)
+    assert "active_segment" not in report
+    assert report["segments"]["recovery"] == {"status": "NOT_RUN"}
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert any("active-segment binding" in error for error in verified.errors)
+    assert verified.runtime_evidence_validated is False
+
+
+def test_failed_journey_cannot_receive_umbrella_pass(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    failed_runtime_proof(root, data, monkeypatch, RuntimeError())
+    data["umbrella_result"] = "PASS"
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert "umbrella PASS requires a complete PASS journey report" in verified.errors
+    assert verified.runtime_evidence_validated is False
+
+
+@pytest.mark.parametrize("state", ["FAIL", "INTERRUPTED", "IN_PROGRESS", "NOT_RUN"])
+def test_runtime_evidence_never_credits_failed_or_incomplete_producer(tmp_path, monkeypatch, state):
+    from cli import acceptance_journey as journey
+
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55], monkeypatch)
+    path = root / data["journey_report"]["artifact"]
+    report = json.loads(path.read_text(encoding="utf-8"))
+    report["segments"]["recovery"] = {"status": "NOT_RUN"}
+    checkpoint = journey.JourneyCheckpoint(path, report)
+    if state != "NOT_RUN":
+        checkpoint.begin("recovery")
+    if state in {"FAIL", "INTERRUPTED"}:
+        checkpoint.fail(KeyboardInterrupt() if state == "INTERRUPTED" else RuntimeError())
+    replace_runtime_report(root, data, checkpoint.payload())
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert any("lacks completed recovery producer evidence" in error for error in verified.errors)
+    assert verified.runtime_evidence_validated is False
+
+
+@pytest.mark.parametrize("corruption", [None, "preparation", "baseline"])
+def test_monitoring_failure_keeps_only_valid_completed_recovery_prefix_credit(tmp_path, monkeypatch, corruption):
+    from cli import acceptance_journey as journey
+
+    real_monitoring_validator = journey.validate_monitoring_result
+    real_numbered_observations = journey.numbered_observations
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55, 59, 60], monkeypatch)
+    monkeypatch.setattr(journey, "validate_monitoring_result", real_monitoring_validator)
+    monkeypatch.setattr(journey, "numbered_observations", real_numbered_observations)
+    path = root / data["journey_report"]["artifact"]
+    report = json.loads(path.read_text(encoding="utf-8"))
+    report["monitoring"] = True
+    report["segments"]["monitor_after"] = {"status": "NOT_RUN"}
+    for number in (59, 60):
+        report["steps"][number - 1] = {"number": number, "status": "NOT_RUN"}
+        data["steps"][number - 1] = make_ledger(root)["steps"][number - 1]
+    report["scoreboard"].update(observed_PASS=2, NOT_RUN=58)
+    data["scoreboard"].update(verified_pass=2, NOT_RUN=58)
+    checkpoint = journey.JourneyCheckpoint(path, report)
+    checkpoint.begin("monitor_after")
+    checkpoint.fail(RuntimeError())
+    report = checkpoint.payload()
+    if corruption == "preparation":
+        prep_path = path.parent / "monitor_prepare.json"
+        preparation = json.loads(prep_path.read_text(encoding="utf-8"))
+        preparation["refresh_receipt"]["operation_id"] = "unrelated-operation"
+        prep_sha, _ = _write_json_lf(prep_path, preparation)
+        report["segments"]["monitor_prepare"]["sha256"] = prep_sha
+    elif corruption == "baseline":
+        baseline_path = path.parent / "monitoring-baseline.json"
+        baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+        baseline["monitoring_preparation"]["artifact_sha256"] = "0" * 64
+        baseline_sha, _ = _write_json_lf(baseline_path, baseline)
+        report["monitoring_baseline"]["sha256"] = baseline_sha
+    replace_runtime_report(root, data, report)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    if corruption is None:
+        assert verified.errors == []
+        assert verified.runtime_evidence_validated is True
+        assert verified.counts["PASS"] == 2
+    else:
+        expected_error = ("journey monitor_prepare evidence is invalid" if corruption == "preparation"
+                          else "monitoring_baseline differs from preparation-bound readback")
+        assert any(expected_error in error for error in verified.errors), verified.errors
+        assert verified.runtime_evidence_validated is False
+
+
 def test_runtime_evidence_mode_joins_one_pass_to_report_segment_review_and_merge(tmp_path, monkeypatch):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
@@ -1027,6 +1225,33 @@ def test_runtime_evidence_mode_joins_one_pass_to_report_segment_review_and_merge
     assert verified.errors == []
     assert verified.runtime_evidence_validated is True
     assert verified.counts["PASS"] == 1
+
+
+def test_runtime_evidence_uses_real_monitoring_baseline_helper_and_validators(tmp_path, monkeypatch):
+    from cli import acceptance_journey as journey
+
+    real_monitoring_validator = journey.validate_monitoring_result
+    real_numbered_observations = journey.numbered_observations
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55, 59, 60], monkeypatch)
+    monkeypatch.setattr(journey, "validate_monitoring_result", real_monitoring_validator)
+    monkeypatch.setattr(journey, "numbered_observations", real_numbered_observations)
+    report_path = root / data["journey_report"]["artifact"]
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    original = json.loads((report_path.parent / "ui.json").read_text(encoding="utf-8"))
+    preparation = json.loads((report_path.parent / "monitor_prepare.json").read_text(encoding="utf-8"))
+    baseline = json.loads((report_path.parent / "monitoring-baseline.json").read_text(encoding="utf-8"))
+    assert baseline == journey.monitoring_recovery_baseline(
+        original, preparation, report["segments"]["monitor_prepare"]["sha256"])
+    # Import the real module: an invented method on a double must not hide the
+    # distinction between the journey's baseline join and monitoring producers.
+    assert journey._monitoring_module().__name__ == "cli.acceptance_monitoring"
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors == []
+    assert verified.runtime_evidence_validated is True
 
 
 def test_runtime_evidence_mode_can_validate_all_60_and_remove_permanent_pass_block(tmp_path, monkeypatch):
