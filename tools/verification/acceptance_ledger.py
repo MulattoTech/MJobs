@@ -483,6 +483,70 @@ def _validate_recovery_inventory(report: dict, ui_baseline: dict, recovery_artif
         errors.append(f"step 55 recovered inventory differs from the connected pre-restart inventory: {exc}")
 
 
+def _validate_journey_result(report: dict, counts: dict[str, int], segments: dict,
+                             errors: list[str]) -> None:
+    """Admit a terminal producer failure without changing completed row credit.
+
+    A failure label alone is not evidence of a failed segment. Require the exact
+    sanitized failure, active segment and connected execution order emitted by
+    JourneyCheckpoint.begin/fail. Legacy failures between segments lack that
+    binding and remain unqualified.
+    """
+    from cli import acceptance_journey as journey
+
+    allowed = {"COMPLETE", "NOT_RUN", "IN_PROGRESS", "FAIL", "INTERRUPTED"}
+    if any(not isinstance(row, dict) or not isinstance(row.get("status"), str)
+           or row["status"] not in allowed for row in segments.values()):
+        errors.append("journey report contains invalid producer segment states")
+        return
+    terminal = ("failure" in report or "active_segment" in report
+                or any(row["status"] in {"IN_PROGRESS", "FAIL", "INTERRUPTED"}
+                       for row in segments.values()))
+    if terminal:
+        failure = report.get("failure")
+        active = report.get("active_segment")
+        if (not isinstance(failure, dict) or set(failure) != {"category"}
+                or failure.get("category") not in ("SEGMENT_FAILED", "INTERRUPTED")
+                or not isinstance(active, str) or active not in segments):
+            errors.append("journey report failure lacks a valid sanitized active-segment binding")
+            return
+        expected_status = "INTERRUPTED" if failure["category"] == "INTERRUPTED" else "FAIL"
+        failed = segments[active]
+        if (set(failed) != {"status", "started_at_utc"}
+                or failed["status"] != expected_status
+                or not _utc_timestamp(failed.get("started_at_utc"))):
+            errors.append("journey report failure differs from its terminal producer segment")
+            return
+        if (_utc_timestamp(report.get("started_at_utc"))
+                and datetime.fromisoformat(failed["started_at_utc"].replace("Z", "+00:00"))
+                < datetime.fromisoformat(report["started_at_utc"].replace("Z", "+00:00"))):
+            errors.append("journey report failed segment predates its run")
+        provider, monitoring = report.get("public_source_provider"), report.get("monitoring", False)
+        if provider not in (None, "wwr", "remotive") or type(monitoring) is not bool:
+            errors.append("journey report failure has invalid producer options")
+            return
+        names = journey._segment_names(provider, monitoring)
+        if set(segments) != set(names):
+            errors.append("journey report failure lacks the exact configured producer segments")
+            return
+        position = names.index(active)
+        for index, name in enumerate(names):
+            row = segments[name]
+            if index < position:
+                if (set(row) != {"status", "artifact", "sha256"} or row["status"] != "COMPLETE"
+                        or row["artifact"] != JOURNEY_SEGMENT_ARTIFACTS[name]
+                        or not isinstance(row["sha256"], str) or not SHA256_RE.fullmatch(row["sha256"])):
+                    errors.append("journey report failure does not follow completed producer segments")
+            elif index > position and row != {"status": "NOT_RUN"}:
+                errors.append("journey report failure is followed by attempted producer segments")
+        expected = "FAIL"
+    else:
+        expected = ("FAIL" if counts["FAIL"] else
+                    "PASS" if counts["PASS"] == STEP_COUNT else "PARTIAL")
+    if report.get("result") != expected:
+        errors.append("journey report result differs from its numbered rows or validated producer failure")
+
+
 def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> bool:
     """Validate current producer bytes plus distinct offline review/merge receipts."""
     from cli import acceptance_journey as journey
@@ -611,10 +675,6 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
                            for status, count in report_counts.items()}
     if report.get("scoreboard") != expected_scoreboard:
         errors.append("journey report scoreboard differs from its numbered rows")
-    expected_result = ("FAIL" if report_counts["FAIL"] else
-                       "PASS" if report_counts["PASS"] == STEP_COUNT else "PARTIAL")
-    if report.get("result") != expected_result:
-        errors.append("journey report result differs from its numbered rows")
     if data.get("umbrella_result") == "PASS" and report.get("result") != "PASS":
         errors.append("umbrella PASS requires a complete PASS journey report")
 
@@ -625,6 +685,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
     if set(segments) - set(JOURNEY_SEGMENT_ARTIFACTS):
         errors.append("journey report contains unknown producer segments")
         return False
+    _validate_journey_result(report, report_counts, segments, errors)
     ui_ref = segments.get("ui")
     if not isinstance(ui_ref, dict) or ui_ref.get("status") != "COMPLETE":
         errors.append("journey report requires the completed connected UI baseline")
@@ -644,6 +705,11 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         relevant_segments.add("public_browser")
     relevant_segments.add("ui")
     if "monitor_after" in relevant_segments:
+        relevant_segments.add("monitor_prepare")
+    if "recovery" in relevant_segments and (report.get("monitoring") is True
+                                             or report.get("monitoring_baseline") is not None):
+        # A later monitoring failure does not erase the preparation-bound
+        # baseline used by an already completed recovery producer.
         relevant_segments.add("monitor_prepare")
     segments_to_load = {segment for segment in relevant_segments
                         if segment in JOURNEY_SEGMENT_ARTIFACTS}
@@ -809,7 +875,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             except (AttributeError, KeyError, TypeError, ValueError) as exc:
                 errors.append(f"journey derived recovery baseline is invalid: {exc}")
     recovery_baseline = derived_baseline or ui_baseline
-    if recovery_data is not None and "monitor_after" not in relevant_segments:
+    if recovery_data is not None and "monitor_prepare" not in relevant_segments:
         receipt = recovery_data[0]
         raw_loaded = _read_proof_json(
             root,
@@ -838,7 +904,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
                     "monitor_prepare", prep_data[0], monitoring_original, run_id)
             except (AttributeError, KeyError, TypeError, ValueError) as exc:
                 errors.append(f"journey monitor_prepare evidence is invalid: {exc}")
-        if "monitor_after" in relevant_segments:
+        if "monitor_after" in relevant_segments or recovery_data is not None:
             monitoring_baseline_loaded = _load_bundle_reference(
                 root, report_path, monitoring_baseline_ref,
                 "journey_report.monitoring_baseline", errors,
@@ -848,8 +914,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             if (monitoring_original is not None and monitoring_baseline is not None
                     and prep_data is not None):
                 try:
-                    monitoring = journey._monitoring_module()
-                    expected_baseline = monitoring.monitoring_recovery_baseline(
+                    expected_baseline = journey.monitoring_recovery_baseline(
                         monitoring_original, prep_data[0], prep_data[2])
                     if monitoring_baseline != expected_baseline:
                         errors.append("monitoring_baseline differs from preparation-bound readback")
