@@ -6,7 +6,7 @@
   "branch": "codex/mj292-integration-01a1dcec",
   "head_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Finish M1 strict verifier repair and nonauthor review; compose current main; one bounded PR973 draft update with exact-head checks. Public full-run prerequisites remain blocked.",
+  "next_action": "Compose reviewed ed046f93 and current main80eec0ba in owned integration branch; retest exact candidate; bounded draft PR973 update.",
   "created_at": "2026-11-15T02:33:09.947499+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -1134,7 +1134,7 @@
   "execution_01a1dcec": {
     "started_at_utc": "2026-11-15T02:30:43Z",
     "deadline_utc": "2026-11-15T06:30:43Z",
-    "milestone": "M1_RED_M3_BLOCKED_M4_COMPONENT_PASS",
+    "milestone": "M1_REVIEW_APPROVED_M2_COMPOSITION",
     "base_main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
     "pr_head": "3605e2c96e87467312bd32711a12af7579fb9fcf",
     "integration_claim": "codex:mj292-integration-01a1dcec",
@@ -1203,6 +1203,21 @@
         "reviewer": "Root receipt/source check",
         "deadline_utc": "2026-11-15T02:50:00Z",
         "output": "Exact command, UTC, counts, source/policy/hash manifest, original errors and candidate identity delta"
+      },
+      {
+        "id": "verifier_review",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "source": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+        "base": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-review-01a1dcec/MJobs",
+        "permitted": "Read-only source; ignored review receipts and disposable baseline snapshot for tests only",
+        "oracle": "Independent expected RED reproduction and GREEN targeted tests; false PASS, invalid failure/segment metadata and corrupted monitored baseline rejected",
+        "dependency": "Implementer frozen/clean; no reviewed-source authoring",
+        "resource": "Local unit tests only; no network/stack",
+        "deadline_utc": "2026-11-15T03:15:00Z",
+        "output": "APPROVE or actionable findings with exact SHA/test receipts/hashes; whole journey NOT_RUN",
+        "reviewer": "Nonauthor Sol; root verifies report"
       }
     ],
     "public_prerequisite": {
@@ -1239,6 +1254,71 @@
       "log_sha256": "cb46fc8704367ff9cfb7c41ca7cf98f6c41616a9e7863998fab53529c386efff",
       "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py -k 'real_monitoring_baseline or real_producer_failure'",
       "additional_findings": "Relabelled terminal FAIL as PARTIAL currently accepted; completed monitored recovery prefix uses wrong baseline after monitor_after fails. Separate red receipts retained by verifier implementer."
+    },
+    "verifier_review": {
+      "requirement": "MJ-REQ-292",
+      "milestone": "M1 verifier integrity",
+      "decision": "APPROVE",
+      "review_type": "Independent NONAUTHOR local review",
+      "findings": [],
+      "reviewed_commit": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+      "base_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+      "captured_at_utc": "2026-11-15T02:47:03.268373+00:00",
+      "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "python_version": "3.12.10",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "source_sha256": {
+        "tools/verification/acceptance_ledger.py": "fd113fdac5c5bcc83a64543589979bb2a7154435a6f946fb36baca7a370c8016",
+        "tests/unit/test_acceptance_ledger.py": "7c4821fdbe5082eb3fa959c15a22194794b04c3d1dec8087c5fc51baae0cc54d"
+      },
+      "artifacts_sha256": {
+        "green-junit.xml": "d286c02fbdb13c73d85efd30173ce259b39390ac7e1e71b15099c181cd5768c8",
+        "green.txt": "1238ef0968871695b636940ba432b8d4be1277994d86765a1946ec874753e3e1",
+        "independent-probes.json": "f70a9438053fd396c31d1c893aa2d76b6f7fbf3a4dbae75aa96ae1bdbeb11032",
+        "independent-probes.py": "080e8d740742009e08dde647e95fec16a77f7e2d35f3d3d44213cb8c195c3b3f",
+        "record-review.py": "55f3d862a437b5398dc4574209880ea5642af19e9ba80b0ef88c1e930d4b6e64",
+        "red.txt": "bbf92e2efbb37788ed62b20efdf6fd0cee3eb8fb4147390745dae5b9b6d87a80",
+        "review.md": "4ad4350539d556510b43cb0e9bd2381ac9705e75b9b9f8756839d6aa629201dc"
+      },
+      "baseline_patch_sha256": "8baf869ea86fc13298a2ad3c83ff213f99d1738c5cd962d0e1e868e40153d172",
+      "checks": [
+        {
+          "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py tests/unit/test_acceptance_journey.py tests/unit/test_acceptance_monitoring.py tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py --junitxml=outputs/mj292-review-01a1dcec/green-junit.xml",
+          "exit_code": 0,
+          "result": "551 passed, 64 subtests passed in 12.51s",
+          "output": "green.txt"
+        },
+        {
+          "command": "python outputs/mj292-review-01a1dcec/independent-probes.py",
+          "exit_code": 0,
+          "result": "18 negative controls rejected",
+          "output": "independent-probes.json"
+        },
+        {
+          "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py -k 'real_monitoring_baseline or real_producer_failure'",
+          "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-review-red-01a1dcec/MJobs",
+          "exit_code": 1,
+          "result": "3 failed, 124 deselected in 2.57s",
+          "output": "red.txt",
+          "expected": "RED baseline production unchanged"
+        },
+        {
+          "command": "git diff --check 3605e2c96e87467312bd32711a12af7579fb9fcf ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+          "exit_code": 0
+        },
+        {
+          "command": "python -m tools.verification.commit_provenance --commit ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+          "exit_code": 0,
+          "result": "provenance complete for 2 source files"
+        }
+      ],
+      "tracked_status": "",
+      "scope_limits": [
+        "offline verifier patch only",
+        "intersegment fail without active segment rejected diagnostic evidence",
+        "third edge baseline RED not independently isolated",
+        "full unit/services/browser/provider/connected60/hosted gates/merge readiness NOT_RUN"
+      ]
     }
   }
 }
