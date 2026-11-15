@@ -6,7 +6,7 @@
   "branch": "codex/mj292-integration-01a1dcec",
   "head_sha": "a544104cd0fc436f17704fb79c310b1919a85a97",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Finish nonauthor composition review; normal nonforce draft PR973 update after live preflight; inspect exact-head hosted checks. Public-chain and local heavy-runtime gates remain blocked.",
+  "next_action": "Diagnose exact rate7 bootstrap test failure without weakening rate/deadline policies; retain current hosted runs; only a reviewed changed candidate may be republished.",
   "created_at": "2026-11-15T02:33:09.947499+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -446,7 +446,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-15T02:52:45.675928+00:00",
+  "updated_at_utc": "2026-11-15T03:02:25.030223+00:00",
   "acceptance_note": "Canonical acceptance remains0 VERIFIED PASS /53 PARTIAL /7 NOT_RUN. Reviewed implementation repairs at40be0537 have controlled component evidence only; no new live journey or numbered acceptance promotion.",
   "integration_authority": {
     "owner": "codex:integration-01a1da02-20261114",
@@ -1134,7 +1134,7 @@
   "execution_01a1dcec": {
     "started_at_utc": "2026-11-15T02:30:43Z",
     "deadline_utc": "2026-11-15T06:30:43Z",
-    "milestone": "M2_REVIEW_APPROVED_PUBLICATION_READY",
+    "milestone": "HOSTED_UNIT_FAILURE_DIAGNOSIS",
     "base_main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
     "pr_head": "3605e2c96e87467312bd32711a12af7579fb9fcf",
     "integration_claim": "codex:mj292-integration-01a1dcec",
@@ -1218,6 +1218,41 @@
         "deadline_utc": "2026-11-15T03:15:00Z",
         "output": "APPROVE or actionable findings with exact SHA/test receipts/hashes; whole journey NOT_RUN",
         "reviewer": "Nonauthor Sol; root verifies report"
+      },
+      {
+        "id": "rate_test_repair",
+        "source": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "claim": "codex:mj292-rate-test-01a1dcec",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-rate-test-01a1dcec/MJobs",
+        "owned_paths": [
+          "tests/unit/test_aggregator_bootstrap.py"
+        ],
+        "resource": "Offline controlled transport only; no network/stack",
+        "dependency": "Only edit after synchronized interference RED is reproduced and reported",
+        "oracle": "Production clock untouched by fake test clock; real production rate reservation/wait and deadline negative controls preserved; all targeted bootstrap tests pass",
+        "negative": "Foreign-thread sleep must not advance test clock; infeasible rate/authorization/deadline errors still rejected",
+        "reviewer": "verifier_review nonauthor frozen commit review",
+        "deadline_utc": "2026-11-15T03:35:00Z",
+        "return": "One test-only commit with RED/GREEN receipt, hashes and provenance; no push or planning writes",
+        "rollback": "Revert isolated test-only commit; no production state changed"
+      },
+      {
+        "id": "rate_test_review",
+        "source": "c65ca5183ac2719dc981ea7777eab13192a05616",
+        "base": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-rate-review-01a1dcec/MJobs",
+        "permitted": "Read-only source; ignored review artifacts and own test caches only",
+        "resource": "Offline unit tests; no stack/network",
+        "oracle": "Nonauthor inspect one-file isolation fix; independently execute bootstrap/public-client controls, preserve rate/deadline/security assertions and global-clock isolation",
+        "negative": "Regression rejects process-wide clock patch; incompatible rate and revoked authorization remain rejected",
+        "reviewer": "verifier_review nonauthor",
+        "dependency": "Author frozen clean c65ca518; all earlier claims preserved",
+        "deadline_utc": "2026-11-15T03:40:00Z",
+        "return": "APPROVE/findings source SHA, exact commands/exits/counts/hashes; no publication"
       }
     ],
     "public_prerequisite": {
@@ -1425,7 +1460,16 @@
     },
     "composed_receipt_sha256": "966c0e5618aec440460e8d783a92c3eec81454ca635aaf2a4a0bc7029b5edbf0",
     "merged_sha": null,
-    "hosted_checks": "NOT_RUN on new candidate; prior head checks historical",
+    "hosted_checks": {
+      "status": "FAIL",
+      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "run": 43670021815,
+      "failure": "test_compatible_rate_window_keeps_real_cross_origin_waits[7]: proofNone",
+      "counts": "1failed5334passed55skipped5203subtests",
+      "log_sha256": "f7454bcfd3484ba06ed1484890864ed8bca19136f963fa8b327e3336d1ec1574",
+      "other_jobs": "integration/Compose still running",
+      "cause": "UNPROVEN; local3ratevariants pass; bounded read-only diagnosis delegated"
+    },
     "acceptance_delta": {
       "promoted_steps": [],
       "verified_pass": 0,
@@ -1443,6 +1487,20 @@
         "No MJ-REQ-292 acceptance promotion; incoming main Arbeitnow017.F07 PASS preserved",
         "No connected campaign, hosted gate or merge readiness certification"
       ]
+    },
+    "publication": {
+      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "mode": "normal nonforce existing draft PR973 update",
+      "preflight": "ALLOWED capacity WARNING60development+2dependency",
+      "merged": false
+    },
+    "rate_test_repair": {
+      "commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
+      "author_receipt_sha256": "6d34760cf014878ec73f8caedc7cf50fd59ec325b7aabec56b42184b111e6abd",
+      "validation": "174tests26subtests PASS; independent same suite PASS; baseline negative independently reproduced",
+      "review": "Preliminary APPROVE; final receipt pending",
+      "scope": "One test file only; module-scoped fake clocks; production unchanged",
+      "historical_cause": "Matching clock-interference failure path reproduced; exact hosted interleaving not traced"
     }
   }
 }
