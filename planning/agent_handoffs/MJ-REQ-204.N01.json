@@ -4,37 +4,42 @@
   "objective": "Implement bounded opt-in SMTP-over-verified-TLS email notifications through the existing notification runner",
   "owner": "Codex",
   "branch": "ao/discord-notifications/email-provider",
-  "head_sha": "86f8c78abb872306ac37f974d1fc9195a536279e",
-  "routing_state": "EXECUTE",
-  "next_action": "Continue Email provider docs and focused regression coverage. Commit the scoped Email implementation, then reconcile onto current origin/main containing Slack merge 02a291ebced34144498a5b1d6cfebdcdad106583; preserve Slack files and rerun combined notification checks. Map all five N04 criteria to evidence; update only the N04 acceptance row if every criterion qualifies. Prepare at most one PR and yield for review, CI, and protected integration; do not merge.",
+  "head_sha": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
+  "routing_state": "INTEGRATE",
+  "next_action": "Reconcile live notification-batch branch/PR state: if none exists, run authorized exact-candidate preflight and publish at most one; if OPEN, review current exact-head checks/findings and await protected integration; if merged, read back source and acceptance. Never duplicate publication or merge yourself.",
   "created_at": "2026-11-15T15:50:09.014919-06:00",
   "requirements": [
     "MJ-REQ-204.N01"
   ],
   "tests": [
     {
+      "detail": "82 passed, 12 deselected on original Email branch before Slack reconciliation",
       "command": "python -m pytest --basetemp=.pytest-email-run -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/integration/test_notification_delivery.py -k \"email or capabilities or discord or notification_configuration\"",
-      "result": "PASS: 82 passed, 12 deselected"
-    },
-    {
-      "command": "python -m pytest --basetemp=.pytest-email-run -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/integration/test_notification_delivery.py",
-      "result": "PASS: 161 passed, 2 skipped"
-    },
-    {
-      "command": "python -m cli.notifications capabilities",
-      "result": "PASS: listed ntfy, discord, email capability descriptors"
-    },
-    {
-      "command": "git diff --check",
       "result": "PASS"
     },
     {
-      "command": "External SMTP delivery/read-only receipt query",
-      "result": "NOT_RUN: no read-only SMTP receipt route; no external message authorized"
+      "detail": "199 passed, 2 skipped on committed source ae8c6309d921bab1c08ee9628e3f7072ee8eacc3 after reconciliation; two local PostgreSQL-only parameterizations skipped",
+      "command": "python -m pytest -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/unit/test_slack_provider.py tests/integration/test_notification_delivery.py",
+      "result": "PASS"
+    },
+    {
+      "detail": "ntfy, Discord, Slack, and Email descriptors listed on reconciled committed source",
+      "command": "python -m cli.notifications capabilities",
+      "result": "PASS"
+    },
+    {
+      "detail": "No live SMTP action was run; acceptance_snapshot classifies read-only validation as NOT_APPLICABLE because the provider has no read-only receipt query and external delivery is prohibited",
+      "command": "SMTP live delivery/read-only receipt",
+      "result": "NOT_RUN"
+    },
+    {
+      "detail": "Email candidate not yet published or reviewed",
+      "command": "Hosted checks/native review/PR",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [],
-  "base_sha": "86f8c78abb872306ac37f974d1fc9195a536279e",
+  "base_sha": "02a291ebced34144498a5b1d6cfebdcdad106583",
   "checkpoint_snapshot_utc": "2026-11-15T21:50:27.4669046Z",
   "dirty_owned_files": [
     {
@@ -70,15 +75,66 @@
       "sha1": "6afcc080d4cfe1d2d85cdbd692eb299b9f171965"
     }
   ],
-  "dirty_owned_paths": [
-    "cli/notifications.py",
-    "docs/NOTIFICATIONS.md",
-    "services/notifications/configuration.py",
-    "services/notifications/providers/__init__.py",
-    "services/notifications/providers/email.py",
-    "tests/integration/test_notification_delivery.py",
-    "tests/unit/test_notification_configuration.py",
-    "tests/unit/test_email_provider.py"
+  "dirty_owned_paths": [],
+  "test_snapshot_utc": "2026-11-15T22:09:00.8586874Z",
+  "source_commit": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
+  "updated_at": "2026-11-15T22:11:55.6950821Z",
+  "source_files": [
+    {
+      "path": "cli/notifications.py",
+      "sha1": "9aff00bf59f7dd151204295db260cff1e85b992e"
+    },
+    {
+      "path": "docs/NOTIFICATIONS.md",
+      "sha1": "1d0a9dbeb5f9312a2a3d45e92c64c621fca73e5d"
+    },
+    {
+      "path": "services/notifications/configuration.py",
+      "sha1": "4764890ca1573da65088049aeb334cd1f937819c"
+    },
+    {
+      "path": "services/notifications/providers/__init__.py",
+      "sha1": "3b95fe6d298bbcc5306dcb10eb45a9e68118673a"
+    },
+    {
+      "path": "services/notifications/providers/email.py",
+      "sha1": "24605a87d4b11ea744d101d00ec13ebe4cf4cfa3"
+    },
+    {
+      "path": "tests/integration/test_notification_delivery.py",
+      "sha1": "c6660f2892386265114bedf9cb0318f2e866fc5e"
+    },
+    {
+      "path": "tests/unit/test_notification_configuration.py",
+      "sha1": "2912bbd7f486ee58ebcfe99c2520ac9cfe335c57"
+    },
+    {
+      "path": "tests/unit/test_email_provider.py",
+      "sha1": "6afcc080d4cfe1d2d85cdbd692eb299b9f171965"
+    }
   ],
-  "test_snapshot_utc": "2026-11-15T21:52:53.5431197Z"
+  "acceptance_snapshot": {
+    "gaps": [
+      "No real external SMTP send or inbox receipt proof, by scope",
+      "No hosted exact-head checks or native review for Email yet",
+      "Parent MJ-REQ-204 remains unchanged and unaccepted"
+    ],
+    "criteria": {
+      "anti_circumvention": "PASS: no anti-bot/access-control bypass",
+      "live_read_only": "NOT_APPLICABLE: no SMTP read-only delivery receipt query; no live message sent",
+      "limitations_and_evidence": "PASS: docs/NOTIFICATIONS.md and this handoff document SMTP acceptance versus inbox delivery, DNS deadline limits, cancellation/uncertain outcomes and exact test evidence",
+      "exact_capabilities": "PASS: port 465 implicit TLS, verified peer/hostname, SMTP AUTH username/password, one configured recipient, generic plain text, SMTP server acceptance only",
+      "synthetic_contract_tests": "PASS: deterministic positive/negative/edge cases plus CLI durable dedupe"
+    },
+    "overall": "PARTIAL_PENDING_HOSTED_REVIEW_AND_PROTECTED_INTEGRATION",
+    "issue": "https://github.com/MulattoTech/MJobs/issues/362"
+  },
+  "publication_snapshot": {
+    "timestamp_utc": "2026-11-15T22:09:00.8586874Z",
+    "branch": "ao/discord-notifications/email-provider",
+    "source_head": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
+    "origin_main": "02a291ebced34144498a5b1d6cfebdcdad106583",
+    "batch_pr_state": "NOT_OPEN_AT_SNAPSHOT",
+    "action": "Reconcile live branch/PR before any preflight or publication"
+  }
 }

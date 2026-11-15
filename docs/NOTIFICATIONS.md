@@ -108,8 +108,10 @@ The issue's bounded live-validation criterion is **not applicable** to this
 outbound-only provider under a no-external-send scope: the webhook method is a
 POST that publishes a message, and no read-only validation operation is
 available through this interface. No live Slack request was made; local tests
-use synthetic credentials and `MockTransport`. The child requirement remains
-PARTIAL pending its acceptance review; no live-send evidence is claimed.
+use synthetic credentials and `MockTransport`. This child acceptance candidate
+records the criterion as not applicable; it does not claim live delivery,
+readback, or parent requirement acceptance. Issue #365 remains open pending
+protected integration and issue-owner follow-up.
 
 ## SMTP email provider
 
@@ -120,6 +122,10 @@ absolute private file path; it is never part of the JSON configuration. The
 provider uses implicit TLS with certificate and hostname verification on port
 465, and Python's SMTP AUTH login. It does not downgrade to plaintext or
 STARTTLS. For example:
+
+The implementation follows Python's [`SMTP_SSL`](https://docs.python.org/3.12/library/smtplib.html#smtplib.SMTP_SSL)
+implicit-TLS client and [`ssl.create_default_context`](https://docs.python.org/3.12/library/ssl.html#ssl.create_default_context)
+certificate and hostname verification guidance.
 
 ```json
 {
