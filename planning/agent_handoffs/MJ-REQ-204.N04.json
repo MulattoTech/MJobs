@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204.N04",
+  "objective": "Implement and verify a bounded Slack incoming-webhook provider through the existing opt-in notification CLI and durable runner",
+  "owner": "Codex",
+  "branch": "ao/discord-notifications/slack-provider",
+  "head_sha": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
+  "routing_state": "VERIFY",
+  "next_action": "Run publication candidate preflight, publish one focused PR if allowed, then yield for sequential review coordination; do not merge",
+  "created_at": "2026-11-15T20:58:21Z",
+  "requirements": ["MJ-REQ-204.N04"],
+  "dependency": {
+    "issue": 364,
+    "pull_request": 1042,
+    "reviewed_head": "f33333c5503864a2129069776666e567543eb1fc",
+    "merged_commit": "86f8c78abb872306ac37f974d1fc9195a536279e",
+    "merged_tree": "8d4e5eae0add149dc8fbe44dad84a1429dd065f1",
+    "relationship": "Slack source was first based on reviewed Discord head; because Discord merged by squash, the unpublished Slack commit was rebased onto origin/main. Discord history was not rewritten."
+  },
+  "tests": [
+    {
+      "command": "python -m pytest --basetemp=.pytest-slack-run -q tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/unit/test_slack_provider.py tests/integration/test_notification_delivery.py",
+      "result": "PASS",
+      "detail": "170 passed, 2 skipped (PostgreSQL-only parameterizations; no PostgreSQL URL configured)"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.notifications capabilities",
+      "result": "PASS",
+      "detail": "ntfy, Discord and Slack descriptors returned without delivery"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "detail": "provenance complete for six source files"
+    },
+    {
+      "command": "git diff --check origin/main...HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q ... using default Windows temp root",
+      "result": "NOT_RUN",
+      "detail": "Initial attempt stopped at environment setup because pytest could not create C:\\Users\\Dylan\\AppData\\Local\\Temp\\pytest-of-Dylan\\pytest-3876\\.lock; the same suite passed with workspace-local --basetemp"
+    },
+    {
+      "command": "Ruff",
+      "result": "NOT_RUN",
+      "detail": "Ruff was unavailable in the environment"
+    },
+    {
+      "command": "Hosted exact-head checks and live Slack request",
+      "result": "NOT_RUN",
+      "detail": "PR not yet published; external webhook POST would publish a message and no live send is authorized"
+    }
+  ],
+  "source_evidence": {
+    "source_commit": "cd1a364e0cd9ca4b34f79732dc054224d5d7c15b",
+    "source_tree": "83eccfc6bfe21bcd43b27ade93d7dfc34ce70bd6",
+    "base_commit": "86f8c78abb872306ac37f974d1fc9195a536279e",
+    "issue": "https://github.com/MulattoTech/MJobs/issues/365",
+    "issue_state": "OPEN",
+    "changed_paths": [
+      "docs/NOTIFICATIONS.md",
+      "services/notifications/configuration.py",
+      "services/notifications/providers/__init__.py",
+      "services/notifications/providers/slack.py",
+      "tests/integration/test_notification_delivery.py",
+      "tests/unit/test_notification_configuration.py",
+      "tests/unit/test_slack_provider.py"
+    ],
+    "overlap_review": {
+      "pr": 1011,
+      "state": "OPEN",
+      "changed_paths": [
+        "apps/web/src/operation-notifications.test.tsx",
+        "apps/web/src/operation-notifications.tsx",
+        "docs/evidence/2026-11-09-web-4f1d-notification-readback.json",
+        "planning/agent_handoffs/MJ-REQ-204-notification-readback-4f1d.json"
+      ],
+      "overlap": false
+    },
+    "publication_inventory": {
+      "development_open": 59,
+      "dependency_open": 2,
+      "capacity_behavior": "warn",
+      "preflight": "inventory passed; candidate-specific preflight pending",
+      "known_queue_condition": "WARNING at configured capacity; conflicts are unknown for open PRs without reviewed metadata"
+    }
+  },
+  "acceptance": {
+    "child_requirement_status": "PARTIAL",
+    "criteria": {
+      "exact_capabilities_declared": "PASS: Slack capability descriptor and CLI expose supported generic operation-event text, env/file webhook secret, bounded request, no redirects, server acknowledgement validation and disabled mention parsing; unsupported delivery/readback/edit/thread/channel surfaces are explicit",
+      "deterministic_fixtures_and_contract_tests": "PASS: MockTransport covers success, fixed host and payload, config/destination rejection, 400/401/403/404, 429 Retry-After, redirects/other HTTP results, bounded/malformed acknowledgement, compressed response, connection/timeout/uncertain transport, missing credential, invalid event, and HTTPX URL-token log redaction. Controlled CLI/runner test delivers once and proves durable dedupe on a second run. Existing ntfy and Discord regression suites pass.",
+      "bounded_live_read_only_validation": "NOT_APPLICABLE: Slack incoming webhooks expose an outbound message POST; this provider has no read-only validation method. A live POST publishes externally, prohibited by this task. No live Slack request was made.",
+      "limitations_and_last_tested_evidence": "PASS: docs/NOTIFICATIONS.md and this checkpoint name supported behavior, limitations, source/base SHAs, command results and skips",
+      "anti_bot_or_access_control_circumvention": "PASS: no circumvention introduced"
+    },
+    "parent_requirement_gaps": [
+      "MJ-REQ-204 as a whole is not established by this provider slice; canonical acceptance matrices and the requirement index were intentionally not changed",
+      "No real Slack channel delivery, read receipt, exactly-once guarantee, hosted exact-head checks, deployment or release eligibility is claimed",
+      "No canonical requirement status or issue state was changed; issue #365 remains open"
+    ],
+    "canonical_tracker_changes": "NONE"
+  },
+  "blockers": [
+    "Two PostgreSQL-only test parameterizations skipped because no PostgreSQL URL was configured",
+    "No hosted exact-head checks yet; candidate publication preflight pending",
+    "No live Slack request is authorized; the bounded read-only criterion is not applicable to the outbound-only webhook API"
+  ]
+}
