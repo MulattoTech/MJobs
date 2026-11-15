@@ -434,3 +434,44 @@ def test_discord_selection_runs_through_the_durable_notification_runner(tmp_path
         assert journal.status()["counts"] == {"DELIVERED": 1}
     finally:
         store.engine.dispose()
+
+
+def test_slack_selection_runs_through_the_notification_cli_and_durable_runner(
+        tmp_path, monkeypatch, capsys):
+    raw = {
+        "version": 1, "enabled": True, "provider": "slack", "profile_id": "fixture",
+        "slack_team_id": "T0123456789", "slack_service_id": "B0123456789",
+        "token_env": "SLACK_SYNTHETIC_TOKEN",
+        "state_path": str(tmp_path / "slack-state.db"),
+    }
+    config_path = tmp_path / "slack-config.json"
+    config_path.write_text(json.dumps(raw), encoding="utf-8")
+    store = make_store(tmp_path)
+    clock = Clock()
+    clock.value = datetime.now(timezone.utc).timestamp()
+    add_operation(store, clock, "slack-operation")
+    database_url = f"sqlite:///{(tmp_path / 'application.db').as_posix()}"
+    store.engine.dispose()
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("SLACK_SYNTHETIC_TOKEN", "synthetic_slack_webhook_secret")
+    requests = []
+    real_create_provider = create_provider
+
+    def controlled_provider(config):
+        return real_create_provider(
+            config, transport=httpx.MockTransport(
+                lambda request: requests.append(request) or httpx.Response(200, text="ok")),
+        )
+
+    monkeypatch.setattr("cli.notifications.create_provider", controlled_provider)
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output == {"enabled": True, "queued": 1, "attempted": 1,
+                      "outcome": "NOTIFICATION_SERVER_ACKNOWLEDGED"}
+    assert len(requests) == 1
+    assert requests[0].url.host == "hooks.slack.com"
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    second_output = json.loads(capsys.readouterr().out)
+    assert second_output == {"enabled": True, "queued": 0, "attempted": 0, "outcome": None}
+    assert len(requests) == 1
+    assert DeliveryJournal(parse_config(raw)).status()["counts"] == {"DELIVERED": 1}

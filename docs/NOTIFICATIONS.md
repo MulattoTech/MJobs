@@ -1,4 +1,4 @@
-# Optional ntfy activity notifications
+# Optional activity notifications
 
 Requirement: **MJ-REQ-204.N02** ([issue 363](https://github.com/MulattoTech/MJobs/issues/363)),
 under [MJ-REQ-204](https://github.com/MulattoTech/MJobs/issues/205).
@@ -67,6 +67,50 @@ device receipts, exactly-once delivery, email, and direct application submission
 are unsupported. Contract tests use synthetic tokens and a mock transport; they
 do not contact Discord.
 
+## Slack incoming-webhook provider
+
+Slack uses the same opt-in worker and durable delivery journal. Select
+`"provider": "slack"`, set the `slack_team_id` and `slack_service_id` from the
+operator-created webhook URL, and provide its secret token using `token_env`
+or an absolute private `token_file` path. The provider constructs only the
+standard `hooks.slack.com/services/...` endpoint; GovSlack and arbitrary hosts
+are unsupported. Slack binds an incoming webhook to the channel chosen during
+setup, and this provider does not override that destination.
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "slack",
+  "profile_id": "your-existing-profile-id",
+  "slack_team_id": "T0123456789",
+  "slack_service_id": "B0123456789",
+  "token_env": "MJOBS_SLACK_WEBHOOK_TOKEN",
+  "state_path": "C:/private/mjobs/slack-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+Only fixed generic text is sent. The request sets `mrkdwn` to false and omits
+`link_names`, disabling formatting and automatic mention parsing. HTTPX request
+logs redact the URL token. A valid HTTP 200 `ok` response means Slack accepted
+the message; it does not prove a person read it. A 429 preserves `Retry-After`
+for explicit retry; uncertain sends are never automatically replayed. Slack
+documents a general one-message-per-second-per-channel recommendation, but
+separate journals/webhooks do not establish a global channel limiter. Blocks,
+attachments, threading, channel overrides, message readback/edit/delete, and
+exactly-once delivery are unsupported. See Slack's [incoming-webhook
+guide](https://api.slack.com/messaging/webhooks) and [rate-limit documentation](https://api.slack.com/docs/rate-limits).
+
+The issue's bounded live-validation criterion is **not applicable** to this
+outbound-only provider under a no-external-send scope: the webhook method is a
+POST that publishes a message, and no read-only validation operation is
+available through this interface. No live Slack request was made; local tests
+use synthetic credentials and `MockTransport`. The child requirement remains
+PARTIAL pending its acceptance review; no live-send evidence is claimed.
+
 ## Private configuration
 
 Create a private JSON file outside the repository and outside public/shared
@@ -129,8 +173,8 @@ file. Scheduling after reservation can bunch actual socket writes; exact network
 request spacing is not guaranteed.
 MJobs CLI status reports event hashes, attempts and fixed diagnostic codes; its
 output omits topic, server URL, tokens, provider response bodies and operation contents.
-ntfy publishes JSON to its server root. Discord uses a fixed `discord.com`
-webhook path and its token is redacted from ordinary HTTPX request logs.
+ntfy publishes JSON to its server root. Discord and Slack use fixed provider
+hosts and redact their webhook tokens from ordinary HTTPX request logs.
 Separately enabled third-party HTTP tracing can expose destinations or message
 bodies; do not enable payload tracing for private destinations.
 
@@ -149,8 +193,8 @@ to defeat deduplication.
 | --- | --- |
 | PENDING | Queued, not sent yet |
 | SENDING | A reserved request may be active |
-| DELIVERED | ntfy matching JSON acknowledgement or Discord accepted HTTP response observed |
-| REJECTED | Credential/destination problem, explicit 401/403/404/429 rejection, or failed connection before HTTP request bytes |
+| DELIVERED | ntfy matching acknowledgement, Discord accepted HTTP response, or Slack `200 ok` acknowledgement observed |
+| REJECTED | Credential/destination problem, explicit provider rejection or rate limit, or failed connection before HTTP request bytes |
 | UNKNOWN | Timeout, uncertain transport, invalid/missing acknowledgement, uncertain HTTP result, or interrupted attempt |
 | FAILED | Invalid local event; no send |
 

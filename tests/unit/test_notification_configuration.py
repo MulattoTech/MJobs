@@ -31,7 +31,7 @@ def test_missing_or_disabled_configuration_has_no_side_effects(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("change", [
-    {"version": True}, {"version": 2}, {"enabled": "true"}, {"provider": "slack"},
+    {"version": True}, {"version": 2}, {"enabled": "true"}, {"provider": "bluesky"},
     {"topic": "../other"}, {"topic": "a/b"}, {"topic": "secret\r\nOther"},
     {"topic": ""}, {"topic": "x" * 65}, {"profile_id": ""}, {"profile_id": []},
     {"state_path": "relative.db"}, {"state_path": None},
@@ -106,18 +106,20 @@ def test_bad_or_oversized_private_config_never_echoes_content(tmp_path, capsys):
 
 
 def test_capabilities_distinguish_server_delivery_and_unsupported_guarantees(capsys):
-    descriptor, discord = capability_descriptors()
+    descriptor, discord, slack = capability_descriptors()
     assert descriptor["provider"] == "ntfy"
     assert descriptor["execution_surface"] == "server"
     assert "exactly_once_delivery" in descriptor["unsupported"]
     assert "device_delivery_receipt" in descriptor["unsupported"]
     assert main(["capabilities"]) == 0
     providers = json.loads(capsys.readouterr().out)["providers"]
-    assert providers == json.loads(json.dumps([descriptor, discord]))
+    assert providers == json.loads(json.dumps([descriptor, discord, slack]))
     assert discord["provider"] == "discord"
     assert "mentions_disabled" in discord["guarantees"]
     assert "exactly_once_delivery" in discord["unsupported"]
     assert "device_delivery_receipt" in discord["unsupported"]
+    assert slack["provider"] == "slack"
+    assert "mentions_disabled" in slack["guarantees"]
 
 
 def test_duplicate_configuration_keys_cannot_silently_enable_delivery(tmp_path):
@@ -157,3 +159,37 @@ def test_discord_configuration_binding_excludes_rotatable_secret(tmp_path):
     rotated = parse_config({**raw, "token_env": "DISCORD_TOKEN_ROTATED"})
     assert first.binding == rotated.binding
     assert first.webhook_id == "12345678901234567"
+
+
+def test_slack_configuration_uses_fixed_webhook_parts_and_secret_rotation_safe_binding(tmp_path):
+    raw = {
+        "version": 1, "enabled": True, "provider": "slack", "profile_id": "fixture",
+        "slack_team_id": "T0123456789", "slack_service_id": "B0123456789",
+        "token_env": "SLACK_TOKEN", "state_path": str(tmp_path / "slack.db"),
+    }
+    config = parse_config(raw)
+    rotated = parse_config({**raw, "token_env": "SLACK_ROTATED_TOKEN"})
+    assert config.provider == "slack"
+    assert config.binding == rotated.binding
+    assert config.binding != parse_config({**raw, "slack_service_id": "B9876543210"}).binding
+
+
+@pytest.mark.parametrize("change", [
+    {"slack_team_id": "T0123456789/B0123456789/secret"},
+    {"slack_team_id": "https://hooks.slack.com/services/T/B/token"},
+    {"slack_service_id": "B0123456789/extra"},
+    {"token_env": ""},
+    {"token_file": "relative.token"},
+    {"token_env": "SLACK_TOKEN", "token_file": "C:/secret"},
+    {"server_url": "https://attacker.example"},
+    {"webhook_id": "12345678901234567"},
+])
+def test_slack_configuration_rejects_unsafe_or_mixed_destinations(tmp_path, change):
+    raw = {
+        "version": 1, "enabled": True, "provider": "slack", "profile_id": "fixture",
+        "slack_team_id": "T0123456789", "slack_service_id": "B0123456789",
+        "token_env": "SLACK_TOKEN", "state_path": str(tmp_path / "slack.db"), **change,
+    }
+    with pytest.raises(NotificationError, match="NOTIFICATION_CONFIG_INVALID"):
+        parse_config(raw)
+    assert list(tmp_path.iterdir()) == []

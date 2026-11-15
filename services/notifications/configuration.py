@@ -16,7 +16,7 @@ from services.notifications.contract import NotificationError
 CONFIG_ENV = "MJOBS_NOTIFICATION_CONFIG"
 _FIELDS = {
     "version", "enabled", "provider", "profile_id", "server_url", "topic",
-    "webhook_id",
+    "webhook_id", "slack_team_id", "slack_service_id",
     "state_path", "token_env", "token_file", "allow_loopback_http",
     "poll_seconds", "batch_size", "request_timeout",
 }
@@ -33,6 +33,8 @@ class NotificationConfig:
     server_url: str = ""
     topic: str = ""
     webhook_id: str = ""
+    slack_team_id: str = ""
+    slack_service_id: str = ""
     state_path: str = ""
     token_env: str = ""
     token_file: str = ""
@@ -46,6 +48,8 @@ class NotificationConfig:
         value = [self.provider, self.profile_id, self.server_url, self.topic]
         if self.provider == "discord":
             value.append(self.webhook_id)
+        elif self.provider == "slack":
+            value.extend((self.slack_team_id, self.slack_service_id))
         return hashlib.sha256(json.dumps(value, separators=(",", ":")).encode()).hexdigest()
 
 
@@ -75,7 +79,7 @@ def parse_config(raw) -> NotificationConfig:
     if not raw["enabled"]:
         return NotificationConfig()
     provider = raw.get("provider", "ntfy")
-    if not isinstance(provider, str) or provider not in {"ntfy", "discord"}:
+    if not isinstance(provider, str) or provider not in {"ntfy", "discord", "slack"}:
         raise NotificationError("NOTIFICATION_PROVIDER_UNSUPPORTED")
     profile = raw.get("profile_id")
     if not isinstance(profile, str) or not _PROFILE.fullmatch(profile):
@@ -84,7 +88,11 @@ def parse_config(raw) -> NotificationConfig:
     url = ""
     allow_http = False
     webhook_id = ""
+    slack_team_id = ""
+    slack_service_id = ""
     if provider == "ntfy":
+        if "webhook_id" in raw or "slack_team_id" in raw or "slack_service_id" in raw:
+            _invalid()
         topic = raw.get("topic")
         if not isinstance(topic, str) or not _TOPIC.fullmatch(topic):
             _invalid()
@@ -121,15 +129,27 @@ def parse_config(raw) -> NotificationConfig:
         except (ValueError, TypeError):
             _invalid()
     else:
-        webhook_id = raw.get("webhook_id")
-        if (not isinstance(webhook_id, str) or not re.fullmatch(r"[0-9]{17,20}", webhook_id)
-                or "server_url" in raw or "topic" in raw or "allow_loopback_http" in raw):
+        if "server_url" in raw or "topic" in raw or "allow_loopback_http" in raw:
             _invalid()
+        if provider == "discord":
+            webhook_id = raw.get("webhook_id")
+            if (not isinstance(webhook_id, str) or not re.fullmatch(r"[0-9]{17,20}", webhook_id)
+                    or "slack_team_id" in raw or "slack_service_id" in raw):
+                _invalid()
+        else:
+            slack_team_id = raw.get("slack_team_id")
+            slack_service_id = raw.get("slack_service_id")
+            if (not isinstance(slack_team_id, str)
+                    or not re.fullmatch(r"T[A-Z0-9]{1,32}", slack_team_id)
+                    or not isinstance(slack_service_id, str)
+                    or not re.fullmatch(r"B[A-Z0-9]{1,32}", slack_service_id)
+                    or "webhook_id" in raw):
+                _invalid()
     token_env = raw.get("token_env", "")
     token_file = raw.get("token_file", "")
     if not isinstance(token_env, str) or not isinstance(token_file, str) or (token_env and token_file):
         _invalid()
-    if provider == "discord" and not (token_env or token_file):
+    if provider in {"discord", "slack"} and not (token_env or token_file):
         _invalid()
     if token_env and not _ENV.fullmatch(token_env):
         _invalid()
@@ -137,7 +157,8 @@ def parse_config(raw) -> NotificationConfig:
         token_file = _absolute_path(token_file)
     return NotificationConfig(
         enabled=True, provider=provider, profile_id=profile, server_url=url, topic=topic,
-        webhook_id=webhook_id, state_path=_absolute_path(raw.get("state_path")),
+        webhook_id=webhook_id, slack_team_id=slack_team_id, slack_service_id=slack_service_id,
+        state_path=_absolute_path(raw.get("state_path")),
         token_env=token_env, token_file=token_file, allow_loopback_http=allow_http,
         poll_seconds=_integer(raw.get("poll_seconds", 10), 2, 300),
         batch_size=_integer(raw.get("batch_size", 50), 1, 200),
