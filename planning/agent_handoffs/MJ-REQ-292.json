@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex MJ292 integration 01a1dcec",
   "branch": "codex/mj292-integration-01a1dcec",
-  "head_sha": "4b7a0b19de9fad7a134328d44f4a27d20da2b7a7",
+  "head_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Wait for previous candidate integration jobs to finish, then fresh live preflight and one normal nonforce corrected draft PR973 update; inspect exact-head hosted checks. No merge or acceptance promotion.",
+  "next_action": "Publish reviewed candidate and inspect exact-head CI; continue dependency-ready MJ292 product work under current overnight authorization. No fulljourney until public same-employer prerequisites qualify.",
   "created_at": "2026-11-15T02:33:09.947499+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -393,7 +393,9 @@
     }
   ],
   "blockers": [
-    "Public same-employer prerequisite unproven; foreign reserved runtime 0068d92da7c0 actually running and untouched"
+    "Public steps23-31: automatic same-employer domainauthority, profile-bound enrollment, employer-only relevant opening and correctly merged duplicate remain unproved. Configured TestedRecruits read is not that chain.",
+    "Protected integration and same-merged-SHA numbered acceptance remain NOT_RUN; canonical0VERIFIED/53PARTIAL/7NOT_RUN.",
+    "New candidate hosted checks pending publication; old d53 checks do not certify source4503aba0."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -446,7 +448,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-15T03:12:57.786881+00:00",
+  "updated_at_utc": "2026-11-15T06:20:36.942262+00:00",
   "acceptance_note": "Canonical acceptance remains0 VERIFIED PASS /53 PARTIAL /7 NOT_RUN. Reviewed implementation repairs at40be0537 have controlled component evidence only; no new live journey or numbered acceptance promotion.",
   "integration_authority": {
     "owner": "codex:integration-01a1da02-20261114",
@@ -668,7 +670,7 @@
     "cleanup": "Exact owned run containers, networks and volumes removed and absence verified. No runtime started during this continuation; unrelated services preserved."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "Code candidate40be0537 includes reviewed monitoring reread, native inventory/retry receipts, immutable native attachment, source-copy filtering/provenance, and whole same-employer source/browser/journey/ledger joins. Source/archive/runtime/artifact bindings remain required. Hash consistency and persisted receipt metadata do not independently attest public HTTP. Controlled transports never earn public employer credit.",
+  "current_evidence_boundary": "Source components locally tested/reviewed; controlled full-run d53 exit2/PARTIAL56producerPASS4PARTIAL, includingcontrolled54-60. No public same-employer or merged revision acceptance.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -1134,16 +1136,166 @@
   "execution_01a1dcec": {
     "started_at_utc": "2026-11-15T02:30:43Z",
     "deadline_utc": "2026-11-15T06:30:43Z",
-    "milestone": "RATE_REPAIR_REVIEWED_COMPOSED_PASS",
+    "milestone": "Reviewed M5/M6/M7 composition ready for protected PR publication; no merge or acceptance promotion",
     "base_main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
     "pr_head": "3605e2c96e87467312bd32711a12af7579fb9fcf",
     "integration_claim": "codex:mj292-integration-01a1dcec",
     "prior_fields_note": "Other historical handoff fields and tests retained; this execution record and live source/claims supersede old routing/ownership/runtime metadata.",
     "runtime": {
-      "owned": false,
-      "foreign_project": "mjobs-fixture-0068d92da7c0",
-      "observed_running_services": 10,
-      "action": "PRESERVED_NO_MUTATION"
+      "owned": true,
+      "handoff_authority": "Current user explicitly confirmed prior owner handed off mjobs-fixture-0068d92da7c0",
+      "old_project": "mjobs-fixture-0068d92da7c0",
+      "old_state": "All10containers stopped; containers/volumes/images/networks preserved",
+      "old_snapshot_sha256": "7d3b7c7a5f48f028fda0c7b623e65254a5a2d40110bdb9191274eafc496e5c9b",
+      "old_stop_receipt_sha256": "3cfbe0ac4e7d19d820d896e7dcabf865137e6fe559c0639fd6624f9a286c3dd1",
+      "new_run": {
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "runtime_root": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs",
+        "project": "mjobs-fixture-34cda779851e",
+        "port": 19974,
+        "run_id": "mj292-recovery-01a1dcec-34cda779851e",
+        "image": "mjobs-292:01a1dcec-e964ef0c8feb",
+        "old_project": "mjobs-fixture-0068d92da7c0",
+        "claim": "codex:mj292-runtime-01a1dcec",
+        "deadline_utc": "2026-11-15T06:30:43Z",
+        "scope": "One controlled synthetic recovery qualification; public campaign and acceptance promotion prohibited",
+        "attempt": 2,
+        "previous_failed_project": "mjobs-fixture-e964ef0c8feb",
+        "subnets": {
+          "private": "10.203.220.0/28",
+          "ui": "10.203.220.16/28",
+          "source-egress": "10.203.220.32/28"
+        },
+        "existing_build_receipt": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs\\outputs\\mj292-recovery-01a1dcec-e964ef0c8feb\\harness\\build\\frontend-build-receipt.json",
+        "existing_build_receipt_sha256": "f4dbe3859c82425797161bc4c08025008675230d517be958f9212e60d7e6d7ec",
+        "startup_failure_reason": "Attempt1 Docker automatic address pools exhausted; no containers,4volumes preserved; explicit conflict-checked project subnets for attempt2"
+      },
+      "new_state": "ATTEMPT2_HELPER_PREPARING; first startup failed before containers due to exhausted automatic IPAM",
+      "public_scope": "Still BLOCKED_EXTERNAL; one declared synthetic recovery prerequisite only, not a public acceptance attempt",
+      "image_id": "sha256:ab3546880884676576593da13c32aeee350446bdc648a54d2bced2fe3c2c9dad",
+      "build_receipt_sha256": "f4dbe3859c82425797161bc4c08025008675230d517be958f9212e60d7e6d7ec",
+      "runtime_source_files_verified": 2017,
+      "attempts": [
+        {
+          "project": "mjobs-fixture-e964ef0c8feb",
+          "run_id": "mj292-recovery-01a1dcec-e964ef0c8feb",
+          "build": "PASS",
+          "startup": "FAIL",
+          "command_result": {
+            "command": [
+              "docker",
+              "compose",
+              "--project-name",
+              "mjobs-fixture-e964ef0c8feb",
+              "--env-file",
+              "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs\\outputs\\mj292-recovery-01a1dcec-e964ef0c8feb\\harness\\.env",
+              "-f",
+              "compose.yml",
+              "-f",
+              "outputs/mj292-recovery-01a1dcec-e964ef0c8feb/harness/compose.resources.yml",
+              "--profile",
+              "fixture",
+              "up",
+              "-d",
+              "--pull",
+              "never",
+              "--no-build"
+            ],
+            "completed_at_utc": "2026-11-15T03:53:36.587990+00:00",
+            "exit_code": 1,
+            "started_at_utc": "2026-11-15T03:53:36.303177+00:00"
+          },
+          "reason": "Docker all predefined address pools fully subnetted",
+          "preserved": "No containers/networks created;4emptyvolumes and all failed artifacts/credentials retained",
+          "compose_log_sha256": "6fc1df995c36c16c4f39dfa0c0aaaf9162e57039d690204ff259953d50aa8a12"
+        }
+      ],
+      "selected_project_subnets": {
+        "private": "10.203.220.0/28",
+        "ui": "10.203.220.16/28",
+        "source-egress": "10.203.220.32/28"
+      },
+      "subnet_preflight_sha256": "7ae8b64c38037c801d69c6f23ca1a7ad7caebbebaa1548f8837b8d86c491d499",
+      "controlled_journey_failure": {
+        "run_id": "mj292-recovery-01a1dcec-34cda779851e",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "exit_code": 1,
+        "failed_segment": "ui",
+        "reason": "local_persistence_acceptance reads root .env; reviewed isolated helper uses harness/.env and rejects root .env",
+        "artifact_hashes": {
+          "journey\\journey.json": "65b22e5b477ad451533792c49b7cd5dbca52717e561aa567f0ce93f25412bf9b",
+          "journey\\ui.json": "e3d66f93fffb1907e25c97e9f10e804c42a00fe73ca27f8360cd141bbbf2cab4",
+          "journey-execution-receipt.json": "ee420cbc9147d7c9aa92a8c63e75bd3c34c68c563f144ce0dbe3a045ff2c67bd"
+        },
+        "recovery": "NOT_RUN",
+        "public": "NOT_RUN; no admissible public chain",
+        "retry": "NO_GO until setup contract resolved and reviewed; no overwrite/resume of failed segment"
+      },
+      "configuration_remediation": {
+        "scope": "ignored harness only; productionsourceunchanged",
+        "cause": "owned isolationhelper excluded root.env needed by existing persistence observer",
+        "new_config": {
+          "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+          "runtime_root": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs",
+          "project": "mjobs-fixture-27b29ce84d1c",
+          "port": 19974,
+          "run_id": "mj292-recovery-01a1dcec-27b29ce84d1c",
+          "image": "mjobs-292:01a1dcec-e964ef0c8feb",
+          "old_project": "mjobs-fixture-0068d92da7c0",
+          "claim": "codex:mj292-runtime-01a1dcec",
+          "deadline_utc": "2026-11-15T06:30:43Z",
+          "scope": "One controlled synthetic recovery qualification; public campaign and acceptance promotion prohibited",
+          "attempt": 3,
+          "previous_failed_project": "mjobs-fixture-34cda779851e",
+          "subnets": {
+            "private": "10.203.220.48/28",
+            "ui": "10.203.220.64/28",
+            "source-egress": "10.203.220.80/28"
+          },
+          "existing_build_receipt": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs\\outputs\\mj292-recovery-01a1dcec-e964ef0c8feb\\harness\\build\\frontend-build-receipt.json",
+          "existing_build_receipt_sha256": "f4dbe3859c82425797161bc4c08025008675230d517be958f9212e60d7e6d7ec",
+          "startup_failure_reason": "Attempt2 actual UI fails missing root.env; new fresh fixture required by first-run admission",
+          "configuration_contract": "Generate fresh private harness.env; exclusively copy identical owned bytes to root.env, hash-guard equality; reject any preexisting rootenv"
+        },
+        "fresh_workspace_required": "acceptance_onboarding.begin_first_run rejects profiles/sources/searches/previoussetup; failedsegmentsnotreplayable",
+        "prior_project_stopped_preserved": true,
+        "gate": "nonauthor frozenhelper review and fresh live ownership/source/network/port admission before root starts",
+        "state": "PREPARING"
+      },
+      "actual_failure_review": {
+        "receipt": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-rate-review-01a1dcec\\MJobs\\outputs\\mj292-actual-failure-review-01a1dcec\\receipt.json",
+        "sha256": "6e0cac17f9c63f415768cbdc69cb5f5cb159ba81f14a4393493f86e46bd762c1",
+        "finding": "CONFIRMED_FAIL_DIAGNOSTIC_NO_FALSE_ACCEPTANCE",
+        "strict_runtime_evidence_validated": false,
+        "reason": "Pre-UI failure lacks complete UTC/continuity; genuine FAIL state accepted, PARTIAL/PASS relabels rejected",
+        "docker_calls": 0
+      },
+      "corrected_run": {
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "run": "mj292-recovery-01a1dcec-27b29ce84d1c",
+        "result": "PARTIAL",
+        "exit_code": 2,
+        "producer_observations": {
+          "PASS": 56,
+          "PARTIAL": 4
+        },
+        "controlled_recovery_steps": "54\u201360 producerPASS with CONTROLLED_FIXTURE; not public sameemployer acceptance",
+        "natural_worker_attempts": 1,
+        "public_chain": "NOT_RUN; actualordinaryemployer route diagnosis now authorized",
+        "canonical_acceptance": "UNCHANGED 0VERIFIED/53PARTIAL/7NOT_RUN",
+        "independent_actual_run_review": "NOT_RUN; helper/source reviewed separately",
+        "merged_implementation": "NOT_RUN; PR973 OPEN DRAFT",
+        "artifacts": {
+          "journey\\journey.json": "33509390e3eeb0800b8c8dc9a7aa019553754056b18e61add5b6d0b384d9c498",
+          "journey\\monitor_prepare.json": "a1fc56f72a1256ebc9ac865115d97010b6177aa416173e55540a6eecee6ffc18",
+          "journey\\monitor_after.json": "3ab1c6fd1d9141781bdfd9e35f7b2bc983d182a6de48f1b4f8dcd7f2c48adbfd",
+          "journey\\recovery.json": "c0c02f6ef89fcffadaf31933e1bc9982e5f044b9d39de52b16f928a05affc427",
+          "journey-execution-receipt.json": "afdc487e46b215f18eada8015c2103979b88b2e3b193227d95548ba8bd91ffc2",
+          "owned-stack-preserved.json": "323c7561a5f001df4e4be4283ed075cfa9cec6c2ef271fda56c648ab4ee9a6bc"
+        },
+        "resources": "All11owncontainers stopped; volumes/images/networks/configuration preserved; no active heavy runner",
+        "next_action": "Diagnose first failed ordinaryemployer transition and reproduce smallest reusable product defect, no easierselector"
+      }
     },
     "tasks": [
       {
@@ -1253,6 +1405,89 @@
         "dependency": "Author frozen clean c65ca518; all earlier claims preserved",
         "deadline_utc": "2026-11-15T03:40:00Z",
         "return": "APPROVE/findings source SHA, exact commands/exits/counts/hashes; no publication"
+      },
+      {
+        "task": "Parameterize existing bounded build/startup receipt helpers for one controlled recovery run",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs",
+        "owned_paths": [
+          "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs\\outputs\\mj292-recovery-01a1dcec-e964ef0c8feb\\harness/**"
+        ],
+        "resource_owner": "root sole runtime owner; author MUST NOT execute Docker build/start/stop or live network",
+        "dependency": "Root recorded user ownership handoff; old10containers stopped with volumes/images/networks preserved; new project fresh",
+        "oracle": "Adapt existing receipt producer pattern to exact d53 Git archive, immutable image, fresh runtime with generated synthetic credentials; emitted receipt must pass current validators without fabricated facts",
+        "negative": "No oldrun IDs/CIDRs/image/commit; no secrets logs; no file deletion; no source/controller edits; no relaxed runtime caps/validators; no real providers/submissions",
+        "reviewer": "verifier_review frozen helper hashes before root execution",
+        "deadline_utc": "2026-11-15T04:00:00Z",
+        "return": "Frozen ignored helper files + hashes + exact commands; local validation may inspect parsers/compile/dry-run only, no stack/network execution",
+        "rollback": "Helpers only ignored owned run directory; actual root operations recorded and resource-specific."
+      },
+      {
+        "task": "Adapt one-run startup wrappers for measured automatic IPAM exhaustion",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs",
+        "owned_paths": [
+          "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs\\outputs\\mj292-recovery-01a1dcec-34cda779851e\\harness/**"
+        ],
+        "permitted": "Only newignoredharness; preserve firstpacket/failedreceipts/volumes",
+        "resource_owner": "root alone executes Docker; author static/Git-only checks",
+        "oracle": "Use actual existing d53 build receipt/image unchanged; new fresh project+credentials, exactnamesabsent,3claimed nonoverlap explicitprojectCIDRs; no fabricated rebuild/start",
+        "negative": "Fail if buildhash/source/image/cidr/config differs or startup artifacts alreadyexist; no globalDockerpool/hostroutechanges and no deletion",
+        "reviewer": "verifier_review nonauthor frozenmanifest",
+        "deadline_utc": "2026-11-15T04:15:00Z",
+        "return": "Frozen newpacket hashes and commands; no Docker/credentials execution"
+      },
+      {
+        "task_id": "M4-env-contract",
+        "owner": "verifier_impl",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "scope": "read-only source; write ignored diagnostic outputs only in owned rate-test tree",
+        "oracle": "smallest truthful config remedy; cannot erase failed artifacts or alter production without proven defect",
+        "reviewer": "verifier_review",
+        "deadline_minutes": 20,
+        "resource": "no Docker/runtime writes"
+      },
+      {
+        "task_id": "M4-real-fail-review",
+        "owner": "verifier_review",
+        "source": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+        "scope": "read frozen runtime journey; write ignored controls/receipt only in owned rate-review tree",
+        "oracle": "real failed segment remains FAIL; PARTIAL/PASS relabel rejected; hash/source checks",
+        "deadline_minutes": 20,
+        "resource": "no Docker/runtime/ledger writes"
+      },
+      {
+        "task_id": "M4-env-admission3",
+        "owner": "verifier_impl",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-runtime-01a1dcec\\MJobs",
+        "paths": [
+          "outputs/mj292-recovery-01a1dcec-27b29ce84d1c/harness/**"
+        ],
+        "resource_owner": "root only; worker cannot Docker/createenv/startstop",
+        "oracles": [
+          "freshprivateenv identical owned rootcopy, preexisting/symlink/hashchange rejected",
+          "existing real startup/source/image validators pass, no fabricatedreceipt"
+        ],
+        "reviewer": "verifier_review",
+        "deadline_minutes": 20,
+        "rollback": "retain allfailedattemptdata; stoponlyownedproject; no removals"
+      },
+      {
+        "task_id": "M5-actual-employer-public",
+        "owner": "public_prerequisite",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "scope": "ordinary selected employer public route diagnosis; read-only; no gatesbypass",
+        "deadline_minutes": 20
+      },
+      {
+        "task_id": "M5-discovery-source",
+        "owner": "verifier_impl",
+        "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "scope": "existing discovery/adapter/code attempts; readonly; propose failingtest and smallestfix",
+        "deadline_minutes": 20
       }
     ],
     "public_prerequisite": {
@@ -1261,7 +1496,88 @@
       "executed_at_utc": "2026-11-15T02:36:02Z",
       "observed": "One production feed read each: WWR100/Remotive16 rows; first two distinct companies unchanged; no direct Greenhouse hint; no candidate-page fetch",
       "receipt_sha256": "7fc6caa4f3534a3bc1eafcac686d0ca9399006a6b6456b39d05be0f26fb50270",
-      "limit": "Fresh-empty-profile selection assumption only; existing-profile database state not read. Prior gated-page evidence remains historical. No connected acceptance."
+      "limit": "Fresh-empty-profile selection assumption only; existing-profile database state not read. Prior gated-page evidence remains historical. No connected acceptance.",
+      "current_ordinary_employer_diagnosis": {
+        "employer": "Coalition Technologies (not Coalition Inc)",
+        "retained_aggregator_requisition": "Remotive1680495",
+        "official_careers": "https://coalitiontechnologies.com/jobs",
+        "official_careers_read": "Productclient403; freshbrowser307then403challenge; stopped",
+        "native_detail": "https://app.testedrecruits.com/posting/16788; freshbrowser200",
+        "native_inventory": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+        "native_inventory_product_read": {
+          "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+          "started_at_utc": "2026-11-15T05:12:51.833613+00:00",
+          "purpose": "Diagnostic only; no automatic origin authority or enrollment credit",
+          "policy": "Unmodified PublicCompanyClient default request/rate/robots/DNS/SSRF/redirect/body caps, total_timeout=30",
+          "logical_page_gets": 1,
+          "retries": 0,
+          "result": "PAGE_READ",
+          "status": 200,
+          "final_url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+          "content_type": "text/html; charset=utf-8",
+          "body_bytes": 34866,
+          "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+          "redirect_urls": [],
+          "robots_loaded": true,
+          "completed_at_utc": "2026-11-15T05:12:53.627229+00:00"
+        },
+        "inventory_observation": {
+          "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+          "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+          "title": [
+            "\n        Coalition Technologies Jobs &amp; Careers     "
+          ],
+          "count_text": [
+            "Current Job Postings: 28 Search / Filter Location All CA TX "
+          ],
+          "unique_posting_count": 28,
+          "posting_ids": [
+            "16787",
+            "16788",
+            "16790",
+            "16791",
+            "16792",
+            "16793",
+            "16794",
+            "16795",
+            "16796",
+            "16797",
+            "16798",
+            "16799",
+            "16800",
+            "16801",
+            "16802",
+            "16803",
+            "16804",
+            "16805",
+            "16806",
+            "16807",
+            "16808",
+            "16812",
+            "16813",
+            "16816",
+            "16817",
+            "16818",
+            "16819",
+            "16820"
+          ],
+          "has_16788": true,
+          "pagination_terms": [],
+          "nonposting_link_paths": [
+            "app.testedrecruits.com",
+            "app.testedrecruits.com/embedJobs/1/coalition-technologies",
+            "app.testedrecruits.com/faqs"
+          ],
+          "script_paths": [
+            "www.googletagmanager.com/gtag/js",
+            "app.testedrecruits.com/js/iframeResizer/iframeResizer.contentWindow.js",
+            "static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+          ]
+        },
+        "boundary": "KnownURL diagnostic only; automatic employer authority, duplicateidentity and publicjourney acceptance unproved",
+        "account_path": "Publicread doesnotneedaccount; applicantflow submitsapplication; registrationcreatesemployeraccount. No accounts created.",
+        "next": "Assess minimal existingframework nativeadapter with failclosedcount/identity/foreignhost controls; no guessedAPI"
+      }
     },
     "recovery_component": {
       "result": "PASS",
@@ -1461,14 +1777,15 @@
     "composed_receipt_sha256": "966c0e5618aec440460e8d783a92c3eec81454ca635aaf2a4a0bc7029b5edbf0",
     "merged_sha": null,
     "hosted_checks": {
-      "status": "FAIL",
-      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
-      "run": 43670021815,
-      "failure": "test_compatible_rate_window_keeps_real_cross_origin_waits[7]: proofNone",
-      "counts": "1failed5334passed55skipped5203subtests",
-      "log_sha256": "f7454bcfd3484ba06ed1484890864ed8bca19136f963fa8b327e3336d1ec1574",
-      "other_jobs": "integration/Compose still running",
-      "cause": "UNPROVEN; local3ratevariants pass; bounded read-only diagnosis delegated"
+      "head": "d53c19e55d15f13afdac8c19b003f676d9981832",
+      "unit": "PASS5336tests55skips5203subtests",
+      "unit_log_sha256": "8b2e0264efd0dfa7f71dc35f761b4dc43920050d0f7932cfe50ba638a6af36b1",
+      "fast_required": "PASS",
+      "synthetic_compose": "PASS43671516350",
+      "integration": "PASS43671516282",
+      "no_numbered_acceptance_promotion": true,
+      "all_checks": "15SUCCESS",
+      "snapshot_sha256": "4006b8a6c2a22263cf2fe86f8c2ba6979389958c7519476827887d2e1c8086bf"
     },
     "acceptance_delta": {
       "promoted_steps": [],
@@ -1489,10 +1806,12 @@
       ]
     },
     "publication": {
-      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
-      "mode": "normal nonforce existing draft PR973 update",
+      "head": "d53c19e55d15f13afdac8c19b003f676d9981832",
+      "mode": "normal nonforce existing draft updates; prior jobs completed before correction admitted",
       "preflight": "ALLOWED capacity WARNING60development+2dependency",
-      "merged": false
+      "merged": false,
+      "first_head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "updates": 2
     },
     "rate_test_repair": {
       "commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
@@ -1618,6 +1937,164 @@
         "Full local unit, hosted candidate rerun, live network/provider and stack NOT_RUN"
       ]
     },
-    "rate_test_review_sha256": "f460309940c04fd57b690cfc864869642af7299c04c90112d1df0f9a7376401e"
+    "rate_test_review_sha256": "f460309940c04fd57b690cfc864869642af7299c04c90112d1df0f9a7376401e",
+    "first_candidate_hosted": {
+      "status": "FAIL",
+      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "run": 43670021815,
+      "failure": "test_compatible_rate_window_keeps_real_cross_origin_waits[7]: proofNone",
+      "counts": "1failed5334passed55skipped5203subtests",
+      "log_sha256": "f7454bcfd3484ba06ed1484890864ed8bca19136f963fa8b327e3336d1ec1574",
+      "other_jobs": "integration/Compose still running",
+      "cause": "UNPROVEN; local3ratevariants pass; bounded read-only diagnosis delegated"
+    },
+    "hosted_recovery": {
+      "captured_utc": "2026-11-15T03:23:41.233114+00:00",
+      "run": {
+        "conclusion": "success",
+        "headSha": "d53c19e55d15f13afdac8c19b003f676d9981832",
+        "startedAt": "2026-11-15T03:15:20Z",
+        "status": "completed",
+        "updatedAt": "2026-11-15T03:22:47Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43671516350"
+      },
+      "artifact": {
+        "id": 14144881365,
+        "name": "synthetic-acceptance-json",
+        "expired": false
+      },
+      "file_sha256": {
+        "ci-backup-recovery.json": "f5c34c1ffcac4a9b11afeeb05f5bc49fcb11d0ec7c410facee0386e44c8fa39d",
+        "ci-backup.json": "6fbd5bea9c9be1bf2b61c6dd2af6b0affd85c357b3a98527db295f12cb699757",
+        "ci-mock-e2e.json": "b6e878ab0d3edae5ac2668e1a2a3dab9268822f8ee9e1677f296abf73ae98adc",
+        "ci-recovery.json": "d47894f8821db4f971f42a319f515876344cda4502634c56aed561043fa0130c",
+        "ci-ui-onboarding.json": "bd4dc2434132bdacf04c2151a5a34ca8ff69feb402b10aa499787c891d7ca856",
+        "ci-ui.json": "52c6870b75262694e61cf2892ca15678d417e7d62f9d6ab0d1e396f4300dda3d"
+      },
+      "baseline_result": "PARTIAL",
+      "recovery_result": "PASS",
+      "baseline_joins": "application and V4 inventory profile/version/counts/inventory/snapshot hashes match;10services healthy;fixture-only",
+      "checks": "Root source/receipt qualification; no new numbered independent acceptance",
+      "limitations": [
+        "Source checks individual before/after state but summaries do not retain all individual readbacks",
+        "Natural postrestart due-time admission and source-bound RQ monitoring NOT_RUN",
+        "No public same-employer chain or merged implementation SHA",
+        "Prior nonauthor recovery qualification covers unchanged producer semantics, not this new runtime execution"
+      ],
+      "review_reference_sha256": "5531e4a92aa95238ff379548bd976acd58077afca1becfc18de0fee559554d84"
+    },
+    "prior_blockers_snapshot": [
+      "Public same-employer prerequisite unproven; foreign reserved runtime 0068d92da7c0 actually running and untouched"
+    ],
+    "checkpoint_updated_utc": "2026-11-15T06:20:36.942262+00:00",
+    "m5_continuation": {
+      "candidate": "bfb77c7710ff57afe24d6b4a459184ed0129a4fa",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-bootstrap-01a1dcec\\MJobs",
+      "review": "APPROVE; malformednestedcandidate regression resolved",
+      "tests": "author234pass16PGskip64subtests; independentcollection45pass26subtests; exactmalformedprobe nowhealthy",
+      "paths": [
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_aggregator_bootstrap_collection.py"
+      ],
+      "claim": "workerRELEASED; sourcepaths transferred tosoleintegrationowner",
+      "review_receipt_sha256": "1c4ec29e4e2eca04b89d5f2eef759ea9b0655d1ea969967872986ebb756238eb",
+      "author_receipt_sha256": "394fb0ef61d0181304cbc9055abdba5ec6a2c0ac7112080eb3121b35d9434cb9",
+      "integration": "Localfastforward only; remote remainsd53"
+    },
+    "test_email_setup": {
+      "status": "Dedicatedreceivingaliascreated/enabled anddestinationverified;2priorrulesunchanged",
+      "private_receipt": "outputs/mj292-integration-01a1dcec/email-routing-receipt.json",
+      "public_metadata_excludes_addresses": true,
+      "no_accounts_or_applications_created": true,
+      "outbound_and_delivery_test": "NOT_RUN",
+      "scope_authority": "Currentuser explicitly authorized Cloudflarealias forwarding setup"
+    },
+    "local_implementation_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+    "m6_testedrecruits": {
+      "state": "APPROVED_INTEGRATED; all ownership resolved; final registry/readback30PASS4PGskips2subtests",
+      "owner": "public_prerequisite Luna",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-testedrecruits-01a1dcec\\MJobs",
+      "branch": "codex/mj292-testedrecruits-01a1dcec",
+      "base_sha": "bfb77c7710ff57afe24d6b4a459184ed0129a4fa",
+      "owned_paths": [
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/testedrecruits.py",
+        "tests/unit/test_testedrecruits_source.py",
+        "tests/integration/test_testedrecruits_source.py",
+        "tests/unit/test_source_adapter_contract_223.py",
+        "tests/unit/test_company_source_capabilities.py",
+        "tests/unit/test_company_source_contract_sustain_224.py"
+      ],
+      "deadline_utc": "2026-11-15T05:45:00Z",
+      "registry_owner_claim": "web:WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26:p6-f06-source-adoption:6810437347984bb2b356af7b4352ac45",
+      "registry_owner_pr": 1022,
+      "ownership_question_pending": false,
+      "reviewer": "verifier_review Sol",
+      "positive": "Configurednativepubliclisting viaexistingSourceAdapter framework; count/IDs/host/tenant closure",
+      "negative": "No automaticdomainauthority/enrollment/completejobdetail or60stepclaim; malformed/capped/filtered/paginatedinventory failsclosed",
+      "runtime": "No newnetwork/stackcalls; usecapturednative200bodyoffline",
+      "registry_handoff": "Currentuser: Owner explicitly handed off the registry path; nativeclaim onlythatpath transferred, otherPR1022workpreserved",
+      "candidate": "3915ceb51f302918a867c74119e6f823284995f6",
+      "review_worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-testedrecruits-review-01a1dcec\\MJobs",
+      "review_receipt_sha256": "391554c4cdbfdf1b09d13ce6dc98a257712d17488618c1ac98ab8d0f2f49318b",
+      "review_findings": [
+        "P1 real PublicCompanyClient has no context-manager interface; test double concealed it",
+        "P2 missing/wrong title incorrectly grants complete inventory with invented/wrong company name"
+      ],
+      "tests": "Author129pass89subtests; rootdownstream119pass73subtests at808; currentlive3915 configuredreader28uniquecomplete, noauthority/enrollment/duplicatecredit",
+      "pending_ownership_path": null,
+      "followup_deadline_utc": "2026-11-15T06:00:00Z",
+      "prior_candidate": "4ef2ebbb210df86ad425000d22b40c3d97b72813",
+      "author_receipt_sha256": "8ca0386c243f16f0d4159db34bc749404839f73bbb27393498a732844a897c53",
+      "downstream_receipt": "outputs/mj292-testedrecruits-01a1dcec/composition-consumer-checks.json",
+      "downstream_log_sha256": "39d4a8d0e4ef4f2aaed308df5e840457217d0fedc6d7628eab038871e9e7694c",
+      "contract_handoff": "Current user explicitly handed off sustain224; native claim transferred only that path",
+      "live_receipt_sha256": "62cf68ab62a1d2046d7b467f996c3260562ea5f24681455845a69adb9265cb21",
+      "additional_registry_red": "2FAIL28PASS4PGskips2subtests; extension expectedtuple fixed17PASS, API fixture usesinvalid tenant acme",
+      "additional_registry_red_log_sha256": "26140ce1a1b074ffa00bce40bc702a1633f8763f993f9ede805a2344cb67c56d",
+      "final_fixture_commit": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+      "final_fixture_green_log_sha256": "d130b3298cd80e3f278fe92a4eff483ec5013989a00df9dd661fbdb512d6ffb1"
+    },
+    "m7_runtime_ledger": {
+      "state": "APPROVED_INTEGRATED_LOCALLY",
+      "source": "3915ceb51f302918a867c74119e6f823284995f6",
+      "owner": "verifier_impl",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-ledger-runtime-01a1dcec\\MJobs",
+      "branch": "codex/mj292-ledger-runtime-01a1dcec",
+      "owned_paths": [
+        "tools/verification/acceptance_ledger.py",
+        "tests/unit/test_acceptance_ledger.py"
+      ],
+      "reviewer": "verifier_review",
+      "deadline_utc": "2026-11-15T06:16:00Z",
+      "positive": "Real producer/runtime manifest and baseline references validate correct digest domains and shape",
+      "negative": "Bad digest/state/extra fields remain rejected; missing merge/review gates stay rejected",
+      "prerequisite": "Independent actual recovery review found two source/consumer contract mismatches",
+      "rollback": "Revert source commit; never rewrite retained artifacts or promote acceptance",
+      "candidate": "cc5c87425988021a742fa3bd1d2e6588e6bf4508",
+      "author_receipt_sha256": "16d3a5c64aa43e0c1ca55c1c2ad7fdb19a88a6faaf2d547c968455f75256785d",
+      "review_receipt_sha256": "8c026b8a8e0f6f5d919350130cc612fa1f9230761260c3412f2f30688ed3dc68",
+      "tests": "Author544PASS40subtests11.69s; independent544PASS40subtests13.57s; two genuineREDs; fiveactualreference negativesreject",
+      "actual_receipt_probe": "Old16errors -> new14errors, ONLY missing seven numbered reviews and seven protectedmerge gates; no acceptancepromotion",
+      "actual_probe_sha256": "2d3f96007fa83fa213f7c3051bc84333e22294c24c1c1478d22c35a478d41584"
+    },
+    "publication_followup": {
+      "tested_implementation_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+      "previous_published_sha": "d53c19e55d15f13afdac8c19b003f676d9981832",
+      "state": "REVIEWED_READY_FOR_PREFLIGHT",
+      "hosted": "NOT_RUN onnewcandidate",
+      "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+      "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+      "remaining_user_decisions": [],
+      "fixture_review_receipt_sha256": "31c4f25fc9457280ec4b2723f84541668f71a5d03e98cd43a228e9b032f17263"
+    },
+    "continuation_authority": {
+      "received_utc": "2026-11-15T06:22:50.617054+00:00",
+      "scope": "Current user explicitly authorizes continued overnight MJobs work while unavailable and hands off prior task-relevant owners/leases",
+      "constraints": "Inspect actual running processes/concurrent writes; preserve dirty/unmerged work; scoped native claim takeover only; no external applications, bypass, paid fallback, unrelated destruction",
+      "execution": "Continue existing MJ292 Goal in current chat under unattended policy; no new runner/controller/supervisor",
+      "prior_interactive_checkpoint_utc": "2026-11-15T06:30:43Z",
+      "afk_state": "Existing historical project AFK goal inspected and preserved; current authority/checkpoint is MJ292, not its old goal text"
+    }
   }
 }

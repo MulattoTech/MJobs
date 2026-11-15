@@ -1,3 +1,15 @@
+# MJ-REQ-292 current execution — 2026-11-15
+
+Reviewed implementation source: 4503aba0975ca86a38aa865a1e4e9a6959f15d24. Existing draft PR #973 still publishes d53c19e5 until the next normal update. New source includes verifier contract repairs, terminal-bootstrap continuation, and the bounded configured TestedRecruits listing reader. All affected path handoffs are resolved. Source components passed targeted tests and nonauthor review; final fixture review passed; publication preflight is next. New-head hosted checks remain NOT_RUN.
+
+The corrected d53 controlled run finished exit2/PARTIAL:56 producer PASS and4PARTIAL (9,11,16,25). Independent review supports actual restart of10services, seven-domain persistence and natural single worker resumption. New verifier fixes remove two genuine receipt incompatibilities while retaining all14 missing numbered-review/merge errors. Canonical acceptance stays0VERIFIED/53PARTIAL/7NOT_RUN.
+
+A real registered-adapter read on3915ceb5 returned28unique Coalition Technologies postings, including16788, preserving unknown facts. Automatic employer domainauthority, enrollment, employer-only relevant opening and duplicate identity remain unproved. All owned stacks/browsers are stopped; data, failed runs and private routing receipts are preserved. No employer submissions or protected merges occurred.
+
+Next: publish this qualified composition to PR973 and inspect exact-head CI. Current user authorized continued overnight work and task-relevant owner/lease takeover; preserve actual running operations and dirty work. Continue this existing Goal under unattended policy without a new runner. Required source/commands/hashes/reviews/rollback are in planning/agent_handoffs/MJ-REQ-292.json (execution_01a1dcec) and docs/evidence/2026-11-15-mj292-verifier-01a1dcec.json. The prior06:30 interactive checkpoint is retained historically; current overnight authority permits safe continuation.
+
+---
+
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
 ## Mission Control freshness repair — 2026-11-06

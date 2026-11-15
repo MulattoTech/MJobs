@@ -3,8 +3,8 @@
   "requirement": "MJ-REQ-292",
   "issue": 293,
   "pr": 973,
-  "state": "DRAFT_PARTIAL",
-  "recorded_at_utc": "2026-11-15T02:52:45.677929+00:00",
+  "state": "DRAFT_REVIEWED_LOCAL_COMPONENTS; ACCEPTANCE_PARTIAL; NEW_HEAD_CI_NOT_RUN",
+  "recorded_at_utc": "2026-11-15T06:20:36.942262+00:00",
   "baseline_pr_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
   "main_sha": "80eec0bad2d4d56ad6256820101f61b5301bafda",
   "implementation_sha": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
@@ -372,5 +372,287 @@
     "composed_receipt_sha256": "161cc31d34d5ee2159635c4f241f1908fa4f0c3f24bd4c5dfb2b24b22d059fd7",
     "latest_candidate_hosted": "NOT_RUN at recording; previous failures preserved",
     "composition": "Exact test fix blobs retained; all executable files identical to independently reviewed c65ca518; only handoff differs"
+  },
+  "controlled_recovery_followup": {
+    "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+    "run": "mj292-recovery-01a1dcec-27b29ce84d1c",
+    "result": "PARTIAL",
+    "exit_code": 2,
+    "producer_observations": {
+      "PASS": 56,
+      "PARTIAL": 4
+    },
+    "controlled_recovery_steps": "54\u201360 producerPASS with CONTROLLED_FIXTURE; not public sameemployer acceptance",
+    "natural_worker_attempts": 1,
+    "public_chain": "NOT_RUN; actualordinaryemployer route diagnosis now authorized",
+    "canonical_acceptance": "UNCHANGED 0VERIFIED/53PARTIAL/7NOT_RUN",
+    "independent_actual_run_review": {
+      "state": "CONTROLLED_COMPONENTS_PASS_STRICT_LEDGER_BLOCKED",
+      "receipt_sha256": "3d4022efe23d267e40396a734272f638ca1675525206a8bb17517eaf099d8392",
+      "validation_sha256": "a2c3fbe373d194d9e2b388042f4ae40888eec44fba21c7553f60c76574698fc3",
+      "negative_controls": 5,
+      "strict_blockers": [
+        "Runtime manifest digest compared to archive digest",
+        "Producer baseline status COMPLETE rejected by reference loader",
+        "Missing merged revision and numbered reviewer gates"
+      ],
+      "acceptance": "No canonical promotion",
+      "subsequent_verifier_probe": "M7 cc5c8742 removes two structuralerrors;14 requiredreview/mergeerrors remain enforced; report still not accepted."
+    },
+    "merged_implementation": "NOT_RUN; PR973 OPEN DRAFT",
+    "artifacts": {
+      "journey\\journey.json": "33509390e3eeb0800b8c8dc9a7aa019553754056b18e61add5b6d0b384d9c498",
+      "journey\\monitor_prepare.json": "a1fc56f72a1256ebc9ac865115d97010b6177aa416173e55540a6eecee6ffc18",
+      "journey\\monitor_after.json": "3ab1c6fd1d9141781bdfd9e35f7b2bc983d182a6de48f1b4f8dcd7f2c48adbfd",
+      "journey\\recovery.json": "c0c02f6ef89fcffadaf31933e1bc9982e5f044b9d39de52b16f928a05affc427",
+      "journey-execution-receipt.json": "afdc487e46b215f18eada8015c2103979b88b2e3b193227d95548ba8bd91ffc2",
+      "owned-stack-preserved.json": "323c7561a5f001df4e4be4283ed075cfa9cec6c2ef271fda56c648ab4ee9a6bc"
+    },
+    "resources": "All11owncontainers stopped; volumes/images/networks/configuration preserved; no active heavy runner",
+    "next_action": "Diagnose first failed ordinaryemployer transition and reproduce smallest reusable product defect, no easierselector",
+    "partial_step_numbers": [
+      9,
+      11,
+      16,
+      25
+    ]
+  },
+  "ordinary_employer_diagnosis": {
+    "employer": "Coalition Technologies (not Coalition Inc)",
+    "retained_aggregator_requisition": "Remotive1680495",
+    "official_careers": "https://coalitiontechnologies.com/jobs",
+    "official_careers_read": "Productclient403; freshbrowser307then403challenge; stopped",
+    "native_detail": "https://app.testedrecruits.com/posting/16788; freshbrowser200",
+    "native_inventory": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+    "native_inventory_product_read": {
+      "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "started_at_utc": "2026-11-15T05:12:51.833613+00:00",
+      "purpose": "Diagnostic only; no automatic origin authority or enrollment credit",
+      "policy": "Unmodified PublicCompanyClient default request/rate/robots/DNS/SSRF/redirect/body caps, total_timeout=30",
+      "logical_page_gets": 1,
+      "retries": 0,
+      "result": "PAGE_READ",
+      "status": 200,
+      "final_url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 34866,
+      "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+      "redirect_urls": [],
+      "robots_loaded": true,
+      "completed_at_utc": "2026-11-15T05:12:53.627229+00:00"
+    },
+    "inventory_observation": {
+      "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+      "title": [
+        "\n        Coalition Technologies Jobs &amp; Careers     "
+      ],
+      "count_text": [
+        "Current Job Postings: 28 Search / Filter Location All CA TX "
+      ],
+      "unique_posting_count": 28,
+      "posting_ids": [
+        "16787",
+        "16788",
+        "16790",
+        "16791",
+        "16792",
+        "16793",
+        "16794",
+        "16795",
+        "16796",
+        "16797",
+        "16798",
+        "16799",
+        "16800",
+        "16801",
+        "16802",
+        "16803",
+        "16804",
+        "16805",
+        "16806",
+        "16807",
+        "16808",
+        "16812",
+        "16813",
+        "16816",
+        "16817",
+        "16818",
+        "16819",
+        "16820"
+      ],
+      "has_16788": true,
+      "pagination_terms": [],
+      "nonposting_link_paths": [
+        "app.testedrecruits.com",
+        "app.testedrecruits.com/embedJobs/1/coalition-technologies",
+        "app.testedrecruits.com/faqs"
+      ],
+      "script_paths": [
+        "www.googletagmanager.com/gtag/js",
+        "app.testedrecruits.com/js/iframeResizer/iframeResizer.contentWindow.js",
+        "static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ]
+    },
+    "boundary": "KnownURL diagnostic only; automatic employer authority, duplicateidentity and publicjourney acceptance unproved",
+    "account_path": "Publicread doesnotneedaccount; applicantflow submitsapplication; registrationcreatesemployeraccount. No accounts created.",
+    "next": "Assess minimal existingframework nativeadapter with failclosedcount/identity/foreignhost controls; no guessedAPI"
+  },
+  "terminal_bootstrap_continuation": {
+    "committed_revision": "bfb77c7710ff57afe24d6b4a459184ed0129a4fa",
+    "behavior": "Already attempted terminal exact bootstrap rows no longer consume fresh two-employer slots; current canonical authority and incomingraw/normalized/requisition binding retained. Malformedhistoricalauthority failsclosed without failing sourcecollection.",
+    "review": "APPROVE",
+    "review_receipt_sha256": "1c4ec29e4e2eca04b89d5f2eef759ea9b0655d1ea969967872986ebb756238eb",
+    "author_receipt_sha256": "394fb0ef61d0181304cbc9055abdba5ec6a2c0ac7112080eb3121b35d9434cb9",
+    "validation": "author234pass16PGskip64subtests; independentcollection45pass26subtests; exactmalformedprobe nowhealthy",
+    "previous_candidate": "7c53b7c8d4d2d9497dbda81e7ad661dcde4a93ba; CHANGES_REQUESTED preserved, fixed infollowup",
+    "runtime": "NOT_RUN onnewsource; correctedfixture recoveryboundonlytod53",
+    "public_chain": "NOT_RUN; noacceptancepromotion",
+    "rollback": "Revert twocommits; no schema/data migrations or employer mutations"
+  },
+  "configured_testedrecruits_listing": {
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "author_tests": "129tests89subtestsPASS",
+    "review": "APPROVE3915; final65tests56subtests; prior120tests66subtests; literalcapture/live inventorydigests match",
+    "live_read": {
+      "source": "3915ceb51f302918a867c74119e6f823284995f6",
+      "started_at_utc": "2026-11-15T06:05:16.852946+00:00",
+      "config": {
+        "provider": "testedrecruits",
+        "tenant": "1/coalition-technologies",
+        "request_timeout": 15,
+        "rate_limit": 60,
+        "concurrency": 1
+      },
+      "logical_listing_reads": 1,
+      "retries": 0,
+      "purpose": "Configured listing read only; no automatic authority/enrollment/duplicate/public journey credit",
+      "policy": "Unmodified registered production adapter and PublicCompanyClient robots/DNS/SSRF/rate/deadline/body gates",
+      "result": "PASS",
+      "complete_inventory": true,
+      "health": "HEALTHY",
+      "company": "Coalition Technologies",
+      "company_identity": [
+        "testedrecruits",
+        "1"
+      ],
+      "posting_count": 28,
+      "unique_posting_count": 28,
+      "includes_retained_native_16788": true,
+      "inventory_sha256": "996fe9fac072e87f4815d5ddd0fa0be93f1d47e2eb3874b5eecdf4b0df92cd3c",
+      "normalized_sha256": "7ea1fdee39ea40e32d54b35c5d3596a4c85f3fc36c895ab96883282d67f8a637",
+      "all_listing_excerpts": true,
+      "unknown_location_preserved": true,
+      "completed_at_utc": "2026-11-15T06:05:18.584060+00:00"
+    },
+    "live_receipt_sha256": "62cf68ab62a1d2046d7b467f996c3260562ea5f24681455845a69adb9265cb21",
+    "boundary": "Configured publiclisting, no automatic employer domainauthority/enrollment/dedupe or fulljobdetail",
+    "rollback": "Revert three M6 source commits; no migrations or external writes",
+    "review_receipt_sha256": "391554c4cdbfdf1b09d13ce6dc98a257712d17488618c1ac98ab8d0f2f49318b",
+    "publication_gate": "All path ownership and local fixture gates resolved; final4503aba0 review APPROVE; hosted gate pending"
+  },
+  "runtime_receipt_verifier_followup": {
+    "state": "APPROVED_INTEGRATED_LOCALLY",
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "owner": "verifier_impl",
+    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-ledger-runtime-01a1dcec\\MJobs",
+    "branch": "codex/mj292-ledger-runtime-01a1dcec",
+    "owned_paths": [
+      "tools/verification/acceptance_ledger.py",
+      "tests/unit/test_acceptance_ledger.py"
+    ],
+    "reviewer": "verifier_review",
+    "deadline_utc": "2026-11-15T06:16:00Z",
+    "positive": "Real producer/runtime manifest and baseline references validate correct digest domains and shape",
+    "negative": "Bad digest/state/extra fields remain rejected; missing merge/review gates stay rejected",
+    "prerequisite": "Independent actual recovery review found two source/consumer contract mismatches",
+    "rollback": "Revert source commit; never rewrite retained artifacts or promote acceptance",
+    "candidate": "cc5c87425988021a742fa3bd1d2e6588e6bf4508",
+    "author_receipt_sha256": "16d3a5c64aa43e0c1ca55c1c2ad7fdb19a88a6faaf2d547c968455f75256785d",
+    "review_receipt_sha256": "8c026b8a8e0f6f5d919350130cc612fa1f9230761260c3412f2f30688ed3dc68",
+    "tests": "Author544PASS40subtests11.69s; independent544PASS40subtests13.57s; two genuineREDs; fiveactualreference negativesreject",
+    "actual_receipt_probe": "Old16errors -> new14errors, ONLY missing seven numbered reviews and seven protectedmerge gates; no acceptancepromotion",
+    "actual_probe_sha256": "2d3f96007fa83fa213f7c3051bc84333e22294c24c1c1478d22c35a478d41584"
+  },
+  "current_implementation_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+  "registry_fixture_followup": {
+    "source": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+    "red_log_sha256": "26140ce1a1b074ffa00bce40bc702a1633f8763f993f9ede805a2344cb67c56d",
+    "green": {
+      "source_parent": "cc5c87425988021a742fa3bd1d2e6588e6bf4508",
+      "tested_source_hashes": {
+        "tests/integration/test_company_source_view.py": "1c55b3870e428ffc4571dd0ef56174c25fe7c3d69bceb15bc142b132f3412ada",
+        "tests/unit/test_extension_point_contracts.py": "e683db0e5094279549504c4028ef3aa9dc692888859427fcbb95e8f51fcc36da"
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_company_source_view.py",
+        "tests/unit/test_extension_point_contracts.py",
+        "tests/integration/test_supported_provider_collection.py"
+      ],
+      "exit_code": 0,
+      "utc": "2026-11-15T06:19:19.785925+00:00",
+      "log_sha256": "d130b3298cd80e3f278fe92a4eff483ec5013989a00df9dd661fbdb512d6ffb1"
+    },
+    "result": "30PASS4PGskips2subtests; productionvalidators and everyassertionpreserved",
+    "review": "APPROVE exact4503aba0; frozen source hashes and RED/GREEN logs independently verified, tests not independently rerun",
+    "review_receipt_sha256": "31c4f25fc9457280ec4b2723f84541668f71a5d03e98cd43a228e9b032f17263"
+  },
+  "latest_integrity_checks": {
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "utc": "2026-11-15T06:07:42.907842+00:00",
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "log_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      }
+    ]
+  },
+  "publication_followup": {
+    "tested_implementation_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+    "previous_published_sha": "d53c19e55d15f13afdac8c19b003f676d9981832",
+    "state": "REVIEWED_READY_FOR_PREFLIGHT",
+    "hosted": "NOT_RUN onnewcandidate",
+    "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+    "remaining_user_decisions": [],
+    "fixture_review_receipt_sha256": "31c4f25fc9457280ec4b2723f84541668f71a5d03e98cd43a228e9b032f17263"
   }
 }
