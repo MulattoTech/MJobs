@@ -1,5 +1,6 @@
 """Collection stages bounded untrusted hints; employer network belongs to workers."""
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import sqlite3
@@ -9,10 +10,11 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import httpx
+import pytest
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, now
 from services.company_discovery.public_client import PublicCompanyClient
 from services.discovery.sources.collect import collect_source, configure_source
 from services.discovery.sources.errors import SourceError
@@ -323,6 +325,68 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(len({row["company_id"] for row in pending}), 2)
         self.assertEqual(len(self.http_requests), 1)
 
+    def _stage_matching_bootstrap_heads(self):
+        self._activate_v2()
+        template = deepcopy(self.rows[0])
+        self.rows = [dict(template, id=5000 + index, company_name=company,
+            title="Python SQL Engineer", tags=["python", "sql"],
+            description='Python and SQL engineering. <a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>',
+            url=f"https://remotive.com/remote-jobs/software-dev/python-engineer-{5000 + index}")
+            for index, company in enumerate(("Alpha", "Bravo", "Charlie", "Delta"))]
+        lineage = self.parent_operation()
+        self.collect(**lineage)
+        with self.store.engine.begin() as connection:
+            scores = connection.execute(select(m.matches.c.score).where(
+                m.matches.c.profile_id == "fixture")).scalars().all()
+            self.assertEqual(len(scores), 4)
+            self.assertTrue(all(score >= 60 for score in scores), scores)
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == lineage["parent_operation_id"]).values(
+                    state="COMPLETED", completed_at=now(), lease_expires_at=None))
+        heads = self.pending()
+        self.assertEqual(len(heads), 2)
+        return heads
+
+    def _finish_bootstrap_heads(self, heads):
+        for request in heads:
+            self.assertIsNotNone(claim(self.store, request["operation_id"]))
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == request["operation_id"]).values(
+                        state="BLOCKED", error="COMPANY_DOMAIN_CORROBORATION_REQUIRED",
+                        completed_at=now(), lease_expires_at=None, next_attempt_at=None))
+
+    def test_terminal_bootstrap_heads_yield_to_next_two_matching_employers(self):
+        from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+
+        heads = self._stage_matching_bootstrap_heads()
+        self._finish_bootstrap_heads(heads)
+        with self.store.engine.begin() as connection:
+            operations_before = {row["id"]: dict(row) for row in connection.execute(
+                select(m.operations).where(m.operations.c.id.in_(
+                    [request["operation_id"] for request in heads]))).mappings()}
+            connection.execute(update(m.job_sources).where(
+                m.job_sources.c.id == self.source_id).values(last_attempt=None))
+        with patch("services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint",
+                   wraps=extract_bootstrap_hint) as extract:
+            result = self.collect(**self.parent_operation())
+
+        self.assertEqual(result["jobs_seen"], 4)
+        self.assertEqual([call.args[0]["company_name"] for call in extract.call_args_list],
+                         ["Charlie", "Delta"])
+        after = self.pending()
+        self.assertEqual(len(after), 4)
+        self.assertEqual(len(self.http_requests), 2)
+        with self.store.engine.connect() as connection:
+            for old in heads:
+                current = next(row for row in after if row["id"] == old["id"])
+                for key in ("revision", "candidate_id", "trigger_job_id", "source_snapshot",
+                            "authorization", "selected_website", "domain_evidence", "operation_id"):
+                    self.assertEqual(current[key], old[key], key)
+                operation = dict(connection.execute(select(m.operations).where(
+                    m.operations.c.id == old["operation_id"])).mappings().one())
+                self.assertEqual(operation, operations_before[operation["id"]])
+
     def test_ambiguous_hints_consume_the_bounded_intake_without_scanning_more_employers(self):
         from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
         template = self.rows[0]
@@ -578,3 +642,84 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(len(self.http_requests), 1)
         self.assertEqual(self.store.count("posting_snapshots"), 0)
         self.assertEqual(self.pending(), [])
+
+
+@pytest.mark.parametrize("change", [
+    "queued", "running", "retryable", "unattempted", "cancelled", "cancel_requested",
+    "no_completion", "leased", "review", "foreign_profile", "profile_version",
+    "source_policy", "pending_digest", "parent_authority", "incoming_raw",
+])
+def test_bootstrap_continuation_preserves_nonconsumed_or_changed_heads(change):
+    from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+
+    case = AggregatorBootstrapCollectionTests()
+    case.setUp()
+    try:
+        heads = case._stage_matching_bootstrap_heads()
+        case._finish_bootstrap_heads(heads)
+        identifiers = [row["operation_id"] for row in heads]
+        future = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
+        with case.store.engine.begin() as connection:
+            operations = m.operations.c.id.in_(identifiers)
+            if change == "queued":
+                connection.execute(update(m.operations).where(operations).values(
+                    state="QUEUED", completed_at=None))
+            elif change == "running":
+                connection.execute(update(m.operations).where(operations).values(
+                    state="RUNNING", completed_at=None, lease_expires_at=future))
+            elif change == "retryable":
+                connection.execute(update(m.operations).where(operations).values(
+                    state="FAILED", next_attempt_at=future))
+            elif change == "unattempted":
+                connection.execute(update(m.operations).where(operations).values(attempt_count=0))
+            elif change == "cancelled":
+                connection.execute(update(m.operations).where(operations).values(state="CANCELLED"))
+            elif change == "cancel_requested":
+                connection.execute(update(m.operations).where(operations).values(cancel_requested=True))
+            elif change == "no_completion":
+                connection.execute(update(m.operations).where(operations).values(completed_at=None))
+            elif change == "leased":
+                connection.execute(update(m.operations).where(operations).values(lease_expires_at=future))
+            elif change == "review":
+                connection.execute(update(m.company_discovery_requests).where(
+                    m.company_discovery_requests.c.id.in_([row["id"] for row in heads])).values(
+                        state="NEEDS_ORIGIN_REVIEW", operation_id=None, authorization=None,
+                        selected_website=None, domain_evidence=[]))
+            elif change == "source_policy":
+                connection.execute(update(m.job_sources).where(
+                    m.job_sources.c.id == case.source_id).values(rate_limit=2))
+            elif change == "pending_digest":
+                for row in heads:
+                    evidence = deepcopy(row["domain_evidence"])
+                    evidence[0]["sha256"] = "0" * 64
+                    connection.execute(update(m.company_discovery_requests).where(
+                        m.company_discovery_requests.c.id == row["id"]).values(domain_evidence=evidence))
+            elif change == "parent_authority":
+                parent_ids = {row["domain_evidence"][0]["binding"]["parent_operation_id"] for row in heads}
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id.in_(parent_ids)).values(state="FAILED"))
+            connection.execute(update(m.job_sources).where(
+                m.job_sources.c.id == case.source_id).values(last_attempt=None))
+        if change == "foreign_profile":
+            other = deepcopy(PROFILE)
+            other["id"] = "other"
+            case.store.save_profile(other)
+            with case.store.engine.begin() as connection:
+                connection.execute(update(m.company_discovery_requests).where(
+                    m.company_discovery_requests.c.id.in_([row["id"] for row in heads])).values(
+                        profile_id="other", profile_version=case.store.profile("other")["version"]))
+        elif change == "profile_version":
+            current = case.store.profile("fixture")
+            current["name"] = "Changed profile version"
+            case.store.save_profile(current, expected_version=current["version"])
+        elif change == "incoming_raw":
+            case.rows[0]["description"] += " Updated employer posting content."
+
+        with patch("services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint",
+                   wraps=extract_bootstrap_hint) as extract:
+            case.collect(**case.parent_operation())
+        expected = ["Alpha", "Charlie"] if change == "incoming_raw" else ["Alpha", "Bravo"]
+        assert [call.args[0]["company_name"] for call in extract.call_args_list] == expected
+        assert len(case.http_requests) == 2
+    finally:
+        case.doCleanups()

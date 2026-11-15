@@ -363,6 +363,24 @@ def _approved_source_capabilities(source, adapter):
     return capabilities
 
 
+def _terminal_bootstrap_heads(connection, source, profile, company_ids):
+    """Prefilter consumed attempts, never authorize a new request or retry."""
+    request, operation, bound = m.company_discovery_requests, m.operations, m.company_sources
+    rows = connection.execute(select(request.c.company_id, operation).select_from(
+        request.join(operation, operation.c.id == request.c.operation_id)
+        .join(bound, bound.c.id == request.c.company_source_id)).where(
+            request.c.company_id.in_(sorted(company_ids)),
+            request.c.profile_id == profile['id'], request.c.profile_version == profile['version'],
+            request.c.authorization.in_({'AGGREGATOR_BOOTSTRAP_PENDING', 'AGGREGATOR_BOOTSTRAP_VERIFIED'}),
+            bound.c.collector_source_id == source['id'], bound.c.provider == source['provider'],
+            bound.c.tenant == source['tenant'], operation.c.kind == 'COMPANY_DISCOVER',
+            operation.c.state.in_({'BLOCKED', 'FAILED', 'DEAD_LETTERED', 'COMPLETED'}),
+            operation.c.attempt_count > 0, operation.c.completed_at.is_not(None),
+            operation.c.next_attempt_at.is_(None), operation.c.lease_expires_at.is_(None),
+            operation.c.cancel_requested.is_(False))).mappings()
+    return {row['company_id']: {key: row[key] for key in operation.c.keys()} for row in rows}
+
+
 def _prepare_aggregator_bootstrap_hints(store, source, profile, normalized, check):
     """Parse at most two untrusted pointers without holding a DB transaction."""
     if (not profile or source['provider'] not in {'wwr', 'remotive'}
@@ -372,28 +390,56 @@ def _prepare_aggregator_bootstrap_hints(store, source, profile, normalized, chec
     if policy.get('company_discovery_enabled', True) is not True:
         return {}
     company_ids = {identity(*item.company.identity_parts) for item, _ in normalized}
+    from services.company_discovery.aggregator_bootstrap import (
+        canonical_digest, extract_bootstrap_hint, normalized_projection,
+    )
+    from services.company_discovery.requests import _authorize_discovery_request
+    from services.company_discovery.public_client import PublicFetchError
+    from services.discovery.matching import build_explanation
+
+    planned = []
+    attempted_companies = set()
     with store.engine.connect() as connection:
         if connection.execute(select(m.profiles.c.version).where(
                 m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']:
             return {}
         existing = set(connection.execute(select(m.companies.c.id).where(
             m.companies.c.id.in_(sorted(company_ids)))).scalars())
-    from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
-    from services.discovery.matching import build_explanation
+        terminal = _terminal_bootstrap_heads(connection, source, profile, company_ids)
+        consumed = {}
+        for item, job in normalized:
+            check()
+            if len(attempted_companies) >= 2:
+                break
+            company_id = identity(*item.company.identity_parts)
+            if company_id in attempted_companies or job['attributes'].get('fictional'):
+                continue
+            if company_id in existing and build_explanation(job, profile)['score'] < policy.get(
+                    'minimum_match_for_discovery', 60):
+                continue
+            if company_id in terminal and company_id not in consumed:
+                try:
+                    # Reuse the canonical observational validator, without its
+                    # write-lock path. Validate only terminal heads encountered
+                    # before the fresh budget fills; malformed/stale authority
+                    # must not let a caller steer selection past an employer.
+                    authority = _authorize_discovery_request(
+                        store, terminal[company_id], connection, lock=False)
+                    consumed[company_id] = authority['aggregator_bootstrap_pending']['binding']
+                except (PublicFetchError, KeyError, TypeError, ValueError):
+                    consumed[company_id] = None
+            prior = consumed.get(company_id)
+            if (prior is not None and prior['selected_requisition'] == job['requisition']
+                    and prior['raw_sha256'] == canonical_digest(item.raw)
+                    and prior['normalized_sha256'] == canonical_digest(normalized_projection(job))):
+                continue
+            attempted_companies.add(company_id)
+            planned.append((item, job))
 
     hints = {}
-    attempted_companies = set()
-    for item, job in normalized:
+    for item, job in planned:
         check()
-        if len(attempted_companies) >= 2:
-            break
         company_id = identity(*item.company.identity_parts)
-        if company_id in attempted_companies or job['attributes'].get('fictional'):
-            continue
-        if company_id in existing and build_explanation(job, profile)['score'] < policy.get(
-                'minimum_match_for_discovery', 60):
-            continue
-        attempted_companies.add(company_id)
         hint = extract_bootstrap_hint(item.raw, job)
         check()
         if hint is not None:
