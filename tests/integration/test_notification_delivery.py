@@ -24,6 +24,7 @@ from services.notifications.providers import create_provider
 from services.notifications.runner import run_once
 from tests.unit.test_notification_configuration import config_data
 from tests.unit.test_ntfy_provider import acknowledgement
+from tests.unit.test_email_provider import FakeSMTP
 
 
 class Clock:
@@ -457,10 +458,11 @@ def test_slack_selection_runs_through_the_notification_cli_and_durable_runner(
     requests = []
     real_create_provider = create_provider
 
-    def controlled_provider(config):
+    def controlled_provider(config, *, cancellation_event=None):
         return real_create_provider(
             config, transport=httpx.MockTransport(
                 lambda request: requests.append(request) or httpx.Response(200, text="ok")),
+            cancellation_event=cancellation_event,
         )
 
     monkeypatch.setattr("cli.notifications.create_provider", controlled_provider)
@@ -474,4 +476,48 @@ def test_slack_selection_runs_through_the_notification_cli_and_durable_runner(
     second_output = json.loads(capsys.readouterr().out)
     assert second_output == {"enabled": True, "queued": 0, "attempted": 0, "outcome": None}
     assert len(requests) == 1
+    assert DeliveryJournal(parse_config(raw)).status()["counts"] == {"DELIVERED": 1}
+
+
+def test_email_selection_runs_through_cli_and_durable_dedupe_without_network(
+        tmp_path, monkeypatch, capsys):
+    raw = {
+        "version": 1, "enabled": True, "provider": "email", "profile_id": "fixture",
+        "smtp_host": "smtp.example.test", "smtp_sender": "notify@example.test",
+        "smtp_recipient": "owner@example.test", "smtp_username": "mjobs-app",
+        "smtp_password_env": "SMTP_SYNTHETIC_PASSWORD",
+        "state_path": str(tmp_path / "email-state.db"),
+    }
+    config_path = tmp_path / "email-config.json"
+    config_path.write_text(json.dumps(raw), encoding="utf-8")
+    store = make_store(tmp_path)
+    clock = Clock()
+    clock.value = datetime.now(timezone.utc).timestamp()
+    add_operation(store, clock, "email-operation")
+    database_url = f"sqlite:///{(tmp_path / 'application.db').as_posix()}"
+    store.engine.dispose()
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("SMTP_SYNTHETIC_PASSWORD", "synthetic-email-password")
+    real_create_provider = create_provider
+    FakeSMTP.instances = []
+    FakeSMTP.login_error = FakeSMTP.send_result = FakeSMTP.send_error = None
+    FakeSMTP.exit_error = FakeSMTP.during_send = None
+
+    def controlled_provider(config, *, cancellation_event=None):
+        return real_create_provider(
+            config, smtp_factory=FakeSMTP,
+            environ={"SMTP_SYNTHETIC_PASSWORD": "synthetic-email-password"},
+            cancellation_event=cancellation_event,
+        )
+
+    monkeypatch.setattr("cli.notifications.create_provider", controlled_provider)
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output == {"enabled": True, "queued": 1, "attempted": 1,
+                      "outcome": "NOTIFICATION_SMTP_ACCEPTED"}
+    assert len(FakeSMTP.instances) == 1
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    second = json.loads(capsys.readouterr().out)
+    assert second == {"enabled": True, "queued": 0, "attempted": 0, "outcome": None}
+    assert len(FakeSMTP.instances) == 1
     assert DeliveryJournal(parse_config(raw)).status()["counts"] == {"DELIVERED": 1}
