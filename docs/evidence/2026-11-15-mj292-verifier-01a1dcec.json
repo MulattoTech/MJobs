@@ -646,10 +646,10 @@
     ]
   },
   "publication_followup": {
-    "tested_implementation_sha": "1b03ac22dbf23dbfd818bac4d49e7fb3c0e7ae9f",
-    "previous_published_sha": "439fd201899d2e887bc68fe205b97808685b2c8a",
+    "tested_implementation_sha": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+    "previous_published_sha": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
     "state": "REVIEWED_READY_FOR_PREFLIGHT",
-    "hosted": "NOT_RUN on new candidate; previous439 exact13SUCCESS/2FAIL preserved",
+    "hosted": "NOT_RUN on corrected candidate; prior exact-head jobs finished",
     "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
     "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
     "remaining_user_decisions": []
@@ -714,21 +714,22 @@
     "limitations": "52PASS33subtests on exact composition; synthetic SQLite/loopback. Hosted/browser/public-source NOT_RUN on this new source. No external submissions."
   },
   "previous_candidate_hosted": {
-    "state": "PUBLISHED_DRAFT_HOSTED_FAIL",
-    "published_head": "439fd201899d2e887bc68fe205b97808685b2c8a",
-    "tested_implementation_sha": "92650326ca20698a742d7089ace76b9cf1862399",
-    "previous_published_sha": "16942a6ed06b17834dbd6affec48ec163810a871",
+    "tested_implementation_sha": "1b03ac22dbf23dbfd818bac4d49e7fb3c0e7ae9f",
+    "previous_published_sha": "439fd201899d2e887bc68fe205b97808685b2c8a",
+    "state": "PUBLISHED_DRAFT_HOSTED_FAIL_FINISHED",
+    "hosted": "13SUCCESS including all PostgreSQL/Redis shards/aggregate and Compose; unit/requiredFAIL only six isolated-host fixture cases",
     "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
-    "utc": "2026-11-15T07:12:17.654811+00:00",
-    "preflight": "outputs/mj292-integration-01a1dcec/publication-preflight-currentness.json",
+    "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+    "remaining_user_decisions": [],
+    "published_head": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
+    "capacity": "60development;WARNING;existingPRupdateallowed",
+    "preflight": "outputs/mj292-integration-01a1dcec/publication-preflight-m11-m13.json",
     "preflight_sha256": "b60b6d2b379fdab25d109f5634ae87af2f2bbfac1a8a3e04f137a939917e2421",
-    "capacity": "60 development; WARNING; existing update allowed",
-    "hosted": "13SUCCESS; shard1 and aggregateFAIL. Exact shard16native stale-preflight helperfailures,1056PASS27skips486subtests; M12 correctionpending; no unchangedrerun.",
-    "acceptance": "0VERIFIED/53PARTIAL/7NOT_RUN unchanged; no protected merge",
-    "hosted_snapshot": "outputs/mj292-integration-01a1dcec/hosted-439fd201-final.json",
-    "hosted_snapshot_sha256": "423c4aca8b8bc71208731230bf695d1b387a593091a814e684225bff0249ece6",
-    "failure_receipt_sha256": "f6f0581677a2315e59cc70137a207a1e918bad72f3323a993213963a80f7c9bc",
-    "unit": "5379PASS55skips5204subtests262.33s; secondary50PASS39subtests2.05s"
+    "hosted_snapshot": "outputs/mj292-integration-01a1dcec/hosted-d3faf4cc-final.json",
+    "unit_failure_receipt": "outputs/mj292-integration-01a1dcec/hosted-d3-unit-failure-receipt.json",
+    "unit_failure_receipt_sha256": "c427b6960c884bc4cc50d3f7dfc9574a8fdb2a9cc5cef8c2383f6f7a9435a019",
+    "publication_checkpoint_utc": "2026-11-15T07:57:09.865112+00:00",
+    "hosted_snapshot_sha256": "ef4d5aaacd8ee242942d7b9f37f97590592ef2efd5ac8f2c3117d97993974ab6"
   },
   "profile_and_currentness_prerequisites": {
     "M11": {
@@ -853,5 +854,65 @@
     "native": "Exact439 hosted shard1 failed16stale-preflight fixturecases; original failed checks retained, not rerun unchanged. Corrected tests obtain actual fresh preflight; no fabricated metadata.",
     "windows": "Original isolated-host503 reproduced before M11; process tree exited naturally but host loaded conflicting system Playwright. Narrow runtime precedence fix passes same actual Windows test and metadata durability checks; private environment/containment unchanged.",
     "public": "Coalition official origin403 remains blocked; no further challenge retries, account workaround, external applications, public-chain or same-merged-SHA claim."
-  }
+  },
+  "m14_host_fixture_portability": {
+    "state": "APPROVED_INTEGRATED_READY_FOR_PUBLICATION",
+    "source": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
+    "owner": "public_prerequisite Luna",
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-host-fixture-01a1dcec/MJobs",
+    "paths": [
+      "tests/unit/test_manual_auth_isolated.py"
+    ],
+    "prerequisite": "Exacthosted6fail reproduced bystdlibunittest innetwork-none cachedLinuxcontainer; fixturemocksWindowsplatformwithoutWindowsruntimepath",
+    "positive": "Existing unit launch/ownership/closure cases execute actualvalidated bootstrap with a modeled validWindowsruntime directory onbothOSes",
+    "negative": "No productionguard weakening orskips; retain importorder/stdlib-shadow and alloriginal launch/cancel/compensation assertions",
+    "reviewer": "currentness_review afterfreeze",
+    "gate": "WindowsmodulePASS and actualLinuxmodulePASS, independentreview, then one update onlyaftercurrenthostedrunfinishes",
+    "deadline_utc": "2026-11-15T08:20:00Z",
+    "resource": "One boundedcachedLinuxunitcontainer;networknone/read-onlysource; noinstall/fullstack",
+    "rollback": "Revert test-onlycommit; preserveoriginalunit/CIREDs",
+    "red_log_sha256": "72a807631e710bc77b6647eec85d24c8bd6d5acba63fd928e26a41a90e2e5f07",
+    "commit": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+    "author_receipt_sha256": "341c2eeddc772b5e10ca314e8cd1720fc2991f722c783a1ff19e2e7f77595af1",
+    "review_receipt_sha256": "d0d40a85b8eb5630bdf1f19bc62ad835aa084da9b178036909797812685a6709",
+    "validation": "Author and reviewer Windows11PASS15subtests; each cached offlineLinux unittest11PASS; root affectedneighbors39PASS61subtests16.39s; no skips or assertion removals",
+    "neighbor_checks": {
+      "source": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_manual_auth_isolated.py",
+        "tests/unit/test_browser_tree_private_input.py",
+        "tests/unit/test_browser_tree_containment.py",
+        "tests/unit/test_manual_auth_host.py",
+        "tests/unit/test_manual_auth_deadline.py"
+      ],
+      "start_utc": "2026-11-15T08:10:49.509680+00:00",
+      "end_utc": "2026-11-15T08:11:06.426240+00:00",
+      "exit_code": 0,
+      "log_sha256": "ccd8e07246055ba59552d0911414ed13b81d1b642814532d11742c2b1dbc5eb5",
+      "limits": "Windows affected unit scope; independent Linux module separately passed; full hosted new head NOT_RUN"
+    },
+    "production_source": "Unchanged from1b03ac22; its167PASS3skips96subtests remain source-bound historical evidence, not a new run on ebb55ba9"
+  },
+  "prior_hosted_candidate_439fd201": {
+    "state": "PUBLISHED_DRAFT_HOSTED_FAIL",
+    "published_head": "439fd201899d2e887bc68fe205b97808685b2c8a",
+    "tested_implementation_sha": "92650326ca20698a742d7089ace76b9cf1862399",
+    "previous_published_sha": "16942a6ed06b17834dbd6affec48ec163810a871",
+    "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "utc": "2026-11-15T07:12:17.654811+00:00",
+    "preflight": "outputs/mj292-integration-01a1dcec/publication-preflight-currentness.json",
+    "preflight_sha256": "b60b6d2b379fdab25d109f5634ae87af2f2bbfac1a8a3e04f137a939917e2421",
+    "capacity": "60 development; WARNING; existing update allowed",
+    "hosted": "13SUCCESS; shard1 and aggregateFAIL. Exact shard16native stale-preflight helperfailures,1056PASS27skips486subtests; M12 correctionpending; no unchangedrerun.",
+    "acceptance": "0VERIFIED/53PARTIAL/7NOT_RUN unchanged; no protected merge",
+    "hosted_snapshot": "outputs/mj292-integration-01a1dcec/hosted-439fd201-final.json",
+    "hosted_snapshot_sha256": "423c4aca8b8bc71208731230bf695d1b387a593091a814e684225bff0249ece6",
+    "failure_receipt_sha256": "f6f0581677a2315e59cc70137a207a1e918bad72f3323a993213963a80f7c9bc",
+    "unit": "5379PASS55skips5204subtests262.33s; secondary50PASS39subtests2.05s"
+  },
+  "m14_acceptance_boundary": "Only the unit fixture changed after d3. Application code is byte-identical to1b03ac22, whose167PASS3skips96subtests remain historical exact-source evidence. Current ebb source has author/reviewer Windows11PASS15subtests and offlineLinux11PASS, plus root39PASS61subtests. No new fulljourney/mergedsource acceptance."
 }
