@@ -217,8 +217,52 @@ def queue_reviewed_resume(case):
     base = f'/profiles/fixture/applications/{case["app_id"]}/answer-review-resumes'
     response = case["client"].get(base + "/questions/fixture_question")
     assert response.status_code == 200, response.text
-    review = response.json()
+    stale_review = response.json()
     save_answers_and_reprepare(case, answers)
+
+    # The second preparation advances the document revision, so the review
+    # obtained above must not authorize a resume against the old preflight.
+    with case["store"].engine.connect() as connection:
+        operations_before_stale = list(connection.execute(select(
+            m.operations.c.id,
+        ).where(m.operations.c.kind == "APPLY_MOCK").order_by(
+            m.operations.c.id,
+        )).scalars())
+    stale = case["client"].post(base, json={
+        "request_id": "stale-reviewed-resume", "question_id": "fixture_question",
+        "question_fingerprint": stale_review["question"]["fingerprint"],
+        "form_fingerprint": stale_review["form_fingerprint"],
+        "answer_id": "fixture_question",
+        "expected_profile_version": case["store"].profile("fixture")["version"],
+    })
+    assert stale.status_code == 409, stale.text
+    assert stale.json()["detail"]["code"] == "APPLICATION_ANSWER_REVIEW_STALE"
+    with case["store"].engine.connect() as connection:
+        operations_after_stale = list(connection.execute(select(
+            m.operations.c.id,
+        ).where(m.operations.c.kind == "APPLY_MOCK").order_by(
+            m.operations.c.id,
+        )).scalars())
+    assert operations_after_stale == operations_before_stale
+
+    # Observe the actual native form again for the new document revision. The
+    # question remains addressable in mappings even though the approved answer
+    # now lets this dry run pass; the resume is still bound to a fresh review.
+    refreshed, _ = run_native(case, "reviewed-answer-current-preflight")
+    assert refreshed["state"] == "DRY_RUN_COMPLETE"
+    current = case["client"].get(
+        f'/profiles/fixture/applications/{case["app_id"]}',
+    )
+    assert current.status_code == 200, current.text
+    current_preflight = current.json()["question_preflight"]
+    assert current_preflight["is_current"] is True
+    assert (current_preflight["document_version"]
+            == refreshed["document_version"])
+    response = case["client"].get(base + "/questions/fixture_question")
+    assert response.status_code == 200, response.text
+    review = response.json()
+    assert review["form_fingerprint"] == stale_review["form_fingerprint"]
+
     response = case["client"].post(base, json={
         "request_id": "reviewed-resume", "question_id": "fixture_question",
         "question_fingerprint": review["question"]["fingerprint"],
@@ -269,10 +313,31 @@ def test_queued_review_rejects_changed_inputs_without_post(native_application, c
                 m.documents.c.version == application["document_version"])).mappings().one()
         path = case["root"] / case["app_id"] / document["files"]["pdf"]
         path.write_bytes(path.read_bytes() + b"changed after approval")
+    state_before = case["store"].application(case["app_id"])["state"]
+    history_path = f'/profiles/fixture/applications/{case["app_id"]}/attempt-history'
+    attempts_before = case["client"].get(history_path).json()["attempts"]
     execute_native_operation(case, operation_id)
-    assert case["client"].get(base + "/reviewed-resume").status_code == 409
+    refused = case["client"].get(base + "/reviewed-resume")
+    assert refused.status_code == 409, refused.text
     assert case["faults"]["posts"] == 0
-    assert case["store"].application(case["app_id"])["state"] != "DRY_RUN_COMPLETE"
+    state_after = case["store"].application(case["app_id"])["state"]
+    if change in {"profile", "document"}:
+        # These changes are caught by the admission snapshot before the worker
+        # starts an attempt; retain the prior completed dry-run state.
+        attempts_after = case["client"].get(history_path).json()["attempts"]
+        assert [row["attempt_id"] for row in attempts_after] == [
+            row["attempt_id"] for row in attempts_before
+        ]
+        with case["store"].engine.connect() as connection:
+            operation = connection.execute(select(
+                m.operations.c.state, m.operations.c.error,
+            ).where(m.operations.c.id == operation_id)).one()
+        expected_operation_state = "BLOCKED" if change == "profile" else "DEAD_LETTERED"
+        assert operation.state == expected_operation_state
+        assert operation.error
+        assert state_after == state_before
+    else:
+        assert state_after != "DRY_RUN_COMPLETE"
 
 
 def test_api_reconciliation_rejects_conflicting_native_receipts_and_attempts(native_application):
