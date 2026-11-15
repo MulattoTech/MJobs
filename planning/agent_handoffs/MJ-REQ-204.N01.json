@@ -4,41 +4,44 @@
   "objective": "Implement bounded opt-in SMTP-over-verified-TLS email notifications through the existing notification runner",
   "owner": "Codex",
   "branch": "ao/discord-notifications/email-provider",
-  "head_sha": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
-  "routing_state": "INTEGRATE",
-  "next_action": "Reconcile live notification-batch branch/PR state: if none exists, run authorized exact-candidate preflight and publish at most one; if OPEN, review current exact-head checks/findings and await protected integration; if merged, read back source and acceptance. Never duplicate publication or merge yourself.",
+  "head_sha": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+  "routing_state": "VERIFY",
+  "next_action": "Reconcile live PR #1044 state/head first. If still OPEN, run fresh existing-PR preflight and ordinary non-force push; if merged, do not push and read back the integrated source. Then inspect exact-head checks/review and await protected integration. Never duplicate publication or merge yourself.",
   "created_at": "2026-11-15T15:50:09.014919-06:00",
   "requirements": [
     "MJ-REQ-204.N01"
   ],
   "tests": [
     {
-      "detail": "82 passed, 12 deselected on original Email branch before Slack reconciliation",
-      "command": "python -m pytest --basetemp=.pytest-email-run -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/integration/test_notification_delivery.py -k \"email or capabilities or discord or notification_configuration\"",
+      "command": "python -m pytest -q tests/unit/test_email_provider.py -k drip_fed_multiline_smtp_reply (before fix, at PR head 241c27ef)",
+      "detail": "Expected _DeadlineExpired but DID NOT RAISE; deterministic drip-feed reproduced the reported total-deadline violation",
+      "result": "FAIL"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_email_provider.py",
+      "detail": "18 passed on committed source dcbb9738fac5767fd9ade03780a7a221d7683a4d",
       "result": "PASS"
     },
     {
-      "detail": "199 passed, 2 skipped on committed source ae8c6309d921bab1c08ee9628e3f7072ee8eacc3 after reconciliation; two local PostgreSQL-only parameterizations skipped",
       "command": "python -m pytest -q tests/unit/test_email_provider.py tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py tests/unit/test_slack_provider.py tests/integration/test_notification_delivery.py",
+      "detail": "205 passed, 2 skipped on bytes committed as dcbb9738fac5767fd9ade03780a7a221d7683a4d",
       "result": "PASS"
     },
     {
-      "detail": "ntfy, Discord, Slack, and Email descriptors listed on reconciled committed source",
-      "command": "python -m cli.notifications capabilities",
+      "command": "python -m tools.verification.commit_provenance --commit HEAD; git diff --check",
+      "detail": "provenance complete for 2 source files; diff check clean",
       "result": "PASS"
     },
     {
-      "detail": "No live SMTP action was run; acceptance_snapshot classifies read-only validation as NOT_APPLICABLE because the provider has no read-only receipt query and external delivery is prohibited",
-      "command": "SMTP live delivery/read-only receipt",
-      "result": "NOT_RUN"
-    },
-    {
-      "detail": "Email candidate not yet published or reviewed",
-      "command": "Hosted checks/native review/PR",
+      "command": "Hosted exact-head checks for the repaired PR source",
+      "detail": "Await fresh preflight and ordinary push; CI has not run on dcbb9738",
       "result": "NOT_RUN"
     }
   ],
-  "blockers": [],
+  "blockers": [
+    "Existing PR update preflight/push pending; after publication exact-head CI, review and protected integration remain pending",
+    "No external SMTP message or inbox receipt was sent"
+  ],
   "base_sha": "02a291ebced34144498a5b1d6cfebdcdad106583",
   "checkpoint_snapshot_utc": "2026-11-15T21:50:27.4669046Z",
   "dirty_owned_files": [
@@ -75,10 +78,12 @@
       "sha1": "6afcc080d4cfe1d2d85cdbd692eb299b9f171965"
     }
   ],
-  "dirty_owned_paths": [],
-  "test_snapshot_utc": "2026-11-15T22:09:00.8586874Z",
-  "source_commit": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
-  "updated_at": "2026-11-15T22:11:55.6950821Z",
+  "dirty_owned_paths": [
+    "planning/agent_handoffs/MJ-REQ-204.N01.json"
+  ],
+  "test_snapshot_utc": "2026-11-15T22:41:30.6807236Z",
+  "source_commit": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+  "updated_at": "2026-11-15T22:41:30.6807236Z",
   "source_files": [
     {
       "path": "cli/notifications.py",
@@ -86,7 +91,7 @@
     },
     {
       "path": "docs/NOTIFICATIONS.md",
-      "sha1": "1d0a9dbeb5f9312a2a3d45e92c64c621fca73e5d"
+      "sha1": "10ffe7410b04a7d3206ced43cd55585ed023be5a"
     },
     {
       "path": "services/notifications/configuration.py",
@@ -98,7 +103,7 @@
     },
     {
       "path": "services/notifications/providers/email.py",
-      "sha1": "24605a87d4b11ea744d101d00ec13ebe4cf4cfa3"
+      "sha1": "3fd0038f064d40f8f17c7a59cadeba42eb226cda"
     },
     {
       "path": "tests/integration/test_notification_delivery.py",
@@ -110,7 +115,7 @@
     },
     {
       "path": "tests/unit/test_email_provider.py",
-      "sha1": "6afcc080d4cfe1d2d85cdbd692eb299b9f171965"
+      "sha1": "abcfa4c253ece7aa421a57d940e111c3147e8c8c"
     }
   ],
   "acceptance_snapshot": {
@@ -130,11 +135,26 @@
     "issue": "https://github.com/MulattoTech/MJobs/issues/362"
   },
   "publication_snapshot": {
-    "timestamp_utc": "2026-11-15T22:09:00.8586874Z",
-    "branch": "ao/discord-notifications/email-provider",
-    "source_head": "ae8c6309d921bab1c08ee9628e3f7072ee8eacc3",
-    "origin_main": "02a291ebced34144498a5b1d6cfebdcdad106583",
-    "batch_pr_state": "NOT_OPEN_AT_SNAPSHOT",
-    "action": "Reconcile live branch/PR before any preflight or publication"
+    "timestamp_utc": "2026-11-15T22:41:30.6807236Z",
+    "pr": 1044,
+    "pr_state": "OPEN",
+    "published_head": "241c27ef96151e9b60808c4c783317a3d4109867",
+    "local_head": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+    "base": "02a291ebced34144498a5b1d6cfebdcdad106583",
+    "update_preflight": "PENDING",
+    "action": "Reconcile live PR before existing-PR preflight and ordinary non-force push"
+  },
+  "review_finding": {
+    "base": "02a291ebced34144498a5b1d6cfebdcdad106583",
+    "finding": "Reply timeout was set once before stdlib getreply; a peer could drip-feed multiline reply bytes and exceed request_timeout.",
+    "repair": "Per-byte reply deadline and cancellation checks; nonblocking TLS handshake WANT_READ/WANT_WRITE readiness loop bounded by the same deadline",
+    "github_comment_review_id": "5913279981",
+    "repair_commit": "dcbb9738fac5767fd9ade03780a7a221d7683a4d",
+    "run_id": "8322ad5c-077d-4195-95d9-537c6aa10e4c",
+    "github_event": "COMMENTED, not APPROVED",
+    "reviewer_tests": "NONE",
+    "submission": "Native run ended failed at submission; no retry or AO ledger rewrite",
+    "reviewed_head": "241c27ef96151e9b60808c4c783317a3d4109867",
+    "type": "native GPT-6 Luna static"
   }
 }
