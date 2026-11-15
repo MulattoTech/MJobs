@@ -270,15 +270,24 @@ def _read_proof_json(root: Path, relative: Any, expected_sha: Any, label: str,
 
 def _load_bundle_reference(root: Path, report_path: Path, reference: Any,
                            label: str, errors: list[str], *,
-                           allowed_names: set[str] | None = None
+                           allowed_names: set[str] | None = None,
+                           allow_completed_ui: bool = False
                            ) -> tuple[dict[str, Any], Path, str] | None:
-    if not isinstance(reference, dict) or set(reference) != {"artifact", "sha256"}:
+    # monitor_prepare copies a completed UI segment reference verbatim. Other
+    # reference contexts and derived-baseline references keep the two-key form.
+    completed_ui = (isinstance(reference, dict) and allow_completed_ui
+                    and set(reference) == {"artifact", "sha256", "status"}
+                    and reference.get("status") == "COMPLETE")
+    if not isinstance(reference, dict) or (set(reference) != {"artifact", "sha256"} and not completed_ui):
         errors.append(f"{label} must contain a fixed sibling artifact and SHA-256")
         return None
     name = reference.get("artifact")
     if (not _is_known_bundle_artifact(name) or name == "compose-recovery.json"
             or allowed_names is not None and name not in allowed_names):
         errors.append(f"{label} must name an allowlisted journey JSON sibling")
+        return None
+    if completed_ui and name != "ui.json":
+        errors.append(f"{label} COMPLETE status may bind only the completed UI segment")
         return None
     parent = report_path.relative_to(root).parent
     return _read_proof_json(root, (parent / name).as_posix(), reference.get("sha256"), label, errors)
@@ -604,6 +613,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             "validate_stage_lineage", "validate_monitoring_result",
             "validate_startup_receipt", "join_public_browser", "validate_public_artifact",
             "numbered_observations", "validate_frontend_build_receipt", "source_archive_sha256",
+            "source_files", "_source_member",
             "_identity", "_validate_recaptured_baseline", "digest")):
         errors.append("strict proof mode requires the current startup, public-browser, runtime, lineage and monitoring validators")
         return False
@@ -627,8 +637,11 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         errors.append("journey report requires exact runtime source, image and Compose bindings")
     if isinstance(runtime, dict):
         try:
-            if runtime.get("source_manifest_sha256") != journey.source_archive_sha256(source["commit"]):
-                errors.append("journey runtime source manifest differs from the exact tested commit archive")
+            expected_files = {name: sha for name, sha in journey.source_files(
+                journey.ROOT, source["commit"]).items() if journey._source_member(name)}
+            if (not expected_files or "cli/ui_e2e.py" not in expected_files
+                    or runtime.get("source_manifest_sha256") != journey.digest(expected_files)):
+                errors.append("journey runtime source manifest differs from the exact tested commit file manifest")
         except (AttributeError, KeyError, OSError, TypeError, ValueError) as exc:
             errors.append(f"journey runtime source manifest cannot be validated: {exc}")
     runtime_identity = report.get("runtime_identity")
@@ -894,7 +907,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         monitoring_original_loaded = _load_bundle_reference(
             root, report_path, monitoring_original_ref,
             "journey_report.monitoring_input_baseline", errors,
-            allowed_names={"ui.json", "recovery-baseline.json"})
+            allowed_names={"ui.json", "recovery-baseline.json"}, allow_completed_ui=True)
         if monitoring_original_loaded is not None:
             monitoring_original = monitoring_original_loaded[0]
         prep_data = loaded_segments.get("monitor_prepare")

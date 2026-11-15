@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 
@@ -181,7 +182,8 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                         source_setup_result: str | None = None,
                         source_setup_schema_version: int = 2,
                         include_source_setup_reference: bool = True,
-                        include_public_segment_reference: bool = True) -> None:
+                        include_public_segment_reference: bool = True,
+                        source_binding=None, source_file_map=None, archive_sha256="1" * 64) -> None:
     """Create typed local fixture evidence; this does not claim real execution."""
     from copy import deepcopy
 
@@ -208,8 +210,13 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     for number in range(1, 61):
         checks.setdefault(number, {f"synthetic_check_{number}"})
     monkeypatch.setattr(journey, "REQUIRED_CHECKS", checks)
-    monkeypatch.setattr(journey, "source_archive_sha256", lambda _commit: "1" * 64)
-    runtime_identity = {"source_manifest_sha256": "1" * 64,
+    source_file_map = source_file_map or {"cli/ui_e2e.py": "3" * 64,
+                                        "infra/docker/Dockerfile": "d" * 64}
+    monkeypatch.setattr(journey, "source_archive_sha256", lambda _commit: archive_sha256)
+    monkeypatch.setattr(journey, "source_files", lambda *_args, **_kwargs: source_file_map)
+    manifest_sha = journey.digest({name: sha for name, sha in source_file_map.items()
+                                   if journey._source_member(name)})
+    runtime_identity = {"source_manifest_sha256": manifest_sha,
                         "images": {"api": "sha256:" + "e" * 64}}
 
     def validate_runtime_identity(value):
@@ -326,7 +333,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                         raising=False)
     monkeypatch.setattr(journey, "numbered_observations", numbered_observations)
 
-    source = {"commit": "a" * 40, "tree": "b" * 40,
+    source = source_binding or {"commit": "a" * 40, "tree": "b" * 40,
               "working_tree_diff_sha256": hashlib.sha256(b"").hexdigest(),
               "working_tree_status_sha256": hashlib.sha256(b"").hexdigest()}
     run_id = "runtime-proof-test-1"
@@ -464,7 +471,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     else:
         public_sha = None
 
-    runtime = {"source_manifest_sha256": "1" * 64, "dockerfile_sha256": "d" * 64,
+    runtime = {"source_manifest_sha256": manifest_sha, "dockerfile_sha256": "d" * 64,
                "images": runtime_identity["images"], "compose_files": ["compose.yml"],
                "containers": {"scheduler": "scheduler-container-fixture"},
                "frontend_assets": {"index.html": "c" * 64}}
@@ -757,7 +764,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         "frontend_build": {"status": "PASS", "receipt_sha256": "0" * 64,
                            "receipt": {"schema_version": 1, "result": "PASS",
                                "source_commit": source["commit"], "source_tree": source["tree"],
-                               "source_archive_sha256": "1" * 64,
+                               "source_archive_sha256": archive_sha256,
                                "dockerfile_sha256": "d" * 64,
                                "image_id": "sha256:" + "e" * 64,
                                "frontend_assets": {"index.html": "c" * 64},
@@ -768,9 +775,9 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     if derived_ref is not None:
         report["derived_baseline"] = derived_ref
     if monitoring_enabled:
-        report["monitoring_input_baseline"] = {
-            "artifact": (derived_ref or segment_refs["ui"])["artifact"],
-            "sha256": (derived_ref or segment_refs["ui"])["sha256"]}
+        # The actual monitor_prepare coordinator copies the full baseline
+        # reference, including COMPLETE when the baseline is the UI segment.
+        report["monitoring_input_baseline"] = deepcopy(derived_ref or segment_refs["ui"])
         report["monitoring_baseline"] = monitoring_baseline_ref
     if 1 in step_numbers:
         report["startup"] = startup_ref
@@ -1252,6 +1259,92 @@ def test_runtime_evidence_uses_real_monitoring_baseline_helper_and_validators(tm
 
     assert verified.errors == []
     assert verified.runtime_evidence_validated is True
+
+
+def test_runtime_source_manifest_uses_actual_git_file_map_not_archive_digest(tmp_path, monkeypatch):
+    from cli import acceptance_journey as journey
+
+    real_files, real_archive = journey.source_files, journey.source_archive_sha256
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=ROOT, text=True).strip()
+    source = {"commit": commit, "tree": tree,
+              "working_tree_diff_sha256": hashlib.sha256(b"").hexdigest(),
+              "working_tree_status_sha256": hashlib.sha256(b"").hexdigest()}
+    files = real_files(journey.ROOT, commit)
+    archive_sha = real_archive(commit)
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2], monkeypatch, source_binding=source,
+                        source_file_map=files, archive_sha256=archive_sha)
+    monkeypatch.setattr(journey, "source_files", real_files)
+    monkeypatch.setattr(journey, "source_archive_sha256", real_archive)
+    report = json.loads((root / data["journey_report"]["artifact"]).read_text(encoding="utf-8"))
+    assert report["runtime"]["source_manifest_sha256"] != archive_sha
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors == []
+
+
+def test_monitoring_input_reference_accepts_actual_completed_segment_binding(tmp_path, monkeypatch):
+    from cli import acceptance_journey as journey
+
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2], monkeypatch)
+    path = root / data["journey_report"]["artifact"]
+    report = json.loads(path.read_text(encoding="utf-8"))
+    checkpoint = journey.JourneyCheckpoint.create(path, report["run_id"], report["source"], report["target"])
+    checkpoint.binding.update(started_at_utc=report["started_at_utc"], runtime=report["runtime"],
+                              frontend_build=report["frontend_build"])
+    checkpoint.complete_segment("ui", json.loads((path.parent / "ui.json").read_text()),
+                                report["segments"]["ui"]["sha256"], persist=False)
+    reference = deepcopy(journey._baseline_reference(checkpoint.binding))
+    assert reference["status"] == "COMPLETE"
+    errors = []
+    loaded = ledger._load_bundle_reference(root, path, reference,
+        "journey_report.monitoring_input_baseline", errors,
+        allowed_names={"ui.json", "recovery-baseline.json"}, allow_completed_ui=True)
+    assert errors == []
+    assert loaded is not None
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda ref: ref.update(status="FAIL"), lambda ref: ref.update(status="NOT_RUN"),
+    lambda ref: ref.update(status="IN_PROGRESS"), lambda ref: ref.update(status=True),
+    lambda ref: ref.update(extra="unexpected"), lambda ref: ref.update(sha256="0" * 64),
+    lambda ref: ref.update(artifact="recovery-baseline.json"),
+])
+def test_completed_ui_reference_rejects_wrong_state_hash_and_fields(tmp_path, mutation):
+    path = tmp_path / "journey.json"
+    digest, _ = _write_json_lf(tmp_path / "ui.json", {"fixture": True})
+    reference = {"artifact": "ui.json", "sha256": digest, "status": "COMPLETE"}
+    mutation(reference)
+    errors = []
+    assert ledger._load_bundle_reference(tmp_path, path, reference, "monitoring_input_baseline",
+        errors, allowed_names={"ui.json", "recovery-baseline.json"}, allow_completed_ui=True) is None
+    assert errors
+
+
+def test_completed_status_is_not_admitted_for_other_reference_contexts(tmp_path):
+    digest, _ = _write_json_lf(tmp_path / "ui.json", {"fixture": True})
+    errors = []
+    assert ledger._load_bundle_reference(tmp_path, tmp_path / "journey.json",
+        {"artifact": "ui.json", "sha256": digest, "status": "COMPLETE"}, "startup", errors) is None
+    assert errors
+
+
+@pytest.mark.parametrize("wrong_digest", ["0" * 64, "1" * 64])
+def test_runtime_manifest_rejects_wrong_digest_and_archive_digest(tmp_path, monkeypatch, wrong_digest):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2], monkeypatch)
+    path = root / data["journey_report"]["artifact"]
+    report = json.loads(path.read_text(encoding="utf-8"))
+    report["runtime"]["source_manifest_sha256"] = wrong_digest
+    replace_runtime_report(root, data, report)
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any("exact tested commit file manifest" in error for error in verified.errors)
 
 
 def test_runtime_evidence_mode_can_validate_all_60_and_remove_permanent_pass_block(tmp_path, monkeypatch):
