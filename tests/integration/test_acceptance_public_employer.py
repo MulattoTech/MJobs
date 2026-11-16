@@ -86,6 +86,117 @@ def test_real_same_employer_chain_is_captured_without_live_credit(employer):
     assert fixture.case.store.profile('fixture') == before
 
 
+def test_employer_only_job_must_be_absent_from_original_inventory(employer):
+    """A native-only current posting is insufficient when the job predates the collection."""
+    from cli.acceptance_public_employer import capture, validate
+    from cli.acceptance_public_source import _digest
+    _fixture, read, source, initial, evidence = employer
+    first = capture(read, evidence, source, initial)
+    assert first['status'] == 'COMPLETE'
+    native_only_id = first['selected']['native_only_job']['id']
+
+    # Model an unchanged historical job that also appears in the later native
+    # collector manifest. The negative control must deny criterion 30 even if
+    # all current postings on that job now point at the native endpoint.
+    was_present = deepcopy(initial)
+    was_present['baseline_job_ids'] = sorted(set(was_present.get('baseline_job_ids', [])) | {native_only_id})
+    was_present['baseline_job_total'] = len(was_present['baseline_job_ids'])
+    was_present['sha256'] = _digest({key: value for key, value in was_present.items() if key != 'sha256'})
+    result = capture(read, evidence, source, was_present)
+    validate(result, evidence)
+    assert result['status'] == 'PARTIAL'
+    assert result['selected'] is None
+    assert result['public_acceptance'] == 'NOT_RUN'
+
+
+def test_employer_baseline_retains_complete_bounded_original_inventory(employer):
+    from cli.acceptance_public_employer import capture
+    fixture, read, source, initial, evidence = employer
+    result = capture(read, evidence, source, initial)
+    assert initial['baseline_job_scope'] == 'ALL_PERSISTED_JOBS'
+    assert initial['baseline_job_total'] == len(initial['baseline_job_ids'])
+    assert initial['baseline_job_ids'] == sorted(set(initial['baseline_job_ids']))
+    assert set(initial['baseline_aggregator_job_ids']).issubset(initial['baseline_job_ids'])
+    assert fixture.request['trigger_job_id'] not in initial['baseline_job_ids']  # parent discovery ran later
+    assert result['selected']['native_only_job']['id'] not in initial['baseline_job_ids']
+
+
+@pytest.mark.parametrize('defect', [
+    None, 'changed-snapshot', 'missing-cursor', 'short-page',
+    'budget-exceeded', 'source-copy-hash', 'empty-tail', 'copy-count-mismatch',
+])
+def test_original_inventory_is_complete_cursor_bound_and_bounded(defect):
+    """Synthetic page protocol exercises immutable original-snapshot admission."""
+    from cli.acceptance_public_employer import _original_inventory
+    from cli.acceptance_public_source import ObservationError
+    from packages.persistence.job_inventory import digest as inventory_digest
+
+    ids = [f'{index:064x}' for index in range(201)]
+    source_copy = {'posting_id': 'old-aggregator-copy',
+                   'source': 'https://remotive.com/api/remote-jobs',
+                   'source_job_id': 'original-1', 'source_url': 'https://example.com/job/1',
+                   'sha256': 'd' * 64}
+    rows = []
+    for i, job_id in enumerate(ids):
+        copies = [source_copy] if i == 0 else []
+        rows.append({'job_id': job_id, 'canonical_sha256': 'c' * 64,
+                     'route_count': 0, 'source_copy_count': len(copies),
+                     'source_copies': copies,
+                     'source_copies_sha256': inventory_digest(copies)})
+
+    requests = []
+    def read(method, path, **kwargs):
+        assert method == 'GET' and path == '/profiles/fixture/job-inventory'
+        params = kwargs['params']
+        requests.append(deepcopy(params))
+        page_no = len(requests)
+        assert params == ({'limit': 200} if page_no == 1 else
+                          {'limit': 200, 'cursor': 'cursor-1', 'snapshot_sha256': 'a' * 64})
+        chunk = deepcopy(rows[:200] if page_no == 1 else rows[200:])
+        page = {'schema_version': 4, 'scope': 'ALL_PERSISTED_JOBS',
+                'profile_id': 'fixture', 'profile_version': 'v1',
+                'total': 201, 'source_copy_count': 1, 'snapshot_sha256': 'a' * 64,
+                'after': None if page_no == 1 else ids[199],
+                'jobs': chunk, 'complete': page_no == 2,
+                'next_cursor': 'cursor-1' if page_no == 1 else None}
+        if defect == 'changed-snapshot' and page_no == 2:
+            page['snapshot_sha256'] = 'b' * 64
+        elif defect == 'missing-cursor' and page_no == 1:
+            page['next_cursor'] = None
+        elif defect == 'short-page' and page_no == 1:
+            page['jobs'] = chunk[:-1]
+        elif defect == 'budget-exceeded' and page_no == 1:
+            page['total'] = 1001
+        elif defect == 'source-copy-hash' and page_no == 1:
+            page['jobs'][0]['source_copies_sha256'] = '0' * 64
+        elif defect == 'copy-count-mismatch':
+            page['source_copy_count'] = 2
+        elif defect == 'empty-tail':
+            page['total'] = 200
+            if page_no == 2:
+                page['jobs'] = []
+        return page
+
+    if defect is None:
+        snapshot = _original_inventory(read, 'fixture', 'v1')
+        assert snapshot['job_ids'] == ids
+        assert snapshot['aggregator_job_ids'] == [ids[0]]
+        assert snapshot['snapshot_sha256'] == 'a' * 64
+        assert len(requests) == 2
+    else:
+        errors = {
+            'changed-snapshot': 'EMPLOYER_BASELINE_INVENTORY_CHANGED',
+            'missing-cursor': 'EMPLOYER_BASELINE_INVENTORY_INCOMPLETE',
+            'short-page': 'EMPLOYER_BASELINE_INVENTORY_INCOMPLETE',
+            'budget-exceeded': 'EMPLOYER_BASELINE_INVENTORY_BUDGET_EXCEEDED',
+            'source-copy-hash': 'EMPLOYER_BASELINE_INVENTORY_INVALID',
+            'empty-tail': 'EMPLOYER_BASELINE_INVENTORY_INVALID',
+            'copy-count-mismatch': 'EMPLOYER_BASELINE_INVENTORY_INCOMPLETE',
+        }
+        with pytest.raises(ObservationError, match=errors[defect]):
+            _original_inventory(read, 'fixture', 'v1')
+
+
 @pytest.mark.parametrize('mutation', ['company', 'parent-attempt', 'child-attempt', 'snapshot',
     'profile', 'inventory-count', 'scope', 'baseline', 'fragment'])
 def test_replayed_or_mixed_employer_evidence_is_rejected(employer, mutation):
