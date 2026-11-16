@@ -642,7 +642,10 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
             finally:
                 server.should_exit = True
                 if 'thread' in locals():
-                    thread.join(timeout=5)
+                    # Browser-driven fixture requests may take longer to drain on
+                    # Windows' Proactor loop. Keep a bounded, verified shutdown;
+                    # the assertion below still fails if the server is alive.
+                    thread.join(timeout=15)
                 sock.close()
                 store.engine.dispose()
             self.assertFalse(thread.is_alive(), "Isolated saved-search API did not stop")
