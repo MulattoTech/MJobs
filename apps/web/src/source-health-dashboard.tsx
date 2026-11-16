@@ -23,7 +23,8 @@ export type GlobalSourceHealth = {
 
 export type CompanySourceHealth = Pick<CompanySourceView,
   'id' | 'company_name' | 'provider' | 'collection_strategy' | 'enabled' |
-  'status' | 'jobs_found' | 'last_success' | 'next_check' | 'monitoring'>;
+  'status' | 'jobs_found' | 'relevant_jobs' | 'priority' | 'profile_id' |
+  'last_checked' | 'last_success' | 'next_check' | 'monitoring'>;
 
 type Props = {
   globalSources: GlobalSourceHealth[];
@@ -100,6 +101,44 @@ function companyRows(sources: CompanySourceHealth[]): HealthRow[] {
   }));
 }
 
+/** MJ-REQ-182: one truthful company row per enrolled direct-employer source. */
+type CompanyHealthRow = {
+  id: string;
+  company: string;
+  ats: string;
+  priority: string;
+  jobs: string;
+  relevantJobs: string;
+  lastValidation: string;
+  lastCollection: string;
+  consecutiveFailures: string;
+};
+
+function companyHealthRows(sources: CompanySourceHealth[]): CompanyHealthRow[] {
+  return sources.map(source => ({
+    id: source.id,
+    company: source.company_name || unrecorded,
+    ats: source.provider || unrecorded,
+    priority: source.priority || unrecorded,
+    jobs: count(source.jobs_found),
+    // Relevance is tied to an evaluated applicant profile; do not display
+    // a deceptive zero if no profile has been selected.
+    relevantJobs: source.profile_id ? count(source.relevant_jobs) : 'Select a profile',
+    lastValidation: timestamp(source.last_checked),
+    lastCollection: timestamp(source.last_success),
+    // Monitoring is optional. Absence of a monitor is not zero failures.
+    consecutiveFailures: source.monitoring
+      ? count(source.monitoring.failure_count) : 'Not monitored',
+  }));
+}
+
+const companyColumns = [
+  ['company', 'Company'], ['ats', 'ATS'], ['priority', 'Priority'],
+  ['jobs', 'Jobs'], ['relevantJobs', 'Relevant Jobs'],
+  ['lastValidation', 'Last Validation'], ['lastCollection', 'Last Collection'],
+  ['consecutiveFailures', 'Consecutive Failures'],
+] as const;
+
 const columns = [
   ['name', 'Source'], ['type', 'Type'], ['strategy', 'Strategy'],
   ['health', 'Health'], ['lastSuccess', 'Last Success'],
@@ -124,6 +163,27 @@ function HealthTable({label, rows, empty}: {label: string; rows: HealthRow[]; em
   </section>;
 }
 
+function CompanyHealthTable({sources}: {sources: CompanySourceHealth[]}) {
+  const rows = companyHealthRows(sources);
+  return <section aria-label="Company health">
+    <h3>Company health dashboard</h3>
+    {rows.length === 0 ? <p role="status">No direct employer sources enrolled.</p> :
+      <div style={{overflowX: 'auto'}}>
+        <table aria-label="Company health dashboard table">
+          <thead><tr>{companyColumns.map(([, title]) =>
+            <th key={title} scope="col">{title}</th>)}</tr></thead>
+          <tbody>{rows.map(row =>
+            <tr key={row.id}>{companyColumns.map(([key]) =>
+              <td key={key}>{row[key]}</td>)}</tr>)}</tbody>
+        </table>
+      </div>}
+    <p className="muted">Jobs are currently discovered postings. Relevant Jobs require an
+      applicant profile; Last Validation records source validation, Last Collection records
+      the last successful collection. Consecutive Failures reflect configured monitoring,
+      not an estimate from unrelated operations.</p>
+  </section>;
+}
+
 export function SourceHealthDashboard({globalSources, companySources}: Props) {
   return <section className="panel" aria-label="Source health dashboard">
     <h2>Source health dashboard</h2>
@@ -133,6 +193,7 @@ export function SourceHealthDashboard({globalSources, companySources}: Props) {
       empty="No global sources configured."/>
     <HealthTable label="Company Sources" rows={companyRows(companySources)}
       empty="No company sources enrolled."/>
+    <CompanyHealthTable sources={companySources}/>
     <p className="muted">Global Jobs Seen is the configured collector counter; company Jobs Seen
       shows currently discovered jobs only. New Jobs, Duplicates, and Duration are not
       recorded per source. Historical failures without a supported timestamp stay unknown.</p>

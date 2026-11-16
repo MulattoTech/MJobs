@@ -12,8 +12,9 @@ const globalSource: GlobalSourceHealth = {
 const companySource: CompanySourceHealth = {
   id: 'employer-a', company_name: 'Example Employer', provider: 'greenhouse',
   collection_strategy: 'ATS_API', enabled: true, status: 'HEALTHY',
-  jobs_found: 7, last_success: '2026-11-15T13:00:00Z',
-  next_check: '2026-11-16T13:00:00Z',
+  profile_id: 'applicant-a', priority: 'USER_PINNED',
+  jobs_found: 7, relevant_jobs: 3, last_checked: '2026-11-15T11:30:00Z',
+  last_success: '2026-11-15T13:00:00Z', next_check: '2026-11-16T13:00:00Z',
 };
 
 function render(globals: GlobalSourceHealth[], companies: CompanySourceHealth[]) {
@@ -71,6 +72,50 @@ describe('source health dashboard', () => {
     expect(html).toContain('No global sources configured.');
     expect(html).toContain('No company sources enrolled.');
     expect(html).not.toContain('0 jobs collected');
+  });
+
+  it('shows a company-specific health table with all eight required live columns', () => {
+    const html = render([globalSource], [companySource]);
+    const table = html.match(/<table aria-label="Company health dashboard table">([\s\S]*?)<\/table>/)?.[1];
+    expect(table).toBeDefined();
+    for (const header of ['Company', 'ATS', 'Priority', 'Jobs', 'Relevant Jobs',
+      'Last Validation', 'Last Collection', 'Consecutive Failures']) {
+      expect(table).toContain('<th scope="col">' + header + '</th>');
+    }
+    for (const value of ['Example Employer', 'greenhouse', 'USER_PINNED',
+      '>7</td>', '>3</td>', '2026-11-15 11:30 UTC', '2026-11-15 13:00 UTC',
+      'Not monitored']) expect(table).toContain(value);
+    expect(html).toContain('Last Validation records source validation');
+  });
+
+  it('does not invent relevant jobs or failure counts for unmonitored companies', () => {
+    const html = render([], [{...companySource, profile_id: null, relevant_jobs: 0,
+      jobs_found: -3, monitoring: null, last_checked: null, last_success: null}]);
+    const table = html.match(/<table aria-label="Company health dashboard table">([\s\S]*?)<\/table>/)?.[1];
+    expect(table).toContain('Select a profile');
+    expect(table).toContain('Not monitored');
+    expect(table).toContain('Not recorded');
+    expect(table).not.toContain('>-3</td>');
+    expect(table).not.toContain('>0</td>');
+  });
+
+  it('shows monitored consecutive failures and escapes untrusted employer fields', () => {
+    const html = render([], [{...companySource, company_name: '<img src=x>',
+      provider: '<script>ats</script>', priority: '<svg onload=alert(1)>',
+      last_checked: 'invalid-time', monitoring: {
+        revision: 1, enabled: true, poll_interval: 3600,
+        status: 'FAILED', failure_count: 3, last_attempt: '2026-11-15T13:00:00Z',
+        next_due: null, last_error: 'PRIVATE_MONITOR_FAILURE', operation_id: null,
+        rediscovery_operation_id: null, authorization: null,
+      }}]);
+    const table = html.match(/<table aria-label="Company health dashboard table">([\s\S]*?)<\/table>/)?.[1];
+    expect(table).toContain('&lt;img src=x&gt;');
+    expect(table).toContain('&lt;script&gt;ats&lt;/script&gt;');
+    expect(table).toContain('&lt;svg onload=alert(1)&gt;');
+    expect(table).toContain('>3</td>');
+    expect(table).toContain('Not recorded');
+    expect(html).not.toContain('PRIVATE_MONITOR_FAILURE');
+    expect(html).not.toContain('<img');
   });
 
   it('rejects invalid timestamps and escapes untrusted source names', () => {
