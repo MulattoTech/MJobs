@@ -360,6 +360,12 @@ aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structu
 3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502
 b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523
 
+# PR1022 merged-main occurrence of the same previously reviewed USAJOBS
+# public metadata SHA-256: line 1527 equals the declared sha256 at line 1919
+# for the 187647-byte API1 metadata artifact and the earlier b57e2c value.
+# Exactly one commit/path/rule/line fingerprint; scanner rules remain intact.
+70a80eb3257cd4721c66d9b58cc862ff2d32bd9f:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1527
+
 # PR1028/PR1030 exact historical evidence fingerprints only, not credentials.
 # Six values resolve to immutable Git blob objects; one is a recorded SHA-256
 # of the uncommitted baseline test input, independently reconstructed at review.
