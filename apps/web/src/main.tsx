@@ -9,6 +9,7 @@ import {resumeMockDryRun} from './mock-run-client';
 import {CredentialConnectionFeedback} from './credential-connection-feedback';
 import { updateReviewedFact } from './fact-review';
 import { CompanySources, type CompanySourceView } from './company-sources';
+import { SourceHealthDashboard } from './source-health-dashboard';
 import { CompanyDiscovery } from './company-discovery';
 import { CompanyDiscoveryRequests, type DiscoveryRequest } from './company-discovery-requests';
 import { CompanyDiscoveryActivity } from './company-discovery-activity';
@@ -1828,6 +1829,7 @@ function App() {
       />}
       {tab==='Sources'&&<>
         <SourceRelationshipGraph profileId={profileId||null}/>
+        <SourceHealthDashboard globalSources={sources} companySources={companySources}/>
         <CompanySources rows={companySources} busy={!!busy} profileSelected={!!profileId}
           onMonitor={(row,interval)=>action('Saving source monitoring',async()=>{
             await api('/company-sources/'+encodeURIComponent(row.id)+'/monitoring',{method:'PUT',body:JSON.stringify({source_version:row.source_version,revision:row.monitoring?.revision||0,poll_interval:interval})});
