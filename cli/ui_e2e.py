@@ -869,6 +869,9 @@ def _onboarding_fixture_pdf():
 
 def _onboarding_preflight(base_url):
     validate_onboarding_target(base_url)
+    # This file is read by the seven-domain proof after the mock submission.
+    # Fail before any connected UI write if it cannot be observed.
+    persistence.require_configuration_file()
     with httpx.Client(base_url=base_url, timeout=5, trust_env=False) as client:
         settings = client.get("/settings")
         settings.raise_for_status()

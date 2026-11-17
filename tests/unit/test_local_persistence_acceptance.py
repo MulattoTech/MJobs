@@ -10,6 +10,19 @@ import json
 import pytest
 
 
+def test_missing_configuration_refuses_before_connected_browser_io(tmp_path, monkeypatch):
+    from cli import local_persistence_acceptance as persistence
+    from cli import ui_e2e
+    monkeypatch.setattr(persistence, 'ROOT', tmp_path)
+    monkeypatch.setattr(ui_e2e.httpx, 'Client', lambda **kwargs: (_ for _ in ()).throw(
+        AssertionError('Preflight must not contact the API without local configuration')))
+    with pytest.raises(FileNotFoundError, match='existing local .env'):
+        ui_e2e._onboarding_preflight('http://127.0.0.1:19756')
+    assert list(tmp_path.iterdir()) == []
+    (tmp_path / '.env').write_text('SYNTHETIC_TEST_ONLY=1\n')
+    assert persistence.require_configuration_file(tmp_path) == tmp_path / '.env'
+
+
 def test_documented_stop_quiesces_every_backup_writer():
     text = (Path(__file__).resolve().parents[2] / 'docs/runbooks/LOCAL_BACKUP.md').read_text()
     services = re.search(r'^docker compose -p \$project stop (.+)$', text, re.M)[1].split()

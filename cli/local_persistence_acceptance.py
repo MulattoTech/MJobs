@@ -70,6 +70,14 @@ def compare_baseline(baseline, observed):
     return compare(baseline['local_persistence'], observed)
 
 
+def require_configuration_file(root=None):
+    """Refuse a connected persistence run before any browser-side writes."""
+    candidate = Path(ROOT if root is None else root) / '.env'
+    if not candidate.is_file():
+        raise FileNotFoundError('Connected persistence acceptance requires an existing local .env')
+    return candidate
+
+
 def collect(get_json, get_bytes, profile_id, application_id, *, root=ROOT):
     """Read the already-seeded synthetic fixture via API JSON and download seams.
 
