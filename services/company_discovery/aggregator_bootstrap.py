@@ -389,7 +389,7 @@ def _unique_json(pairs):
 
 def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapshot, *,
                               source_policy, check, client_factory=None, budget=None,
-                              verification_policy=None, pending_sha256=None):
+                              verification_policy=None, pending_sha256=None, diagnostic=None):
     """Return observations or None; preserve cancellation and infeasible rate errors.
 
     Call only after staged COMPANY_DISCOVER authorization. Every origin gets a
@@ -398,19 +398,29 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
     bindings before persisting it and run normal domain/enrollment guards.
     Valid inputs whose inherited rate cannot fit the minimum proof chain raise
     BootstrapRateBudgetIncompatible before client creation or public requests.
+    Optional diagnostic is a non-authoritative fixed-code sink; it never
+    changes the proof receipt or grants employer authority.
     """
     tracker = _Budget(budget or BootstrapBudget(), check)
     v2 = verification_policy is not None or pending_sha256 is not None
+
+    def stop(code):
+        # Only fixed stage codes; never disclose candidate URLs, page bodies,
+        # profile data, exception messages or employer assertions.
+        if type(diagnostic) is dict:
+            diagnostic['stop_code'] = code
+        return None
+
     try:
         tracker.guard()
         hint = extract_bootstrap_hint(raw, normalized)
         if hint is None:
-            return None
+            return stop('HINT_NOT_ELIGIBLE')
         projection = normalized_projection(normalized)
         policy = source_policy_projection(source_policy)
         if any(type(policy[key]) is not int or not low <= policy[key] <= high
                for key, low, high in (('request_timeout', 2, 60), ('rate_limit', 1, 600), ('concurrency', 1, 8))):
-            return None
+            return stop('SOURCE_POLICY_INVALID')
         read_policy = _ReadPolicy(min(10, policy['request_timeout']), min(60, policy['rate_limit']))
         verification_read_policy = None
         if v2:
@@ -419,7 +429,7 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
             if (checked_policy != verification_policy_snapshot(profile_snapshot)
                     or type(pending_sha256) is not str
                     or re.fullmatch(r'[0-9a-f]{64}', pending_sha256) is None):
-                return None
+                return stop('VERIFICATION_POLICY_INVALID')
             verification_read_policy = _ReadPolicy(checked_policy['request_timeout'], checked_policy['rate_limit'])
             tracker.origin_policies = {}
         source = {key: source_snapshot[key] for key in SOURCE_FIELDS}
@@ -434,7 +444,7 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                 or not source['company_id']
                 or _url(source['endpoint']).hostname != AGGREGATORS[source['provider']]
                 or profile_policy.get('company_discovery_enabled', True) is not True):
-            return None
+            return stop('SOURCE_BINDING_INVALID')
         tracker.require_rate_window(read_policy, verification=verification_read_policy,
                                     listing_first=hint['candidate_kind'] == 'AGGREGATOR_LISTING')
         # Hash all immutable inputs before reading; callbacks must not mutate
@@ -497,14 +507,14 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                 listing_response = fetch(candidate, 'SOURCE_LISTING')
                 found = _links(listing_response.text, str(listing_response.url))
                 if not found:
-                    return None
+                    return stop('LISTING_LINK_MISSING')
                 candidate, kind = found
             employer_response = None
             if kind == 'EMPLOYER_PAGE':
                 employer_response = fetch(candidate, 'EMPLOYER')
                 found = _links(employer_response.text, str(employer_response.url), native_only=True)
                 if not found:
-                    return None
+                    return stop('EMPLOYER_NATIVE_LINK_MISSING')
                 native_link = found[0]
             else:
                 native_link = candidate
@@ -515,31 +525,31 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                                 parse_constant=lambda _: (_ for _ in ()).throw(_Rejected('BOOTSTRAP_JSON_INVALID')))
             if (not isinstance(native, dict) or type(native.get('id')) is not int
                     or str(native['id']) != job_id or _title(native.get('title')) != _title(projection['title'])):
-                return None
+                return stop('NATIVE_JOB_MISMATCH')
             website = native.get('absolute_url')
             host = _url(website).hostname
             if host in {*AGGREGATORS.values(), *NATIVE_HOSTS, 'boards-api.greenhouse.io', 'jobs.lever.co'}:
-                return None
+                return stop('EMPLOYER_ORIGIN_INVALID')
             if employer_response is not None and website not in {candidate, str(employer_response.url)}:
-                return None
+                return stop('EMPLOYER_URL_MISMATCH')
             employer_response = employer_response or fetch(website, 'EMPLOYER')
             proof = {'website': website, 'tenant': tenant, 'native_job_id': job_id, 'title': native['title']}
             apply_response = None
             if not corroborated_job_page(proof, projection['company_name'], employer_response):
                 apply_url = _apply_page_url(proof, employer_response)
                 if not apply_url:
-                    return None
+                    return stop('EMPLOYER_JOB_PROOF_MISSING')
                 apply_response = fetch(apply_url, 'EMPLOYER')
                 if not corroborated_job_page(proof, projection['company_name'], employer_response, apply_response):
-                    return None
+                    return stop('EMPLOYER_JOB_PROOF_MISSING')
             tracker.guard()
             current = [raw, normalized_projection(normalized), {key: source_snapshot[key] for key in SOURCE_FIELDS},
                        source_policy_projection(source_policy), profile_snapshot['id'], profile_snapshot['version'],
                        (profile_snapshot.get('preferences') or {}).get('company_discovery', {})]
             if canonical_digest(current) != inputs_hash:
-                return None
+                return stop('INPUTS_CHANGED')
             if v2 and canonical_digest([verification_policy, pending_sha256]) != verification_inputs_hash:
-                return None
+                return stop('INPUTS_CHANGED')
             receipt = {'schema': bootstrap_schemas(2 if v2 else 1)[1], 'version': 2 if v2 else 1,
                 'execution_scope': 'CONTROLLED_TRANSPORT' if client_factory else 'PUBLIC_READ_ONLY',
                 'raw_sha256': hint['raw_sha256'], 'normalized_projection': projection,
@@ -561,6 +571,8 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                     verification_policy_sha256=canonical_digest(checked_policy),
                     origin_policies=[tracker.origin_policies[key] for key in sorted(tracker.origin_policies)])
             receipt['sha256'] = canonical_digest(receipt)
+            if type(diagnostic) is dict:
+                diagnostic['stop_code'] = 'CORROBORATED'
             return receipt
     except (PublicFetchError, ValueError, KeyError, TypeError, AttributeError, RecursionError) as error:
         if tracker.cancelled is not None:
@@ -571,4 +583,4 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
             # Preserve the fixed stop code for the restricted worker's V2
             # terminal path. In particular, 503 must not be rescheduled.
             raise
-        return None
+        return stop('FETCH_OR_PARSE_REJECTED')

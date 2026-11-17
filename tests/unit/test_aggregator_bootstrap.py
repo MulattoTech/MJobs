@@ -660,6 +660,57 @@ def test_disabled_preference_preserves_the_exact_v1_receipt_shape_and_digest():
     assert not {'pending_sha256', 'verification_policy_sha256', 'origin_policies'} & set(disabled)
 
 
+def test_opt_in_diagnostics_report_success_without_changing_receipt():
+    baseline, _ = resolve()
+    diagnostic = {}
+    observed, _ = resolve(diagnostic=diagnostic)
+    assert observed == baseline
+    assert diagnostic == {'stop_code': 'CORROBORATED'}
+    assert 'stop_code' not in observed
+
+
+def test_opt_in_diagnostics_reject_unbound_hint_without_transport():
+    values = inputs()
+    values[0]['link'] = 'https://foreign.example/job'
+    diagnostic = {}
+    observed, seen = resolve(values, diagnostic=diagnostic)
+    assert observed is None and seen == []
+    assert diagnostic == {'stop_code': 'HINT_NOT_ELIGIBLE'}
+
+
+def test_opt_in_diagnostics_distinguish_missing_employer_native_link():
+    values = inputs('<a href="https://example.com/jobs/123">Apply</a>')
+    responses = pages()
+    responses[EMPLOYER] = httpx.Response(200, text='<h1>Engineer</h1>',
+                                         request=httpx.Request('GET', EMPLOYER))
+    diagnostic = {}
+    observed, seen = resolve(values, responses=responses, diagnostic=diagnostic)
+    assert observed is None and seen == ['https://example.com/robots.txt', EMPLOYER]
+    assert diagnostic == {'stop_code': 'EMPLOYER_NATIVE_LINK_MISSING'}
+
+
+def test_opt_in_diagnostics_distinguish_native_title_mismatch():
+    responses = pages()
+    responses[NATIVE] = httpx.Response(200,
+        json={'id': 123, 'title': 'Unrelated role', 'absolute_url': EMPLOYER},
+        request=httpx.Request('GET', NATIVE))
+    diagnostic = {}
+    observed, seen = resolve(responses=responses, diagnostic=diagnostic)
+    assert observed is None and NATIVE in seen and EMPLOYER not in seen
+    assert diagnostic == {'stop_code': 'NATIVE_JOB_MISMATCH'}
+
+
+def test_opt_in_diagnostics_do_not_expose_untrusted_page_content():
+    responses = pages()
+    responses[EMPLOYER] = httpx.Response(200, text='<p>private-marker-no-proof</p>',
+                                         request=httpx.Request('GET', EMPLOYER))
+    diagnostic = {}
+    observed, _ = resolve(responses=responses, diagnostic=diagnostic)
+    assert observed is None
+    assert diagnostic == {'stop_code': 'EMPLOYER_JOB_PROOF_MISSING'}
+    assert 'private-marker' not in str(diagnostic)
+
+
 def test_v2_five_per_minute_listing_still_refuses_consumed_authorization_window():
     values, policy = v2_inputs('<p>No direct link.</p>')
     values[3]['rate_limit'] = 5
