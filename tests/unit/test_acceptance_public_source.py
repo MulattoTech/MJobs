@@ -181,6 +181,27 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertNotIn('synthetic-secret', json.dumps(result))
         self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
 
+    def test_baseline_exception_records_safe_stage_only(self):
+        def request(method, path, **kwargs):
+            if path == '/profiles/profile':
+                raise ValueError('synthetic-secret-never-serialize')
+            return self.api.request(method, path, **kwargs)
+        result = run('http://127.0.0.1:18700', BASELINE, self.path,
+            acceptance_run_id='campaign', request=request,
+            execution_scope='CONTROLLED_TRANSPORT',
+            containment_preflight=lambda *_: deepcopy(PROOF),
+            utc_now=lambda: datetime.fromisoformat(STAMP))
+        self.assertEqual(result['failure_stage'], 'BASELINE_SELECTION')
+        self.assertNotIn('synthetic-secret', json.dumps(result))
+
+    def test_preflight_exception_records_safe_stage_only(self):
+        def containment(stage, context):
+            raise ValueError('synthetic-secret-never-serialize')
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['failure_stage'], 'CONTAINMENT_PREFLIGHT')
+        self.assertNotIn('synthetic-secret', json.dumps(result))
+        self.assertIsNone(self.api.source)
+
     def test_safe_containment_codes_are_preserved_without_changing_failure_or_cleanup(self):
         from cli.acceptance_containment import ContainmentError
         for code in ('CHILD_READBACK_PARENT_STATE_INVALID', 'CHILD_OPERATION_CHANGED',
