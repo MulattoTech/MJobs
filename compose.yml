@@ -110,6 +110,7 @@ services:
     command: [python, -m, fixtures.mock_server]
     environment:
       MOCK_RECEIPT_FILE: /data/receipts.json
+      MJOBS_MOCK_SCENARIO: ${MJOBS_MOCK_SCENARIO:-baseline}
     volumes: [mock-receipts:/data]
     restart: unless-stopped
     healthcheck:
