@@ -35,12 +35,16 @@ def summarize_public_observations(document: dict) -> dict:
                         "SOURCE_UNAVAILABLE", "DISCOVERY_AUTHORIZATION_CHANGED"}
         states[state if state in safe_states else "OTHER"] += 1
         reasons[reason if reason in safe_reasons else "OTHER"] += 1
+    collection_state = document.get("collection_state")
+    public_collection_state = (
+        collection_state if isinstance(collection_state, str)
+        and collection_state in {"COMPLETED", "BLOCKED", "FAILED"} else "UNKNOWN"
+    )
     return {
         "child_count": len(children),
         "states": dict(sorted(states.items())),
         "reasons": dict(sorted(reasons.items())),
-        "public_collection_state": document.get("collection_state")
-            if document.get("collection_state") in {"COMPLETED", "BLOCKED", "FAILED"} else "UNKNOWN",
+        "public_collection_state": public_collection_state,
         "employer_sources_enrolled": len(discovery.get("enrolled_sources", []))
             if isinstance(discovery.get("enrolled_sources"), list) else None,
         "enrolled_sources_present": isinstance(discovery.get("enrolled_sources"), list)

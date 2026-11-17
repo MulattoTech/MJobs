@@ -27,6 +27,13 @@ def test_untrusted_codes_and_states_are_not_reflected():
     assert result["public_collection_state"] == "UNKNOWN"
 
 
+@pytest.mark.parametrize("state", [[], {}, 3, None])
+def test_unhashable_or_nonstring_collection_state_is_redacted(state):
+    result = summarize_public_observations({"collection_state": state, "child_discovery": {
+        "children": []}})
+    assert result["public_collection_state"] == "UNKNOWN"
+
+
 @pytest.mark.parametrize("data", [None, [], {}, {"child_discovery": {"children": "wrong"}},
                                   {"child_discovery": {"children": [{}]}},
                                   {"child_discovery": {"children": [1]}}])
