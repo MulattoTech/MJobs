@@ -166,6 +166,21 @@ class PublicSourceObservationTests(unittest.TestCase):
             containment_preflight=kwargs.pop('containment_preflight', lambda *_: deepcopy(PROOF)),
             utc_now=kwargs.pop('utc_now', lambda: datetime.fromisoformat(STAMP)), **kwargs)
 
+    def test_settings_exception_records_safe_stage_only(self):
+        def request(method, path, **kwargs):
+            if path == '/settings':
+                raise RuntimeError('synthetic-secret-never-serialize')
+            return self.api.request(method, path, **kwargs)
+        result = run('http://127.0.0.1:18700', BASELINE, self.path,
+            acceptance_run_id='campaign', request=request,
+            execution_scope='CONTROLLED_TRANSPORT',
+            containment_preflight=lambda *_: deepcopy(PROOF),
+            utc_now=lambda: datetime.fromisoformat(STAMP))
+        self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+        self.assertEqual(result['failure_stage'], 'SETTINGS_READ')
+        self.assertNotIn('synthetic-secret', json.dumps(result))
+        self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
+
     def test_safe_containment_codes_are_preserved_without_changing_failure_or_cleanup(self):
         from cli.acceptance_containment import ContainmentError
         for code in ('CHILD_READBACK_PARENT_STATE_INVALID', 'CHILD_OPERATION_CHANGED',

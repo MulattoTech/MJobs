@@ -658,15 +658,18 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             contained(stage)
             return response
 
+        failure_stage = 'SETTINGS_READ'
         try:
             settings = request('GET', '/settings')
             _require(settings.get('operation_mode') == 'FIXTURE'
                 and settings.get('external_submission_enabled') is False, 'FIXTURE_READ_ONLY_REQUIRED')
+            failure_stage = 'BASELINE_SELECTION'
             initial_selection = _selection(request, baseline)
             evidence.update(profile_version=initial_selection['profile_version'],
                 selected_application_job_id=initial_selection['job_id'],
                 selected_application_route_id=initial_selection['route_id'],
                 selected_state_sha256=initial_selection['sha256'])
+            failure_stage = 'CONTAINMENT_PREFLIGHT'
             contained('preflight')
             if employer_verification:
                 from cli.ui_e2e import validate_employer_verification_witness
@@ -680,6 +683,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 employer_initial = begin_employer(read, baseline['profile_id'], initial_selection['profile_version'], utc_now=utc_now)
                 evidence['employer_verification_requested'] = True
                 evidence['employer_observation'] = {'status': 'NOT_RUN', 'reason': 'CHILDREN_NOT_SETTLED'}
+            failure_stage = 'SOURCE_READBACK'
             source = _source(read, provider)
             if source is None:
                 _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
@@ -716,6 +720,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 and current.get('last_attempt') == source.get('last_attempt')
                 and current.get('backoff_until') == source.get('backoff_until'), 'SOURCE_CONFIGURATION_CHANGED')
             _require(_selection(read, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+            failure_stage = 'COLLECTION_DISPATCH'
             collection_request_id = 'public-observation-' + uuid4().hex
             contained('dispatch')
             queued = request('POST', '/sources/' + quote(source['id'], safe='') + '/collect',
@@ -772,6 +777,8 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 evidence['child_discovery'].update(status='FAIL', reason=str(error))
         except Exception:
             evidence['error_code'] = 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID'
+            if failure_stage in ('SETTINGS_READ', 'BASELINE_SELECTION', 'CONTAINMENT_PREFLIGHT', 'SOURCE_READBACK'):
+                evidence['failure_stage'] = failure_stage
             if evidence['child_discovery']['status'] == 'WAITING':
                 evidence['child_discovery'].update(status='FAIL', reason='CHILD_DISCOVERY_RECORD_INVALID')
         finally:
