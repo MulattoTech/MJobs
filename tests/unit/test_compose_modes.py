@@ -92,6 +92,13 @@ class ComposeModeTests(unittest.TestCase):
                     if name != "mock":
                         self.assertNotIn("MJOBS_MOCK_SCENARIO", service.get("environment", {}))
 
+    def test_fixture_mock_uses_its_own_python_entrypoint(self):
+        configuration = json.loads(self.render("--format", "json", fixture=True))
+        mock = configuration["services"]["mock"]
+        self.assertEqual(mock["entrypoint"], [])
+        self.assertEqual(mock["command"], ["python", "-m", "fixtures.mock_server"])
+        self.assertEqual(mock["healthcheck"]["test"][0], "CMD")
+
     def test_durable_dependencies_restart_with_runtime(self):
         configuration = json.loads(self.render("--format", "json"))
         services = configuration["services"]

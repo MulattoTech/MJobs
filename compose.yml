@@ -107,6 +107,7 @@ services:
   mock:
     <<: *runtime
     profiles: [fixture]
+    entrypoint: []
     command: [python, -m, fixtures.mock_server]
     environment:
       MOCK_RECEIPT_FILE: /data/receipts.json
