@@ -387,6 +387,26 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
                     m.operations.c.id == old["operation_id"])).mappings().one())
                 self.assertEqual(operation, operations_before[operation["id"]])
 
+    def test_board_only_greenhouse_link_does_not_stage_job_bootstrap(self):
+        from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+
+        self._activate_v2()
+        self.rows[0]["description"] = (
+            '<p>Python and SQL engineering.</p>'
+            '<a href="https://job-boards.greenhouse.io/acme">Apply</a>'
+        )
+        with patch("services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint",
+                   wraps=extract_bootstrap_hint) as extract:
+            result = self.collect(**self.parent_operation())
+
+        self.assertEqual(result["jobs_seen"], 1)
+        extract.assert_called_once()
+        self.assertEqual(self.store.count("posting_snapshots"), 1)
+        self.assertEqual(self.pending(), [])
+        self.assertEqual(self.store.count("company_domains"), 0)
+        self.assertEqual(self.store.count("applications"), 0)
+        self.assertEqual(len(self.http_requests), 1)
+
     def test_ambiguous_hints_consume_the_bounded_intake_without_scanning_more_employers(self):
         from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
         template = self.rows[0]
