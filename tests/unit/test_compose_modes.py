@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless(shutil.which("docker"), "Docker Compose CLI is unavailable")
 class ComposeModeTests(unittest.TestCase):
-    def render(self, *arguments, fixture=False):
+    def render(self, *arguments, fixture=False, mock_scenario=None):
         environment = os.environ.copy()
         environment["POSTGRES_PASSWORD"] = "synthetic-compose-test-value"
         environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "synthetic-base64-test-key"
@@ -20,6 +20,9 @@ class ComposeModeTests(unittest.TestCase):
         environment.pop("MJOBS_COMPOSE_MOCK", None)
         environment.pop("MJOBS_BROWSER_DEBUG_CAPTURE", None)
         environment.pop("COMPOSE_PROFILES", None)
+        environment.pop("MJOBS_MOCK_SCENARIO", None)
+        if mock_scenario is not None:
+            environment["MJOBS_MOCK_SCENARIO"] = mock_scenario
         command = ["docker", "compose"]
         if fixture:
             command.extend(["--profile", "fixture"])
@@ -77,6 +80,17 @@ class ComposeModeTests(unittest.TestCase):
         self.assertIn("mock", services)
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_OPERATION_MODE"], "FIXTURE")
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_COMPOSE_MOCK"], "1")
+        self.assertEqual(configuration["services"]["mock"]["environment"]["MJOBS_MOCK_SCENARIO"], "baseline")
+
+    def test_native_mock_scenario_is_scoped_to_fixture_service(self):
+        for scenario in ("native-greenhouse", "native-lever"):
+            with self.subTest(scenario=scenario):
+                services = json.loads(self.render("--format", "json", fixture=True,
+                                                  mock_scenario=scenario))["services"]
+                self.assertEqual(services["mock"]["environment"]["MJOBS_MOCK_SCENARIO"], scenario)
+                for name, service in services.items():
+                    if name != "mock":
+                        self.assertNotIn("MJOBS_MOCK_SCENARIO", service.get("environment", {}))
 
     def test_durable_dependencies_restart_with_runtime(self):
         configuration = json.loads(self.render("--format", "json"))
