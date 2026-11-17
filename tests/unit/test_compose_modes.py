@@ -12,8 +12,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless(shutil.which("docker"), "Docker Compose CLI is unavailable")
 class ComposeModeTests(unittest.TestCase):
-    def render(self, *arguments, fixture=False):
+    def render(self, *arguments, fixture=False, scenario=None):
         environment = os.environ.copy()
+        environment.pop("MJOBS_MOCK_SCENARIO", None)
+        if scenario is not None:
+            environment["MJOBS_MOCK_SCENARIO"] = scenario
         environment["POSTGRES_PASSWORD"] = "synthetic-compose-test-value"
         environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "synthetic-base64-test-key"
         environment.pop("MJOBS_OPERATION_MODE", None)
@@ -77,6 +80,16 @@ class ComposeModeTests(unittest.TestCase):
         self.assertIn("mock", services)
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_OPERATION_MODE"], "FIXTURE")
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_COMPOSE_MOCK"], "1")
+
+    def test_fixture_mock_scenario_defaults_to_baseline_and_can_select_native_ats(self):
+        for scenario in (None, "native-greenhouse", "native-lever"):
+            with self.subTest(scenario=scenario):
+                config = json.loads(self.render("--format", "json", fixture=True, scenario=scenario))
+                mock_environment = config["services"]["mock"]["environment"]
+                self.assertEqual(mock_environment["MJOBS_MOCK_SCENARIO"], scenario or "baseline")
+                self.assertNotIn("MJOBS_MOCK_SCENARIO", config["services"]["api"]["environment"])
+        personal = json.loads(self.render("--format", "json", scenario="native-greenhouse"))
+        self.assertNotIn("mock", personal["services"])
 
     def test_durable_dependencies_restart_with_runtime(self):
         configuration = json.loads(self.render("--format", "json"))
