@@ -603,6 +603,23 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.assertEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_VERIFIED')
         self.assertEqual(request['domain_evidence'][1]['receipt']['execution_scope'], 'CONTROLLED_TRANSPORT')
 
+    def test_foreign_greenhouse_job_title_does_not_authorize_aggregator_candidate(self):
+        """A cross-job native link is not reciprocal proof for the collected posting."""
+        # A real WWR Bloomreach listing linked to a different Czechia vacancy.
+        # The API/HTML transport is otherwise valid, so title identity must gate
+        # enrollment even when the ATS board and employer site both respond.
+        self.native_job['title'] = 'Senior DevOps Engineer - Different Vacancy'
+
+        outcome = self._execute()
+
+        self.assertNotEqual(outcome['status'], 'COMPLETED', outcome)
+        self.assertIn('boards-api.greenhouse.io', ' '.join(self.network))
+        self.assertEqual(self.case.store.count('company_domains'), 0)
+        with self.case.store.engine.connect() as connection:
+            request = connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == self.request['id'])).mappings().one()
+        self.assertNotEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_VERIFIED')
+
     def test_profile_change_after_collection_blocks_all_employer_egress(self):
         changed = deepcopy(self.case.store.profile('fixture'))
         changed['name'] = 'Changed profile revision'
