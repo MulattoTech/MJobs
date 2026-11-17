@@ -669,6 +669,35 @@ def test_opt_in_diagnostics_report_success_without_changing_receipt():
     assert 'stop_code' not in observed
 
 
+def test_opt_in_diagnostics_clear_stale_outcome_on_propagated_cancellation():
+    diagnostic = {'stop_code': 'CORROBORATED', 'owner_marker': 'retained'}
+
+    def cancelled():
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+
+    with pytest.raises(PublicFetchError, match='DISCOVERY_AUTHORIZATION_CHANGED'):
+        resolve(diagnostic=diagnostic, check=cancelled)
+    assert diagnostic == {'owner_marker': 'retained'}
+
+
+def test_opt_in_diagnostics_report_invalid_source_policy_without_egress():
+    values = inputs()
+    values[3]['rate_limit'] = True
+    diagnostic = {'stop_code': 'CORROBORATED'}
+    observed, seen = resolve(values, diagnostic=diagnostic)
+    assert observed is None and seen == []
+    assert diagnostic == {'stop_code': 'SOURCE_POLICY_INVALID'}
+
+
+def test_opt_in_diagnostics_report_rejected_fetch_without_private_exception():
+    diagnostic = {}
+    observed, _ = resolve(responses={NATIVE: httpx.Response(503, text='private-marker-fetch',
+        request=httpx.Request('GET', NATIVE))}, diagnostic=diagnostic)
+    assert observed is None
+    assert diagnostic == {'stop_code': 'FETCH_OR_PARSE_REJECTED'}
+    assert 'private-marker' not in str(diagnostic)
+
+
 def test_opt_in_diagnostics_reject_unbound_hint_without_transport():
     values = inputs()
     values[0]['link'] = 'https://foreign.example/job'

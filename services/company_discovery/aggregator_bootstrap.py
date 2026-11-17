@@ -404,6 +404,11 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
     tracker = _Budget(budget or BootstrapBudget(), check)
     v2 = verification_policy is not None or pending_sha256 is not None
 
+    # A reused sink must never report a previous invocation's outcome when
+    # cancellation or a non-retryable error propagates before stop() runs.
+    if type(diagnostic) is dict:
+        diagnostic.pop('stop_code', None)
+
     def stop(code):
         # Only fixed stage codes; never disclose candidate URLs, page bodies,
         # profile data, exception messages or employer assertions.
