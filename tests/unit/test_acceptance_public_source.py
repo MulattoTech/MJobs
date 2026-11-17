@@ -192,6 +192,37 @@ class PublicSourceObservationTests(unittest.TestCase):
                 self.assertTrue(self.api.source['enabled'])
                 self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
 
+    def test_safe_source_setup_codes_are_recorded_without_dispatch_or_secret_text(self):
+        from cli.acceptance_source_setup import SourceSetupError
+        for code in ('ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED',
+                     'SOURCE_SETUP_LEASE_CONTINUITY_INVALID',
+                     'SOURCE_SETUP_FIXTURE_MODE_REQUIRED'):
+            with self.subTest(code=code):
+                self.api = ControlledAPI()
+                stages = []
+                def containment(stage, context):
+                    stages.append(stage)
+                    if stage == 'preflight':
+                        raise SourceSetupError(code)
+                    return deepcopy(PROOF)
+                result = self.observe(containment_preflight=containment)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+                self.assertEqual(result['containment_failure'], dict(schema_version=1,
+                    stage='preflight', error_class='SourceSetupError', code=code))
+                self.assertIsNone(self.api.source)
+                self.assertEqual(stages, ['preflight'])
+                self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
+        for error in (SourceSetupError('Bearer synthetic-secret-never-serialize'),
+                      SourceSetupError('UNKNOWN_CODE'),
+                      SourceSetupError('SOURCE_SETUP_FIXTURE_MODE_REQUIRED', 'secret')):
+            self.api = ControlledAPI()
+            def containment(stage, context):
+                raise error
+            result = self.observe(containment_preflight=containment)
+            self.assertNotIn('containment_failure', result)
+            self.assertNotIn('synthetic-secret', json.dumps(result))
+
     def test_employer_capture_requires_saved_ui_witness_before_any_mutation(self):
         result = self.observe(employer_verification=True)
         self.assertEqual(result['result'], 'FAIL')
