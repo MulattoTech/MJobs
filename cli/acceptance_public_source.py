@@ -47,6 +47,18 @@ SAFE_CONTAINMENT_ERROR_CODES = frozenset({
     'UNOWNED_COMPANY_DISCOVERY_EXISTS', 'CONTAINMENT_OWNERSHIP_CHANGED',
     'CONTAINMENT_LEASE_EXPIRED', 'CONTAINMENT_LEASE_TOO_SHORT',
 })
+# Only explicit, non-sensitive source-setup codes may leave the callback.
+SAFE_SOURCE_SETUP_ERROR_CODES = frozenset({
+    'SOURCE_SETUP_BASELINE_INVALID', 'SOURCE_SETUP_RUNTIME_IDENTITY_REQUIRED',
+    'SOURCE_SETUP_ARTIFACT_DESTINATION_INVALID', 'SOURCE_SETUP_LEASE_CONTINUITY_INVALID',
+    'SOURCE_SETUP_LEASE_CONTINUITY_LOST', 'SOURCE_SETUP_LEASE_CONTINUITY_LIMIT',
+    'PRIMARY_CONTAINMENT_CONTEXT_MISMATCH', 'SOURCE_CONTAINMENT_PROOF_INVALID',
+    'SOURCE_CONTAINMENT_REQUIRED', 'ADDITIONAL_SOURCE_CONTAINMENT_UNAVAILABLE',
+    'ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED', 'SOURCE_SETUP_FIXTURE_MODE_REQUIRED',
+    'EXTRA_SOURCE_MUST_BE_ABSENT', 'EXTRA_SOURCE_APPEARED_BEFORE_CREATE',
+    'EXTRA_SOURCE_CONFIGURATION_UNCONFIRMED', 'EXTRA_SOURCE_ALREADY_COLLECTED',
+    'SOURCE_SETUP_CONTAINMENT_REENTRY',
+})
 CHILD_FIELDS = ('request_id', 'revision', 'company_id', 'company_source_id', 'profile_id',
     'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt',
     'trigger_job_id', 'candidate_id', 'posting_id', 'snapshot_id', 'snapshot_sha256',
@@ -645,6 +657,11 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                         and type(error.args[0]) is str and error.args[0] in SAFE_CONTAINMENT_ERROR_CODES):
                     evidence.setdefault('containment_failure', dict(schema_version=1,
                         stage=stage, error_class='ContainmentError', code=error.args[0]))
+                from cli.acceptance_source_setup import SourceSetupError
+                if (type(error) is SourceSetupError and len(error.args) == 1
+                        and type(error.args[0]) is str and error.args[0] in SAFE_SOURCE_SETUP_ERROR_CODES):
+                    evidence.setdefault('containment_failure', dict(schema_version=1,
+                        stage=stage, error_class='SourceSetupError', code=error.args[0]))
                 containment_lost = True
                 raise
             evidence['containment'] = dict(owner=proof['owner'], token_sha256=_digest(proof['token']),
