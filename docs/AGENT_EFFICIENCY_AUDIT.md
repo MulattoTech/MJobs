@@ -159,8 +159,9 @@ on the implementation branch before publication:
 | `python -m tools.verification.progress_dashboard --check` | CURRENT |
 | `python -m tools.verification.commit_provenance --commit HEAD` | PASS |
 | `git diff --check` | PASS |
-| Full unit suite, frontend tests/build, integration/browser/Compose checks | NOT_RUN; outside this Python-only slice |
-| Hosted exact-head checks | NOT_RUN; no PR was created in this audit |
+| Frontend tests/build, integration/browser/Compose checks | NOT_RUN locally; hosted exact-head checks passed |
+| Hosted exact-head checks for PR 1059 | PASS on repaired head `57131ee3cac941ae16d4fc69e691dbea4091a910`: CI, integration shards, Compose, web, policy, security, dependencies, and CodeQL |
+| Full unit suite | PASS locally as the focused agent-context scope; 24 passed, 1 skipped, 462 subtests |
 
 ## Conflict-safe roadmap
 
@@ -186,8 +187,7 @@ capability gain.
 ## Continuity handoff
 
 Starting HEAD was `81ca391b474d288582d51ee7d9db8a2dbb189153`. The implementation
-and audit follow-up are committed on this worktree branch; the PR head supplies
-the exact final revision for hosted verification. The working tree must remain
-clean after attribution correction and publication. No issue or PR is linked to
-this housekeeping slice. Reproduce the focused verification with the commands
-in the implementation table above.
+is published as draft PR [#1059](https://github.com/MulattoTech/MJobs/pull/1059)
+and the exact PR head passed hosted verification. The PR remains unmerged.
+Reproduce the focused verification with the commands in the implementation
+table above.
