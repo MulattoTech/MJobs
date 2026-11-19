@@ -12,6 +12,10 @@ Optional current GitHub inventory:
 
     python -m tools.agent_context status --task MJ-REQ-004 --github
 
+Bootstrap output includes a `context_manifest` with the bounded onboarding
+files and their byte/estimated-token totals. The estimate is only a planning
+heuristic (`bytes / 4`); it does not claim model-tokenization accuracy.
+
 Read AGENTS.md, the compact planning/REQUIREMENT_INDEX.json, and only the affected issue/spec/source. Inspect active ownership and exact PR/CI facts for this task. Do not reread thousands of historical files or the whole repository every time a model changes. Provider-private context does not transfer: only verified persistent artifacts do.
 
 ## Preserve user intent; normalize the execution method
