@@ -73,7 +73,22 @@ class AgentContextTests(unittest.TestCase):
         self.assertEqual(files["AGENTS.md"], {"path": "AGENTS.md", "bytes": 8, "estimated_tokens": 2})
         self.assertEqual(files["docs/REPO_MAP.md"], {"path": "docs/REPO_MAP.md", "bytes": 4, "estimated_tokens": 1})
         self.assertEqual(value["bytes"], sum(item["bytes"] for item in value["files"]))
-        self.assertEqual(value["estimated_tokens"], value["bytes"] // 4)
+        self.assertEqual(
+            value["estimated_tokens"],
+            sum(item["estimated_tokens"] for item in value["files"]),
+        )
+
+    def test_context_manifest_aggregate_tokens_equal_file_estimate_sum(self):
+        (self.root / "AGENTS.md").write_bytes(b"123")
+        (self.root / "CLAUDE.md").write_bytes(b"123")
+        (self.root / "GEMINI.md").write_bytes(b"123")
+
+        value = context_manifest(self.root)
+
+        self.assertEqual(
+            value["estimated_tokens"],
+            sum(item["estimated_tokens"] for item in value["files"]),
+        )
 
     def test_checkpoint_roundtrip_and_resume(self):
         path = self.checkpoint()

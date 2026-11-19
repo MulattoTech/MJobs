@@ -93,11 +93,12 @@ def context_manifest(root: Path) -> dict:
         if size:
             files.append({"path": relative_path, "bytes": size, "estimated_tokens": size // 4})
             total_bytes += size
+    estimated_tokens = sum(item["estimated_tokens"] for item in files)
     return {
         "files": files,
         "bytes": total_bytes,
-        "estimated_tokens": total_bytes // 4,
-        "estimation": "bytes divided by four; planning heuristic only",
+        "estimated_tokens": estimated_tokens,
+        "estimation": "sum of per-file floor(bytes / 4) estimates; planning heuristic only",
     }
 
 

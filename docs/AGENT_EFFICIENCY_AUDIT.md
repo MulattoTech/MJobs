@@ -23,7 +23,7 @@ Historical journals and large evidence files were not loaded as source context.
 | Area | Score | Evidence |
 | --- | ---: | --- |
 | Agent ergonomics | 4/5 | `docs/REPO_MAP.md`, scoped area guides, and `tools.agent_context` provide bounded entry points. |
-| Context efficiency | 2/5 | The measured onboarding manifest is 105,358 bytes, about 26,339 tokens by the repository heuristic; `planning/REQUIREMENT_INDEX.json` alone is 77,470 bytes. |
+| Context efficiency | 2/5 | The measured onboarding manifest is 105,358 bytes, about 26,336 summed per-file token estimates by the repository heuristic; `planning/REQUIREMENT_INDEX.json` alone is 77,470 bytes. |
 | Verification speed | 3/5 | Focused agent-context tests complete in 12.71–15.81 seconds; catalogue and progress validation both pass quickly, while full web/integration checks are broader and service-dependent. |
 | Architecture/contracts | 3/5 | The repository map gives clear ownership, but large API/UI entrypoints and several hand-maintained planning authorities remain costly to navigate. |
 | Multi-agent conflict safety | 3/5 | Protected-main and single-integration-owner rules are explicit, but shared planning/queue files and 20 open PRs create serialization pressure. |
@@ -51,9 +51,9 @@ collision indicators, not proof that each file needs decomposition.
 
 The core guidance files plus the full session handoff total 117,156 bytes,
 about 29,289 heuristic tokens. The new bounded bootstrap manifest covers
-9 existing onboarding files and reports 105,358 bytes / 26,339 heuristic
-tokens without reading their contents. The estimate is deliberately only
-`bytes / 4`; it is not a model-tokenization benchmark.
+9 existing onboarding files and reports 105,358 bytes / 26,336 summed
+per-file token estimates without reading their contents. Each estimate is
+deliberately only `floor(bytes / 4)`; it is not a model-tokenization benchmark.
 
 CI contains 13 workflow files: browser regression, general CI, Codespaces,
 connected acceptance, dependency review, feature studio, Fleet control,
@@ -160,8 +160,8 @@ on the implementation branch before publication:
 | `python -m tools.verification.commit_provenance --commit HEAD` | PASS |
 | `git diff --check` | PASS |
 | Frontend tests/build, integration/browser/Compose checks | NOT_RUN locally; hosted exact-head checks passed |
-| Hosted exact-head checks for PR 1059 | PASS on repaired head `57131ee3cac941ae16d4fc69e691dbea4091a910`: CI, integration shards, Compose, web, policy, security, dependencies, and CodeQL |
-| Full unit suite | PASS locally as the focused agent-context scope; 24 passed, 1 skipped, 462 subtests |
+| Hosted exact-head checks for PR 1059 | PASS on parent head `57131ee3cac941ae16d4fc69e691dbea4091a910`; the review-fix commit requires a fresh exact-head run |
+| Focused agent-context unit scope | PASS locally: 24 passed, 1 skipped, 462 subtests |
 
 ## Conflict-safe roadmap
 
@@ -188,6 +188,7 @@ capability gain.
 
 Starting HEAD was `81ca391b474d288582d51ee7d9db8a2dbb189153`. The implementation
 is published as draft PR [#1059](https://github.com/MulattoTech/MJobs/pull/1059)
-and the exact PR head passed hosted verification. The PR remains unmerged.
+and the parent PR head passed hosted verification. Any later review-fix commit
+requires fresh exact-head verification before merge. The PR remains unmerged.
 Reproduce the focused verification with the commands in the implementation
 table above.
