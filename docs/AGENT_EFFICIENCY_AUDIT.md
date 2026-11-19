@@ -146,8 +146,9 @@ Implemented A1 in:
 - `docs/AI_AGENT_CONTINUITY.md`: documents the field and its heuristic limits.
 
 The implementation does not read large file contents, mutate planning state,
-change routing decisions, or alter existing checkpoint formats. Local checks
-performed before commit:
+change routing decisions, or alter existing checkpoint formats. Work is
+performed by GitHub Copilot Fusion using GPT-5.6 Luna. Local checks performed
+on the implementation branch before publication:
 
 | Command | Result |
 | --- | --- |
@@ -155,6 +156,8 @@ performed before commit:
 | Same focused command, three timing runs | PASS: 15.81s / 13.74s / 12.71s |
 | `python -m tools.verification.catalogue` | PASS |
 | `python -m tools.verification.progress validate` | PASS |
+| `python -m tools.verification.progress_dashboard --check` | CURRENT |
+| `python -m tools.verification.commit_provenance --commit HEAD` | PASS |
 | `git diff --check` | PASS |
 | Full unit suite, frontend tests/build, integration/browser/Compose checks | NOT_RUN; outside this Python-only slice |
 | Hosted exact-head checks | NOT_RUN; no PR was created in this audit |
@@ -182,8 +185,9 @@ capability gain.
 
 ## Continuity handoff
 
-Starting HEAD was `81ca391b474d288582d51ee7d9db8a2dbb189153`; the working tree
-contains the focused A1 change and this audit. Next action is to run the final
-checks on the committed revision and publish only through the normal branch/PR
-review path. No issue or PR is linked to this housekeeping slice. Reproduce
-the focused verification with the commands in the implementation table above.
+Starting HEAD was `81ca391b474d288582d51ee7d9db8a2dbb189153`. The implementation
+and audit follow-up are committed on this worktree branch; the PR head supplies
+the exact final revision for hosted verification. The working tree must remain
+clean after attribution correction and publication. No issue or PR is linked to
+this housekeeping slice. Reproduce the focused verification with the commands
+in the implementation table above.
