@@ -10,13 +10,13 @@
     "as_of": "2026-11-14T19:58:30.913144+00:00"
   },
   "reference": {
-    "pass": 19,
+    "pass": 20,
     "partial": 4,
-    "not_run": 36,
+    "not_run": 35,
     "total": 59,
-    "accepted_percent": 32.2,
-    "as_of": "2026-10-09T15:07:39Z"
+    "accepted_percent": 33.9,
+    "as_of": "2026-11-20T07:18:47Z"
   },
-  "milestone": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
+  "milestone": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
   "release_readiness": "UNKNOWN"
 }
