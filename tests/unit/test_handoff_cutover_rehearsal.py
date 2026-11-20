@@ -1,0 +1,380 @@
+"""Synthetic-only tests of the in-memory B3 cutover/rollback rehearsal."""
+from __future__ import annotations
+
+from contextlib import redirect_stdout
+import hashlib
+import io
+import json
+from pathlib import Path
+
+import pytest
+
+from tools.verification import handoff_archive
+from tools.verification import handoff_cutover_rehearsal as cutover
+
+
+@pytest.fixture
+def fixtures(tmp_path):
+    source = tmp_path / "private-synthetic-source.md"
+    original = (
+        b"\xef\xbb\xbfPRIVATE_SYNTHETIC_CHECKPOINT\r\n"
+        b"## Historic\r\n"
+        b"Previously blocked -- not a PASS assertion\r\n"
+        b"## Latest\r\n"
+        b"Current human-reviewed fixture state\r\n"
+    )
+    source.write_bytes(original)
+    digest = hashlib.sha256(original).hexdigest()
+    root = tmp_path / "archive"
+    root.mkdir()
+    handoff_archive.create_archive(source, root, digest)
+    snapshot = root / f"sha256-{digest}"
+    manifest = json.loads((snapshot / "manifest.json").read_text(encoding="utf-8"))
+    section_id = manifest["checkpoints"][-1]["checkpoint_id"]
+    review = tmp_path / "explicit-review.json"
+    review.write_text(json.dumps({
+        "schema_version": 1,
+        "source_sha256": digest,
+        "reviewed_by": "Synthetic Independent Reviewer",
+        "reviewed_at_utc": "2026-11-20T18:00:00Z",
+        "review_reference": "Synthetic PR review record",
+        "entries": [{
+            "subject": "B3 rehearsal",
+            "checkpoint_id": section_id,
+            "status": "UNKNOWN",
+            "summary": "Synthetic reviewed current handoff",
+            "evidence": "Synthetic-only source proof",
+            "unknowns": "No live approval, readiness, or deployment",
+        }],
+    }), encoding="utf-8")
+    return source, snapshot, review, digest, original, tmp_path
+
+
+def _fingerprints(folder: Path):
+    return {
+        p.relative_to(folder).as_posix(): (
+            hashlib.sha256(p.read_bytes()).hexdigest(),
+            p.stat().st_mtime_ns,
+        )
+        for p in folder.rglob("*")
+        if p.is_file()
+    }
+
+
+def test_full_rehearsal_validates_in_memory_cutover_and_exact_rollback(fixtures):
+    source, snapshot, review, digest, original, root = fixtures
+    before = _fingerprints(root)
+    result, preview = cutover.rehearsal(source, snapshot, review, digest)
+    after = _fingerprints(root)
+    assert before == after
+    assert source.read_bytes() == original
+    assert result["result"] == "MEMORY_ONLY_ROLLBACK_VERIFIED"
+    assert result["source_sha256"] == digest
+    assert result["rollback_sha256"] == digest
+    assert result["preview_sha256"] == hashlib.sha256(preview.encode("utf-8")).hexdigest()
+    assert result["disk_writes"] == 0
+    assert result["review_authenticity"] == "NOT_VERIFIED_BY_THIS_TOOL"
+    assert result["semantic_accuracy"] == "NOT_VERIFIED_BY_THIS_TOOL"
+    assert result["canonical_cutover"] == "NOT_AUTHORIZED_OR_PERFORMED"
+    assert result["selected_count"] == 1
+    assert "Synthetic reviewed current handoff" in preview
+    assert "PRIVATE_SYNTHETIC_CHECKPOINT" not in preview
+
+
+def test_default_command_prints_only_nonprivate_metadata(fixtures):
+    source, snapshot, review, digest, _, root = fixtures
+    before = _fingerprints(root)
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert cutover.main([
+            "--source", str(source),
+            "--snapshot", str(snapshot),
+            "--review-file", str(review),
+            "--expected-source-sha256", digest,
+        ]) == 0
+    metadata = json.loads(out.getvalue())
+    assert metadata["result"] == "MEMORY_ONLY_ROLLBACK_VERIFIED"
+    assert "PRIVATE_SYNTHETIC_CHECKPOINT" not in out.getvalue()
+    assert "Synthetic reviewed current handoff" not in out.getvalue()
+    assert before == _fingerprints(root)
+
+
+def test_explicit_render_outputs_reviewed_text_but_not_full_archive(fixtures):
+    source, snapshot, review, digest, _, root = fixtures
+    before = _fingerprints(root)
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert cutover.main([
+            "--source", str(source),
+            "--snapshot", str(snapshot),
+            "--review-file", str(review),
+            "--expected-source-sha256", digest,
+            "--render-reviewed-preview",
+        ]) == 0
+    assert "Synthetic reviewed current handoff" in out.getvalue()
+    assert "PRIVATE_SYNTHETIC_CHECKPOINT" not in out.getvalue()
+    assert before == _fingerprints(root)
+
+
+def test_wrong_source_digest_fails_before_rehearsal(fixtures):
+    source, snapshot, review, _, _, root = fixtures
+    before = _fingerprints(root)
+    with pytest.raises(ValueError, match="pre-migration pin"):
+        cutover.rehearsal(source, snapshot, review, "0" * 64)
+    assert before == _fingerprints(root)
+
+
+@pytest.mark.parametrize("pin", ["not-a-digest", "A" * 64, ""])
+def test_invalid_explicit_sha_pin_rejected(fixtures, pin):
+    source, snapshot, review, _, _, root = fixtures
+    before = _fingerprints(root)
+    with pytest.raises(ValueError, match="full lowercase digest"):
+        cutover.rehearsal(source, snapshot, review, pin)
+    assert before == _fingerprints(root)
+
+
+def test_source_mutation_after_snapshot_is_detected(fixtures):
+    source, snapshot, review, digest, _, root = fixtures
+    source.write_bytes(source.read_bytes() + b"POST_SNAPSHOT_MUTATION")
+    before = _fingerprints(root)
+    with pytest.raises(ValueError, match="pre-migration pin"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert before == _fingerprints(root)
+
+
+def test_review_provenance_not_matching_snapshot_fails(fixtures):
+    source, snapshot, review, digest, _, root = fixtures
+    body = json.loads(review.read_text(encoding="utf-8"))
+    body["source_sha256"] = "0" * 64
+    review.write_text(json.dumps(body), encoding="utf-8")
+    before = _fingerprints(root)
+    with pytest.raises(ValueError, match="different sources"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert before == _fingerprints(root)
+
+
+def test_forged_success_acceptance_label_is_rejected(fixtures):
+    source, snapshot, review, digest, _, root = fixtures
+    body = json.loads(review.read_text(encoding="utf-8"))
+    body["entries"][0]["status"] = "PASS"
+    review.write_text(json.dumps(body), encoding="utf-8")
+    before = _fingerprints(root)
+    with pytest.raises(ValueError, match="Unsupported reviewed status"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert before == _fingerprints(root)
+
+
+def test_corrupted_snapshot_never_passes_rollback(fixtures):
+    source, snapshot, review, digest, _, _ = fixtures
+    first_piece = sorted((snapshot / "pieces").glob("*.bin"))[0]
+    first_piece.write_bytes(first_piece.read_bytes() + b"CORRUPTION")
+    with pytest.raises(ValueError, match="mismatch"):
+        cutover.rehearsal(source, snapshot, review, digest)
+
+
+def test_missing_selection_file_fails_closed(fixtures):
+    source, snapshot, review, digest, _, _ = fixtures
+    review.unlink()
+    with pytest.raises(ValueError, match="Review input"):
+        cutover.rehearsal(source, snapshot, review, digest)
+
+
+def test_reviewer_selection_growing_beyond_limit_rejected(fixtures):
+    source, snapshot, review, digest, _, _ = fixtures
+    review.write_bytes(b" " * 66_000)
+    with pytest.raises(ValueError, match="maximum size"):
+        cutover.rehearsal(source, snapshot, review, digest)
+
+
+def test_missing_snapshot_fails_without_touching_source(fixtures):
+    source, snapshot, review, digest, original, _ = fixtures
+    renamed = snapshot.with_name(snapshot.name + "-missing")
+    snapshot.rename(renamed)
+    with pytest.raises(ValueError, match="Snapshot directory missing"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert source.read_bytes() == original
+
+
+def test_source_symlink_rejected_when_supported(fixtures, tmp_path):
+    source, snapshot, review, digest, _, _ = fixtures
+    shortcut = tmp_path / "symlink.md"
+    try:
+        shortcut.symlink_to(source)
+    except (OSError, NotImplementedError):
+        pytest.skip("Windows symlink capability unavailable")
+    with pytest.raises(ValueError, match="symbolic link"):
+        cutover.rehearsal(shortcut, snapshot, review, digest)
+
+
+def test_synthetic_disk_pointer_switch_then_verified_rollback(fixtures):
+    """Filesystem rehearsal touches only disposable synthetic test paths."""
+    import os
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-current-handoff.md"
+    backup = root / "synthetic-original-backup.bin"
+    stage = root / "synthetic-current-handoff.stage"
+    consumer.write_bytes(original)
+    backup.write_bytes(consumer.read_bytes())
+    stage.write_bytes(preview.encode("utf-8"))
+    os.replace(stage, consumer)
+    assert consumer.read_bytes() == preview.encode("utf-8")
+    os.replace(backup, consumer)
+    assert consumer.read_bytes() == original
+    assert hashlib.sha256(consumer.read_bytes()).hexdigest() == digest
+    assert source.read_bytes() == original
+    assert not stage.exists()
+    assert not backup.exists()
+
+
+def test_synthetic_crash_after_cutover_uses_archive_for_rollback(fixtures):
+    """A lost backup does not prevent restoring immutable source in test land."""
+    import os
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-consumer.md"
+    consumer.write_bytes(preview.encode("utf-8"))
+    assert consumer.read_bytes() != original
+    saved, _ = handoff_archive._verify_archive(snapshot)
+    rollback_stage = root / "synthetic-rollback.stage"
+    rollback_stage.write_bytes(saved)
+    assert hashlib.sha256(rollback_stage.read_bytes()).hexdigest() == digest
+    os.replace(rollback_stage, consumer)
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original
+
+
+def test_synthetic_staging_error_preserves_original_pointer(fixtures):
+    """Failure before replacement cannot partially replace current content."""
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-consumer.md"
+    stage = root / "synthetic-staging.part"
+    consumer.write_bytes(original)
+    try:
+        stage.write_bytes(preview.encode("utf-8")[:20])
+        raise OSError("synthetic interruption before atomic replacement")
+    except OSError as exc:
+        assert "synthetic interruption" in str(exc)
+    finally:
+        if stage.exists():
+            stage.unlink()
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original
+
+
+def test_source_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+
+    def mutate_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            source.write_bytes(original + b"SIMULATED_EXTERNAL_SOURCE_EDIT")
+
+    monkeypatch.setattr(cutover._InMemoryConsumer, "switch_to", mutate_after_first_switch)
+    with pytest.raises(ValueError, match="Source changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes().endswith(b"SIMULATED_EXTERNAL_SOURCE_EDIT")
+
+
+def test_review_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+
+    def mutate_review_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            review.write_bytes(review.read_bytes() + b" ")
+
+    monkeypatch.setattr(
+        cutover._InMemoryConsumer, "switch_to", mutate_review_after_first_switch
+    )
+    with pytest.raises(ValueError, match="Reviewed selection changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes() == original
+
+
+def test_archive_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+    piece = sorted((snapshot / "pieces").glob("*.bin"))[0]
+
+    def mutate_piece_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            piece.write_bytes(piece.read_bytes() + b"SIMULATED_ARCHIVE_TAMPER")
+
+    monkeypatch.setattr(cutover._InMemoryConsumer, "switch_to", mutate_piece_after_first_switch)
+    with pytest.raises(ValueError, match="identity or offset mismatch"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes() == original
+
+
+def test_disposable_restarted_process_reads_exact_restored_source(fixtures):
+    """Separate Python process must see archived bytes after synthetic rollback."""
+    import os
+    import subprocess
+    import sys
+
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-process-restart-current.md"
+    consumer.write_bytes(preview.encode("utf-8"))
+    restored, _ = handoff_archive._verify_archive(snapshot)
+    stage = root / "synthetic-process-restart-rollback.stage"
+    stage.write_bytes(restored)
+    os.replace(stage, consumer)
+
+    result = subprocess.run(
+        [
+            sys.executable, "-c",
+            "import hashlib,pathlib,sys;"
+            "print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())",
+            str(consumer),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == digest
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original
+    assert not stage.exists()
+
+
+def test_valid_but_modified_manifest_during_switch_fails_postflight(fixtures, monkeypatch):
+    """Even semantically accepted manifest edits invalidate the pinned archive."""
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    count = [0]
+    manifest_path = snapshot / "manifest.json"
+    before = manifest_path.read_bytes()
+
+    def rewrite_manifest_after_first_switch(self, payload):
+        switch(self, payload)
+        count[0] += 1
+        if count[0] == 1:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            payload["mode"] = "UNREVIEWED_EXTERNAL_MANIFEST_UPDATE"
+            manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(
+        cutover._InMemoryConsumer, "switch_to", rewrite_manifest_after_first_switch
+    )
+    with pytest.raises(ValueError, match="Archive manifest changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert count[0] == 2
+    assert manifest_path.read_bytes() != before
+    assert source.read_bytes() == original
