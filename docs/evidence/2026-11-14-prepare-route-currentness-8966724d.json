@@ -694,5 +694,75 @@
       "No new tests, scanner installation, downloads, provider traffic, global packages, PR mutation, protected merge, policy change or production action.",
       "Historical failed run remains recorded; its seven provenance-hash findings have documented dispositions. Refreshed Secret Scan is NOT_RUN, and fresh exact-head hosted scanning remains required."
     ]
+  },
+  "integrated_main_binding": {
+    "recorded_utc": "2026-11-20T12:28:13.217946+00:00",
+    "state": "PREPARED_UNPUBLISHED",
+    "scope": "Bind the existing private fixture continuation to the actual protected PR1068 merge; source identity only.",
+    "actual_main": {
+      "sha": "7064ef048df4953f4bc050468ecda141cabba38d",
+      "tree": "cdaa040c192dda0e4b6a1e0ae5ff505872cefb32",
+      "parents": [
+        "6916d08ca947615f77b530e77ed28626d4ad46ba",
+        "12bfea6afe7395fc3312d2235a394e7746c4607d"
+      ],
+      "merged_at_utc": "2026-11-20T12:25:25Z",
+      "previous_candidate_tree_identical": true,
+      "tracked_entries": 3477
+    },
+    "prior_prepared_head": "f3bf985ff32c38406180cedb5e4d2a83539710c1",
+    "source_head": "5c87bc6d37f969e05ed36b5f0b952146e07e6591",
+    "source_tree": "ab4f3f37688b65462afcb79e99c63ba77ab5e320",
+    "source_parents": [
+      "f3bf985ff32c38406180cedb5e4d2a83539710c1",
+      "7064ef048df4953f4bc050468ecda141cabba38d"
+    ],
+    "merge_changes_tracked_bytes": false,
+    "delta_from_actual_main": [
+      "docs/evidence/2026-11-14-prepare-route-currentness-8966724d.json",
+      "planning/agent_handoffs/MJ-REQ-292-prepare-route-8966724d.json",
+      "tests/integration/test_greenhouse.py",
+      "tests/integration/test_provider_credential_connection_bounds.py"
+    ],
+    "preserved_previous_fields": 20,
+    "historical_handoff_blob": "3e6a5d201118dca32ad8bc35cffbb8e42c2e6c20",
+    "recorded_input_identity": {
+      "imported_files": 236,
+      "configuration_fixture_entries": 113,
+      "combined_categories": 349,
+      "distinct_paths": 348,
+      "changed": 0,
+      "status": "PASS"
+    },
+    "retained_execution": {
+      "classification": "PREVIOUS_EXECUTION",
+      "source_head": "2f2df00136056c578059bb6181e3e45db79965dd",
+      "tests": 50,
+      "greenhouse_tests": 35,
+      "credential_boundary_tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "network": "Owned loopback and synthetic transports only; no external attempts in the retained receipt"
+    },
+    "new_tests": "NOT_RUN; the history-only merge changed no source bytes",
+    "refreshed_secret_scan": "NOT_RUN",
+    "historical_secret_scan": "Historical failed run remains recorded; its seven provenance-hash findings have documented dispositions. Refreshed Secret Scan is NOT_RUN, and fresh exact-head hosted scanning remains required.",
+    "identity_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\bind-main-7064ef04\\identity-receipt.json",
+      "sha256": "d319278b90824361d7c4879b7d21b6396e4c319c1abe84b09f3dc52801366b82"
+    },
+    "source_commit_provenance": "PASS",
+    "acceptance_promoted": false,
+    "product_changes": [],
+    "remaining_gates": [
+      "Root review and publication admission before any PR1029 update.",
+      "Fresh exact-head hosted checks, including Secret Scan, before separately authorized protected integration."
+    ],
+    "limits": [
+      "No new test or scan result is claimed on this descendant.",
+      "This binding does not assert completion of the new main CI or automatic candidate run; those are tracked separately.",
+      "All prior qualifications, reviewed scan dispositions and the original checkpoint remain unchanged. No PR, policy, production or credential action."
+    ]
   }
 }
