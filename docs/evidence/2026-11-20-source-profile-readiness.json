@@ -440,5 +440,199 @@
     "The real deadline remains capable of expiring during post-deadline work; this fixture correction does not guarantee scheduling under arbitrary host stalls.",
     "No production bug fix, external provider traffic, dependency installation or acceptance promotion is claimed.",
     "Any current-main refresh, publication or protected merge remains root-owned and separately coordinated."
-  ]
+  ],
+  "integrated_main_binding_f297": {
+    "recorded_utc": "2026-11-20T14:23:58.911003+00:00",
+    "state": "PRIVATE_COMPOSITION_QUALIFIED_FOR_FRESH_HOSTED_CHECKS",
+    "actual_main": "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+    "actual_main_tree": "02a209d1543f67c7dbd7a97dd04554d7edefa953",
+    "approved_merge": {
+      "pr": 1029,
+      "merged_at_utc": "2026-11-20T13:57:50Z",
+      "parents": [
+        "7064ef048df4953f4bc050468ecda141cabba38d",
+        "765ad2bdc2201e10cb93509a3a6772a189bd7941"
+      ],
+      "tree_verified_equal_to_reviewed": true,
+      "approval_consumed": true,
+      "owned_integration_lock_released": true
+    },
+    "composed_source_commit": "55f4467e1680d526cb843c75399f8952884f0c19",
+    "composed_source_tree": "6f7afcbbfb5eb7e3ab8c2aa374fa31e58a6e89ed",
+    "composed_source_parents": [
+      "5cc5ff795bf5243352c66cc636142c6fff782f1c",
+      "2b5f393f1527745035d25d83295f4e65e5b56f72"
+    ],
+    "incremental_paths_against_actual_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "input_binding": {
+      "profile_tested_source": "edbd7dffa74b40ba1f9cb09c9139ea6122cbd9f4",
+      "profile_tested_index_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+      "profile_test_blob": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+      "green_receipt_sha256": "cd23944f160dcd22579b59c5fa2dd0c86f92bea27cd34a429e7f2e4694535de9",
+      "profile_imports": 254,
+      "key_inputs": 14,
+      "distinct_profile_input_paths": 258,
+      "raw_working_byte_matches": 254,
+      "newline_only_working_differences": [],
+      "git_blobs_and_canonical_working_inputs_match": true,
+      "mismatches": [],
+      "frontend_tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "frontend_files": 326,
+      "frontend_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "frontend_git_and_canonical_working_inputs_match": true,
+      "canonical_acceptance_blobs": {
+        "planning/CAPABILITY_MATRIX.json": "bc86e8250b9b5101c8ef7713a1e3c0b38628af4c",
+        "planning/REFERENCE_GAP_MATRIX.json": "afe9d9c6308dd09a0f41c7f1273c065cb0d3d1db"
+      },
+      "tests_reexecuted": false
+    },
+    "input_binding_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\compose-profile-f297\\receipt.json",
+      "sha256": "efc47bd1f88f24aa257a7ec1aa98d67fba285b5d5141a346646fa37cf2ff0044"
+    },
+    "retained_local_executions": {
+      "navigation": {
+        "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+        "focused_tests_passed": 4,
+        "typecheck": "PASS",
+        "expected_failure_controls": 3,
+        "qualification": "Earlier execution retained through exact 326-file frontend and canonical working-byte equality; no new execution on the composed source."
+      },
+      "profile": {
+        "source": "edbd7dffa74b40ba1f9cb09c9139ea6122cbd9f4",
+        "tested_index_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+        "primary_tests_passed": 21,
+        "subtests_passed": 14,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "seconds": 57.08,
+        "warnings": 1,
+        "warning": "Private harness anyio assertion rewrite warning",
+        "expected_failure_control": "Original fixture fails delayed preparation before the repair; retained unchanged.",
+        "original_test_methods_preserved": 19,
+        "original_assertion_asts_preserved": 91,
+        "boundaries": "The 0.8-second real operation deadline and one-second real transport entry/completion limits remain unchanged.",
+        "qualification": "Executed staged tree equals source commit tree; all 254 imported source blobs and raw working bytes plus all 14 key inputs match composition (258 distinct paths). No rerun on later evidence/composition commits."
+      }
+    },
+    "main_verification": {
+      "recorded_utc": "2026-11-20 14:21:29 UTC",
+      "status": "BLOCKED_BY_INTEGRATION_FAILURE",
+      "check_conclusions": {
+        "skipped": 1,
+        "failure": 3,
+        "success": 14
+      },
+      "active_checks": 0,
+      "unit": {
+        "primary_passed": 5749,
+        "subtests_passed": 5238,
+        "skipped": 55,
+        "warnings": 1,
+        "warning": "Existing SQLAlchemy deprecation",
+        "run_id": 44748956268,
+        "job_id": 136331505232,
+        "qualification": "The separate 50-test/39-subtest integrity subset overlaps and is not added as unique tests."
+      },
+      "web": {
+        "files_passed": 165,
+        "tests_passed": 1294,
+        "typecheck": "PASS",
+        "production_build": "PASS",
+        "job_id": 136331505063,
+        "qualification": "Existing deprecation and chunk-size warnings retained."
+      },
+      "integration": {
+        "run_id": 44748955875,
+        "shard0": "PASS",
+        "shard1": "FAIL",
+        "shard2": "PASS",
+        "aggregate": "FAIL",
+        "failed_job_id": 136331503482,
+        "aggregate_job_id": 136341914019,
+        "sole_failed_test": "SourceAdapterConnectCancellationTests.test_lever_eu_finite_deadline_during_real_tcp_connect",
+        "failed_shard_counts": {
+          "passed": 1109,
+          "failed": 1,
+          "skipped": 28,
+          "subtests_passed": 474,
+          "warnings": 15,
+          "errors": 0
+        }
+      },
+      "candidate": {
+        "run_id": 44748955871,
+        "job_id": 136331504282,
+        "status": "FAILED_AT_REQUIRED_INTEGRATION_GATE",
+        "completed_at_utc": "2026-11-20T14:17:39Z",
+        "image_build": "SKIPPED",
+        "verified_commit_record": "SKIPPED",
+        "manifest_upload": "SKIPPED",
+        "artifacts": 0,
+        "production_deployed": false
+      },
+      "monitor_final_receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\evidence-main-f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4\\verification-final.json",
+        "sha256": "82ac4b93fa013fc739b2a257f5bb6218fb4170833eb1fc5d9c78207efb98a092"
+      },
+      "root_terminal_api_receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\evidence-main-f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4\\root-main-terminal-api-verification.json",
+        "sha256": "4b5809c19acf6b75c487234d8d631f7bda89ff89099340a08a856ec20d8d89b3"
+      },
+      "root_fast_ci_receipt_sha256": "18133d85126e8a1dbcc007b98d96780d5415249923b28ef14da182eaeb968111",
+      "failed_shard_receipt_sha256": "363df5b35c9dc0ce75ac0ece25b7ac564e675c98ec60d04500109fc12529dc00",
+      "candidate_log_sha256": "033dfeeb5568b9afec63d1cb8399fb225864af9c3b02d9e79e80b85720ad9327"
+    },
+    "fresh_main_failure_qualification": {
+      "tested_fixture_blob": "f2ed3411afdd1bc44ece2ee0bee55fde61643129",
+      "new_profile_fixture_executed_on_main": false,
+      "diagnostic": "At the failed assertion, the real profile phase had entered without a recorded exit. SSL factory calls, TCP connects, requests and recorded worker outcomes were zero.",
+      "outcome_qualification": "OTHER/NONE is the fallback for an absent recorded outcome, not a terminal operation status or proof of OPERATION_TIMEOUT.",
+      "historical_difference": "The prior PR1069 execution recorded a completed 803.8 ms profile read and terminal OPERATION_TIMEOUT. Preserve the newer incomplete phase snapshot separately; a shared root cause is not established.",
+      "independent_gate_review": "CLEAR: synchronous real preparation returns before the deadline guard can arm; existing armed/released/collector gates precede engaged.wait(1), so preparation consumes neither the operation budget nor the transport wait.",
+      "remaining_runtime_boundary": "The collector performs its own real read after the deadline begins. A subsequent runtime stall still consumes the operation budget and can fail the transport-targeted case.",
+      "slowdown_cause": "UNKNOWN",
+      "hosted_success_guaranteed": false,
+      "additional_source_correction_established": false
+    },
+    "historical_pr1069_failure": {
+      "head": "ee1096b69db708c49e737460844b58ad2d536d90",
+      "run_id": 44742709060,
+      "failed_job_id": 136310100319,
+      "rerun_performed": false,
+      "evidence_retained": true
+    },
+    "canonical_acceptance": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59
+      },
+      "changes": 0,
+      "release_readiness": "UNKNOWN"
+    },
+    "connection_recovery": "The authorized MTerm path was read back successfully and ambiguous prior mutations were reconciled before further actions; this is not proof of canonical-only OAuth or the earlier transport failure cause.",
+    "static_lint_qualification": "Full-file default Ruff remains FAIL_EXISTING_FINDINGS: baseline eight, candidate eight; no suppression or policy weakening.",
+    "tests_reexecuted_for_composition": false,
+    "canonical_acceptance_changed": false,
+    "product_runtime_changed": false,
+    "combined_hosted_checks": "NOT_RUN_AT_THIS_PRIVATE_CHECKPOINT",
+    "protected_merge_authorized": false,
+    "publication_status": "PRIVATE_PENDING_FINAL_REVIEW_AND_ORDINARY_EXISTING_PR_UPDATE_ADMISSION",
+    "previous_evidence_fields_preserved": true
+  }
 }
