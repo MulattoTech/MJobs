@@ -1,34 +1,38 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-039",
-  "objective": "Record full bounded comparison acceptance and correct displayed milestone continuity",
+  "objective": "Integrate the verified bounded comparison acceptance record after reviewed pacing and dependency prerequisites",
   "owner": "ChatGPT-Web d9b89794",
   "branch": "web/20261120-d9b89794/comparison-acceptance",
-  "head_sha": "3182143f2a8a22062da8f2602165b1e7d60a16f4",
+  "head_sha": "304fee31aa700811b9f022e9da37c38b2ff567c5",
   "routing_state": "INTEGRATE",
-  "next_action": "Refresh against actual main3eb5f102; publish the reviewed acceptance/reporting PR, verify exact-head hosted gates, and obtain new protected-merge approval for that PR. Approved PR1045/1034 merges are already complete. Production remains separately reserved.",
-  "created_at": "2026-11-20T07:35:26.236731+00:00",
+  "next_action": "Obtain new scoped approval for serial protected integration1065 then1066 then1064, with normal current-main refreshes and fresh exact-head required checks. Prior approved1045/1034 merges are complete. Read live PR heads; production remains separately reserved.",
+  "created_at": "2026-11-20T08:49:19.750543+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Actual comparison merged d9:30 Python/API/browser tests+28 subtests and20 frontend tests; fresh typecheck/build; all five literal criteria reviewed.",
+      "command": "Actual comparison merged d9:30 Python/API/browser tests+28subtests and20frontend tests; fresh build/typecheck; all five criteria/prerequisites/native provenance reviewed in durable evidence.",
       "result": "PASS"
     },
     {
-      "command": "Progress fix3182143f: failing-first regression;45 tests+37 subtests pass,7 POSIX-only skips; static checks/provenance and independent AI review passed.",
+      "command": "Combined dependency source22ffebd6:146tests+162subtests PASS,0failure/skip, private Soup4.0 and API1.45.2 imports; finala8fa adds evidence only. Independent review verified all artifact hashes and427source blobs.",
       "result": "PASS"
     },
     {
-      "command": "Candidate reference20/59 PASS with all366 original statuses preserved; registry/catalogue/journal/dashboard/ownership/policy/whitespace passed; journal history retained.",
+      "command": "Acceptance composition304fee31:45progress tests+37subtests PASS;7POSIX-specific skips recorded on Windows. All427backend/dependency/test blobs equal tested22ff; no foreign product imports.",
       "result": "PASS"
     },
     {
-      "command": "Exact published acceptance-record head hosted gates; production rollout/authenticated public workflow; original-key protected retention.",
+      "command": "PR1065 head5ac4ea6c:all15hosted records/all5required gates PASS. Canonical original366 statuses preserved; candidate reference20/59 remains proposed until integration.",
+      "result": "PASS"
+    },
+    {
+      "command": "Final refreshed PR1064 published-head hosted gates; actual integrated repaired-release image; production rollout/authenticated public recovery; verified original-key retention.",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "This new acceptance-record protected merge requires the next scoped user approval; production private-config ancestry guard still blocks companion capture."
+    "New protected merges1065/1066/1064 need the next scoped user approval;1066 and refreshed1064 require their own current-head gates. Production original-key retention is blocked by the unchanged private-source guard and no verified protected original-key copy."
   ],
   "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
   "transfer_history": [
