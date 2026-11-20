@@ -1,29 +1,44 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-039",
-  "objective": "Finish PR1045 comparison recovery with saved salary-filter parity and deterministic optional provenance",
+  "objective": "Complete already-approved comparison acceptance integration and verify final candidate",
   "owner": "ChatGPT-Web d9b89794",
-  "branch": "web/20261120-d9b89794/comparison-saved-filters",
-  "head_sha": "6c5db928b316ee751453fe25d71f288b36d872a8",
+  "branch": "web/20261120-d9b89794/comparison-acceptance",
+  "head_sha": "d399c84808571d3de9a0142fd4136b8ae587538c",
   "routing_state": "INTEGRATE",
-  "next_action": "Update existing PR1045 non-force; verify exact published-head required checks; obtain user authorization before protected merge. No deployment or acceptance promotion.",
-  "created_at": "2026-11-20T05:27:31.337045+00:00",
+  "next_action": "Complete the already-approved1064 protected merge after final checkpoint descendant has freshcurrent-main requiredgates; thenverifyactualintegratedacceptance/source and automatic Deployment/candidate. Approved1065/1066 and prior1045/1034 merges are complete. Production/liveACL/keyactions remain separatelyreserved.",
+  "created_at": "2026-11-20T10:44:29.754854+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "6c5db928: 30 comparison Python/browser tests plus 28 subtests; 20 frontend tests; scoped Ruff; catalogue/progress/dashboard; provenance and whitespace",
+      "command": "Approved1065 edc andrefreshed1066 5f:all15 checks/five requiredgatesPASS; actualmerges4d/4fa fulltrees matchreviewed69a/D957; reviewthreads clear. Originalbot1020/1031auto-mergedsame4fa.",
       "result": "PASS"
     },
     {
-      "command": "Identical frontend blobs: lint313files, typecheck/build PASS. Failing-first API3/service2 regressions corrected. Independent AI functional-diff review: no blocking findings.",
+      "command": "Acceptance435 all15checks/five requiredgatesPASS; refreshsourced399 has identicalcomplete7cf tree. Combined25925:168tests+189subtests PASS;427backend identities retained. Prior304fee progress45tests+37subtests with7platformskips retained via106unchangedinputs; no new localexecution claimed.",
       "result": "PASS"
     },
     {
-      "command": "Fresh hosted published-head checks; PostgreSQL/Redis locally; authenticated public functionality; protected merge; production deployment; full MJ-REF-039 acceptance",
+      "command": "Actualcomparisonmerged9:30Python/API/browser+28subtests,20frontend/typebuildPASS; fivecriteria/prerequisites/nativeprovenance verified. OnlyMJREF039 proposed;alloriginal366statuses and41journalentries/currentmilestone preserved.",
+      "result": "PASS"
+    },
+    {
+      "command": "Standard435candidatebuild:fresh1294frontend tests/typecheck/VitePASS; 3,476 host source files matched canonical Git bytes; actual soupsieve4.0/API1.45.2;three shippedfilehashes,guard62file/model/migrationmetadataPASS;ownedresourcescleaned. Intermediate4d automaticmaincandidatePASS;finalmainverification stillrequired.",
+      "result": "PASS"
+    },
+    {
+      "command": "Freshhostedgates onfinalcheckpointdescendant; actual1064protectedmerge/finalmaincandidate; productionoriginal-key retention/backup/recovery/rollout. Fourdefaultbranchalerts stillOPEN at10:42readback.",
       "result": "NOT_RUN"
     }
   ],
-  "blockers": [
-    "Protected merge requires user approval explicitly reserved by engineering assignment; production updater separately blocked by migration review."
+  "blockers": [],
+  "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+  "transfer_history": [
+    {
+      "from_owner": "ChatGPT-Web d9b89794",
+      "to_owner": "ChatGPT-Web d9b89794",
+      "reason": "The owned comparison source branch was protected-merged as d9e3bf11; root continues the same task in its isolated acceptance-record branch after both approved merges. No other writer owns either task checkout.",
+      "transferred_at": "2026-11-20T07:35:26.092980+00:00"
+    }
   ]
 }

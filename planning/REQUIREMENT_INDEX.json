@@ -350,7 +350,7 @@
       "priority": "P3",
       "area": "untriaged",
       "category": "subfeature",
-      "status": "NOT_RUN",
+      "status": "PASS",
       "triage_required": true
     },
     {
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 86,
-    "PASS": 207,
-    "NOT_RUN": 132
+    "PASS": 208,
+    "NOT_RUN": 131
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

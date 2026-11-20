@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "task": "PR1020-SoupSieve",
+  "recorded_utc": "2026-11-20T07:52:24Z",
+  "outcome": "LOCAL_COMPATIBILITY_VALIDATED",
+  "publication_state": "NOT_PUBLISHED",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/1020",
+  "original_pr_head": "da8d38fea423b437535a09248655e8db23c8aa7f",
+  "integrated_main": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
+  "tested_source_tree": "dbc1e2e2f362d39e8930008f2dfa78fdbde2e7ca",
+  "change": {
+    "path": "requirements.txt",
+    "from": "soupsieve==2.10",
+    "to": "soupsieve==4.0",
+    "lock_contract": "requirements.lock includes -r requirements.txt; no duplicate resolved pin"
+  },
+  "alert_mapping": [
+    {
+      "alert": 71,
+      "severity": "high",
+      "advisory": "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-mmhr-3c5m-f64f",
+      "affected": "<4.0.0",
+      "first_patched": "4.0.0"
+    },
+    {
+      "alert": 72,
+      "severity": "medium",
+      "advisory": "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-7g44-g9rc-x53w",
+      "affected": ">=0.4, <=2.10",
+      "first_patched": "3.0.2"
+    },
+    {
+      "alert": 73,
+      "severity": "high",
+      "advisory": "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-6655-6qjp-jx7x",
+      "affected": "<=2.10",
+      "first_patched": "3.0.2"
+    }
+  ],
+  "dependency_source": {
+    "index": "https://pypi.org/simple",
+    "artifact": "soupsieve-4.0-py3-none-any.whl",
+    "sha256": "5e7494bfce90e06676cfb4c5c2cf22243e98e5cf24646bb1ecdda46d318550a0",
+    "isolation": "Private worktree target, --isolated --no-cache-dir --no-deps --no-compile; no shared dependency writes"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "beautifulsoup": "4.15.0",
+    "soupsieve": "4.0",
+    "identity_assertions": "SoupSieve loaded from private target; detector, TestedRecruits, structured_text and career_pages loaded from the owned worktree"
+  },
+  "validation": [
+    {
+      "check": "Five focused pytest files",
+      "command": "python -B .tmp/soupsieve-review/verify.py",
+      "files": [
+        "tests/unit/test_ats_detection.py",
+        "tests/unit/test_structured_posting_descriptions.py",
+        "tests/unit/test_career_page_sitemaps.py",
+        "tests/unit/test_testedrecruits_source.py",
+        "tests/integration/test_testedrecruits_source.py"
+      ],
+      "result": "PASS",
+      "tests_passed": 74,
+      "subtests_passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "pytest_seconds": 2.77,
+      "runner_seconds": 3.109
+    },
+    {
+      "check": "CSS selectors used by TestedRecruits",
+      "result": "PASS",
+      "details": "select_one(td.job-title) and select(td.job-description) return expected synthetic content; adapter tests cover malformed/incomplete/foreign-host inventory and mocked collector persistence"
+    },
+    {
+      "check": "python -B -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "check": "git diff --check and git diff --cached --check",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "This is version-range and focused compatibility evidence; no independent exploit reproduction or fresh vulnerability scan was performed.",
+    "Hosted CI on the refreshed commit and full repository verification remain NOT_RUN.",
+    "Provider responses were synthetic or mocked; no real provider requests or applications were made.",
+    "No production dependency or image was updated. OpenTelemetry alert74 remains outside this preparation.",
+    "No canonical acceptance status, shared handoff, PR state, alert state or protected main was changed by this preparation."
+  ],
+  "next_action": "Integration owner reviews the local refresh, decides publication to the existing PR, obtains current-head hosted checks, and verifies alert closure after authorized merge."
+}
