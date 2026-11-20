@@ -4,7 +4,7 @@
   "task": "Greenhouse rate admission repair",
   "related_requirement": "MJ-REQ-004",
   "originating_ci_pr": "https://github.com/MulattoTech/MJobs/pull/1064",
-  "outcome": "LOCAL_SOURCE_VALIDATED",
+  "outcome": "HISTORICAL_RATE_REPAIR_SUPERSEDED_BY_TIMEOUT_FOLLOWUP",
   "acceptance_change": false,
   "acceptance_note": "No canonical matrix, issue status or shared checkpoint changed. MJ-REQ-004 remains PARTIAL; this scoped repair makes no full-requirement acceptance claim.",
   "base_revision": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
@@ -282,5 +282,7 @@
     "Current-candidate hosted CI",
     "Live provider validation",
     "Production rollout"
-  ]
+  ],
+  "superseded_by": "docs/evidence/2026-11-20-source-timeout-health.json",
+  "supersession_note": "Preserved historical source and validation record. Its conservative pre-callback budget anchor was corrected after the subsequent PR1066 deadline/health failure."
 }
