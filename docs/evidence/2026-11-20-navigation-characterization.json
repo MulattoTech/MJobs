@@ -110,5 +110,69 @@
     "commit_message": "Merge remote-tracking branch 'origin/main' into mulattotech-b1-navigation-extraction",
     "delta_from_original": "The 17 changed paths are incoming main changes; main.tsx, navigation.tsx and main.characterization.test.ts are unchanged.",
     "consequence": "Active original-branch maintenance is evident. The local assertion correction is not duplicated, but owner coordination remains required before any publication."
+  },
+  "current_refresh": {
+    "recorded_at_utc": "2026-11-20T10:24:02.948930+00:00",
+    "result": "CURRENT_MAIN_REFRESH_WITH_UNCHANGED_FRONTEND_INPUTS",
+    "publication_status": "NOT_PUBLISHED",
+    "integrated_main": "4d305af37f9994a352b815ca62b683b8fe05b5fd",
+    "prior_private_head": "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+    "refreshed_source_head": "86089eea4373a472ad3ee52590063d4062e1127d",
+    "refreshed_source_tree": "94b7ec0a127ede2bcc9112e848943c0740fdc5e4",
+    "merge_parents": [
+      "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+      "4d305af37f9994a352b815ca62b683b8fe05b5fd"
+    ],
+    "original_pr_resolution": {
+      "pr": 1063,
+      "state": "MERGED",
+      "head": "7d5f2db54d8c135e1c6297edc0c9739ca8405d7b",
+      "merge_commit": "68c8ac18454be004bdc9b6f3f51ba1755781c0d9",
+      "merged_at_utc": "2026-11-20T09:21:17Z",
+      "effect": "The navigation extraction is now on main. This separate private continuation retains only the missing characterization assertion; no original branch or PR was modified."
+    },
+    "incremental_paths_against_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "source_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+    "source_change": "No reimplementation. The prior direct MAIN_TABS/tabTitle assertion remains byte-identical and checks all ten ordered pairs.",
+    "identity_proof": {
+      "tested_source_revision": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "prior_private_revision": "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+      "target_source_revision": "86089eea4373a472ad3ee52590063d4062e1127d",
+      "unchanged_frontend_file_count": 326,
+      "frontend_manifest_sha256": "be8ad71882d006f87dbe135fdc3a1595e5ce3e992e099e0ffc455a0d64029f0f",
+      "scope": "Entire tracked apps/web tree: product files, characterization inputs, package manifest/lock, Vite and TypeScript configuration.",
+      "working_files_match_git_blobs": true,
+      "original_evidence_preserved": true,
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362"
+    },
+    "retained_execution": {
+      "source_revision": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_tests": {
+        "passed": 4,
+        "failed": 0
+      },
+      "typecheck": "PASS",
+      "negative_controls": "Three expected failures: empty tabs, swapped Jobs/Pipeline order, and wrong Pipeline title. Each failed only the preservation assertion and retained three other passes.",
+      "interpretation": "Prior execution is retained through exact unchanged inputs. These are not new test executions on the refreshed head."
+    },
+    "checks_executed_on_refresh": {
+      "git_diff_check": "PASS",
+      "git_diff_cached_check": "PASS",
+      "source_and_working_frontend_identity": "PASS: 326 files",
+      "merge_commit_provenance": "PASS: no source-code changes in this commit"
+    },
+    "tests_reexecuted": false,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "private_identity_receipt": ".tmp/navigation-review/refresh-4d/identity-before-commit.json",
+    "limitations": [
+      "New exact-head hosted checks remain NOT_RUN until ordinary publication.",
+      "Full frontend, browser and integration suites were not rerun for unchanged inputs.",
+      "No canonical matrices, shared session handoff, task checkpoints, production state or original PR branches were edited.",
+      "This continuation is outside the approved protected merge batch for PR1065, PR1066 and PR1064; no protected merge is authorized here."
+    ]
   }
 }
