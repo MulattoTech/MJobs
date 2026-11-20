@@ -78,10 +78,13 @@ rendering, missing arguments, stale source checksum, local dirty/untracked
 canonical handoff, forged review identity, CLI scope and a separate-process
 invocation.
 
-The focused new preview suite passed **14 tests** on Windows.
-It must be paired with the unchanged existing agent-context unit suite and
-all repository policy, catalogue, progress, ownership, provenance and fresh
-exact-head hosted checks before protected integration.
+The expanded focused preview suite passed **20 tests** on Windows,
+including rejection of preview flags on other agent-context commands.
+The combined agent-context and B3 recovery suites passed **115 primary tests
+and 462 subtests**, with 4 skips and no failures. Repository policy,
+catalogue, progress, dashboard, ownership, agent skills, syntax, whitespace
+and commit provenance passed locally. These are local checks only;
+fresh exact-head hosted CI remains mandatory before protected integration.
 
 This is a transitional compatibility interface. B3 completion still
 requires a separately reviewed current-state selection, reconciliation
