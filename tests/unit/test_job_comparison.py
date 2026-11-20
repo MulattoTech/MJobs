@@ -1,7 +1,7 @@
 """Pure comparison of bounded, already-scored job snapshots."""
+import unittest
 from copy import deepcopy
 from math import inf
-import unittest
 
 from services.matching.job_comparison import (
     JobComparisonInputError,

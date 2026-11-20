@@ -1,7 +1,7 @@
 """Read-only comparison of explicitly selected, currently scored jobs."""
 
 from collections.abc import Mapping, Sequence
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from importlib import import_module
 from math import isfinite
 from typing import Any, Protocol
@@ -161,7 +161,7 @@ def _saved_filter_members(store, profile_id, job_ids, criteria):
     kwargs["min_match_score"] = int(filters["min_match_score"]) if filters.get("min_match_score") else None
     kwargs["skill_id"] = canonical_skill_id(filters["skill"]) if filters.get("skill") else None
     if filters.get("posted_within_days"):
-        kwargs["posted_before"] = datetime.now(timezone.utc)
+        kwargs["posted_before"] = datetime.now(UTC)
         kwargs["posted_after"] = kwargs["posted_before"] - timedelta(days=int(filters["posted_within_days"]))
     return {row["id"] for row in store.jobs(
         profile_id=profile_id, job_ids=job_ids, limit=len(job_ids), **kwargs,

@@ -20,12 +20,11 @@ reason codes; no candidate qualification or new match score is inferred.
 """
 from __future__ import annotations
 
+import unicodedata
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from math import isfinite
 from typing import Any, Literal, NotRequired, TypedDict
-import unicodedata
-
 
 MIN_SELECTED_JOBS = 2
 MAX_SELECTED_JOBS = 10
