@@ -275,5 +275,119 @@
       "No imported product, canonical matrix, shared session handoff, or task checkpoint was authored by this refresh; only the existing characterization test and its evidence differ from the prepared base.",
       "No new full frontend, browser, or integration execution, provider traffic, dependency download, or production operation was performed."
     ]
+  },
+  "integrated_main_binding": {
+    "recorded_at_utc": "2026-11-20T12:29:50.199381Z",
+    "state": "PREPARED_PRIVATE_ON_ACTUAL_MAIN",
+    "actual_main": "7064ef048df4953f4bc050468ecda141cabba38d",
+    "actual_main_tree": "cdaa040c192dda0e4b6a1e0ae5ff505872cefb32",
+    "actual_merge_pr": 1068,
+    "actual_merge_confirmed_at_utc": "2026-11-20T12:25:25Z",
+    "actual_main_parents": [
+      "6916d08ca947615f77b530e77ed28626d4ad46ba",
+      "12bfea6afe7395fc3312d2235a394e7746c4607d"
+    ],
+    "previous_pending_base": "12bfea6afe7395fc3312d2235a394e7746c4607d",
+    "actual_main_tree_equals_previous_pending_base": true,
+    "source_merge": "a4ade5b88c407a2e586f6ac1c35efbc69d0df9d1",
+    "source_tree": "6b8b7863ab1fa188d3a025acfc91ee73ee9c8ac7",
+    "source_merge_parents": [
+      "5439337965286903b9387be34581f6616550171d",
+      "7064ef048df4953f4bc050468ecda141cabba38d"
+    ],
+    "entire_source_tree_unchanged_from_prior_private": true,
+    "incremental_paths_against_actual_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "frontend_identity": {
+      "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "unchanged_files": 326,
+      "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+      "canonical_working_files_match": true,
+      "test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362"
+    },
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_positive_tests_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": 3,
+      "qualification": "Prior executions only: empty tabs, swapped Jobs/Pipeline order and incorrect Pipeline title each failed the preservation assertion while the other three cases passed. No tests rerun for this identical frontend source."
+    },
+    "canonical_verification": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366,
+        "as_of": "2026-11-14T19:58:30.913144+00:00"
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59,
+        "as_of": "2026-11-20T07:18:47Z"
+      },
+      "journal_entries": 41,
+      "current_milestone": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+      "release_readiness": "UNKNOWN",
+      "changes": 0,
+      "source": "7064ef048df4953f4bc050468ecda141cabba38d",
+      "validator_binding": "Read-only validators ran in the owned merge checkout; all canonical files, verifier source and every non-navigation path match actual main. No canonical files were written."
+    },
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "output": "Catalogue validation: PASS",
+        "log_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "output": "Progress journal validation: PASS",
+        "log_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "output": "Progress dashboard: CURRENT",
+        "log_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53"
+      }
+    ],
+    "source_identity_and_acceptance_receipt": {
+      "path": ".tmp/navigation-review/refresh-main-7064ef04/identity-acceptance.json",
+      "sha256": "b617a19c46aa35d75beb1abde18d341941ec49f2a14aa97e754a572c2a681c6f"
+    },
+    "all_previous_evidence_fields_preserved": true,
+    "tests_reexecuted": false,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "publication_status": "NOT_PUBLISHED",
+    "remaining_gates": [
+      "Root review and ordinary publication admission for the separate navigation characterization correction.",
+      "Fresh exact-head hosted checks and separate protected-integration authorization before merging this continuation.",
+      "Actual-main CI and automatic nondeploying candidate verification are observed separately by root; this record asserts no hosted result or deployment."
+    ]
   }
 }
