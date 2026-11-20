@@ -127,8 +127,9 @@ def cleanup(project, token, env=None):
         "MJOBS_DEV_GUARD_TOKEN": token,
         "MJOBS_DEV_GUARD_EXPIRES": next(iter(expiries)),
     })
-    compose_env.setdefault("POSTGRES_PASSWORD", "fixture-cleanup-only")
-    compose_env.setdefault("MJOBS_CREDENTIAL_ENCRYPTION_KEY", "fixture-cleanup-only")
+    if env is None:
+        compose_env["POSTGRES_PASSWORD"] = "fixture-cleanup-only"
+        compose_env["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "fixture-cleanup-only"
     compose_env.pop("COMPOSE_FILE", None)
     # Only newly generated, token-labelled projects reach this call. Preserve
     # images/build cache; delete the disposable project's own test volumes.
@@ -220,6 +221,9 @@ def spawn_watchdog(project, token, expiry):
 
 
 def run(args):
+    command = args.command[1:] if args.command[:1] == ["--"] else args.command
+    if not command:
+        raise ValueError("Supply a verification command after --")
     # Expired fixtures owned by this utility are safely reaped on the next run.
     sweep(apply=True)
     running = containers(running=True)
@@ -236,9 +240,6 @@ def run(args):
     expiry = int(time.time()) + args.ttl_minutes * 60
     port = args.port or choose_port()
     env = fixture_environment(project, token, expiry, port)
-    command = args.command[1:] if args.command[:1] == ["--"] else args.command
-    if not command:
-        raise ValueError("Supply a verification command after --")
     watchdog = spawn_watchdog(project, token, expiry)
     cleaned = False
     try:
