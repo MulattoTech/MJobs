@@ -100,6 +100,26 @@ class ChangedFileVerificationTests(unittest.TestCase):
         self.assertIn("dirty.txt", paths)
         self.assertIn("unknown.py", paths)
 
+    def test_invalid_base_ref_fails_closed_with_explicit_diagnostic(self):
+        with self.assertRaisesRegex(ValueError, "base ref.*does not exist"):
+            collect_changed_paths(self.root, "origin/not-a-real-base")
+
+    def test_uncovered_verification_tool_change_recommends_broad_validation(self):
+        plan = build_verification_plan(self.root, ["tools/verification/new_checker.py"])
+
+        self.assertEqual(plan["profile"], "broad")
+        self.assertTrue(plan["recommend_full_verification"])
+        self.assertTrue(any("no targeted test" in reason.lower()
+                            for reason in plan["broad_reasons"]))
+
+    def test_uncovered_ci_tool_change_recommends_broad_validation(self):
+        plan = build_verification_plan(self.root, ["tools/ci/new_gate.py"])
+
+        self.assertEqual(plan["profile"], "broad")
+        self.assertTrue(plan["recommend_full_verification"])
+        self.assertTrue(any("no targeted test" in reason.lower()
+                            for reason in plan["broad_reasons"]))
+
     def test_cli_dry_run_is_read_only_json(self):
         proc = subprocess.run(
             [

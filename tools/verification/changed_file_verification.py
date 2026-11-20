@@ -21,12 +21,19 @@ def _git(root: Path, *args: str) -> str:
         timeout=12,
         check=False,
     )
-    return proc.stdout.strip() if proc.returncode == 0 else ""
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or "unknown Git error"
+        raise ValueError(f"Git command failed ({' '.join(args)}): {detail}")
+    return proc.stdout.strip()
 
 
 def collect_changed_paths(root: Path, base: str = "origin/main") -> list[str]:
     """Collect committed, staged, unstaged, and untracked paths conservatively."""
     root = root.resolve()
+    try:
+        _git(root, "rev-parse", "--verify", f"{base}^{{commit}}")
+    except ValueError as exc:
+        raise ValueError(f"base ref '{base}' does not exist or is unavailable: {exc}") from exc
     paths: set[str] = set()
     diff_refs = (
         _git(root, "diff", "--name-only", f"{base}...HEAD"),
@@ -115,11 +122,17 @@ def _mapped_check_paths(root: Path, paths: list[str]) -> tuple[list[dict], list[
                 candidate = root / "tests/unit" / f"test_{stem}.py"
                 if candidate.is_file():
                     python_targets.add(candidate.relative_to(root).as_posix())
+                else:
+                    broad = True
+                    reasons.append(f"{normalized}: no targeted test exists")
             elif normalized.startswith("tools/ci/"):
                 stem = Path(normalized).stem
                 candidate = root / "tests/unit" / f"test_{stem}.py"
                 if candidate.is_file():
                     python_targets.add(candidate.relative_to(root).as_posix())
+                else:
+                    broad = True
+                    reasons.append(f"{normalized}: no targeted test exists")
 
         if normalized.startswith("apps/web/src/"):
             if normalized.endswith((".test.ts", ".test.tsx")):
