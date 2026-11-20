@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T11:45:19.037116+00:00",
+  "scope": "Fixture-only correction for the operation-control SQL-lock timing check; no product or acceptance-state changes.",
+  "requirement": "MJ-REQ-004",
+  "issue": 5,
+  "requirement_status": "PARTIAL, unchanged",
+  "original_implementation_commit": "0f8094b63e671053507f869466cba6c03f73e526",
+  "source": {
+    "failed_main": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+    "committed_revision": "b6e85405c351e8d6db7c6f9c54a391a2cd6961c7",
+    "tree": "2de79cded8946ad23c00f656e1ff1a4b2346464c",
+    "test_path": "tests/unit/test_operation_control_reads.py",
+    "original_test_blob": "27c917de35ebf31a8775f1992f10bec60d26e571",
+    "regression_before_fix_blob": "7143dc776c0bd85aea374dd88b2e2f8aa26d2e42",
+    "repaired_test_blob": "b6e49c034305173ed074fe4d9d82b4f09c66921f",
+    "execution_head": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+    "execution_state": "Staged test-only candidate before source commit",
+    "tested_index_tree": "2de79cded8946ad23c00f656e1ff1a4b2346464c",
+    "tested_tree_equals_committed_tree": true,
+    "unchanged_product_blobs": {
+      "workers/operations.py": "3928bd8e99c320529daa7148d6a2756e7bc43847",
+      "packages/persistence/store.py": "24c3543c21be82c9bd573c4c9e722d401cd7323f"
+    }
+  },
+  "historical_hosted_failure": {
+    "run_id": 44726503898,
+    "job_id": 136255159784,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/44726503898/job/136255159784",
+    "checkout_sha": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+    "test": "tests/unit/test_operation_control_reads.py::OperationControlReadTests::test_actual_exclusive_lock_is_bounded_sanitized_and_releases_checkout",
+    "elapsed_seconds": 1.3132076179999785,
+    "assertion": "elapsed < 1",
+    "preceding_assertions": "OperationControlUnavailable and elapsed >= 0.06 passed.",
+    "later_assertions": "Message, cause, checkout, timeout-restoration and unchanged-row assertions were not reached after the failed upper bound.",
+    "raw_log": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-acceptance\\.tmp\\main-6916-python-job-136255159784.log",
+      "sha256": "dbe8c8ef348bcc84a4a41d8b8fcb03417a6e3b994497442e8c5833b434d0a753"
+    },
+    "runtime_metadata": {
+      "runner_image": "ubuntu-24.04",
+      "pytest": "9.0.3",
+      "evidence": "The retained job log identifies the Ubuntu runner and records pytest-9.0.3 in the successful installation line."
+    },
+    "suite_summary": "1 failed, 5747 passed, 55 skipped, 1 warning, 5238 subtests passed in 344.41s (0:05:44)",
+    "causal_status": "UNTRACED: the controlled connection-delay counterexample does not establish the phase or cause of the hosted 1.313-second delay."
+  },
+  "measurement_boundary": {
+    "original_timer_includes": [
+      "Pool checkout and possible independent DBAPI connection creation/pre-ping/connect hooks.",
+      "Busy-timeout inspection/configuration, actual control SELECT, restoration, rollback/reset/check-in and scheduling."
+    ],
+    "outside_original_timer": [
+      "Migration/seeding, initial warm-up call and acquisition of the exclusive blocker lock."
+    ],
+    "product_contract": "The reader configures at most 100 ms SQL-lock waiting on its owned connection and preserves stricter values; Store separately limits pool-capacity waiting. Connection creation, pre-ping and close/reset are explicitly outside the certified bounds. A configured timeout is not a guarantee against arbitrary scheduler delay."
+  },
+  "controlled_original_baseline": {
+    "test_result": "PASS",
+    "whole_call_seconds": 0.4530000000013388,
+    "locked_sql": {
+      "effective_busy_timeout_ms": 100,
+      "duration_seconds": 0.453,
+      "error_type": "OperationalError",
+      "sqlite_errorcode": 5,
+      "sqlite_errorname": "SQLITE_BUSY"
+    },
+    "trace": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\phase-v2\\original-baseline.json",
+      "sha256": "a18035219aa99ad30650ef0c8eb53bafc4e149e9bd50aa6034969b91bdb5c581"
+    }
+  },
+  "controlled_new_connection_delay": {
+    "test_result": "FAIL",
+    "intentional_connect_delay_seconds": 1.1,
+    "observed_connect_hook_seconds": 1.094,
+    "whole_call_seconds": 1.5469999999986612,
+    "locked_sql": {
+      "effective_busy_timeout_ms": 100,
+      "duration_seconds": 0.453,
+      "error_type": "OperationalError",
+      "sqlite_errorcode": 5,
+      "sqlite_errorname": "SQLITE_BUSY"
+    },
+    "failed_same_upper_bound": true,
+    "trace": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\phase-v2\\original-delayed-connect.json",
+      "sha256": "e265995686d23602c4a771a06ea3682540232c607a95e545923fe9b97b6c19dc"
+    },
+    "qualification": "Demonstrates setup contamination of this fixture's timer; not a hosted-cause claim."
+  },
+  "failing_first_regression": {
+    "selector": "tests/unit/test_operation_control_reads.py::OperationControlReadTests::test_slow_new_connection_setup_precedes_sql_lock_timing",
+    "test_result": "FAIL",
+    "pytest_exit_code": 1,
+    "summary": "1 failed in 2.29s",
+    "assertion_elapsed_seconds": 1.5470000000059372,
+    "receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\red\\receipt.json",
+      "sha256": "1f86754da522561759255c02c65b87222a9ba65235124d71ae55db9874fc204e"
+    },
+    "log": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\red\\pytest.log",
+      "sha256": "c598c2433c7e8064ed7fa3aa3c5457145e656bc21f6bf148b4a37508a8c60793"
+    },
+    "junit": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\red\\pytest.xml",
+      "sha256": "ddf520df8a024cb553cb9e7cd7be64a6909c1abcd00c88160816e3534e3b32dc"
+    }
+  },
+  "repair": {
+    "behavior": "Hold the blocker checkout while completing a successful check_cancelled call on an independent connection, then BEGIN EXCLUSIVE and start the unchanged timer.",
+    "regression": "An engine-local public SQLAlchemy connect listener delays the new connection by 1.1 seconds, invokes the existing real-lock assertion path, verifies exactly one connection setup and is removed during cleanup.",
+    "original_assertion_calls_preserved": 9,
+    "unchanged_lower_bound_seconds": 0.06,
+    "unchanged_upper_bound_seconds": 1,
+    "product_edits": false
+  },
+  "overlong_sql_negative_control": {
+    "test_result": "FAIL",
+    "private_fixture_override_ms": 1500,
+    "override_scope": "A public before_cursor_execute observer changes busy_timeout only on the owned fixture connection immediately before its locked SELECT. No product source, shared engine configuration or other database is changed.",
+    "whole_call_seconds": 2.4689999999973224,
+    "locked_sql": {
+      "effective_busy_timeout_ms": 1500,
+      "duration_seconds": 2.469,
+      "error_type": "OperationalError",
+      "sqlite_errorcode": 5,
+      "sqlite_errorname": "SQLITE_BUSY"
+    },
+    "failed_same_upper_bound": true,
+    "restoration_and_checkin_observed": true,
+    "receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\phase-v2\\overlong-receipt.json",
+      "sha256": "37c4755ac989ac95d072b307c69677b31ce0ab62ef946a2fd7e5a78bd77efa11"
+    },
+    "trace": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\phase-v2\\repaired-overlong-sql.json",
+      "sha256": "0492ad21ae9fa6554922ffaf21306c2b8031a9a331ce1f81bc3d2425a33241a9"
+    },
+    "log": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\phase-v2\\repaired-overlong-sql.log",
+      "sha256": "c9e35ffe8b93003075058846a951ad61c4957431577d6ea8fabb39e774c6b2c3"
+    }
+  },
+  "focused_validation": {
+    "status": "PASS",
+    "selectors": [
+      "tests/unit/test_operation_control_reads.py",
+      "tests/unit/test_database_pool_wait.py",
+      "tests/integration/test_operation_control_pool_wait.py",
+      "tests/integration/test_request_deadline_database_lock.py"
+    ],
+    "executed_arguments": [
+      "-q",
+      "-ra",
+      "--color=no",
+      "-p",
+      "no:cacheprovider",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\green\\pytest.xml",
+      "--basetemp=C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\green\\pytest-temp",
+      "tests/unit/test_operation_control_reads.py",
+      "tests/unit/test_database_pool_wait.py",
+      "tests/integration/test_operation_control_pool_wait.py",
+      "tests/integration/test_request_deadline_database_lock.py"
+    ],
+    "passed": 15,
+    "subtests_passed": 3,
+    "skipped": 5,
+    "failures": 0,
+    "errors": 0,
+    "pytest_seconds": 14.839,
+    "runner_seconds": 15.078,
+    "summary": "15 passed, 5 skipped, 1 warning, 3 subtests passed in 14.84s",
+    "postgresql": "NOT_RUN: four pool-capacity cases and one lock-setting case require an owned disposable PostgreSQL endpoint.",
+    "warning": "One existing SQLAlchemy deprecation warning about future URI-memory pool-class selection; no warning or pool policy was suppressed or changed.",
+    "junit_totals": {
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "5",
+      "time": "14.839"
+    },
+    "junit_testcase_elements": 20,
+    "junit_note": "The XML suite count includes three subtests in addition to the twenty testcase elements; pytest reports fifteen passed and five skipped methods.",
+    "owned_import_count": 148,
+    "foreign_imports": 0,
+    "import_manifest": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\import-manifest.json",
+      "sha256": "183299e8f1062e3ae56fc9e6386d40fc4c495365dbc0746cb69c50a722a10b3a"
+    },
+    "import_manifest_canonical_sha256": "c84f8fed24e3f755de0309a9a5b4eca3dc56c4573361b3d5b5b5d03b9941f490",
+    "dependencies": {
+      "soupsieve": "4.0",
+      "opentelemetry-api": "1.45.2",
+      "SQLAlchemy": "2.1.1",
+      "httpx": "0.28.1",
+      "pytest": "9.1.1"
+    },
+    "private_origins": {
+      "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+      "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+    },
+    "network": {
+      "loopback_connects": 3,
+      "loopback_dns": 0,
+      "blocked_external_attempts": []
+    },
+    "receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\green\\receipt.json",
+      "sha256": "a6cbaffb35204c5827b09238d2c6a817690df48199721f3afda5d19e7b53ad4d"
+    },
+    "log": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\green\\pytest.log",
+      "sha256": "6a6865e07585e163506c57217c13537c035bde9fa4c3e40bd49f94efb30dbe3c"
+    },
+    "junit": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\green\\pytest.xml",
+      "sha256": "2283895584b0518a4512f326e0a59daf279960ae8aa57d1bd199fd5208d9900e"
+    }
+  },
+  "private_diagnostic_setup_failure": {
+    "qualified": false,
+    "error": "TypeError in the initial private event logger: duplicate kind argument.",
+    "stage": "The first warm-up PRAGMA; before the actual lock measurement.",
+    "effect": "The attempted baseline is not counted as a product failure or successful qualification. No tracked source changed, and its resource claim was released.",
+    "receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\diagnose-receipt.json",
+      "sha256": "c2125e9904f518c71e3bf897e89c75a1ffd9842f8ce5b49c348048201f735c65"
+    },
+    "log": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\original-baseline.log",
+      "sha256": "6b000ef42c8a6399d2b4ed9ee0b9b1878d48cbbc19809713fbded6e9609bba59"
+    },
+    "runner_error": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\diagnose-runner-error.log",
+      "sha256": "56f15c1b56f0d15e1569d88cbffc18bc9fde7afb4eda9e5267df30a6d4ae97ab"
+    },
+    "corrected_runner": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\diagnose_v2.py",
+      "sha256": "b7e7284784d3a9bdb54d6ca81b088919b7ff28b41d3f9bcbf23dedac8a764b0e"
+    }
+  },
+  "runners": {
+    "original_diagnostic": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\diagnose.py",
+      "sha256": "7e874c3c00e3cc538272bbb1f060c2632d4a51dfe8189b3168d3e246084967dd"
+    },
+    "corrected_diagnostic": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\diagnose_v2.py",
+      "sha256": "b7e7284784d3a9bdb54d6ca81b088919b7ff28b41d3f9bcbf23dedac8a764b0e"
+    },
+    "red_green_validation": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\validate.py",
+      "sha256": "74948cd17f3ecba1282ca5e07cb73423017005bc7b7f9a4ff38394917b0b05c5"
+    }
+  },
+  "independent_review": {
+    "reviewer": "ci_prs",
+    "source_verdict": "CLEAR",
+    "reviewed_test_blob": "b6e49c034305173ed074fe4d9d82b4f09c66921f",
+    "receipt_verdict": "CLEAR: exact overlong receipt/trace and green receipt/log/XML hashes independently read and verified.",
+    "scope": "Read-only source and raw-evidence review; no duplicate test execution or protected integration."
+  },
+  "static_checks": [
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F",
+        "tests/unit/test_operation_control_reads.py"
+      ],
+      "exit_code": 0,
+      "output": "All checks passed!",
+      "log": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\static-1.log",
+      "log_sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS",
+      "log": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\static-2.log",
+      "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+    },
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "tools.verification.agent_skills"
+      ],
+      "exit_code": 0,
+      "output": "Agent skill validation: PASS",
+      "log": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\static-3.log",
+      "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+    },
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "tools.ci.check_repository"
+      ],
+      "exit_code": 0,
+      "output": "Public repository policy: PASS (0 errors)",
+      "log": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\static-4.log",
+      "log_sha256": "42c15493067b4a025e5b42a63ba6098509181c72f417f33622eb33cd560bf085"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "",
+      "log": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-control-read\\.tmp\\control-read-fixture\\static-5.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_commit_provenance": {
+    "exit_code": 0,
+    "output": "PASS: provenance complete for 1 source files"
+  },
+  "limits": [
+    "The exact hosted delay remains untraced; no claim that setup delay explains that individual failure.",
+    "Local execution used Windows Python 3.12.10 and pytest 9.1.1; the failed hosted job used Linux and pytest 9.0.3. Fresh exact-head hosted checks remain required.",
+    "Five disposable-PostgreSQL cases were skipped, not passed.",
+    "No repeated full suite, external provider request, global package install, production/config/key access, scanner-policy change or acceptance promotion.",
+    "Original and reference acceptance authorities, journal, shared SESSION and other task handoffs remain unchanged by this branch.",
+    "Publication and any protected repair merge remain pending root review and their normal authorization/gates."
+  ],
+  "next_action": "Root independently reviews and composes the local completion/failure checkpoint, then performs ordinary PR publication and evaluates fresh exact-head required gates. No hosted retry or public action was performed here."
+}
