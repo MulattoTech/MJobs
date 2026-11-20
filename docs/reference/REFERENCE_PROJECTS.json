@@ -170,6 +170,14 @@
       "material_concept": "Atomic artifact publication and reversible quarantine/restore workflows.",
       "mjobs_record": "docs/evidence/2026-10-06-artifact-recovery.json",
       "third_party_code_or_assets_incorporated": false
+    },
+    {
+      "mjobs_issue": "#415 / MJ-REF-039",
+      "project_ids": ["RESUME_MATCHER"],
+      "source_commits": ["63fc344a9a59a79db6fa9d96aff188dc9faf545b"],
+      "material_concept": "Compare multiple job descriptions against one verified career profile, exposing shared and role-specific opportunities. MJobs bounds this to current saved matches and structured observed requirements, without generating candidate qualifications.",
+      "mjobs_record": "docs/evidence/2026-11-20-job-comparison-acceptance.json",
+      "third_party_code_or_assets_incorporated": false
     }
   ]
 }

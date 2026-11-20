@@ -1,29 +1,42 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-039",
-  "objective": "Finish PR1045 comparison recovery with saved salary-filter parity and deterministic optional provenance",
+  "objective": "Record full bounded comparison acceptance and correct displayed milestone continuity",
   "owner": "ChatGPT-Web d9b89794",
-  "branch": "web/20261120-d9b89794/comparison-saved-filters",
-  "head_sha": "6c5db928b316ee751453fe25d71f288b36d872a8",
+  "branch": "web/20261120-d9b89794/comparison-acceptance",
+  "head_sha": "3182143f2a8a22062da8f2602165b1e7d60a16f4",
   "routing_state": "INTEGRATE",
-  "next_action": "Update existing PR1045 non-force; verify exact published-head required checks; obtain user authorization before protected merge. No deployment or acceptance promotion.",
-  "created_at": "2026-11-20T05:27:31.337045+00:00",
+  "next_action": "Refresh against actual main3eb5f102; publish the reviewed acceptance/reporting PR, verify exact-head hosted gates, and obtain new protected-merge approval for that PR. Approved PR1045/1034 merges are already complete. Production remains separately reserved.",
+  "created_at": "2026-11-20T07:35:26.236731+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "6c5db928: 30 comparison Python/browser tests plus 28 subtests; 20 frontend tests; scoped Ruff; catalogue/progress/dashboard; provenance and whitespace",
+      "command": "Actual comparison merged d9:30 Python/API/browser tests+28 subtests and20 frontend tests; fresh typecheck/build; all five literal criteria reviewed.",
       "result": "PASS"
     },
     {
-      "command": "Identical frontend blobs: lint313files, typecheck/build PASS. Failing-first API3/service2 regressions corrected. Independent AI functional-diff review: no blocking findings.",
+      "command": "Progress fix3182143f: failing-first regression;45 tests+37 subtests pass,7 POSIX-only skips; static checks/provenance and independent AI review passed.",
       "result": "PASS"
     },
     {
-      "command": "Fresh hosted published-head checks; PostgreSQL/Redis locally; authenticated public functionality; protected merge; production deployment; full MJ-REF-039 acceptance",
+      "command": "Candidate reference20/59 PASS with all366 original statuses preserved; registry/catalogue/journal/dashboard/ownership/policy/whitespace passed; journal history retained.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact published acceptance-record head hosted gates; production rollout/authenticated public workflow; original-key protected retention.",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Protected merge requires user approval explicitly reserved by engineering assignment; production updater separately blocked by migration review."
+    "This new acceptance-record protected merge requires the next scoped user approval; production private-config ancestry guard still blocks companion capture."
+  ],
+  "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+  "transfer_history": [
+    {
+      "from_owner": "ChatGPT-Web d9b89794",
+      "to_owner": "ChatGPT-Web d9b89794",
+      "reason": "The owned comparison source branch was protected-merged as d9e3bf11; root continues the same task in its isolated acceptance-record branch after both approved merges. No other writer owns either task checkout.",
+      "transferred_at": "2026-11-20T07:35:26.092980+00:00"
+    }
   ]
 }
