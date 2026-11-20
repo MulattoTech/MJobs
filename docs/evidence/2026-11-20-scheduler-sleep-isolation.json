@@ -436,5 +436,83 @@
       "publication": "Private preparation only; no admission, push, PR creation/update, protected merge or production action."
     },
     "prior_top_level_fields_preserved": 23
+  },
+  "actual_main_binding_0b1c8d01": {
+    "recorded_utc": "2026-11-20T16:06:51.494545+00:00",
+    "state": "PRIVATE_ACTUAL_MAIN_BINDING_VERIFIED_PENDING_ROOT_REVIEW",
+    "prior_private_head": "53da0feb06938ff5004244e0eae539fab6fded54",
+    "actual_main": "0b1c8d018baed1ae82cd0bceca8d525525a1e64a",
+    "actual_main_tree": "6632baec03d7e53299ba03bddbd77053c740f685",
+    "main_integration_observation": {
+      "pull_request": 1069,
+      "merged_at_utc": "2026-11-20T15:57:39Z",
+      "merged_by": "MulattoTech",
+      "method": "Observed squash integration; sole parent87ca270f and tree identical to reviewed94f5fc80.",
+      "team_action": "This team did not enable or request that protected merge; this record describes only the subsequent authorized private refresh."
+    },
+    "source_refresh_commit": "364aad4f5faf5791e3b775681361db031db16edd",
+    "source_refresh_tree": "c6bf5c79a17b4ba39175fd59fd8a5dd026172dfc",
+    "source_refresh_parents": [
+      "53da0feb06938ff5004244e0eae539fab6fded54",
+      "0b1c8d018baed1ae82cd0bceca8d525525a1e64a"
+    ],
+    "incoming_paths": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "incoming_overlap_with_owned_paths": [],
+    "incoming_overlap_with_tested_inputs": [],
+    "own_incremental_paths": [
+      "docs/evidence/2026-11-20-scheduler-sleep-isolation.json",
+      "tests/unit/test_discovery_scheduler_lifecycle_160.py"
+    ],
+    "source_binding": {
+      "tested_input_count": 33,
+      "all_recorded_git_inputs_and_canonical_working_files_preserved": true,
+      "original_recorded_raw_hash_count": 28,
+      "all_recorded_raw_hashes_preserved": true,
+      "all_pre_refresh_raw_working_inputs_preserved": true,
+      "original_implementation_blobs_preserved": {
+        "tests/unit/test_discovery_scheduler_lifecycle_160.py": "02b27d209e3359efadcb3b26547b8fd3ee735a73"
+      },
+      "receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\scheduler-main0b-refresh\\source-binding.json",
+        "sha256": "c1a46cb485c75adc2d85bde8146468d8b23463bec49ce5b5c83338d59f9bd357"
+      }
+    },
+    "retained_runtime_execution": {
+      "source": "02ca6118cf4995b67da36b8c1ea7f781a3645c99",
+      "tree": "d9cb45da92471c8bee6cdb88064e70eeed1576a1",
+      "test_methods": 6,
+      "passed_subtests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "warnings": 0,
+      "receipt_sha256": "cffa5c0a43052be33e82b57a09e73e7c80fcc935637ba85eb2368da124dbd406",
+      "rerun": false,
+      "qualification": "Original execution attribution is retained through unchanged input identity; this is not a runtime test on the new merge or a new hosted result."
+    },
+    "prior_fields_preserved": 24,
+    "acceptance_changes": 0,
+    "preserved_qualifications": [
+      "MJ-REQ-160 remains PARTIAL.",
+      "The original RED cleanup PermissionError and reconstructed receipt remain preserved; no complete RED imported-file manifest is claimed.",
+      "Full Ruff retains its existing7-to6 finding qualification.",
+      "The original6 tests and8 subtests are local execution at02ca6118, not a fresh full-suite or warning-free hosted result."
+    ],
+    "actions_not_performed": [
+      "runtime tests",
+      "admission",
+      "publication",
+      "PR mutation",
+      "scanner execution",
+      "acceptance promotion",
+      "protected merge",
+      "production action"
+    ]
   }
 }
