@@ -204,3 +204,60 @@ def test_source_symlink_rejected_when_supported(fixtures, tmp_path):
         pytest.skip("Windows symlink capability unavailable")
     with pytest.raises(ValueError, match="symbolic link"):
         cutover.rehearsal(shortcut, snapshot, review, digest)
+
+
+def test_synthetic_disk_pointer_switch_then_verified_rollback(fixtures):
+    """Filesystem rehearsal touches only disposable synthetic test paths."""
+    import os
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-current-handoff.md"
+    backup = root / "synthetic-original-backup.bin"
+    stage = root / "synthetic-current-handoff.stage"
+    consumer.write_bytes(original)
+    backup.write_bytes(consumer.read_bytes())
+    stage.write_bytes(preview.encode("utf-8"))
+    os.replace(stage, consumer)
+    assert consumer.read_bytes() == preview.encode("utf-8")
+    os.replace(backup, consumer)
+    assert consumer.read_bytes() == original
+    assert hashlib.sha256(consumer.read_bytes()).hexdigest() == digest
+    assert source.read_bytes() == original
+    assert not stage.exists()
+    assert not backup.exists()
+
+
+def test_synthetic_crash_after_cutover_uses_archive_for_rollback(fixtures):
+    """A lost backup does not prevent restoring immutable source in test land."""
+    import os
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-consumer.md"
+    consumer.write_bytes(preview.encode("utf-8"))
+    assert consumer.read_bytes() != original
+    saved, _ = handoff_archive._verify_archive(snapshot)
+    rollback_stage = root / "synthetic-rollback.stage"
+    rollback_stage.write_bytes(saved)
+    assert hashlib.sha256(rollback_stage.read_bytes()).hexdigest() == digest
+    os.replace(rollback_stage, consumer)
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original
+
+
+def test_synthetic_staging_error_preserves_original_pointer(fixtures):
+    """Failure before replacement cannot partially replace current content."""
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-consumer.md"
+    stage = root / "synthetic-staging.part"
+    consumer.write_bytes(original)
+    try:
+        stage.write_bytes(preview.encode("utf-8")[:20])
+        raise OSError("synthetic interruption before atomic replacement")
+    except OSError as exc:
+        assert "synthetic interruption" in str(exc)
+    finally:
+        if stage.exists():
+            stage.unlink()
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original

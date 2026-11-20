@@ -66,13 +66,17 @@ content-free CLI output, explicit rendering, incorrect or invalid source
 pins, source mutation after archival, wrong review provenance, forged PASS
 statuses, corrupted snapshots, missing review files, oversized input,
 missing archives, and symlink refusal where the platform supports it.
+Additional disposable synthetic-filesystem tests exercise atomic consumer
+pointer replacement, archive-based restoration after a simulated crash,
+and interruption before replacement. The real handoff is never switched.
 
 Run with the existing B3 tools:
 
-    python -m pytest -q tests/unit/test_handoff_cutover_rehearsal.py tests/unit/test_handoff_current_summary.py tests/unit/test_handoff_archive.py tests/unit/test_handoff_checkpoints.py
+    python -m pytest -q tests/unit/test_handoff_cutover_rehearsal.py tests/unit/test_handoff_current_summary.py tests/unit/test_handoff_archive.py tests/unit/test_handoff_checkpoints.py tests/unit/test_document_archive_history_window.py
 
-The first local execution passed 62 primary tests, with 3 Windows symlink
-capability skips and no failures. Those skips require fresh Linux-hosted
+The expanded local execution passed 74 primary tests and 16 subtests,
+with 3 Windows symlink capability skips, 9 pre-existing SQLAlchemy
+warnings, and no failures. The symlink skips require fresh Linux-hosted
 verification at the published commit, and the exact-head repository policy
 gates remain mandatory.
 
