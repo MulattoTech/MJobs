@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T05:59:31.437084+00:00",
+  "timestamp": "2026-11-14T19:58:30.913144+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3933,18 +3933,23 @@
     },
     {
       "requirement_id": "MJ-REQ-017.F06",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-usajobs-source.json"
+      ],
+      "note": "Issue #316 scoped acceptance PASS at candidate source tree f2819931: exact DISCOVERY and manual-only APPLICATION_REDIRECT capabilities; deterministic fixtures/contracts; bounded read-only public API observation at e9594dd8 with unchanged adapter and verified-TLS transport blobs; limitations and dated evidence recorded; no anti-bot or access-control circumvention. The post-email-merge candidate inherits the executed F06 backend/UI checks by exact relevant input-blob equivalence to a1bfd71c. Hosted checks, protected integration, deployment, and parent MJ-REQ-017 completion remain separate and unclaimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-017.F07",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-14-arbeitnow-acceptance.json"
+      ],
+      "note": "Accepted by the MJobs integration owner on 2026-11-14 for the five scoped optional Arbeitnow adapter criteria. Protected PR #1019 merged at 268c5c9f from exact head 786d0a46 with 15/15 checks; bounded latest-page live GET normalized 300 records without persistence or submission. Limitations remain; parent MJ-REQ-017 stays PARTIAL and no deployment/broad provider coverage is claimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
@@ -4364,9 +4369,12 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N02",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/NOTIFICATIONS.md"
+      ],
+      "note": "Proposed scoped ntfy PASS under the five literal issue363 criteria: explicit opt-in/default-off generic owned terminal-operation notifications, declared capabilities, deterministic 92-case proof at40e, and actual stock Dockerfile/Compose/PostgreSQL/local ntfy proof at462707 with one acknowledgement and one-attempt restart deduplication. All15 notification blobs remain identical through protected main aa94183;22/23 selected package inputs match, with only the separately reviewed/protected PR1016 Store AI-settings fix. Actual d0 passed15 hosted checks and all5 required gates; PR1021 merged at aa94183 on2026-11-13T11:19:09Z. This canonical candidate remains pending its own validation, protected acceptance publication and post-refresh actual Mission Control comparison. Production is NOT_DEPLOYED/NOT_VERIFIED; parent204 and queue055 stay NOT_RUN/QUEUED. No external recipient, device display, exactly-once guarantee or full-parent coverage is claimed.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"
@@ -4382,18 +4390,26 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N04",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/NOTIFICATIONS.md",
+        "planning/agent_handoffs/MJ-REQ-204.N04.json",
+        "tests/unit/test_slack_provider.py",
+        "tests/integration/test_notification_delivery.py"
+      ],
+      "note": "Scoped child acceptance candidate: Slack source PR 1043 head 852c6d02e246055a69fc47837a28faff5eb1c1f0 (tree df877a7bcffef0d6f1d613f2f643950c45baca3e) is byte-tree identical to protected merge 02a291ebced34144498a5b1d6cfebdcdad106583 (same tree). All 15 exact-head hosted checks succeeded. Local Slack contract suite passed 170 with 2 PostgreSQL-only skips on executable-equivalent source; combined notification regression on Email batch source ae8c6309d921bab1c08ee9628e3f7072ee8eacc3 passed 199 with 2 skips. Native Luna static result was recorded as GitHub COMMENT 5913040193; the superseded AO run was not converted into approval. Live read-only criterion is NOT_APPLICABLE: official Slack incoming-webhook documentation describes POST message publication and supplies no webhook receipt/readback query; no live Slack request was made. Limitations and exact evidence are recorded in docs/NOTIFICATIONS.md and the N04 handoff. Parent MJ-REQ-204 and all sibling rows remain unchanged; issue #365 remains open. Candidate is not reported as integrated acceptance until this PR's protected integration.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-204.N05",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/DESKTOP_NOTIFICATIONS.md"
+      ],
+      "note": "Scoped Desktop provider acceptance: all five issue 366 criteria are satisfied for explicit profile opt-in and generic terminal outcomes while the page is open. Exact a0de source passed 28 frontend tests, build and 5 actual native Chromium/API cases; relevant blobs are unchanged through published b9e8d5d4 and protected PR 1017 merge 1f1a578e. All five exact-head required hosted gates passed. Native construction/show events were observed; OS-visible toast, manual OS dismissal, full browser/OS restart and live two-tab race are not claimed. The governing P6 activation and literal/applicable deployment decision support this child; production remains NOT_DEPLOYED/NOT_VERIFIED and parent 204 remains NOT_RUN. This canonical PASS is proposed in the reviewed acceptance candidate; protected acceptance publication is pending and does not accept ntfy or any sibling.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"

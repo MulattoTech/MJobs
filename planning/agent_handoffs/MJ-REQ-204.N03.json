@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204.N03",
+  "objective": "Implement a usable bounded Discord webhook provider through the existing opt-in notification CLI and runner",
+  "owner": "Codex",
+  "branch": "ao/discord-notifications/discord-provider",
+  "head_sha": "b65e2c6de2054ee9f9b45a55ea2dd5a44bfe3ac7",
+  "routing_state": "VERIFY",
+  "next_action": "Run live PR queue preflight for one PR against main; publish only if no policy or duplicate blocker, then yield for sequential review coordination",
+  "created_at": "2026-11-15T20:32:48.079572+00:00",
+  "requirements": [
+    "MJ-REQ-204.N03"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/unit/test_discord_provider.py — 121 passed",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_notification_delivery.py — 11 passed, 2 PostgreSQL-only skipped",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate — PASS; reference matrix independently counted 19 PASS / 4 PARTIAL / 36 NOT_RUN of 59",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.notifications capabilities — PASS; Discord descriptor present",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD — PASS; git diff --check — PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Live Discord request — NOT_RUN; no webhook token supplied and no external send authorized",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Ruff — NOT_RUN; module unavailable in environment",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Hosted exact-head checks — NOT_RUN; PR not yet published",
+      "result": "NOT_RUN"
+    }
+  ],
+  "source_evidence": {
+    "source_commit": "b65e2c6de2054ee9f9b45a55ea2dd5a44bfe3ac7",
+    "source_tree": "9404f4066299bbb9b950ae1ee66d2e71298a5b2c",
+    "base_commit": "702fc765d5c102c4af8992f4e6092d241f26ed04",
+    "issue": "https://github.com/MulattoTech/MJobs/issues/364",
+    "issue_state": "OPEN",
+    "changed_paths": [
+      "docs/NOTIFICATIONS.md",
+      "services/notifications/configuration.py",
+      "services/notifications/providers/__init__.py",
+      "services/notifications/providers/discord.py",
+      "tests/integration/test_notification_delivery.py",
+      "tests/unit/test_discord_provider.py",
+      "tests/unit/test_notification_configuration.py"
+    ],
+    "overlap_review": {
+      "pr": 1011,
+      "head": "8df5f177d4423fd5282a6f053a6df5ee5fa1e76d",
+      "state": "OPEN_CONFLICTING",
+      "changed_paths": [
+        ".gitleaksignore",
+        "apps/web/src/operation-notifications.test.tsx",
+        "apps/web/src/operation-notifications.tsx",
+        "docs/evidence/2026-11-09-web-4f1d-notification-readback.json",
+        "planning/agent_handoffs/MJ-REQ-204-notification-readback-4f1d.json"
+      ],
+      "overlap": false
+    }
+  },
+  "acceptance": {
+    "child_requirement_status": "PARTIAL",
+    "criteria": {
+      "exact_capabilities_declared": "PASS: capabilities CLI and descriptor tests list server generic-text event delivery, private webhook token authentication, no redirects, bounded requests, mention suppression, and unsupported surfaces",
+      "deterministic_fixtures_and_contract_tests": "PASS: synthetic MockTransport tests cover selection, payload privacy, credentials, validation, status codes, rate limits, timeouts, uncertain transport, acknowledgement bounds and log redaction; runner integration records one delivery",
+      "bounded_live_read_only_validation": "NOT_RUN: no Discord credentials were supplied; user prohibited real external notifications, and no live webhook request was made",
+      "limitations_and_last_tested_evidence": "PASS: docs/NOTIFICATIONS.md and this checkpoint document supported behavior, limitations and exact local validation",
+      "anti_bot_or_access_control_circumvention": "PASS: no such behavior was introduced"
+    },
+    "parent_requirement_gaps": [
+      "MJ-REQ-204 as a whole is not established by this provider slice; existing in-app notification coverage and parent acceptance were not requalified",
+      "Email, Slack and other parent-listed provider surfaces are not implemented or claimed here",
+      "Excellent-match, confirmed-submission, authentication-expiry, employer-discovery and complete historical event-stream notifications are not supported by this slice",
+      "Real Discord delivery, device receipt, exactly-once delivery, hosted exact-head checks, deployment and release eligibility remain NOT_RUN"
+    ],
+    "canonical_tracker_changes": "NONE; issue remains OPEN and no requirement matrix, index or dashboard was modified"
+  },
+  "baseline": {
+    "original_requirements": "186/366",
+    "priorities": {
+      "P6": "3/12",
+      "P5": "7/42",
+      "P4": "0/44",
+      "P3": "17/39",
+      "P2": "37/87",
+      "P1": "108/116",
+      "P0": "14/26"
+    },
+    "reference_requirements": {
+      "total": 59,
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    }
+  },
+  "blockers": [
+    "Two PostgreSQL-only integration parameterizations skipped because no disposable PostgreSQL URL was configured"
+  ]
+}

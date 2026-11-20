@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-109",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/110",
+  "related_pr": "https://github.com/MulattoTech/MJobs/pull/1009",
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "recorded_at_utc": "2026-11-13T03:08:09.751575+00:00",
+  "base_commit": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+  "tested_commit": "6cd0a78d742de95df6ef71c96b1c80b793c481fc",
+  "tested_tree": "51fb1e98620b5c92093100e540a426c4669aeef2",
+  "source_inputs": {
+    "packages/persistence/store.py": {
+      "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+      "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+    },
+    "tests/integration/test_ai_task_settings_restored_identity.py": {
+      "git_blob": "90bded6a8d3b8de40fe8837ade457e6e90af3924",
+      "sha256": "2514490721f4803f22b7b73fd3e13c9f9c2ba47f57a3ef5c897b7417ad3d2b34"
+    }
+  },
+  "change": "Use native SQLite/PostgreSQL ON CONFLICT(profile_id, task) only for AI task settings. Preserve restored opaque row IDs and update only provider/model/updated_at. Generic upsert/schema/API untouched.",
+  "baseline_reproduction": {
+    "source_commit": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+    "source_state": "unmodified baseline Store with newly added regression test",
+    "observed_by": "/root/settings_fix",
+    "command": "python -B -m pytest -q tests/integration/test_ai_task_settings_restored_identity.py::RestoredAITaskSettingsSQLiteTests::test_restored_settings_keep_ids_noop_audit_and_durable_values --tb=short",
+    "result": "FAIL",
+    "primary_tests_failed": 1,
+    "seconds": 3.27,
+    "error": "sqlite3.IntegrityError: UNIQUE constraint failed: profile_ai_task_settings.profile_id, profile_ai_task_settings.task"
+  },
+  "verification": {
+    "source_commit": "6cd0a78d742de95df6ef71c96b1c80b793c481fc",
+    "command": [
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_ai_task_settings_restored_identity.py",
+      "tests/integration/test_ai_task_settings_api.py",
+      "tests/unit/test_ai_task_configuration.py",
+      "tests/integration/test_profile_ai_credentials.py",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad\\settings-focused-junit.xml"
+    ],
+    "started_at": "2026-11-13T03:01:59.025433+00:00",
+    "ended_at": "2026-11-13T03:02:32.703462+00:00",
+    "returncode": 0,
+    "environment": "Windows Python3.12; SQLite and owned PostgreSQL17-alpine",
+    "container_id": "6d5a442d8a2eb434b530f691cd19d05ba829777612a07e87af77a3cb0b85cc65",
+    "image_id": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+    "junit_sha256": "71a45e67e5959c76e8f46ddcb15f4e84ef05ce80225a069776ab390f676935e8",
+    "primary_tests_passed": 42,
+    "subtests_passed": 11,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 31.07,
+    "python_version": "3.12.10",
+    "sqlite_version": "3.49.1",
+    "case_results": [
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_concurrent_first_saves_and_restored_updates_remain_atomic",
+        "seconds": "1.153",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_failed_later_selection_rolls_back_rows_timestamps_and_audit",
+        "seconds": "0.809",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_partial_save_preserves_unselected_tasks_and_other_profiles",
+        "seconds": "0.856",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_restored_settings_keep_ids_noop_audit_and_durable_values",
+        "seconds": "0.806",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsPostgreSQLTests",
+        "name": "test_concurrent_first_saves_and_restored_updates_remain_atomic",
+        "seconds": "1.630",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsPostgreSQLTests",
+        "name": "test_failed_later_selection_rolls_back_rows_timestamps_and_audit",
+        "seconds": "1.386",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsPostgreSQLTests",
+        "name": "test_partial_save_preserves_unselected_tasks_and_other_profiles",
+        "seconds": "1.400",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsPostgreSQLTests",
+        "name": "test_restored_settings_keep_ids_noop_audit_and_durable_values",
+        "seconds": "1.339",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_ai_task_setting_changes_append_one_value_free_profile_event",
+        "seconds": "0.718",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_all_disabled_keeps_deterministic_matching_and_factual_documents_available",
+        "seconds": "0.978",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_secret_shaped_model_values_and_extra_credentials_are_rejected",
+        "seconds": "0.537",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_settings_are_profile_scoped_and_survive_a_store_reopen",
+        "seconds": "0.674",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_unknown_profile_has_no_settings_resource",
+        "seconds": "0.730",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_unknown_tasks_and_unsupported_providers_fail_closed",
+        "seconds": "0.554",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests",
+        "name": "test_unsafe_provider_transport_cannot_change_saved_settings_or_audit",
+        "seconds": "0.676",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_configuration_serialization_and_roundtrip",
+        "seconds": "0.001",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_default_configuration_disables_every_task",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_each_task_routes_its_own_provider_and_model",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_enabled_provider_requires_a_model_identifier",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_every_task_has_an_explicit_safe_no_ai_fallback",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_model_identifiers_reject_secret_shaped_values_without_echoing",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_router_get_task_summary_includes_fallbacks",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_unimplemented_provider_fails_closed_before_generation",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_unknown_task_is_rejected_without_echoing_input",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.unit.test_ai_task_configuration.AITaskConfigurationTests",
+        "name": "test_with_update_returns_immutable_updated_configuration",
+        "seconds": "0.000",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_deletion_before_worker_blocks_without_environment_fallback",
+        "seconds": "0.708",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_disabled_provider_never_resolves_a_saved_secret",
+        "seconds": "1.075",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_each_profile_uses_only_its_own_saved_key",
+        "seconds": "0.805",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_legacy_saved_binding_does_not_backfill_data_flow_disclosure",
+        "seconds": "0.839",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_legacy_snapshot_keeps_runtime_source_without_backfilling_a_key",
+        "seconds": "0.684",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_other_profiles_ciphertext_cannot_be_decrypted_as_this_owner",
+        "seconds": "0.671",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_pending_worker_restart_keeps_binding_and_calls_once",
+        "seconds": "1.073",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_rotation_after_preview_requires_new_explicit_plan",
+        "seconds": "0.668",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_rotation_after_staging_is_fenced_in_completion_transaction",
+        "seconds": "0.679",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_rotation_before_worker_blocks_without_fallback_or_call",
+        "seconds": "0.701",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_rotation_during_admission_rolls_back_the_outbox",
+        "seconds": "0.651",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_rotation_during_response_prevents_publication",
+        "seconds": "1.082",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_runtime_admission_does_not_switch_to_a_later_saved_key",
+        "seconds": "0.694",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_saved_key_is_never_forwarded_to_a_redirect",
+        "seconds": "0.765",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_saved_key_reaches_real_router_at_fixed_origin_and_stays_private",
+        "seconds": "0.888",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_separate_worker_process_decrypts_only_the_bound_saved_key",
+        "seconds": "1.853",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      },
+      {
+        "classname": "tests.integration.test_profile_ai_credentials.ProfileAICredentialTests",
+        "name": "test_unavailable_encryption_key_fails_before_call_started",
+        "seconds": "1.067",
+        "failure_count": 0,
+        "error_count": 0,
+        "skip_count": 0
+      }
+    ],
+    "postgres_scope": "Real PostgreSQL17-alpine at pinned image ID, ephemeral loopback fixture, fresh UUID schema for each of four contracts; metadata.create_all schema constraints, not migration acceptance"
+  },
+  "independent_review": {
+    "reviewer": "/root/github_inventory",
+    "result": "APPROVED",
+    "scope": "Exact Store diff and complete256-line regression file at source_inputs hashes before commit; committed blob equivalence verified by parent",
+    "runtime_tests_by_reviewer": "NOT_RUN",
+    "findings": "No material blocker. Preserve ID; native per-table upsert; rollback/isolated profiles; no serializable exactly-once audit claim"
+  },
+  "cleanup": {
+    "container_id": "6d5a442d8a2eb434b530f691cd19d05ba829777612a07e87af77a3cb0b85cc65",
+    "created_at": "2026-11-13T03:00:24.323679009Z",
+    "absence_verified_at": "2026-11-13T03:03:23.380210Z",
+    "absence_verified": true,
+    "resource_claim_status": "RELEASED",
+    "credential_file_removed": true,
+    "cleanup_note": "Docker stop removed container; first verification assertion was case-sensitive; corrected read-only absence check confirmed removal before owner-safe release"
+  },
+  "source_states": {
+    "implemented": "f133780b7ec030de93914edb1122060192b7278b",
+    "locally_verified": {
+      "full_focused_suite": "6cd0a78d742de95df6ef71c96b1c80b793c481fc",
+      "final_sqlite": "f133780b7ec030de93914edb1122060192b7278b",
+      "final_postgres": "NOT_RUN"
+    },
+    "hosted_check_verified": "NOT_RUN",
+    "integrated": "NOT_RUN",
+    "deployed": "NOT_RUN",
+    "formally_accepted": "NO_CHANGE"
+  },
+  "acceptance": {
+    "original_pass_before": 183,
+    "original_pass_after": 183,
+    "original_total": 366,
+    "reference_pass_before": 19,
+    "reference_pass_after": 19,
+    "reference_total": 59,
+    "canonical_requirement_status": "PARTIAL"
+  },
+  "limitations": [
+    "Does not prove live model inference or downstream task consumers.",
+    "Existing concurrent saves may emit more than one audit event; sequential no-op and changed-save semantics are covered.",
+    "Does not qualify production schema migration or deploy any service.",
+    "Existing PR1009 UI repairs/dirty work are preserved separately; this current-main backend prerequisite is independent.",
+    "Protected merge still needs exact November9 integration-steward role release or transfer and current required hosted gates."
+  ],
+  "next_action": "Publish bounded nonduplicate PR after native admission/preflight; observe exact-head required checks; then integrate through single verified steward and guarded release process.",
+  "current_source_commit": "f133780b7ec030de93914edb1122060192b7278b",
+  "final_source_inputs": {
+    "packages/persistence/store.py": {
+      "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9",
+      "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f"
+    },
+    "tests/integration/test_ai_task_settings_restored_identity.py": {
+      "sha256": "3f588d2254ec542802033081e621f711fc9f132412859ca065ff6175170e9a6b",
+      "git_blob": "162f1e9eeaeef053d8657f31c730bf7f8b18c54f"
+    }
+  },
+  "final_sqlite_verification": {
+    "source_commit": "f133780b7ec030de93914edb1122060192b7278b",
+    "command": [
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_ai_task_settings_restored_identity.py::RestoredAITaskSettingsSQLiteTests",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad\\settings-final-sqlite-junit.xml"
+    ],
+    "started_at": "2026-11-13T03:07:45.347318+00:00",
+    "ended_at": "2026-11-13T03:07:51.114729+00:00",
+    "returncode": 0,
+    "junit_sha256": "4695cb2105072afdebb3d3d5e82ec07b74f787ceca9170cc317100564148e431",
+    "scope": "Exact committed final SQLite regression, after test closure binding correction",
+    "primary_tests_passed": 4,
+    "subtests_passed": 4,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "source_equivalence": {
+    "production_store_identical": true,
+    "test_change": "Sorted imports and bound profile/barrier as explicit concurrent task arguments; final SQLite rerun PASS; final-test PostgreSQL execution deferred to exact-head hosted integration because native heavy slot held by peer2d4f.",
+    "previous_postgres_proof_commit": "6cd0a78d742de95df6ef71c96b1c80b793c481fc",
+    "final_postgres_proof": "NOT_RUN locally at final test revision; no claim of identical test blobs"
+  },
+  "lint": {
+    "new_regression_file": "PASS (raw Ruff)",
+    "store_delta": {
+      "baseline_diagnostics": 8,
+      "current_diagnostics": 8,
+      "new_diagnostics": 0,
+      "comparison": "code, message and exact offending source line; shifted line numbers excluded",
+      "scope": "packages/persistence/store.py only",
+      "result": "NO_NEW_DIAGNOSTICS; raw whole-file Ruff remains nonzero due existing debt"
+    },
+    "initial_new_test_findings": "I001 and two B023 corrected; original failure retained privately"
+  }
+}

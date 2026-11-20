@@ -13,7 +13,8 @@ from services.discovery.sources.errors import SourceError
 
 
 COMPANY_ATS_PROVIDERS = frozenset({"greenhouse", "lever"})
-GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok"})
+GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok", "arbeitnow", "usajobs"})
+PUBLIC_LISTING_PROVIDERS = frozenset({"testedrecruits"})
 
 
 def _registered_provider_names() -> frozenset[str]:
@@ -95,11 +96,16 @@ def _validated_inventory(adapter) -> tuple[tuple[str, str, str], ...]:
 class CompanySourceContractSustain224Tests(unittest.TestCase):
     def test_exact_registered_company_ats_coverage(self):
         registered = _registered_provider_names()
-        self.assertEqual(registered, COMPANY_ATS_PROVIDERS | GLOBAL_SOURCE_PROVIDERS)
         self.assertEqual(
-            {provider for provider in registered if provider not in GLOBAL_SOURCE_PROVIDERS},
+            registered,
+            COMPANY_ATS_PROVIDERS | GLOBAL_SOURCE_PROVIDERS | PUBLIC_LISTING_PROVIDERS,
+        )
+        self.assertEqual(
+            {provider for provider in registered
+             if provider not in GLOBAL_SOURCE_PROVIDERS | PUBLIC_LISTING_PROVIDERS},
             COMPANY_ATS_PROVIDERS,
         )
+        self.assertEqual(registered & PUBLIC_LISTING_PROVIDERS, PUBLIC_LISTING_PROVIDERS)
 
     def test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls(self):
         for provider in sorted(COMPANY_ATS_PROVIDERS):

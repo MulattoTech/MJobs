@@ -75,8 +75,8 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
         class MockLocator:
             def __init__(self):
                 self.calls = []
-            def evaluate_all(self, script, **kwargs):
-                self.calls.append(kwargs)
+            def evaluate(self, script, *, timeout=None):
+                self.calls.append({"timeout": timeout})
                 return [{"validates": True, "valid": True}]
 
         class MockPage:
@@ -111,7 +111,7 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
                 raise OperationCancelled("cancelled during locator eval")
 
         class FailingLocator:
-            def evaluate_all(self, script, **kwargs):
+            def evaluate(self, script, *, timeout=None):
                 cancelled[0] = True
                 raise RuntimeError("Evaluation interrupted")
 
@@ -138,7 +138,7 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
             OperationControlUnavailable(),
         ):
             class FailingLocator:
-                def evaluate_all(self, script, **kwargs):
+                def evaluate(self, script, *, timeout=None):
                     raise error
 
             class MockPage:
@@ -157,7 +157,7 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
             "fields": [{"input_type": "text", "sensitivity": "STANDARD", "ambiguous": False}],
         }
         class FailingLocator:
-            def evaluate_all(self, script, **kwargs):
+            def evaluate(self, script, *, timeout=None):
                 raise RuntimeError("PRIVATE_FORM_VALUE_MUST_NOT_LEAK")
 
         class MockPage:

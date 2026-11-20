@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy import select, text
 
 from packages.domain.profile import ContactDetails, JobPreferences
+from packages.domain.employer_verification import disabled_preference
 from packages.domain.safety import Fact
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
@@ -66,6 +67,7 @@ def _validate_plan(plan: Any, request_id: str) -> tuple[dict, str, list[dict], l
     except Exception:
         raise ProfileRestoreInvalidPlan("Restore profile is invalid") from None
     preferences["company_discovery"]["company_discovery_enabled"] = False
+    preferences["company_discovery"]["employer_verification"] = disabled_preference()
     preferences["application_route_preference"] = "USER_CHOICE"
     sensitive_categories = (
         "RACE_ETHNICITY", "RELIGION", "SEX_GENDER", "DISABILITY",
@@ -258,6 +260,25 @@ def _validate_plan(plan: Any, request_id: str) -> tuple[dict, str, list[dict], l
             or any(row.get("upload_id") not in upload_source_ids
                    for row in normalized_history["resume_revisions"])):
         raise ProfileRestoreInvalidPlan("Restore resume revision linkage is invalid")
+    restored_versions = []
+    for row in normalized_history["profile_versions"]:
+        contact = row.get("contact")
+        if not isinstance(contact, dict):
+            raise ProfileRestoreInvalidPlan("Restore profile version contact is invalid")
+        preferences = contact.get("preferences", {})
+        if not isinstance(preferences, dict):
+            raise ProfileRestoreInvalidPlan("Restore profile version preferences are invalid")
+        discovery = preferences.get("company_discovery", {})
+        if not isinstance(discovery, dict):
+            raise ProfileRestoreInvalidPlan("Restore profile version discovery policy is invalid")
+        # All imported snapshots are historical data, never an activation grant.
+        # The current restored version is inserted from this same list below.
+        restored_discovery = {**discovery, "company_discovery_enabled": False,
+                              "employer_verification": disabled_preference()}
+        restored_contact = {**contact, "preferences": {**preferences,
+                            "company_discovery": restored_discovery}}
+        restored_versions.append({**row, "contact": restored_contact})
+    normalized_history["profile_versions"] = restored_versions
     source_versions = {row.get("source_version") for row in normalized_history["profile_versions"]}
     current_source_version = history.get("current_source_version")
     if (None in source_versions or current_source_version not in source_versions

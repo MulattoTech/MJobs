@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-14T01:49:31.342343+00:00",
+  "requirement": "MJ-REQ-004",
+  "parent_requirement": "MJ-REQ-292",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/5",
+  "work_id": "MJ-REQ-004-PG-recovery-lock-budget-ef18",
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "repository": "MulattoTech/MJobs",
+  "base_sha": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+  "source_sha": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+  "source_tree": "59dbf71c1f78ab0b19232a7a2985532d1c8dfab5",
+  "source_blobs": {
+    "workers/operation_log_context.py": "aeed5ca17b3fbc6eed1b88b1e4a106cce9c9a2d2",
+    "tests/integration/test_operation_log_context_lock_budget.py": "63995d901935359ec1be5c5de7be4e79569016d9",
+    "workers/operations.py": "ccf055dab8d2ca333215d4cd07450d466764bdd6",
+    "tests/integration/test_operation_recovery_lock_budget.py": "c0109e2d698a5556ca12381ca768c2dc04653975"
+  },
+  "source_file_sha256": {
+    "workers/operation_log_context.py": "8fa9f342858cfb0919bab44db0ec56ef717599877051639b3fa316e41f466497",
+    "tests/integration/test_operation_log_context_lock_budget.py": "58fda945cea33c89def440046be0c05f5f1b7cfe9a4d3a62e3ed4900c46ffaa6",
+    "workers/operations.py": "a6d3cece14cb010bcd8f6155676f8058777e819b0157b10c61834d0d530904e7",
+    "tests/integration/test_operation_recovery_lock_budget.py": "d635758456071eee812472b98f355be17db0a7dfc1b13bd37d0250004404f853"
+  },
+  "result": "RECOVERY_PG_QUALIFIED_AT_4E_HELPER_STATIC_AND_SQLITE_PASS_SUCCESSOR_POSTGRES_NOT_RUN",
+  "source_gap": "Recovery can wait for later PostgreSQL locks after its initial SKIP LOCKED query. Its optional log-context lookup can separately wait after the recovery transaction has committed. These are source-confirmed gaps, not a reproduced production incident.",
+  "change": "Apply a transaction-local per-lock ceiling of min(existing nonzero lock_timeout, 1000 ms) in recover_expired and its shared optional log-context read helper. Preserve stricter settings, statement_timeout, SQLite, rollback/restoration, committed recovery outcomes, privacy fields and caller fallback.",
+  "baseline": {
+    "head": "59a72b6c02540548730fbf4fea2ed80bd986a266",
+    "tree": "3d649a1dd8b2925817d085b63b2bf2be3cdec061",
+    "production_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+    "test_blob": "c0109e2d698a5556ca12381ca768c2dc04653975",
+    "runtime": "NOT_RUN",
+    "expected_not_observed": "The unlimited original-source case should retain lock_timeout=0 and reach fixture SQLSTATE 57014; the first test assertion may be the observed 0-versus-1000 ms setting. The stricter 500 ms control may already pass."
+  },
+  "executed_validation": {
+    "static": {
+      "AST_parse": "PASS",
+      "git_diff_check_both_commits": "PASS",
+      "commit_provenance_both_commits": "PASS",
+      "exact_two_path_scope": "PASS",
+      "identical_test_blob_baseline_and_fix": "PASS",
+      "baseline_production_equals_base268": "PASS",
+      "other_production_functions_unchanged": "PASS",
+      "existing_recovery_body_and_sqlite_branch_unchanged": "PASS"
+    },
+    "independent_review": {
+      "result": "PASS_IMMUTABLE_SOURCE_AND_FIXTURE_REVIEW",
+      "artifact": "pg-recovery-lock-budget-independent-review-4d147330.json",
+      "sha256": "fd72722facbcc0e6d765fdcace4b36e964af80a7a9c5d2bba8a1a9ac7c457e13"
+    },
+    "sqlite_compatibility": {
+      "source_sha": "4d147330ab296b4c408b0004eef05a77dc15f7d4",
+      "source_tree": "455d5e4de6294cbe58054155d1df5da885bba9c4",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_uncancelled_crashed_attempts_are_bounded",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_null_queued_worker_lease_at_attempt_limit_honors_cancel",
+        "tests/unit/test_fleet_t11_leases.py::FleetT11LeaseTests::test_null_manual_auth_lease_remains_reserved_and_holds_browser_capacity",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_final_attempt_receipt_completes_without_replay_and_survives_reopen",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_live_owner_is_not_finalized_by_receipt_probe",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_committed_receipt_wins_over_late_cancel_flag",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_cancelled_crashed_worker_without_receipt_remains_cancelled",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_rolled_back_recovery_emits_nothing_and_later_commit_logs_once",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\pg-recovery-sqlite-4d147330.junit.xml"
+      ],
+      "started_at_utc": "2026-11-14T00:57:49.679194+00:00",
+      "finished_at_utc": "2026-11-14T00:57:56.205555+00:00",
+      "exit_code": 0,
+      "counts": {
+        "primary_case_records": 8,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 8
+      },
+      "pytest_summary": "8 passed in 5.76s",
+      "receipt_sha256": "2ac302bb6df35e6e9d15fb4b0bc0f456b404885c81ce520b6c3809ef04ecef71",
+      "log_sha256": "efca3d1fd66444629ddf4f266a10561e078e2d98312d61346e38bb6b6c6bf842",
+      "junit_sha256": "2ddf8c4456545421b724e83243735b0b466cda172f5d79b39bc5c25d6b02c468",
+      "source_clean_after": true,
+      "compute_released": true,
+      "meaning": "Temporary SQLite lease/retry/cancellation/receipt/audit compatibility only; no PostgreSQL lock-wait proof."
+    },
+    "helper_static": {
+      "AST_parse_both_commits": "PASS",
+      "git_diff_check_both_commits": "PASS",
+      "commit_provenance_both_commits": "PASS",
+      "exact_two_path_scope_since_published_4e": "PASS",
+      "identical_test_blob_baseline_and_fix": "PASS",
+      "baseline_production_equals_published_4e": "PASS",
+      "other_helper_functions_unchanged": "PASS",
+      "existing_context_resolution_body_unchanged": "PASS",
+      "four_prior_PR_files_unchanged_in_Git": "PASS",
+      "reviewed_SQLite_selector_blobs_unchanged": "PASS"
+    },
+    "helper_independent_review": {
+      "result": "PASS_IMMUTABLE_SOURCE_AND_FIXTURE_REVIEW",
+      "artifact": "pg-recovery-log-context-independent-review-c1125fa8.json",
+      "sha256": "102b8930fead2b180e4f75333d7e9dbdc3f4748c5dd2a9fa5ba6d6938f142499",
+      "source_sha": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+      "source_tree": "59dbf71c1f78ab0b19232a7a2985532d1c8dfab5"
+    },
+    "helper_sqlite_logging_compatibility": {
+      "source_sha": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+      "source_tree": "59dbf71c1f78ab0b19232a7a2985532d1c8dfab5",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_worker_logs_successful_operation_as_structured_record",
+        "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_apply_mock_context_lookup_failure_does_not_change_outcome_or_log_diagnostics",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_recovery_context_failure_preserves_result_and_omits_private_diagnostics",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_receipt_recovery_emits_one_terminal_event_and_duplicate_work_is_silent",
+        "tests/integration/test_dry_run_receipt_recovery.py::DryRunReceiptRecoveryTests::test_final_attempt_receipt_completes_without_replay_and_survives_reopen",
+        "tests/unit/test_structured_logging.py::StructuredOperationLoggingTests::test_exact_context_fields_by_kind",
+        "tests/unit/test_structured_logging.py::StructuredOperationLoggingTests::test_identifiers_reject_malformed_secret_and_non_scalar_values",
+        "tests/unit/test_structured_logging.py::StructuredOperationLoggingTests::test_missing_or_malformed_projection_ignores_all_untrusted_hints",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\pg-log-context-sqlite-c1125fa8.junit.xml"
+      ],
+      "started_at_utc": "2026-11-14T01:45:39.245904+00:00",
+      "finished_at_utc": "2026-11-14T01:45:44.447890+00:00",
+      "exit_code": 0,
+      "counts": {
+        "primary_case_records": 8,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 8
+      },
+      "subtests_pass": 65,
+      "pytest_summary": "8 passed, 65 subtests passed in 4.21s",
+      "receipt_sha256": "b917a2d4004a8329a50a3d6f6a2ffa50e763f1dffab720d72313d8ee43c19cfa",
+      "log_sha256": "4b166beadcd61f1fcf87eca2be6c4c007d8963b3d58de5547f95584dcde74386",
+      "junit_sha256": "4286490db28715bdd8977dd4df091738ffabb4ed064587ddc64d9e82ebb57c96",
+      "source_clean_after": true,
+      "compute_released": true,
+      "meaning": "Five temporary SQLite FIXTURE and three pure logging primary cases; compatible ordinary recovery/log context/privacy behavior, not PostgreSQL contention proof."
+    }
+  },
+  "postgresql_regression": {
+    "status": "PASS_AT_PUBLISHED_4E",
+    "target_environment": "Existing hosted Integration workflow; Ubuntu 24.04/Python 3.12/PostgreSQL 17/psycopg; no workflow change",
+    "test_nodes": [
+      "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[unlimited]",
+      "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[stricter]"
+    ],
+    "design": {
+      "production_lock_timeout_ms": 1000,
+      "scope": "Per individual PostgreSQL lock acquisition within recover_expired transaction",
+      "existing_limit": "Preserve any shorter nonzero lock_timeout; leave statement_timeout untouched",
+      "setting_lifetime": "Transaction local; existing engine.begin context restores on commit/rollback",
+      "error_policy": "DBAPI error escapes; existing dispatcher retry path remains authoritative",
+      "fixture": "UUID schema, independent owned application-row blocker, real production Store in an owned spawned helper, exact backend and pg_blocking_pids witness",
+      "fixture_guard_statement_timeout_ms": 5000,
+      "fixture_phase_watchdog_seconds": 8,
+      "configurations_ms": [
+        0,
+        500
+      ],
+      "natural_oracle": "55P03 before fixture blocker release or helper intervention, while blocker remains held",
+      "rollback_and_retry": "Unchanged full operation/application/audit snapshot; independently NOWAIT-lock original operation; same physical backend settings restored; release blocker; one normal recovery and zero on repeat",
+      "baseline_expected_not_observed": "Unlimited original source should reach fixture-only 57014 statement guard and fail the 55P03 oracle",
+      "receipt_properties": [
+        "pg_recovery_lock_receipt",
+        "pg_recovery_lock_cleanup"
+      ]
+    },
+    "required_observation": "Natural 55P03 while exact separately owned application-row blocker remains held, bound backend/pg_blocking_pids witness, unchanged durable snapshot and released operation lock, same-physical-backend GUC restoration, one recovery and audit after release, no duplicate second recovery;forced helper cleanup is failure.",
+    "qualified_source_sha": "4e757cc0979523ab34907d1c350c585266b4a386",
+    "qualified_source_tree": "5126a28e32f8e0d799513ccf71018190b0709dea",
+    "source_equivalence_to_current": "Original recovery implementation and its fixture retain their exact4e Git blobs. The additional helper behavior has separate unexecuted PostgreSQL cases."
+  },
+  "next_action": "Publish one ordinary fast-forward update of existing PR1027 through fresh live update admission; observe current-head required gates and all four PostgreSQL target receipts; preserve first failure if any; then hand the qualified candidate to the sole integration steward.",
+  "not_run": [
+    "Original-source PostgreSQL baseline59a72b6c",
+    "Helper original-source PostgreSQL baseline2ffeabe6",
+    "All four PostgreSQL contention cases on the combined helper successor",
+    "Final metadata publication-head required hosted gates",
+    "Protected integration",
+    "Applicable deployment/runtime adoption",
+    "Full MJ-REQ-004 or MJ-REQ-292 acceptance"
+  ],
+  "limits": [
+    "Per-lock ceiling only; no whole-sweep/helper/transaction/call deadline",
+    "No connection, pool, pre-ping, network, ordinary statement-duration, finalization or log-sink deadline proof",
+    "No fairness guarantee under persistent contention",
+    "No change to Store, workers/tasks.py, source-setup lease semantics, company_refresh_saved, logging schema/privacy fields, provider or workflow contracts",
+    "Synthetic fixtures are not browser/provider or production acceptance",
+    "Both baseline runtime expectations remain unobserved",
+    "Earlier4e hosted proof and currentc112 SQLite proof retain distinct source bindings; metadata successor needs its own hosted gates",
+    "Missing finite-window fixture witnesses are unqualified admission failures and cannot be counted as production failures or PASS"
+  ],
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "primary_semantic_sources": [
+    "https://www.postgresql.org/docs/17/runtime-config-client.html",
+    "https://www.postgresql.org/docs/17/sql-set.html",
+    "https://www.postgresql.org/docs/17/view-pg-settings.html",
+    "https://www.postgresql.org/docs/17/explicit-locking.html"
+  ],
+  "source_binding": "This record describes source c1125fa8. Initial recovery runtime is explicitly bound to published4e and its tree-equivalent merge checkout. Helper PostgreSQL runtime and all required gates on the next metadata publication head remain NOT_RUN; prior results are not transferred.",
+  "initial_recovery_source": {
+    "source_sha": "4d147330ab296b4c408b0004eef05a77dc15f7d4",
+    "source_tree": "455d5e4de6294cbe58054155d1df5da885bba9c4",
+    "source_blobs": {
+      "workers/operations.py": "ccf055dab8d2ca333215d4cd07450d466764bdd6",
+      "tests/integration/test_operation_recovery_lock_budget.py": "c0109e2d698a5556ca12381ca768c2dc04653975"
+    },
+    "source_file_sha256": {
+      "workers/operations.py": "a6d3cece14cb010bcd8f6155676f8058777e819b0157b10c61834d0d530904e7",
+      "tests/integration/test_operation_recovery_lock_budget.py": "d635758456071eee812472b98f355be17db0a7dfc1b13bd37d0250004404f853"
+    }
+  },
+  "hosted_qualification_at_4e": {
+    "source_sha": "4e757cc0979523ab34907d1c350c585266b4a386",
+    "source_tree": "5126a28e32f8e0d799513ccf71018190b0709dea",
+    "base_sha": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "actual_checkout": {
+      "api_path": "repos/MulattoTech/MJobs/git/commits/2e79e1e94f17ee14d1242866ac6ed88e4d02a069",
+      "parents": [
+        "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+        "4e757cc0979523ab34907d1c350c585266b4a386"
+      ],
+      "sha": "2e79e1e94f17ee14d1242866ac6ed88e4d02a069",
+      "tree_sha": "5126a28e32f8e0d799513ccf71018190b0709dea"
+    },
+    "environment": "Target log contains postgres:17, psycopg 3.3.6 and SQLAlchemy 2.1.1 installation evidence.",
+    "independent_review": {
+      "artifact": "pg-recovery-pr1027-independent-runtime-review-4e757cc0.json",
+      "sha256": "915214d46ee4f129e1a136ab8b21d2e04660000841ec50ad07579880cfdbc450",
+      "result": "PASS_EXACT_HEAD_HOSTED_RUNTIME_EVIDENCE_REVIEW"
+    },
+    "terminal_snapshot_sha256": "3cec2de518a58dea24708f1e25d58d72f0ed353291925135db8d305a00b20fdb",
+    "independent_artifact_facts_sha256": "0638a11c6e2fac2b6e44c7d3d66f03f4f4207a463bd9268001f0a10442505cb3",
+    "artifact_inputs_verified_stable": 52,
+    "matrix_primary_counts": {
+      "records": 2926,
+      "passed": 2886,
+      "skipped": 40,
+      "failures": 0,
+      "errors": 0
+    },
+    "required_checks": [
+      {
+        "check_ids": [
+          132278828849
+        ],
+        "legacy_status_ids": [],
+        "name": "CI / required",
+        "state": "PASS"
+      },
+      {
+        "check_ids": [
+          132282858032
+        ],
+        "legacy_status_ids": [],
+        "name": "Integration / PostgreSQL and Redis",
+        "state": "PASS"
+      },
+      {
+        "check_ids": [
+          132277268571
+        ],
+        "legacy_status_ids": [],
+        "name": "Disposable Compose / mock end-to-end",
+        "state": "PASS"
+      },
+      {
+        "check_ids": [
+          132277268652
+        ],
+        "legacy_status_ids": [],
+        "name": "Dependencies / introduced vulnerabilities",
+        "state": "PASS"
+      },
+      {
+        "check_ids": [
+          132277268411
+        ],
+        "legacy_status_ids": [],
+        "name": "Security / secret scan",
+        "state": "PASS"
+      }
+    ],
+    "original_observer_counts": {
+      "all_success": true,
+      "checks": 15,
+      "jobs": 11,
+      "runs": 5
+    },
+    "supplemental_codeql": {
+      "run_id": 43539744110,
+      "run_attempt": 1,
+      "jobs": 3,
+      "result": "SUCCESS",
+      "receipt_sha256": "cd91f5f2325292060090e7359e405e20b6b58381aefde9159c74f02ecffeafe1",
+      "source_binding_limit": "Supplemental CodeQL terminal/head evidence is established by raw API records; its actual Git checkout/tree is not independently established from logs. This does not weaken the target PostgreSQL job's separately verified checkout/tree binding."
+    },
+    "combined_saved_coverage": {
+      "all_check_ids_accounted_for": true,
+      "all_success": true,
+      "checks": 15,
+      "jobs": 14,
+      "runs": 6
+    },
+    "qualification": {
+      "integration_run_id": 43539747457,
+      "attempt": 1,
+      "target_job_id": 132277270073,
+      "targets": [
+        {
+          "selector": "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[stricter]",
+          "result": "PASS",
+          "junit_seconds": "1.411",
+          "configured_lock_ms": 500,
+          "effective_lock_ms": 500,
+          "restored_lock_ms": 500,
+          "natural_sqlstate": "55P03",
+          "natural_error_type": "OperationalError",
+          "natural_elapsed_seconds": 0.5112103029999844,
+          "backend_identity": {
+            "application_name": "mjobs_recovery_lock_5a4f80a688ad4e62a32f80b57cd3ed55",
+            "backend_pid": 1425,
+            "backend_start": "1794619696.541072"
+          },
+          "blocker_pid": 1415,
+          "observer_pid": 1416,
+          "receipt_sha256": "c63ccc79bbb774c9abeca74dfa3ef7c212d5017379fc98f05481a9fd9f2ecd55",
+          "cleanup_sha256": "c4ac80b35a5c7e72f91a7ee3f4740c157cb9ff0512f8c560cb45589f695a4dc7",
+          "retry_recovered": 1,
+          "repeat_recovered": 0,
+          "cleanup": {
+            "blocker_release_error": null,
+            "exitcode": 0,
+            "exited": true,
+            "forced_actions": []
+          }
+        },
+        {
+          "selector": "tests/integration/test_operation_recovery_lock_budget.py::test_recovery_bounds_secondary_application_lock[unlimited]",
+          "result": "PASS",
+          "junit_seconds": "1.936",
+          "configured_lock_ms": 0,
+          "effective_lock_ms": 1000,
+          "restored_lock_ms": 0,
+          "natural_sqlstate": "55P03",
+          "natural_error_type": "OperationalError",
+          "natural_elapsed_seconds": 1.011152008999943,
+          "backend_identity": {
+            "application_name": "mjobs_recovery_lock_aed726bf5f7f423f93deffd3a487355e",
+            "backend_pid": 1413,
+            "backend_start": "1794619694.632041"
+          },
+          "blocker_pid": 1411,
+          "observer_pid": 1412,
+          "receipt_sha256": "4da4da3b7369d6ccbfc8525deecb8cfc08752bde3f454ad9e5fa3ff6306121e0",
+          "cleanup_sha256": "c4ac80b35a5c7e72f91a7ee3f4740c157cb9ff0512f8c560cb45589f695a4dc7",
+          "retry_recovered": 1,
+          "repeat_recovered": 0,
+          "cleanup": {
+            "blocker_release_error": null,
+            "exitcode": 0,
+            "exited": true,
+            "forced_actions": []
+          }
+        }
+      ],
+      "causal_findings": [
+        "A real PostgreSQL pg_stat_activity Lock wait is witnessed for the exact child backend PID, backend_start and application_name, with only the owned blocker PID returned by pg_blocking_pids.",
+        "Raw phase messages preserve application_lock, natural outcome, then settled-session ordering. Both natural errors are SQLSTATE 55P03 and occur before the 5-second statement guard, not a fixture cancellation or helper teardown.",
+        "The exact source asserts the parent blocker transaction remains active and checks its original PID after the natural outcome, before explicit rollback; the passing JUnit binds these assertions. This continued-lock claim uses source plus execution and is not presented as a nonexistent extra receipt field.",
+        "The same physical child connection, backend PID, backend_start and application_name persist through all phases; transaction-local lock_timeout restores to 0 or 500ms as configured, and statement_timeout stays 5000 ms.",
+        "Durable operation/application/audit snapshots after the timeout equal their pre-attempt snapshots. The exact source's NOWAIT operation-row acquisition also succeeds before the blocker is released.",
+        "After explicit blocker release, recovery returns 1, completes the confirmed mock operation once, preserves attempt 1 / retry 2 and the application, and creates exactly one LEASE_RECOVERY audit. A repeated sweep returns 0 with identical durable state.",
+        "The production receipt is recorded before fixture release/stop/drop cleanup; the separate cleanup receipt reports helper exited=true, exit code 0, no forced actions and no blocker-release error in both cases."
+      ],
+      "supported_inference": "On this disposable PostgreSQL 17 / psycopg 3 run, the published recover_expired change applies a 1000 ms transaction-local timeout to this secondary application-row lock acquisition while preserving an existing stricter 500 ms setting. The natural elapsed outcomes were 1.011152009 s and 0.511210303 s, respectively. The failed transaction rolls back without durable mutation, connection settings restore, and later recovery succeeds once and remains idempotent."
+    },
+    "limitations": [
+      "The prior unlimited-lock baseline was not executed in this evidence set. Expected baseline behavior is not reported as an observed failure.",
+      "The bounded behavior is per lock acquisition, not a deadline for the whole recovery sweep or call.",
+      "The 40 matrix skips remain skips; this is not whole-product or whole-requirement acceptance, deployment, or protected-main integration.",
+      "Evidence applies only to published 4e, its exact two source/test blobs and tree-equivalent merge checkout. It does not execute or qualify the separate unpublished helper successor.",
+      "No production outage or production leak is demonstrated by this disposable regression.",
+      "No rerun, cancellation, dispatch or observer replay was performed during this independent review."
+    ]
+  },
+  "helper_postgresql_regression": {
+    "status": "NOT_RUN",
+    "source_sha": "c1125fa8e3d301b3c77eaf651a9f62d91ebb0f2b",
+    "source_tree": "59dbf71c1f78ab0b19232a7a2985532d1c8dfab5",
+    "baseline": {
+      "head": "2ffeabe6ebf1571e35405b4abe0d0d0653df1a42",
+      "parent": "4e757cc0979523ab34907d1c350c585266b4a386",
+      "tree": "405433ab3c75a530bb3a4acb1a0515f1f326e42f",
+      "production_blob": "1052912eeccb9e3c45f4f75c520e80cb1f5a19c2",
+      "test_blob": "63995d901935359ec1be5c5de7be4e79569016d9",
+      "runtime": "NOT_RUN"
+    },
+    "test_nodes": [
+      "tests/integration/test_operation_log_context_lock_budget.py::test_postcommit_context_lock_timeout_preserves_recovery[unlimited]",
+      "tests/integration/test_operation_log_context_lock_budget.py::test_postcommit_context_lock_timeout_preserves_recovery[stricter]"
+    ],
+    "design": {
+      "production_lock_timeout_ms": 1000,
+      "scope": "Per individual PostgreSQL lock acquisition in the optional operation log-context read transaction",
+      "existing_limit": "Preserve a shorter nonzero lock_timeout; leave statement_timeout and SQLite unchanged",
+      "setting_lifetime": "Transaction local; existing engine.connect context close rolls back on success or error, restoring the pooled session setting",
+      "error_policy": "Let lookup error reach the existing post-commit caller fallback, which omits optional context and still emits one safe terminal event",
+      "fixture": "UUID schema; synthetic saved APPLICATION_DRY_RUN receipt; separately owned ACCESS EXCLUSIVE applications-table blocker; real Store in an owned spawned helper; exact backend start/name and pg_blocking_pids witnesses",
+      "commit_witness": "Bracket an independent operations/audit-only committed snapshot with two real blocked-backend observations; never read applications while its table is held",
+      "fixture_guard_statement_timeout_ms": 5000,
+      "fixture_phase_watchdog_seconds": 8,
+      "fixture_helper_ready_seconds": 15,
+      "fixture_helper_command_wait_seconds": 30,
+      "fixture_cleanup_join_seconds_each": 3,
+      "configurations_ms": [
+        0,
+        500
+      ],
+      "natural_oracle": "Original application SELECT raises 55P03 naturally before blocker release or helper intervention; total observed recovery phase below 4 seconds excludes the 5-second fixture statement guard",
+      "durable_and_event_oracle": "Already-COMPLETED recovery and one LEASE_RECOVERY audit are visible during blocked enrichment; timeout preserves that committed baseline and original synthetic receipt; terminal JSON contains only the fixed safe fields and no optional context/private marker",
+      "restoration_and_repeat": "Same physical DBAPI/backend identity restores original lock_timeout and unchanged statement_timeout after error and successful normal lookup; after blocker release application and committed baseline remain unchanged; normal context resolves; repeated recovery returns 0 with no additional terminal event or audit",
+      "baseline_expected_not_observed": "Unlimited original helper is expected to reach the fixture-only 57014 statement guard and fail the 55P03 oracle; stricter 500ms is the preservation control",
+      "receipt_properties": [
+        "pg_log_context_receipt",
+        "pg_log_context_cleanup"
+      ],
+      "cleanup": "Record first outcomes before any release/stop/drop; roll back only retained blocker transaction, then stop/join exact owned Process; terminate/kill fallback targets only that Process and cannot qualify PASS; never drop UUID schema while helper remains alive"
+    },
+    "independent_review_limits": [
+      "Review is source/static only. No pytest collection, tests, SQL/service execution or hosted checks were performed by this reviewer; runtime remainsNOT_RUN.",
+      "A500ms configured lock wait leaves a finite admission window for the two blocker witnesses and committed snapshot. A loaded runner can fail fixture admission; such a failure is unqualified, not proof of a production defect or permission to extend/replace the natural timeout.",
+      "The production cap applies per PostgreSQL lock acquisition, not to ordinary statement execution or the complete helper/sweep. Pool/connect/pre-ping/network/log-sink/rollback-reset bounds are not claimed.",
+      "The fixture proves the common resolver through the real dry-run recovery caller. It does not exercise every worker kind, provider, browser, logging sink or P6 notification path.",
+      "If helper restoration/setup fails after a natural SQL error, raw sql_error/messages and first outcome must remain distinct from top-level JUnit/cleanup failure in later hosted collection.",
+      "Published4e and its prior source/evidence remain unchanged. This review is not publication authorization or a runtime acceptance promotion."
+    ],
+    "required_observation": "Committed recovery visible between two exact blocked-backend witnesses; natural application SELECT55P03 while blocker remains held; one core terminal event without optional/private fields; original physical session and GUC restoration; unchanged durable/application state; normal context after release; silent idempotent repeat; natural helper exit without forced cleanup."
+  }
+}

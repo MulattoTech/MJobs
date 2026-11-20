@@ -1,0 +1,59 @@
+{
+  "_fixture": {
+    "kind": "synthetic",
+    "requirement": "MJ-REQ-017.F07",
+    "schema_observed_date": "2026-11-13",
+    "source": "https://www.arbeitnow.com/api/job-board-api",
+    "note": "Fictional jobs; this fixture is not live-provider evidence."
+  },
+  "data": [
+    {
+      "slug": "senior-python-engineer-berlin-1001",
+      "company_name": "Synthetic Acme Cloud",
+      "title": "Senior Python Engineer",
+      "description": "<h2>Build with us</h2><p>Develop Python and SQL services for our global customers. Location eligibility must be reviewed.</p><script>private_script_value()</script>",
+      "remote": true,
+      "url": "https://www.arbeitnow.com/jobs/companies/synthetic-acme-cloud/senior-python-engineer-berlin-1001",
+      "tags": [
+        "Engineering",
+        "Python",
+        "Remote"
+      ],
+      "job_types": [
+        "fulltime permanent"
+      ],
+      "location": "Berlin, Germany",
+      "created_at": 1794484800
+    },
+    {
+      "slug": "support-engineer-london-1002",
+      "company_name": "Synthetic Northbridge",
+      "title": "Support Engineer",
+      "description": "<p>Maintain Windows and Linux systems.</p>",
+      "remote": false,
+      "url": "https://www.arbeitnow.co.uk/jobs/companies/synthetic-northbridge/support-engineer-london-1002",
+      "tags": [
+        "Support",
+        "Windows"
+      ],
+      "job_types": [
+        "Part time"
+      ],
+      "location": "London, United Kingdom (hybrid)",
+      "created_at": 1794488400
+    }
+  ],
+  "links": {
+    "first": "https://www.arbeitnow.com/api/job-board-api?page=1",
+    "last": null,
+    "prev": null,
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "path": "https://www.arbeitnow.com/api/job-board-api",
+    "per_page": 300,
+    "to": 2
+  }
+}
