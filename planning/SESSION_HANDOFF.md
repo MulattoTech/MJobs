@@ -1,3 +1,26 @@
+# MJobs engineering checkpoint - 2026-11-20 UTC
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
+
+- Main verified at f912491d17ad562b4ca094042626fa17341a632a.
+- Continuing existing PR1045 / MJ-REF-039 / issue415, preserving original work.
+- Source tested: 6c5db928b316ee751453fe25d71f288b36d872a8 (functional source387c1082 plus scoped Python lint cleanup).
+- Local continuation branch: web/20261120-d9b89794/comparison-saved-filters.
+- Publication target: web/mjobs-priority-20261116-67704a68/mjref039-client-recovery.
+- Fixed saved salary period/KNOWN_ONLY/ALLOW_UNKNOWN comparison membership and optional provenance sorting; preserved typed UI recovery.
+- Verified 30 Python/browser tests plus 28 subtests, 20 frontend tests, scoped Ruff, lint/typecheck/build, catalogue/progress/dashboard, provenance and whitespace. Two connected Chromium tests passed without skips.
+- Independent AI functional review: no blocking findings. No human approval claimed.
+- Acceptance unchanged: original 188 PASS / 82 PARTIAL / 96 NOT_RUN of 366; reference 19 PASS / 4 PARTIAL / 36 NOT_RUN of 59. MJ-REF-039 remains NOT_RUN.
+- Evidence: docs/evidence/2026-11-20-comparison-salary-provenance.md. Task continuation: planning/agent_handoffs/MJ-REF-039.json.
+- Existing PR update only; latest inventory 69 open / 67 development, above the 32-PR soft warning. No other open PR overlaps six comparison source/test paths.
+- Next: ordinary nonforce update of PR1045, verify live current-head hosted gates, then seek the explicit protected-merge authorization reserved by the user's engineering brief. Hosted checks/merge pending at this checkpoint; read live PR state on resume.
+- Production remains on6a47f562; local ready and tunnel healthy. Updater is deliberately blocked on new migration review. Authenticated public workflow and deployment NOT_RUN; no runtime changes authorized here.
+- Primary checkout's dirty handoff/prep and original PR worktree's untracked checkpoint were preserved. Existing production/fixture stacks and other agents were not modified.
+
+Earlier checkpoints follow; reconcile their claims against the newer verified state above.
+
+---
+
 # MJ-REQ-292 current execution — 2026-11-15
 
 Reviewed candidate: ebb55ba9677444d11d8c9fc7c97a56ebf123e4db. The latest change models a disposable Windows runtime in the isolated-host unit fixture; production validation and assertions are unchanged. Author and independent review passed the module on Windows and offline Linux (11tests each;15Windows subtests); root affected scope passed39tests/61subtests. App source remains byte-identical to1b03ac22, whose combined application/containment/browser run passed167tests/96subtests with3skips. These are separate exact-source results.
