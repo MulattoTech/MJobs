@@ -174,5 +174,45 @@
       "No canonical matrices, shared session handoff, task checkpoints, production state or original PR branches were edited.",
       "This continuation is outside the approved protected merge batch for PR1065, PR1066 and PR1064; no protected merge is authorized here."
     ]
+  },
+  "approved_acceptance_base_refresh": {
+    "recorded_at_utc": "2026-11-20T10:57:56.167818+00:00",
+    "result": "PASS",
+    "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+    "prepared_source": "091840e2e1c69e213f988aabf4781d2e792b4537",
+    "prepared_tree": "46a6a0b9b5926842e1866e5239c10dc9c0fce14e",
+    "base_pr": 1064,
+    "prepared_base": "98affaa1b266e91a3a40e828c7295a41aa73ea1e",
+    "base_state": "Published approved PR1064; actual protected merge still pending",
+    "file_count": 326,
+    "additions": 0,
+    "deletions": 0,
+    "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+    "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+    "working_canonical_blobs_match": true,
+    "tests_reexecuted": false,
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": 3
+    },
+    "parents": [
+      "e7df41ad5b1818c5c02ec0c674790f789279c455",
+      "98affaa1b266e91a3a40e828c7295a41aa73ea1e"
+    ],
+    "incremental_paths": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "claim_key": "web:d9b89794:navigation-refresh:21394e4d6e244587",
+    "publication": "NOT_PUBLISHED",
+    "scope": "All 326 tracked apps/web files and canonical working bytes match the earlier executed source, including manifests, lockfile, build configuration and test inputs.",
+    "interpretation": "The four positive cases, TypeScript check and three expected-failure controls are retained earlier executions. They were not rerun for this identical frontend source.",
+    "actual_main_binding": "Root must verify the actual PR1064 merge/base before normal publication. This preparation is outside the approved protected merge batch.",
+    "original_evidence_preserved": true,
+    "canonical_acceptance_changed": false,
+    "private_identity_receipt": ".tmp/navigation-review/refresh-acceptance/identity.json",
+    "private_identity_sha256": "6b04fc0ee9848b3133b131924b5ad1035bdc59aa264944e0f62a0b985511a732"
   }
 }
