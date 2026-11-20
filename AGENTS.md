@@ -15,6 +15,8 @@
 - Keep `planning/CAPABILITY_MATRIX.json` (366 original requirements) and `planning/REFERENCE_GAP_MATRIX.json` (59 additive items) as separate acceptance authorities. Regenerate `planning/REQUIREMENT_INDEX.json` with `python tools/mjobs_reconcile_planning.py --apply`. Refresh the dashboard only when acceptance changes.
 - Never invent qualifications, career history, job data, successful tests, or submission outcomes. Real external application submission stays **OFF** without explicit authorization and user-facing gates. Never bypass CAPTCHA, MFA, access controls, anti-bot or rate limits, nor leak credentials or private applicant data.
 - Protect this workstation: no unrelated process termination, driver/BIOS/firmware/network configuration changes, global package upgrades, or host reboot for MJobs development.
+- Temporary local Docker test stacks must use the bounded, disposable [fixture guard](docs/runbooks/EPHEMERAL_FIXTURES.md) (`python -m tools.dev_fixture_guard run ...`) or a separately reviewed equivalent. Never leave ad-hoc `docker compose up -d` test projects indefinitely. Default to 0 containers for unit tests, 2 for DB/Redis-only integration, and the full guarded fixture only for E2E. Isolate each fixture with ownership labels, one-hour TTL, per-service CPU limits, no restarts, and verified cleanup. Do not apply fixture cleanup to personal/production/cloudflared services, unlabelled fixtures, or other projects; never run broad Docker prune commands.
+
 
 ## Checks from repository root
 ```powershell
