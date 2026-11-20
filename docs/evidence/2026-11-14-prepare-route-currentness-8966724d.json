@@ -168,5 +168,129 @@
     "The source slice does not modify separately owned route-choice alias persistence or PR972 generated-destination containment.",
     "Hosted qualification, protected integration, deployment and canonical parent acceptance remain separate unfinished gates.",
     "External application submission remains OFF; no provider-send behavior was added."
-  ]
+  ],
+  "current_fixture_validation": {
+    "recorded_utc": "2026-11-20T10:40:40.738140+00:00",
+    "result": "SCOPED_FIXTURE_VALIDATION_PASS",
+    "purpose": "Retain the two remaining PR1029 fixture corrections against integrated main; the route generator and route-binding test already match main.",
+    "original_pr": "https://github.com/MulattoTech/MJobs/pull/1029",
+    "original_head": "925eb2b4eb1479f2c696c8ca9dc5752392ae031e",
+    "integrated_main": "4d305af37f9994a352b815ca62b683b8fe05b5fd",
+    "tested_source": "2f2df00136056c578059bb6181e3e45db79965dd",
+    "tested_tree": "6e802ab9e31d74d6ee62418b57836d1347fe03a9",
+    "parents": [
+      "925eb2b4eb1479f2c696c8ca9dc5752392ae031e",
+      "4d305af37f9994a352b815ca62b683b8fe05b5fd"
+    ],
+    "branch": "web/20261120-d9b89794/prepare-route-fixtures",
+    "remaining_delta": [
+      "Two finite Greenhouse mock-read rendezvous barriers, with all current assertions and the 0.075-second spacing threshold preserved.",
+      "Credential unread-body timing uses a preconstructed real fixture client, ten provider/status cases and one slow-setup case.",
+      "Original route evidence and task handoff remain historical records; no route implementation is reapplied."
+    ],
+    "source_blobs": {
+      "tests/integration/test_greenhouse.py": "27e97689485c57e586fa3d629d0e60a198e5926c",
+      "tests/integration/test_provider_credential_connection_bounds.py": "0405a6cb43381506cce42daf3d7cb57bfec9dd78",
+      "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+      "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+      "services/credentials/connection.py": "933c6d6b171cadeffbf7612ab5a4df7003558b5d",
+      "services/credentials/vault.py": "54bc0501f3c732cc1bb902a9563c21bd32dc02de",
+      "services/documents/generate.py": "244fc4cec8bbb71bba46ec1fbf27d9a79e88ca98",
+      "tests/integration/test_application_prepare_route_binding.py": "e94d3a9ae6bd635d5dbd4962261a6326bab4652d",
+      "requirements.txt": "8973b956bcefd35542b7f37ff03a792e3819ae3e",
+      "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      "planning/CAPABILITY_MATRIX.json": "bc86e8250b9b5101c8ef7713a1e3c0b38628af4c",
+      "planning/REFERENCE_GAP_MATRIX.json": "4e708ccae373cf5e1ae39573924d6ad2ea14694d"
+    },
+    "execution": {
+      "started_utc": "2026-11-20T10:37:30.682031+00:00",
+      "finished_utc": "2026-11-20T10:38:17.113867+00:00",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -B .tmp\\route_fixture_validation.py",
+      "selectors": [
+        "tests/integration/test_greenhouse.py",
+        "tests/integration/test_provider_credential_connection_bounds.py"
+      ],
+      "pytest_arguments": [
+        "-q",
+        "-ra",
+        "--color=no",
+        "-p",
+        "no:cacheprovider",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\run-2f2df001\\pytest.xml",
+        "--basetemp=C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\run-2f2df001\\pytest-temp",
+        "tests/integration/test_greenhouse.py",
+        "tests/integration/test_provider_credential_connection_bounds.py"
+      ],
+      "pytest_summary": "50 passed, 1 warning in 42.95s",
+      "counts": {
+        "greenhouse": 35,
+        "credential_bounds": 15,
+        "passed": 50,
+        "subtests": 0,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "pytest_seconds": 42.947,
+      "runner_seconds": 43.563,
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "dependencies": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "SQLAlchemy": "2.1.1",
+        "cryptography": "50.0.2",
+        "pytest": "9.1.1"
+      },
+      "private_dependency_origins": {
+        "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+      },
+      "dependency_scope": "Known cached private Soup4/API1.45.2 targets; source4d still declares older pins. Actual runtime versions are explicit; no global install.",
+      "owned_product_imports": 236,
+      "foreign_product_imports": 0,
+      "network": {
+        "loopback_connects": 32,
+        "loopback_dns": 20,
+        "blocked_external_attempts": []
+      },
+      "network_guard": "A process-local Python audit hook denied external socket connections and DNS; zero denied attempts occurred. Synthetic providers used MockTransport or owned loopback sockets.",
+      "temporary_files": "Owned worktree .tmp only; tests use ephemeral synthetic SQLite/fixture state.",
+      "warning": "One retained PytestAssertRewriteWarning for anyio imported during provenance setup; zero test errors.",
+      "tracked_source_unchanged": true
+    },
+    "artifact_sha256": {
+      "receipt.json": "c8e6d920e19d85479413810c5c655372f6cde02655e4ee6c73102f535f0a0e96",
+      "pytest.log": "32e46d88c2d30ebe13967d4aa3801d7d1455507bd2a8940196c16700f0b067c8",
+      "pytest.xml": "9110b66e211c3eb85d7456ecc6d5919fa10ed8231cbdb44447e56ccf1387a426",
+      "runner": "e2990bfefca100b148d1648d71e9ed88c9e476fd101ae25f4492a14d9ef1814e"
+    },
+    "private_receipt_directory": ".tmp/route-fixture-validation/run-2f2df001",
+    "historical_evidence_preservation": {
+      "original_json_fields": "Preserved without changes.",
+      "original_worktree_and_branch": "Preserved at925eb2b4; this preparation uses a new owned worktree/branch.",
+      "failure_first_and_counterexamples": "Original route failure-first proof remains above; credential and Greenhouse fixture counterexamples, prior failed hosted runs and their qualifications remain in PR1029 history.",
+      "old_hosted_result": "Head925eb2b4 recorded14successfulchecks and1failedSecretScan with7reviewedprovenancehash findings; that failure is retained, not relabeled PASS.",
+      "scanner_policy": "Current-main .gitleaksignore blobec304cc29abb0cfaa13a32416ad034944f436d4d, including the seven existing exact entries, is unchanged; no scanner or policy modification.",
+      "fresh_hosted_checks": "NOT_RUN on this local source."
+    },
+    "checks": {
+      "source_commit_provenance": "PASS",
+      "whitespace": "PASS",
+      "expected_initial_merge_tree": "PASS:6e802ab9e31d74d6ee62418b57836d1347fe03a9",
+      "original_generator_and_route_test_match_main": "PASS",
+      "newer_greenhouse_product_and_regression_preservation": "PASS"
+    },
+    "canonical_acceptance_changed": false,
+    "parent_requirement": "MJ-REQ-292 remains PARTIAL; no full campaign or feature acceptance claim.",
+    "publication": "NOT_PUBLISHED",
+    "limitations": [
+      "Only the two named integration files ran; no new private counterexamples or wider suites were executed.",
+      "The run used recorded private Soup4/API1.45.2 targets while the4d source requirements.txt still declares older pins; no claim of exact installed requirements for4d.",
+      "Fresh current-base integration, required hosted checks including SecretScan, and independent review remain publication/integration steps.",
+      "No production provider requests, deployment, Docker build, original PR update, protected merge or canonical status change occurred.",
+      "Historical task handoff was preserved byte-for-byte and was not rewritten as a new checkpoint."
+    ]
+  }
 }
