@@ -6,7 +6,7 @@ from unittest.mock import patch
 import httpx
 
 from services.discovery.sources import greenhouse
-from workers.operations import OperationCancelled, OperationTimedOut
+from workers.operations import OperationCancelled, OperationControlUnavailable, OperationTimedOut
 
 
 class AdmissionClock:
@@ -235,6 +235,143 @@ class GreenhouseRateAdmissionTests(unittest.TestCase):
         for kind in ("connect", "read", "write", "pool"):
             with self.subTest(timeout=kind):
                 self.assertAlmostEqual(timeouts[kind], worker_deadline - started)
+
+
+class GreenhouseTimeoutOriginTests(unittest.TestCase):
+    def run_timeout(self, *, budget, timeout_type=httpx.ConnectTimeout,
+                    local_stop=None, expire=True, late_check_delay=0):
+        """HTTPX raises before a deliberately unscheduled cancellation watcher."""
+        clock = AdmissionClock()
+        completed = [False]
+        original_errors = []
+        clients = []
+        real_client = httpx.Client
+
+        def check():
+            if completed[0]:
+                clock.now += late_check_delay
+                if local_stop is not None:
+                    raise local_stop
+
+        if budget is not None:
+            check.remaining_seconds = lambda: budget - clock.now
+
+        def handler(request):
+            if expire:
+                clock.now += request.extensions["timeout"]["connect"]
+            completed[0] = True
+            error = timeout_type("Synthetic selected timeout", request=request)
+            original_errors.append(error)
+            raise error
+
+        def capture_client(*args, **kwargs):
+            client = real_client(*args, **kwargs)
+            clients.append(client)
+            return client
+
+        class PendingWatcher:
+            def __init__(self, **kwargs):
+                pass
+
+            def start(self):
+                pass
+
+            def is_alive(self):
+                return False
+
+        # Preserve real Event/Lock primitives; only watcher scheduling is held.
+        threading_binding = SimpleNamespace(
+            Event=greenhouse.threading.Event, Thread=PendingWatcher)
+        adapter = greenhouse.Greenhouse("example", check=check, request_timeout=2)
+        outcome = None
+        with patch.object(greenhouse, "time", clock), patch.object(
+                greenhouse, "threading", threading_binding), patch.object(
+                greenhouse, "SourceTransport",
+                side_effect=lambda check: httpx.MockTransport(handler)), patch.object(
+                greenhouse.httpx, "Client", side_effect=capture_client):
+            try:
+                adapter._get("/jobs")
+            except Exception as error:
+                outcome = error
+
+        self.assertEqual(len(original_errors), 1)
+        self.assertEqual(len(clients), 1)
+        self.assertTrue(clients[0].is_closed)
+        self.assertIsNotNone(outcome)
+        return outcome, original_errors[0], adapter.health()
+
+    def test_worker_budget_timeout_preserves_unchecked_source_without_watcher(self):
+        for timeout_type in (httpx.ConnectTimeout, httpx.ReadTimeout,
+                             httpx.WriteTimeout, httpx.PoolTimeout):
+            with self.subTest(timeout=timeout_type.__name__):
+                outcome, original, health = self.run_timeout(
+                    budget=0.04, timeout_type=timeout_type)
+                self.assertIsInstance(outcome, OperationTimedOut)
+                self.assertEqual(str(outcome), "OPERATION_TIMEOUT")
+                self.assertIs(outcome.__cause__, original)
+                self.assertEqual(health, "NOT_CHECKED")
+
+    def test_shorter_provider_timeout_retains_provider_failure(self):
+        for budget in (None, 10.0):
+            for timeout_type in (httpx.ConnectTimeout, httpx.ReadTimeout,
+                                 httpx.WriteTimeout, httpx.PoolTimeout):
+                with self.subTest(budget=budget, timeout=timeout_type.__name__):
+                    outcome, original, health = self.run_timeout(
+                        budget=budget, timeout_type=timeout_type)
+                    self.assertIs(outcome, original)
+                    self.assertEqual(health, "SOURCE_NETWORK_ERROR")
+
+    def test_provider_failure_is_not_replaced_by_a_later_slow_worker_check(self):
+        outcome, original, health = self.run_timeout(
+            budget=10.0, local_stop=OperationTimedOut("OPERATION_TIMEOUT"),
+            late_check_delay=9.0)
+        self.assertIs(outcome, original)
+        self.assertEqual(health, "SOURCE_NETWORK_ERROR")
+
+    def test_budget_timeout_preserves_authoritative_local_stop(self):
+        for stop in (OperationCancelled("CANCEL_REQUESTED"),
+                     OperationControlUnavailable(),
+                     OperationTimedOut("OPERATION_TIMEOUT")):
+            with self.subTest(stop=type(stop).__name__):
+                outcome, _original, health = self.run_timeout(budget=0.04, local_stop=stop)
+                self.assertIs(outcome, stop)
+                self.assertEqual(health, "NOT_CHECKED")
+
+    def test_early_transport_timeout_does_not_claim_worker_budget_expired(self):
+        outcome, original, health = self.run_timeout(budget=0.04, expire=False)
+        self.assertIs(outcome, original)
+        self.assertEqual(health, "SOURCE_NETWORK_ERROR")
+
+    def test_budget_callback_latency_is_not_subtracted_twice(self):
+        clock = AdmissionClock()
+        worker_deadline = 1.0
+        observed = []
+
+        def check():
+            return None
+
+        def remaining_seconds():
+            # The worker returns remaining time after its durable control read.
+            clock.now += 0.1
+            return worker_deadline - clock.now
+
+        check.remaining_seconds = remaining_seconds
+
+        def handler(request):
+            observed.append((clock.now, dict(request.extensions["timeout"])))
+            return httpx.Response(200, json={"jobs": []})
+
+        adapter = greenhouse.Greenhouse("example", check=check, request_timeout=2)
+        with patch.object(greenhouse, "time", clock), patch.object(
+                greenhouse, "SourceTransport",
+                side_effect=lambda check: httpx.MockTransport(handler)):
+            adapter._get("/jobs")
+
+        self.assertEqual(len(observed), 1)
+        dispatched_at, timeouts = observed[0]
+        for kind in ("connect", "read", "write", "pool"):
+            with self.subTest(timeout=kind):
+                self.assertAlmostEqual(timeouts[kind], worker_deadline - dispatched_at)
 
 
 if __name__ == "__main__":

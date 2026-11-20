@@ -151,11 +151,12 @@ class Greenhouse:
                 # Budget refresh may read durable control state. Finish it and
                 # local client/watcher setup before the final rate admission.
                 budget_deadline = None
+                budget_limited_timeout = False
                 if callable(remaining_budget):
-                    budget_started = time.monotonic()
-                    # Anchor before the callback so its elapsed time is charged
-                    # conservatively, never added to the worker's remaining time.
-                    budget_deadline = budget_started + remaining_budget()
+                    # The callback returns the time remaining after its durable
+                    # control read. Do not subtract that callback latency twice.
+                    remaining = remaining_budget()
+                    budget_deadline = time.monotonic() + remaining
                 if self.transport is None:
                     self._wait_for_rate_limit()
                 else:
@@ -169,6 +170,7 @@ class Greenhouse:
                         self.check()
                         from workers.operations import OperationTimedOut
                         raise OperationTimedOut("OPERATION_TIMEOUT")
+                    budget_limited_timeout = available <= request_timeout
                     request_timeout = min(request_timeout, available)
                 with client.stream("GET", self._request_url(suffix), params=params,
                                    timeout=request_timeout) as response:
@@ -205,6 +207,21 @@ class Greenhouse:
                         payload = __import__("json").loads(content)
                     except ValueError as error:
                         raise SourceError("SOURCE_INVALID_JSON") from error
+            except httpx.TimeoutException as error:
+                if cancellation_errors:
+                    raise cancellation_errors[0]
+                if budget_limited_timeout:
+                    # A worker-budget cutoff can beat the watcher. Preserve its
+                    # authoritative local stop before recording a provider fault.
+                    self.check()
+                    if cancellation_errors:
+                        raise cancellation_errors[0]
+                    if time.monotonic() >= budget_deadline:
+                        from workers.operations import OperationTimedOut
+                        raise OperationTimedOut("OPERATION_TIMEOUT") from error
+                # A shorter provider cap, or an early unrelated timeout, remains
+                # a provider failure rather than acquiring a later worker stop.
+                raise
             except BaseException:
                 if cancellation_errors:
                     raise cancellation_errors[0]
