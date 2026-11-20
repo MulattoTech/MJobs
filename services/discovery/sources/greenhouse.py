@@ -113,8 +113,6 @@ class Greenhouse:
 
     def _request(self, suffix, params=None):
         self.check()
-        if self.transport is None:
-            self._wait_for_rate_limit()
         remaining_budget = getattr(self.check, "remaining_seconds", None)
         request_timeout = self.request_timeout
         if callable(remaining_budget):
@@ -150,7 +148,30 @@ class Greenhouse:
                                        name="mjobs-greenhouse-cancellation", daemon=True)
             watcher.start()
             try:
-                with client.stream("GET", self._request_url(suffix), params=params) as response:
+                # Budget refresh may read durable control state. Finish it and
+                # local client/watcher setup before the final rate admission.
+                budget_deadline = None
+                if callable(remaining_budget):
+                    budget_started = time.monotonic()
+                    # Anchor before the callback so its elapsed time is charged
+                    # conservatively, never added to the worker's remaining time.
+                    budget_deadline = budget_started + remaining_budget()
+                if self.transport is None:
+                    self._wait_for_rate_limit()
+                else:
+                    self.check()
+                request_timeout = self.request_timeout
+                if budget_deadline is not None:
+                    available = budget_deadline - time.monotonic()
+                    if available <= 0:
+                        # Preserve an authoritative local stop if already known.
+                        # This failure path never dispatches a request.
+                        self.check()
+                        from workers.operations import OperationTimedOut
+                        raise OperationTimedOut("OPERATION_TIMEOUT")
+                    request_timeout = min(request_timeout, available)
+                with client.stream("GET", self._request_url(suffix), params=params,
+                                   timeout=request_timeout) as response:
                     active_response.append(response)
                     if response.is_redirect:
                         raise SourceError("SOURCE_REDIRECT_BLOCKED")
@@ -205,19 +226,19 @@ class Greenhouse:
 
     def _wait_for_rate_limit(self):
         interval = 60 / self.rate_limit
-        # Reserve each request start atomically. Parallel callers share the
-        # source's rate schedule instead of independently passing a per-thread
-        # interval check and creating a burst.
-        with self._rate_limit_lock:
-            now = time.monotonic()
-            scheduled = now if self._last_request is None else max(now, self._last_request + interval)
-            self._last_request = scheduled
-        wait = scheduled - time.monotonic()
-        while wait > 0:
+        while True:
             self.check()
-            time.sleep(min(wait, 0.25))
-            wait = scheduled - time.monotonic()
-        self.check()
+            # Recheck actual admission time after every wake. Overdue callers
+            # cannot consume expired reservations together and create a burst.
+            with self._rate_limit_lock:
+                now = time.monotonic()
+                wait = (0 if self._last_request is None else
+                        self._last_request + interval - now)
+                if wait <= 0:
+                    self._last_request = now
+                    return
+            # Cancellation and other callers remain unblocked while waiting.
+            time.sleep(min(wait, CANCELLATION_POLL_INTERVAL))
 
     def search(self):
         self._reset_request_status()

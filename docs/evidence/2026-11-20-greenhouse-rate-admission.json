@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T08:18:39Z",
+  "task": "Greenhouse rate admission repair",
+  "related_requirement": "MJ-REQ-004",
+  "originating_ci_pr": "https://github.com/MulattoTech/MJobs/pull/1064",
+  "outcome": "LOCAL_SOURCE_VALIDATED",
+  "acceptance_change": false,
+  "acceptance_note": "No canonical matrix, issue status or shared checkpoint changed. MJ-REQ-004 remains PARTIAL; this scoped repair makes no full-requirement acceptance claim.",
+  "base_revision": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
+  "source_revision": "2536fb3c2e373c810d546d56ceef4e7ffb72275a",
+  "source_tree": "c35ef5c78f2063177866a6e9aad18581c2076199",
+  "source_blobs": {
+    "services/discovery/sources/greenhouse.py": "d7e01142f31187df696be65a6f3741a42b554708",
+    "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+    "tests/unit/test_greenhouse_rate_admission.py": "9e562e061363e899d02c0394bb978250152b537b"
+  },
+  "problem": {
+    "failed_revision": "06b676f5b4f6e07e89d66efcb4823cd3185f458f",
+    "failed_test": "tests/integration/test_greenhouse.py::GreenhouseTests::test_per_source_concurrency_bounds_parallel_read_requests",
+    "required_minimum_spacing_seconds": 0.075,
+    "observed_spacing_seconds": 0.000119337,
+    "unchanged_source_since_green_main": true,
+    "cause": "The adapter reserved future slots before client/watcher setup and did not revalidate overdue reservations. Time-consuming setup could consume the spacing before transport entry."
+  },
+  "changes": [
+    "Finish client/watcher setup and the explicit durable worker-budget refresh before final adapter admission.",
+    "Recompute eligibility from actual admission time under a short lock after every bounded sleep; release the lock before sleeping and response work.",
+    "Use a pre-callback monotonic anchor for a conservative worker-budget deadline and only local elapsed-time subtraction on the successful path after admission.",
+    "On exhausted snapshot, never dispatch. Preserve an authoritative stop exception when available; otherwise use existing OperationTimedOut so the collector preserves provider health.",
+    "Replace client-construction and budget-call-count test assumptions with transport-dispatch and response-state assertions. Preserve the original 0.075-second threshold and concurrency-two overlap assertion.",
+    "Use module-local clocks in all new regressions and in the adjusted pacing cancellation test."
+  ],
+  "boundary": {
+    "guarantee": "Pacing of final adapter admissions before transport entry.",
+    "limits": "This is not a formal wire-arrival guarantee under arbitrary OS scheduling. SourceTransport retains intentional durable cancellation checks during DNS, connect, TLS, reads and writes.",
+    "conservative_budget": "Time spent obtaining the authoritative remaining budget is charged from the pre-callback anchor, so the derived timeout can be shorter than the worker's actual remaining deadline. It never adds that callback time to the budget.",
+    "exception_contract": "workers.operations.OperationTimedOut; services/discovery/sources/collect.py restores prior health/failure metadata for local stop categories. The failure-only lazy import follows the collector's existing convention and avoids a new module-load dependency."
+  },
+  "failing_first": [
+    {
+      "source_revision": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
+      "source_blob": "09c0ef644e5af1c29c271e4547c59557e1b1e66f",
+      "tests": "Three newly written regression methods plus two existing cancellation/body-budget controls; product unmodified.",
+      "result": "6 failed, 3 passed in 2.99s",
+      "explanation": "Two spacing regressions observed 0.0 instead of 0.1 seconds; four timeout subtests observed 0.15 seconds despite only 0.13 seconds remaining. Pytest includes failed subtests in the six-failure total.",
+      "receipt": "red.log"
+    },
+    {
+      "stage": "Dispatch relocation and fresh timeout only, before replacing future reservations",
+      "result": "1 failed, 52 passed, 65 subtests passed in 25.36s",
+      "explanation": "The late-wakeup regression still observed 0.0 instead of 0.1 seconds.",
+      "receipt": "dispatch-only.log"
+    },
+    {
+      "source_revision": "c4fe236f61bda6decb7b3a66fff17008177226e5",
+      "source_blob": "4cb59028ca6774df5bb07e3e23e9be10018a1206",
+      "result": "Slow-budget regression: 1 failed in 0.49s; exhaustion regression: 3 failed subtests, 1 passed parent test in 0.94s.",
+      "explanation": "Independent review found that remaining_seconds performs durable DB control reads. A delayed post-admission callback collapsed spacing to 0.0. The intermediate implementation also dispatched with an exhausted cached worker budget.",
+      "receipts": [
+        "red-budget-refresh.log",
+        "red-budget-expiry.log"
+      ],
+      "disposition": "Intermediate commit retained in local history; corrected by source_revision above."
+    }
+  ],
+  "executed_validation": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/unit/test_greenhouse_rate_admission.py tests/integration/test_greenhouse.py tests/unit/test_greenhouse_cancellation_cleanup.py tests/unit/test_greenhouse_metadata_inventory.py tests/unit/test_greenhouse_salary.py --junitxml=.tmp/greenhouse-review/final-focused.xml",
+      "result": "PASS",
+      "passed": 56,
+      "subtests_passed": 68,
+      "failures": 0,
+      "skips": 0,
+      "pytest_seconds": 23.08,
+      "receipt": "final-focused.log"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_greenhouse_public_cancel_during_real_tcp_connect tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_public_cancel_budget_excludes_fixture_dispatch_delay tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_public_cancel_budget_rejects_delay_after_handler_admission tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_positive_public_worker_collections_and_fresh_readback tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_finite_worker_deadline_during_real_tcp_connect tests/integration/test_source_http_tcp_cleanup.py tests/integration/test_source_http_tls_cleanup.py --junitxml=.tmp/greenhouse-review/final-transport.xml",
+      "result": "PASS",
+      "passed": 10,
+      "subtests_passed": 10,
+      "failures": 0,
+      "skips": 0,
+      "pytest_seconds": 25.8,
+      "wall_seconds": 28.2422275,
+      "receipt": "final-transport.log"
+    },
+    {
+      "command": "python -B -m ruff check --select E9,F services/discovery/sources/greenhouse.py tests/integration/test_greenhouse.py tests/unit/test_greenhouse_rate_admission.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.verification.commit_provenance --commit 2536fb3c2e373c810d546d56ceef4e7ffb72275a",
+      "result": "PASS",
+      "detail": "Provenance complete for two source files; prior source commit also passed for its three source files."
+    }
+  ],
+  "independent_review": {
+    "reviewer": "/root/ci_prs",
+    "reviewed_at_utc": "2026-11-20 08:17:09 UTC",
+    "result": "CLEAR",
+    "blockers": [],
+    "reviewed_blobs": [
+      {
+        "path": "services/discovery/sources/greenhouse.py",
+        "git_blob_sha": "d7e01142f31187df696be65a6f3741a42b554708"
+      },
+      {
+        "path": "tests/integration/test_greenhouse.py",
+        "git_blob_sha": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd"
+      },
+      {
+        "path": "tests/unit/test_greenhouse_rate_admission.py",
+        "git_blob_sha": "9e562e061363e899d02c0394bb978250152b537b"
+      }
+    ],
+    "receipt_sha256": "d2b350a97a81bc922764ee3da441dff894784c8fce30b363db709c4622f738f1",
+    "receipt_private_path": ".tmp/greenhouse-review/independent-review.json",
+    "experiments": {
+      "forced_client_setup": {
+        "source_blob": "d7e01142f31187df696be65a6f3741a42b554708",
+        "scope": "Exact constructor/request/rate-gate method bodies with real HTTPX and MockTransport; no app database or external calls",
+        "results": [
+          {
+            "construction_barrier": false,
+            "gate_exit_gap_seconds": 0.10011289999965811,
+            "mock_handler_gap_seconds": 0.10026723299961304,
+            "maximum_in_flight": 2,
+            "existing_075_assertion_would_pass": true
+          },
+          {
+            "construction_barrier": true,
+            "gate_exit_gap_seconds": 0.10013738000088779,
+            "mock_handler_gap_seconds": 0.1002017769988015,
+            "maximum_in_flight": 2,
+            "existing_075_assertion_would_pass": true
+          },
+          {
+            "construction_barrier": true,
+            "gate_exit_gap_seconds": 0.10012856899993494,
+            "mock_handler_gap_seconds": 0.10023696200005361,
+            "maximum_in_flight": 2,
+            "existing_075_assertion_would_pass": true
+          },
+          {
+            "construction_barrier": true,
+            "gate_exit_gap_seconds": 0.10018395699989924,
+            "mock_handler_gap_seconds": 0.10028731300008076,
+            "maximum_in_flight": 2,
+            "existing_075_assertion_would_pass": true
+          }
+        ]
+      },
+      "delayed_budget_callback": {
+        "source_blob": "d7e01142f31187df696be65a6f3741a42b554708",
+        "scope": "Controlled delay in remaining_seconds refresh after client setup, now before final admission; not actual CI DB timing",
+        "gate_gap_seconds": 0.10015958499934641,
+        "dispatch_gap_seconds": 0.10012245899997652,
+        "existing_075_assertion_would_pass": true
+      },
+      "simultaneous_overdue_waiters": {
+        "source_blob": "d7e01142f31187df696be65a6f3741a42b554708",
+        "scope": "Exact final limiter, two simultaneous overdue waiters, module-local controlled clock",
+        "actual_admission_timestamps": [
+          0.5,
+          0.6
+        ],
+        "admission_gap_seconds": 0.09999999999999998,
+        "no_future_slot_reservations": true,
+        "rate_lock_released_during_each_sleep": true,
+        "maximum_sleep_seconds": 0.05
+      }
+    },
+    "limits": [
+      "Read-only source/test review and in-memory experiments using exact selected method bodies, real HTTPX MockTransport, and module-local clocks; no database, external network, repository source edit, or GitHub mutation.",
+      "Experiments prove reproduced setup, budget-callback, and late-wakeup mechanisms; they do not establish the unobserved scheduler history of the original CI failure.",
+      "Guarantee is adapter admission pacing before transport execution, not formal wire-arrival spacing; existing downstream DNS/TCP/TLS/read/write authority checks remain.",
+      "This receipt is tied to the three exact reviewed blobs; later changes require review as appropriate. Full focused runtime suites were run by the implementation agent, not independently rerun in this receipt."
+    ],
+    "root_review": "Root independently read revised source/tests and reported no additional blocking finding."
+  },
+  "runtime_scope": {
+    "platform": "Windows; existing development Python 3.12.10",
+    "isolation": "Owned worktree imports asserted; PYTHONDONTWRITEBYTECODE=1; temporary stores and test artifacts under the owned worktree; no dependency changes.",
+    "network": "Mock responses and owned loopback fixtures only; no provider or employer calls.",
+    "source_identity": "Committed source/test blob IDs equal the final tested file hashes."
+  },
+  "private_receipts": {
+    "relative_directory": ".tmp/greenhouse-review",
+    "files": [
+      {
+        "file": "dispatch-only.log",
+        "sha256": "d2ff0b3140f4f83fbb7b5e8d5eb650946d48a8ecd9a83e90f5be62bf6ed923a8"
+      },
+      {
+        "file": "dispatch-only.xml",
+        "sha256": "be1be07f989c6d0c8f9147626cfdb7c44964bf3d0e36bd8065151de1ece37ba2"
+      },
+      {
+        "file": "final-focused.log",
+        "sha256": "db98e9b00eac4653ade431b6facb070bad6bb5646172c6fa826b71e90c4c6994"
+      },
+      {
+        "file": "final-focused.xml",
+        "sha256": "5960908d5c6871bdeb86d9bad72e265674865a09948cc4174330012c3dee4d59"
+      },
+      {
+        "file": "final-transport.log",
+        "sha256": "c0a827edd1555d278e8dd231fbb50d46b5497d9ed428b11231e27d5468e2fb4f"
+      },
+      {
+        "file": "final-transport.xml",
+        "sha256": "dbd97cc93c9c26fcddbe3ed821c0e7a7e989b017306e686f5d6e3b84f30ff9fb"
+      },
+      {
+        "file": "green-focused.log",
+        "sha256": "6edde43f6c5b502eca8895a3749f84fd85ddb3498f09d58892f4459e7e394257"
+      },
+      {
+        "file": "green-focused.xml",
+        "sha256": "81fe201c11ad5557e4972e482644e863eb58da35caba6a0db45faea501521bc3"
+      },
+      {
+        "file": "green-regressions.log",
+        "sha256": "49b9ce151d00a06bfa79f92d121ed092e0d4df2bd27251e14ccaf2fbbb1f0d44"
+      },
+      {
+        "file": "green-regressions.xml",
+        "sha256": "da1457589b34dc2b35c8fd12b7772ccb51202f976b03df38142c208469c21c8a"
+      },
+      {
+        "file": "green-transport.log",
+        "sha256": "550351a9426d04048620d0c512d969d443d73b365b0abc6018c01cf9987ba84e"
+      },
+      {
+        "file": "green-transport.xml",
+        "sha256": "17cc376d7719a574db4ec77d4806b8e5c05509019cd7d77de1bf0aa33187ab2c"
+      },
+      {
+        "file": "red-budget-expiry.log",
+        "sha256": "c4da5f34c1e73b829673a8af94b43ea6b40a0bc96644b6031f7a7b008b64fb56"
+      },
+      {
+        "file": "red-budget-expiry.xml",
+        "sha256": "7bc2833f40725e223ce23cb29517a76585c5b20c86c6f40a6d196cf8bd7f4232"
+      },
+      {
+        "file": "red-budget-refresh.log",
+        "sha256": "f9a20678514296806a616d20b862c14fa04360a9079ac7f3aab75ca7e0dccb4e"
+      },
+      {
+        "file": "red-budget-refresh.xml",
+        "sha256": "62281c9beb354b80f2371743f94579a799d1f804e2af55e503bc46cf6522bb48"
+      },
+      {
+        "file": "red.log",
+        "sha256": "9b0fb513ee3f1988d99ef9a51fbc38ccf897073a74a61eb7061f0adbe57f904a"
+      },
+      {
+        "file": "red.xml",
+        "sha256": "ac5b7287526738d70205ad926df7112ea9e6a90226168739702a2a7498cfbdae"
+      }
+    ]
+  },
+  "remaining_gates": [
+    "Root review/publication to a separate focused repair PR.",
+    "Required hosted checks on the exact published candidate; not run by this worker.",
+    "Authorized protected integration; no main merge or production deployment performed."
+  ],
+  "integration_note": "Root's live inventory identified PR1029 as overlapping only tests/integration/test_greenhouse.py. Its application-prepare work changes concurrency fixtures, not this pacing product boundary; serialize any later integration.",
+  "not_run": [
+    "Full repository suite",
+    "Current-candidate hosted CI",
+    "Live provider validation",
+    "Production rollout"
+  ]
+}

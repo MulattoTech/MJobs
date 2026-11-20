@@ -118,11 +118,16 @@ class GreenhouseTests(unittest.TestCase):
                 time.sleep(0.05)
                 yield b"{}"
 
-        budgets = iter((10, 0.01))
+        response_started = threading.Event()
         check = lambda: None
-        check.remaining_seconds = lambda: next(budgets)
-        transport = httpx.MockTransport(lambda _: httpx.Response(
-            200, headers={"content-type": "application/json"}, stream=SlowBody()))
+        check.remaining_seconds = lambda: 0.01 if response_started.is_set() else 10
+
+        def handler(_request):
+            response_started.set()
+            return httpx.Response(
+                200, headers={"content-type": "application/json"}, stream=SlowBody())
+
+        transport = httpx.MockTransport(handler)
         adapter = Greenhouse("example", transport=transport, check=check, request_timeout=10)
 
         with self.assertRaisesRegex(ValueError, "SOURCE_TIME_LIMIT"):
@@ -802,10 +807,14 @@ class GreenhouseTests(unittest.TestCase):
         def sleep(seconds):
             clock[0] += seconds
 
-        with patch("services.discovery.sources.greenhouse.time.monotonic", side_effect=lambda: clock[0]), \
-                patch("services.discovery.sources.greenhouse.time.sleep", side_effect=sleep), \
-                patch("services.discovery.sources.greenhouse.httpx.Client",
-                      side_effect=lambda *args, **kwargs: network_requests.append((args, kwargs))), \
+        def handler(request):
+            network_requests.append(request)
+            return httpx.Response(200, json={"jobs": []})
+
+        module_clock = SimpleNamespace(monotonic=lambda: clock[0], sleep=sleep)
+        with patch("services.discovery.sources.greenhouse.time", module_clock), \
+                patch("services.discovery.sources.greenhouse.SourceTransport",
+                      return_value=httpx.MockTransport(handler)), \
                 self.assertRaisesRegex(RuntimeError, "CANCEL_REQUESTED"):
             adapter._request("/jobs")
 
