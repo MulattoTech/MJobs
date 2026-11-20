@@ -60,6 +60,102 @@ def _sources(read, profile_id):
     return rows
 
 
+MAX_BASELINE_JOBS = 1_000
+BASELINE_PAGE_SIZE = 200
+BASELINE_SCOPE = 'ALL_PERSISTED_JOBS'
+
+
+def _original_inventory(read, profile_id, profile_version):
+    """Freeze the complete original persisted job/source-copy view before discovery.
+
+    The canonical inventory API supplies a stable snapshot hash and cursor. A
+    saturated, changed or over-budget inventory cannot prove that an employer
+    opening was absent originally; fail closed instead of sampling page one.
+    Only stable IDs and hashes are retained, never raw postings or profile facts.
+    """
+    from cli.acceptance_public_source import ENDPOINTS
+    from packages.persistence.job_inventory import digest as inventory_digest
+    path = '/profiles/' + quote(profile_id, safe='') + '/job-inventory'
+    expected = {'schema_version', 'scope', 'profile_id', 'profile_version', 'total',
+                'source_copy_count', 'snapshot_sha256', 'after', 'jobs',
+                'complete', 'next_cursor'}
+    ids, aggregator_ids = [], set()
+    observed_copies = 0
+    after = cursor = snapshot = total = copies = None
+    for _ in range(MAX_BASELINE_JOBS // BASELINE_PAGE_SIZE + 1):
+        params = {'limit': BASELINE_PAGE_SIZE}
+        if cursor is not None:
+            params.update(cursor=cursor, snapshot_sha256=snapshot)
+        page = read('GET', path, params=params)
+        _require(isinstance(page, dict) and set(page) == expected
+                 and type(page['schema_version']) is int and page['schema_version'] == 4
+                 and page['scope'] == BASELINE_SCOPE
+                 and page['profile_id'] == profile_id
+                 and page['profile_version'] == profile_version
+                 and type(page['total']) is int and page['total'] >= 0
+                 and type(page['source_copy_count']) is int and page['source_copy_count'] >= 0
+                 and isinstance(page['snapshot_sha256'], str)
+                 and re.fullmatch(r'[a-f0-9]{64}', page['snapshot_sha256'])
+                 and page['after'] == after
+                 and isinstance(page['jobs'], list)
+                 and (after is None or bool(page['jobs']))
+                 and len(page['jobs']) <= BASELINE_PAGE_SIZE
+                 and type(page['complete']) is bool,
+                 'EMPLOYER_BASELINE_INVENTORY_INVALID')
+        if page['total'] > MAX_BASELINE_JOBS:
+            _require(False, 'EMPLOYER_BASELINE_INVENTORY_BUDGET_EXCEEDED')
+        if snapshot is None:
+            snapshot, total, copies = (page['snapshot_sha256'],
+                                       page['total'], page['source_copy_count'])
+        _require(page['snapshot_sha256'] == snapshot and page['total'] == total
+                 and page['source_copy_count'] == copies,
+                 'EMPLOYER_BASELINE_INVENTORY_CHANGED')
+        page_ids = []
+        for row in page['jobs']:
+            _require(isinstance(row, dict)
+                     and set(row) == {'job_id', 'canonical_sha256', 'route_count',
+                                      'source_copy_count', 'source_copies',
+                                      'source_copies_sha256'}
+                     and type(row['route_count']) is int and row['route_count'] >= 0
+                     and type(row['source_copy_count']) is int
+                     and isinstance(row['source_copies'], list)
+                     and row['source_copy_count'] == len(row['source_copies'])
+                     and row['source_copies_sha256'] == inventory_digest(row['source_copies'])
+                     and isinstance(row['canonical_sha256'], str)
+                     and re.fullmatch(r'[a-f0-9]{64}', row['canonical_sha256']),
+                     'EMPLOYER_BASELINE_INVENTORY_INVALID')
+            identifier = _id(row['job_id'])
+            page_ids.append(identifier)
+            observed_copies += row['source_copy_count']
+            for posting in row['source_copies']:
+                _require(isinstance(posting, dict) and set(posting) ==
+                         {'posting_id', 'source', 'source_job_id', 'source_url', 'sha256'}
+                         and isinstance(posting['source'], str)
+                         and isinstance(posting['sha256'], str)
+                         and re.fullmatch(r'[a-f0-9]{64}', posting['sha256']),
+                         'EMPLOYER_BASELINE_INVENTORY_INVALID')
+                if posting['source'] in ENDPOINTS.values():
+                    aggregator_ids.add(identifier)
+        _require(page_ids == sorted(set(page_ids))
+                 and (not ids or not page_ids or ids[-1] < page_ids[0])
+                 and len(ids) + len(page_ids) <= total,
+                 'EMPLOYER_BASELINE_INVENTORY_CHANGED')
+        ids.extend(page_ids)
+        if page['complete']:
+            _require(page['next_cursor'] is None and len(ids) == total
+                     and observed_copies == copies,
+                     'EMPLOYER_BASELINE_INVENTORY_INCOMPLETE')
+            return {'scope': BASELINE_SCOPE, 'total': total,
+                    'snapshot_sha256': snapshot, 'job_ids': ids,
+                    'aggregator_job_ids': sorted(aggregator_ids)}
+        _require(len(page_ids) == BASELINE_PAGE_SIZE
+                 and isinstance(page['next_cursor'], str)
+                 and 0 < len(page['next_cursor']) <= 1024,
+                 'EMPLOYER_BASELINE_INVENTORY_INCOMPLETE')
+        after, cursor = ids[-1], page['next_cursor']
+    _require(False, 'EMPLOYER_BASELINE_INVENTORY_BUDGET_EXCEEDED')
+
+
 def begin(read, profile_id, profile_version, *, utc_now=lambda: datetime.now(timezone.utc)):
     """Capture the complete source view before dispatch; no job-page approximation.
 
@@ -72,6 +168,7 @@ def begin(read, profile_id, profile_version, *, utc_now=lambda: datetime.now(tim
     _require(profile.get('id') == profile_id and profile.get('version') == profile_version
         and policy is not None, 'EMPLOYER_PROFILE_CONSENT_CHANGED')
     rows = _sources(read, profile_id)
+    baseline_jobs = _original_inventory(read, profile_id, profile_version)
     minimum_score = (profile.get('preferences') or {}).get('company_discovery', {}).get('minimum_match_for_discovery', 60)
     _require(type(minimum_score) in (int, float) and 0 <= minimum_score <= 100,
         'EMPLOYER_RELEVANCE_POLICY_INVALID')
@@ -80,7 +177,12 @@ def begin(read, profile_id, profile_version, *, utc_now=lambda: datetime.now(tim
         scope='COMPLETE_PERSISTED_COMPANY_SOURCE_VIEW', policy_sha256=_digest(policy),
         minimum_match_score=minimum_score,
         company_ids=sorted({_id(row.get('company_id')) for row in rows}),
-        source_ids=sorted(row['id'] for row in rows), source_view_sha256=_digest(rows)))
+        source_ids=sorted(row['id'] for row in rows), source_view_sha256=_digest(rows),
+        baseline_job_scope=baseline_jobs['scope'],
+        baseline_job_snapshot_sha256=baseline_jobs['snapshot_sha256'],
+        baseline_job_total=baseline_jobs['total'],
+        baseline_job_ids=baseline_jobs['job_ids'],
+        baseline_aggregator_job_ids=baseline_jobs['aggregator_job_ids']))
 
 
 def _inventory(response, evidence, source):
@@ -233,7 +335,8 @@ def _choose(initial, evidence, inventory, sources, jobs):
             proof['endpoint'], item['source_job_id']), 'EMPLOYER_NATIVE_POSTING_CHANGED')
         for item in proof['manifest']:
             detail = jobs.get(item['canonical_job_id'])
-            if detail is None or detail['id'] == trigger['id']:
+            if (detail is None or detail['id'] == trigger['id']
+                    or detail['id'] in initial['baseline_job_ids']):
                 continue
             _require(detail['fictional'] is False and detail['company_id'] == child['company_id'] and _posting(detail, item['posting_id'],
                 item['snapshot_id'], item['snapshot_sha256'], proof['endpoint'], item['source_job_id']),
@@ -296,7 +399,9 @@ def validate(result, evidence):
     initial = result['initial']
     _check_seal(initial)
     _require(set(initial) == {'schema_version', 'profile_id', 'profile_version', 'captured_at', 'scope',
-        'policy_sha256', 'minimum_match_score', 'company_ids', 'source_ids', 'source_view_sha256', 'sha256'}
+        'policy_sha256', 'minimum_match_score', 'company_ids', 'source_ids',
+        'source_view_sha256', 'baseline_job_scope', 'baseline_job_snapshot_sha256',
+        'baseline_job_total', 'baseline_job_ids', 'baseline_aggregator_job_ids', 'sha256'}
         and type(initial['schema_version']) is int and initial['schema_version'] == 1
         and type(initial['minimum_match_score']) in (int, float) and 0 <= initial['minimum_match_score'] <= 100
         and initial['scope'] == 'COMPLETE_PERSISTED_COMPANY_SOURCE_VIEW'
@@ -306,6 +411,19 @@ def validate(result, evidence):
         ids = initial[key]
         _require(isinstance(ids, list) and len(ids) <= MAX_SOURCE_ROWS
             and ids == sorted({_id(value) for value in ids}), 'EMPLOYER_BASELINE_CHANGED')
+    _require(initial['baseline_job_scope'] == BASELINE_SCOPE
+        and isinstance(initial['baseline_job_snapshot_sha256'], str)
+        and re.fullmatch(r'[a-f0-9]{64}', initial['baseline_job_snapshot_sha256'])
+        and type(initial['baseline_job_total']) is int
+        and 0 <= initial['baseline_job_total'] <= MAX_BASELINE_JOBS
+        and isinstance(initial['baseline_job_ids'], list)
+        and len(initial['baseline_job_ids']) == initial['baseline_job_total']
+        and initial['baseline_job_ids'] == sorted({_id(value) for value in initial['baseline_job_ids']})
+        and isinstance(initial['baseline_aggregator_job_ids'], list)
+        and initial['baseline_aggregator_job_ids'] ==
+            sorted({_id(value) for value in initial['baseline_aggregator_job_ids']})
+        and set(initial['baseline_aggregator_job_ids']).issubset(initial['baseline_job_ids']),
+        'EMPLOYER_BASELINE_INVENTORY_CHANGED')
     _timestamp(initial['captured_at'])
     _require(_timestamp(initial['captured_at']) <= _timestamp(evidence['collection_started_at']),
         'EMPLOYER_BASELINE_CHRONOLOGY_CHANGED')

@@ -72,6 +72,24 @@ class ControlledAPI:
             return dict(operation_mode='FIXTURE', external_submission_enabled=False)
         if (method, path) == ('GET', '/profiles/profile'):
             return deepcopy(self.profile)
+        if (method, path) == ('GET', '/profiles/profile/job-inventory'):
+            from packages.persistence.job_inventory import digest, snapshot_digest
+            assert kwargs.get('params') == {'limit': 200}
+            # Existing selected mock job is part of the original persisted catalogue.
+            # Later public/native results must not be mistaken for original jobs.
+            original = {
+                'job_id': 'fixture-job', 'canonical_sha256': digest(self.fixture),
+                'route_count': 1, 'source_copy_count': 0, 'source_copies': [],
+                'source_copies_sha256': digest([]),
+            }
+            jobs = [original]
+            return {
+                'schema_version': 4, 'scope': 'ALL_PERSISTED_JOBS',
+                'profile_id': 'profile', 'profile_version': self.profile['version'],
+                'total': len(jobs), 'source_copy_count': 0,
+                'snapshot_sha256': snapshot_digest('profile', self.profile['version'], jobs),
+                'after': None, 'jobs': jobs, 'complete': True, 'next_cursor': None,
+            }
         if (method, path) == ('GET', '/profiles/profile/applications/app'):
             return deepcopy(self.app)
         if (method, path) == ('GET', '/jobs/fixture-job'):
@@ -174,6 +192,37 @@ class PublicSourceObservationTests(unittest.TestCase):
                 self.assertTrue(self.api.source['enabled'])
                 self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
 
+    def test_safe_source_setup_codes_are_recorded_without_dispatch_or_secret_text(self):
+        from cli.acceptance_source_setup import SourceSetupError
+        for code in ('ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED',
+                     'SOURCE_SETUP_LEASE_CONTINUITY_INVALID',
+                     'SOURCE_SETUP_FIXTURE_MODE_REQUIRED'):
+            with self.subTest(code=code):
+                self.api = ControlledAPI()
+                stages = []
+                def containment(stage, context):
+                    stages.append(stage)
+                    if stage == 'preflight':
+                        raise SourceSetupError(code)
+                    return deepcopy(PROOF)
+                result = self.observe(containment_preflight=containment)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+                self.assertEqual(result['containment_failure'], dict(schema_version=1,
+                    stage='preflight', error_class='SourceSetupError', code=code))
+                self.assertIsNone(self.api.source)
+                self.assertEqual(stages, ['preflight'])
+                self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
+        for error in (SourceSetupError('Bearer synthetic-secret-never-serialize'),
+                      SourceSetupError('UNKNOWN_CODE'),
+                      SourceSetupError('SOURCE_SETUP_FIXTURE_MODE_REQUIRED', 'secret')):
+            self.api = ControlledAPI()
+            def containment(stage, context):
+                raise error
+            result = self.observe(containment_preflight=containment)
+            self.assertNotIn('containment_failure', result)
+            self.assertNotIn('synthetic-secret', json.dumps(result))
+
     def test_employer_capture_requires_saved_ui_witness_before_any_mutation(self):
         result = self.observe(employer_verification=True)
         self.assertEqual(result['result'], 'FAIL')
@@ -211,6 +260,25 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(result['employer_observation']['public_acceptance'], 'NOT_RUN')
         self.assertEqual(self.api.profile, before)
         self.assertFalse(any(method != 'GET' and path.startswith('/profiles/') for method, path, _ in self.api.calls))
+
+        # Failure to read the original inventory is not an empty inventory.
+        # It must stop before dispatch, even with an otherwise empty employer cohort.
+        calls_before = len(self.api.calls)
+        def missing_inventory_request(method, path, **kwargs):
+            if path == '/company-sources/view':
+                return {'company_sources': []}
+            if path == '/profiles/profile/job-inventory':
+                return None
+            return self.api.request(method, path, **kwargs)
+        missing = run('http://127.0.0.1:18700', baseline,
+            self.path.with_name('missing-inventory.json'), acceptance_run_id='campaign',
+            request=missing_inventory_request, execution_scope='CONTROLLED_TRANSPORT',
+            containment_preflight=lambda *_: deepcopy(PROOF), employer_verification=True,
+            utc_now=lambda: datetime.fromisoformat(STAMP))
+        self.assertEqual(missing['result'], 'FAIL')
+        self.assertEqual(missing['error_code'], 'EMPLOYER_BASELINE_INVENTORY_INVALID')
+        self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls[calls_before:]))
+        self.assertEqual(self.api.profile, before)
 
     def test_unknown_or_untrusted_exception_text_is_never_saved_as_containment_diagnostic(self):
         from cli.acceptance_containment import ContainmentError

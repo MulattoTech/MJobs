@@ -292,7 +292,9 @@ def compare_scored_jobs(
         if len(term_job_ids) >= 2:
             provenance_rows: list[SharedRequirementProvenance] = []
             for job_id in term_job_ids:
-                for provenance_key in sorted(jobs_for_term[job_id]):
+                for provenance_key in sorted(
+                    jobs_for_term[job_id], key=lambda key: (key[0], key[1] or ""),
+                ):
                     provenance = jobs_for_term[job_id][provenance_key]
                     provenance_rows.append({"job_id": job_id, **provenance})
             shared_requirements.append({
@@ -302,7 +304,9 @@ def compare_scored_jobs(
             })
             continue
         job_id = term_job_ids[0]
-        for provenance_key in sorted(jobs_for_term[job_id]):
+        for provenance_key in sorted(
+            jobs_for_term[job_id], key=lambda key: (key[0], key[1] or ""),
+        ):
             job_specific_requirements.append({
                 "term": term,
                 "job_id": job_id,

@@ -106,6 +106,71 @@ class JobComparisonTests(unittest.TestCase):
         ])
         self.assertEqual(result["unknowns"], [])
 
+    def _compare_mixed_optional_references(self, *, shared):
+        snapshots = [
+            _snapshot("job-a", [
+                _requirement("python", "feed-b", "req-z"),
+                _requirement("python", "feed-a", "req-q"),
+                _requirement("python", "feed-b"),
+                _requirement("python", "feed-b", "req-a"),
+                _requirement("python", "feed-b", "req-a"),
+                _requirement("python", "feed-b"),
+            ]),
+            _snapshot("job-b", [
+                _requirement("python", "feed-b", "req-b"),
+            ] if shared else []),
+        ]
+        results = []
+        for reverse in (False, True):
+            inputs = deepcopy(snapshots)
+            if reverse:
+                inputs.reverse()
+                for snapshot in inputs:
+                    snapshot["required_requirements"].reverse()
+            original = deepcopy(inputs)
+            result = compare_scored_jobs(
+                profile_id="profile-a",
+                search_profile_id="search-a",
+                job_ids=["job-b", "job-a"],
+                snapshots=inputs,
+            )
+            self.assertEqual(inputs, original)
+            self.assertEqual(result["unknowns"], [])
+            results.append(result)
+        self.assertEqual(results[0], results[1])
+        return results[0]
+
+    def test_shared_provenance_preserves_absent_and_populated_references(self):
+        result = self._compare_mixed_optional_references(shared=True)
+
+        self.assertEqual(result["shared_requirements"], [{
+            "term": "python",
+            "job_ids": ["job-b", "job-a"],
+            "provenance": [
+                {"job_id": "job-b", "source": "feed-b", "evidence_ref": "req-b"},
+                {"job_id": "job-a", "source": "feed-a", "evidence_ref": "req-q"},
+                {"job_id": "job-a", "source": "feed-b"},
+                {"job_id": "job-a", "source": "feed-b", "evidence_ref": "req-a"},
+                {"job_id": "job-a", "source": "feed-b", "evidence_ref": "req-z"},
+            ],
+        }])
+        self.assertEqual(result["job_specific_requirements"], [])
+
+    def test_specific_provenance_preserves_absent_and_populated_references(self):
+        result = self._compare_mixed_optional_references(shared=False)
+
+        self.assertEqual(result["shared_requirements"], [])
+        self.assertEqual(result["job_specific_requirements"], [
+            {"term": "python", "job_id": "job-a",
+             "provenance": {"source": "feed-a", "evidence_ref": "req-q"}},
+            {"term": "python", "job_id": "job-a",
+             "provenance": {"source": "feed-b"}},
+            {"term": "python", "job_id": "job-a",
+             "provenance": {"source": "feed-b", "evidence_ref": "req-a"}},
+            {"term": "python", "job_id": "job-a",
+             "provenance": {"source": "feed-b", "evidence_ref": "req-z"}},
+        ])
+
     def test_missing_or_malformed_requirement_evidence_stays_unknown(self):
         snapshots = [
             _snapshot("job-a", [_requirement("python", "source-a")]),
