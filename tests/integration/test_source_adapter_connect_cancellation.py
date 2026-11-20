@@ -1,6 +1,6 @@
 """MJ-REQ-004: real public-worker connect cancellation for remaining adapters.
 
-Provider endpoints, operation timeout and SSL-context readiness are fixture seams.
+Provider endpoints, operation timeout, profile and SSL readiness are fixture seams.
 Only cold-SSL accounting uses an owned operation clock; socket/cancellation
 budgets retain the real clock. No production transport/check/stream is replaced.
 Synthetic loopback stores only.
@@ -156,12 +156,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
                    transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0,
-                   cancel_dispatch_delay=0, cancel_service_delay=0):
+                   cancel_dispatch_delay=0, cancel_service_delay=0,
+                   profile_setup_delay=0, profile_read_delay=0):
         tenant = tenant or source_tenant(provider)
         cold_ssl = mode == "cold_ssl_deadline"
         pre_ssl_deadline = mode == "pre_ssl_deadline"
         unprepared_ssl = cold_ssl or pre_ssl_deadline
-        finite_deadline = mode == "deadline" or unprepared_ssl
+        profile_deadline = mode == "profile_deadline"
+        prepare_profile = mode == "deadline" or profile_deadline
+        finite_deadline = mode == "deadline" or unprepared_ssl or profile_deadline
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -194,6 +197,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             cold_clock_value = [0.0]
             cold_clock = SimpleNamespace(monotonic=lambda: cold_clock_value[0]) if cold_ssl else None
             ssl_factory_calls = {"entered": 0, "completed": 0}
+            profile_preparing = [False]
+            profile_reads = []
+            profile_setup_delayed = [False]
+            original_profile = Store.profile
+            original_worker_store = worker_tasks.Store
+            prepared_worker_stores = []
+            profile_preparations = []
+            profile_read_delayed = [False]
             cancel_calls = []
             worker_finished_at = []
             worker = None
@@ -216,6 +227,58 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     finally:
                         sample["exited_at"] = time.monotonic()
                 return observed
+
+            def observe_profile_read(worker_store, profile_id, version=None, connection=None):
+                targeted = (threading.current_thread() is worker
+                            and profile_id == PROFILE["id"]
+                            and (profile_preparing[0] or "collector_entered_at" in phases))
+                if not targeted:
+                    return original_profile(worker_store, profile_id, version, connection)
+                sample = {"entered_at": time.monotonic(),
+                          "phase": "preparation" if profile_preparing[0] else "execution"}
+                profile_reads.append(sample)
+                try:
+                    if profile_setup_delay and not profile_setup_delayed[0]:
+                        profile_setup_delayed[0] = True
+                        time.sleep(profile_setup_delay)
+                    if (profile_read_delay and not profile_preparing[0]
+                            and not profile_read_delayed[0]):
+                        self.assertTrue(deadline_started_at,
+                                        "Slow collector profile read must follow deadline construction")
+                        profile_read_delayed[0] = True
+                        sample["delayed_after_deadline"] = True
+                        time.sleep(profile_read_delay)
+                    return original_profile(worker_store, profile_id, version, connection)
+                finally:
+                    sample["exited_at"] = time.monotonic()
+
+            def prepare_worker_store(*args, **kwargs):
+                owned = threading.current_thread() is worker
+                if owned:
+                    self.assertEqual(args, (url,), "Worker must use the exact owned fixture database")
+                    self.assertEqual(kwargs, {})
+                worker_store = original_worker_store(*args, **kwargs)
+                if not owned or not prepare_profile:
+                    return worker_store
+                try:
+                    self.assertEqual(prepared_worker_stores, [],
+                                     "Prepare exactly one owned worker Store")
+                    prepared_worker_stores.append(worker_store)
+                    sample = {"entered_at": time.monotonic()}
+                    profile_preparations.append(sample)
+                    profile_preparing[0] = True
+                    try:
+                        # Warm this Store's real connection/query path, discarding
+                        # data. The collector must still perform its own read.
+                        worker_store.profile(PROFILE["id"])
+                    finally:
+                        profile_preparing[0] = False
+                        sample["exited_at"] = time.monotonic()
+                    return worker_store
+                except BaseException:
+                    # execute_operation constructs Store before its try/finally.
+                    worker_store.engine.dispose()
+                    raise
 
             original_factory = source_collection.source_adapter
 
@@ -310,12 +373,17 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         f"deadline_clock={'controlled' if cold_ssl else 'real'}; "
                         f"ssl_factory_calls={ssl_factory_calls!r}; wall_phase_times={timestamps!r}; "
                         f"pre_ssl_phases={pre_ssl_phases!r}; "
+                        f"profile_preparations={profile_preparations!r}; profile_reads={profile_reads!r}; "
                         f"worker_outcome={worker_outcome_diagnostic(outcome[-1] if outcome else None)}; "
                         f"worker_error_count={len(errors)}; outcomes={len(outcome)}; "
                         f"connects={state.get('connects', 0)}; requests={state.get('requests', 0)}; "
                         f"socket_fd={connection.fileno() if connection is not None else None}")
 
             def observe_collect_source(*args, **kwargs):
+                if prepare_profile:
+                    self.assertEqual(len(prepared_worker_stores), 1)
+                    self.assertIs(args[0], prepared_worker_stores[0],
+                                  "Collector must use the same prepared real worker Store")
                 # This is a sticky, non-blocking observation after the production
                 # deadline has started. Never wait here: scheduler delay belongs
                 # to the test coordinator, not the production worker's deadline.
@@ -425,9 +493,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     new=observe_connect_tcp), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", side_effect=record_timeout), patch(
+                    "workers.tasks.Store", new=prepare_worker_store), patch(
                     "workers.operations._read_operation_control",
                     new=observe_phase("control_read", worker_operations._read_operation_control)), patch.object(
-                    Store, "profile", new=observe_phase("profile", Store.profile)), patch(
+                    Store, "profile", new=observe_phase("profile", observe_profile_read)), patch(
                     "services.discovery.sources.collect.source_adapter", new=observe_adapter_factory), patch(
                     "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
                 if cold_ssl:
@@ -524,6 +593,18 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
                             f"{phase_diagnostic()}")
+                        if prepare_profile:
+                            self.assertEqual(len(profile_preparations), 1)
+                            self.assertEqual(len(deadline_started_at), 1)
+                            self.assertLessEqual(profile_preparations[0]["exited_at"],
+                                                 deadline_started_at[0],
+                                "Real profile preparation must finish before the worker deadline starts")
+                            if profile_setup_delay:
+                                self.assertGreater(profile_setup_delay, .8)
+                                self.assertTrue(profile_setup_delayed[0])
+                                self.assertGreaterEqual(
+                                    profile_preparations[0]["exited_at"] - profile_preparations[0]["entered_at"],
+                                    profile_setup_delay)
                         if mode == "deadline":
                             self.assertEqual(len(deadline_started_at), 1,
                                 f"{provider} source collector entered without one recorded operation deadline; "
@@ -674,6 +755,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              f"Expired setup must not start a socket connect; {phase_diagnostic()}")
                             self.assertFalse(transport_completed.is_set(),
                                              f"Setup timeout cannot report transport success; {phase_diagnostic()}")
+                        elif profile_deadline:
+                            self.assertGreater(profile_read_delay, .8)
+                            self.assertTrue(profile_read_delayed[0])
+                            delayed_reads = [sample for sample in profile_reads
+                                             if sample.get("delayed_after_deadline")]
+                            self.assertEqual(len(delayed_reads), 1)
+                            self.assertGreaterEqual(delayed_reads[0]["entered_at"], deadline_started_at[0])
+                            self.assertGreaterEqual(delayed_reads[0]["exited_at"] - delayed_reads[0]["entered_at"],
+                                                    profile_read_delay)
+                            self.assertEqual(ssl_factory_calls, {"entered": 0, "completed": 0})
+                            self.assertEqual(ssl_context_uses, [])
+                            self.assertFalse(transport_entered.is_set(), phase_diagnostic())
+                            self.assertFalse(transport_completed.is_set(), phase_diagnostic())
                         elif provider == "remoteok":
                             self.assertTrue(ssl_context_uses,
                                 "Owned remoteok transport did not use its ready SSL context")
@@ -707,12 +801,26 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         finally:
                             reopened.engine.dispose()
                         self.assertEqual(state["requests"], (2 if provider == "greenhouse" else 1) if mode == "positive" else 0)
-                        if unprepared_ssl:
+                        if unprepared_ssl or profile_deadline:
                             self.assertEqual(state["connects"], 0)
                             self.assertIsNone(state.get("connecting_socket"))
                         elif mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
+                        if prepare_profile:
+                            preparation_reads = [sample for sample in profile_reads
+                                                 if sample["phase"] == "preparation"]
+                            execution_reads = [sample for sample in profile_reads
+                                               if sample["phase"] == "execution"]
+                            self.assertEqual(len(preparation_reads), 1)
+                            self.assertTrue(execution_reads,
+                                            "The real collector must reread the profile after preparation")
+                            self.assertGreaterEqual(execution_reads[0]["entered_at"], phases["collector_entered_at"])
+                            self.assertGreaterEqual(execution_reads[0]["entered_at"], deadline_started_at[0])
+                            print(f"OWNED_PROFILE_READINESS mode={mode} preparation_calls={len(profile_preparations)} "
+                                  f"preparation_seconds={profile_preparations[0]['exited_at'] - profile_preparations[0]['entered_at']:.3f} "
+                                  f"first_execution_seconds={execution_reads[0]['exited_at'] - execution_reads[0]['entered_at']:.3f} "
+                                  f"connects={state['connects']}")
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
@@ -801,6 +909,13 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def test_lever_eu_finite_deadline_during_real_tcp_connect(self):
         self.run_source("lever", "deadline", tenant="eu:synthetic", coordinator_delay=1.05)
+
+    def test_lever_eu_finite_deadline_with_slow_profile_preparation(self):
+        self.run_source("lever", "deadline", tenant="eu:synthetic",
+                        coordinator_delay=1.05, profile_setup_delay=.9)
+
+    def test_lever_eu_slow_profile_read_after_deadline_prevents_connect(self):
+        self.run_source("lever", "profile_deadline", tenant="eu:synthetic", profile_read_delay=.9)
 
     def test_lever_global_healthy_worker_and_fresh_source_readback(self):
         self.run_source("lever", "positive", tenant="global:synthetic")

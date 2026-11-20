@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T14:06:42.601279+00:00",
+  "status": "PRIVATE_SOURCE_PROFILE_READINESS_QUALIFIED_NOT_PUBLISHED",
+  "repository": "MulattoTech/MJobs",
+  "requirement": "MJ-REQ-004",
+  "issue": 5,
+  "canonical_status": "PARTIAL",
+  "canonical_acceptance_changed": false,
+  "scope": "Only the real-worker source-adapter integration fixture and this evidence record. No production source, deadline policy, canonical acceptance or shared session edits.",
+  "base_commit": "7064ef048df4953f4bc050468ecda141cabba38d",
+  "source_commit": "edbd7dffa74b40ba1f9cb09c9139ea6122cbd9f4",
+  "source_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+  "tested_index_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+  "source_tree_equals_tested_index": true,
+  "test_path": "tests/integration/test_source_adapter_connect_cancellation.py",
+  "baseline_test_blob": "f2ed3411afdd1bc44ece2ee0bee55fde61643129",
+  "repaired_test_blob": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+  "historical_failure": {
+    "pr": 1069,
+    "pr_head": "ee1096b69db708c49e737460844b58ad2d536d90",
+    "tested_merge_commit_from_checkout_log": "0393f73a4cda0d430661ee0974893914c9152ea0",
+    "run_id": 44742709060,
+    "run_attempt": 1,
+    "failed_job_id": 136310100319,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/44742709060/job/136310100319",
+    "sole_failed_test": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests::test_lever_eu_finite_deadline_during_real_tcp_connect",
+    "failed_job_completed_utc": "2026-11-20T13:32:10Z",
+    "aggregate_job_id": 136319309665,
+    "aggregate_conclusion": "failure",
+    "aggregate_completed_utc": "2026-11-20T13:34:01Z",
+    "other_shards": "Shards 0 and 2 passed; no rerun or cancellation performed.",
+    "pytest_outcomes": {
+      "failed": 1,
+      "passed": 1109,
+      "skipped": 28,
+      "subtests": 474,
+      "warnings": 15,
+      "errors": 0,
+      "basis": "Retained pytest final summary; JUnit aggregate tests=1612, failures=1, errors=0, skipped=28 are consistent when including 474 subtests."
+    },
+    "reported_profile_span_ms": 803.8,
+    "worker_outcome_ms_from_deadline": 810.8,
+    "worker_outcome": {
+      "status": "DEAD_LETTERED",
+      "error_category": "OPERATION_TIMEOUT"
+    },
+    "owned_transport_connects": 0,
+    "requests": 0,
+    "post_deadline_ssl_factory_calls": 0,
+    "interpretation": "The real .8-second worker budget was exhausted during the initial profile read. The following production cancellation/deadline check correctly stopped collection before adapter, SSL or TCP entry. This does not demonstrate a product transport regression.",
+    "unknown": "The original reason for the hosted 803.8 ms profile span remains undetermined. The controlled test below demonstrates this boundary failure without claiming to identify that cause.",
+    "decoded_log_sha256": "c4507aa5c853694b1efe2ca649bd96e4ed9fb90947bc88dccaa3b849819b7660",
+    "artifact_id": 14631744668,
+    "artifact_zip_sha256": "14baf7c55efda76681edcad4fadec3bcea3ad47d3b1d178a565be4cf6a02eb10",
+    "xml_sha256": "a8c475241687a9692c4bddb5519294029a64291c0d6c406a0c02bf57319035f7",
+    "artifact_verification_receipt_sha256": "3af632f24c2633097bb335a0bd535bc2604aea1e5bc59881f1b59d67005ab152",
+    "terminal_receipt_sha256": "af0c38e82d065a69cabb7e74a272ab61963a0f44d9589770da41adaa70961bfd",
+    "count_qualification": "Pytest outcome totals include subtests; raw JUnit testcase-element counts differ and are preserved separately by the artifact verifier. No skipped case is counted as a pass."
+  },
+  "fixture_correction": {
+    "owned_factory": "Patch only workers.tasks.Store inside this fixture. Match the exact worker Thread object and assert the exact owned SQLite URL before constructing the real original Store.",
+    "preparation": "For transport-ready finite-deadline cases, call the real Store.profile once before deadline construction and discard its returned data. Pass that same Store into execute_operation and assert collector Store identity.",
+    "real_read_retained": "The real collector still calls the original Store.profile after the sole deadline starts; no saved profile result, substitute profile, frozen clock or deadline reset is used.",
+    "failure_cleanup": "The fixture factory disposes its new engine on preparation error because execute_operation constructs Store before entering its production try/finally. Normal ownership and disposal remain with the production worker.",
+    "unchanged_oracles": {
+      "worker_deadline_seconds": 0.8,
+      "transport_entry_completion_window_seconds": 1.0,
+      "owned_socket_attempts_in_transport_cases": 1,
+      "socket_closed_after_transport_cases": true,
+      "public_cancellation_seconds": 0.35,
+      "original_assertion_calls_preserved": 91,
+      "original_test_methods_preserved": 19
+    },
+    "unwarmed_controls": "Existing cold-SSL and real pre-SSL timeout cases are unchanged and do not use profile preparation. Their original timing semantics remain intact.",
+    "new_tests": [
+      "test_lever_eu_finite_deadline_with_slow_profile_preparation",
+      "test_lever_eu_slow_profile_read_after_deadline_prevents_connect"
+    ]
+  },
+  "failing_first": {
+    "test_blob": "6693a4a03bb7d56a216b723eb31cac02953ee68e",
+    "selectors": [
+      "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_lever_eu_finite_deadline_with_slow_profile_preparation"
+    ],
+    "result": "FAIL_EXPECTED_REGRESSION",
+    "pytest_exit_code": 1,
+    "summary": "1 failed, 1 warning in 3.92s",
+    "junit_totals": {
+      "tests": "1",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.921"
+    },
+    "controlled_delay_seconds": 0.9,
+    "observed_profile_ms": 907,
+    "worker_outcome_ms": 922,
+    "worker_outcome": "DEAD_LETTERED/OPERATION_TIMEOUT",
+    "ssl_calls": 0,
+    "owned_transport_connects": 0,
+    "failure_oracle": "The unchanged required-owned-TCP assertion fails before preparation is added.",
+    "imported_files": 250,
+    "import_manifest_sha256": "66843cc2f9d2756dadbf07d002df3f86b2e8f07246802949a535973431647b89",
+    "runner_sha256": "2e2704df4d5c908785223b934437d409acbd67063b49c89bdd3f4672a515192e",
+    "resource_released": true
+  },
+  "full_affected_file_validation": {
+    "result": "PASS",
+    "selectors": [
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "summary": "21 passed, 1 warning, 14 subtests passed in 57.08s",
+    "pytest_exit_code": 0,
+    "passed": 21,
+    "subtests_passed": 14,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "seconds": 57.08,
+    "junit_totals": {
+      "tests": "35",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "57.083"
+    },
+    "junit_testcase_elements": 21,
+    "source_snapshot_sha256": "78b0c52c3db5112a22bf021b5c090bf1e152e0cb3a33eb4469ad8952802ddc77",
+    "runner_sha256": "a58ea4eb7d6d37bfb4adba25867352c58293a9ee626cccbc96074049736421ab",
+    "started_utc": "2026-11-20T14:00:52.972934+00:00",
+    "finished_utc": "2026-11-20T14:01:53.943414+00:00",
+    "runtime": {
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "dependencies": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "SQLAlchemy": "2.1.1",
+        "httpx": "0.28.1",
+        "pytest": "9.1.1"
+      },
+      "environment": "Cached Windows virtual environment with private cached SoupSieve 4.0 and OpenTelemetry 1.45.2 overlays; no installs."
+    },
+    "warning": "One PytestAssertRewriteWarning for anyio already imported by the private ownership-check harness before pytest plugin loading. Retained in both RED and GREEN logs; no suppression or warning-free claim.",
+    "runtime_qualification": "Local Windows Python3.12.10/pytest9.1.1 differs from the hosted Linux Python3.12.16 environment. Hosted fresh-head verification remains separate.",
+    "source_blobs": {
+      "tests/integration/test_source_adapter_connect_cancellation.py": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+      "tests/integration/test_source_http_socket_budget.py": "481bcb8c4cd620414b65e6cf79911259ba79d624",
+      "tests/integration/test_spine.py": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+      "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+      "workers/operations.py": "3928bd8e99c320529daa7148d6a2756e7bc43847",
+      "packages/persistence/store.py": "24c3543c21be82c9bd573c4c9e722d401cd7323f",
+      "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+      "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+      "services/discovery/sources/lever.py": "1e2a85d860bad1141e15038742908a9e9d1022d1",
+      "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+      "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+      "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      ".github/test-requirements.txt": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+      "pyproject.toml": "16d3bebbeb35d69125b7e7993b553836e1b0c95b"
+    },
+    "owned_imported_files": 254,
+    "foreign_repo_imports": {},
+    "imported_manifest_sha256": "d1a6275de15a60a21c0cb046712806f758e0d15f84cc227c434b21d41c9afcfe",
+    "network": {
+      "policy": "OWNED_LOOPBACK_ONLY",
+      "loopback_events": {
+        "socket.bind": 69,
+        "socket.connect": 102
+      },
+      "blocked_attempts": []
+    },
+    "network_qualification": "Loopback events include fixture listener/backlog and positive-control setup. Individual transport-entry counts are enforced separately by the source assertions.",
+    "resource_released": true
+  },
+  "observed_boundary_controls": {
+    "slow_preparation": {
+      "injected_seconds": 0.9,
+      "observed_preparation_seconds": 0.906,
+      "real_profile_reread_after_deadline": true,
+      "owned_tcp_connects": 1,
+      "existing_entry_completion_and_socket_closure_assertions": "PASS"
+    },
+    "slow_post_deadline_profile_read": {
+      "injected_seconds": 0.9,
+      "observed_read_seconds": 0.906,
+      "observed_worker_latency_seconds": 0.938,
+      "durable_state": "DEAD_LETTERED",
+      "error": "OPERATION_TIMEOUT",
+      "owned_tcp_connects": 0,
+      "post_deadline_ssl_use": 0,
+      "prior_source_health": "NOT_CHECKED preserved"
+    },
+    "ssl_qualification": "A verifying SSL context may be prepared before the deadline; zero SSL here refers to factory/use after the deadline in the controlled slow-read case.",
+    "raw_phase_lines": [
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.016 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.906 first_execution_seconds=0.000 connects=1",
+      "OWNED_PROFILE_READINESS mode=profile_deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.906 connects=0",
+      "OWNED_ADAPTER_CONNECT provider=lever tenant=eu:synthetic mode=profile_deadline latency=0.938s",
+      "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1"
+    ]
+  },
+  "static_validation": {
+    "all_original_assertions": "PASS: 91 preserved",
+    "all_original_test_methods": "PASS: 19 unchanged",
+    "staged_whitespace": "PASS",
+    "source_commit_provenance": "PASS",
+    "default_ruff": "FAIL_EXISTING_FINDINGS",
+    "ruff_baseline": {
+      "exit_code": 1,
+      "counts": {
+        "I001": 2,
+        "B023": 5,
+        "BLE001": 1
+      },
+      "findings": [
+        {
+          "code": "I001",
+          "row": 8,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "B023",
+          "row": 135,
+          "message": "Function definition does not bind loop variable `requests`"
+        },
+        {
+          "code": "B023",
+          "row": 138,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 140,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 142,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 143,
+          "message": "Function definition does not bind loop variable `tenant`"
+        },
+        {
+          "code": "I001",
+          "row": 438,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "BLE001",
+          "row": 496,
+          "message": "Do not catch blind exception: `BaseException`"
+        }
+      ]
+    },
+    "ruff_candidate": {
+      "exit_code": 1,
+      "counts": {
+        "I001": 2,
+        "B023": 5,
+        "BLE001": 1
+      },
+      "findings": [
+        {
+          "code": "I001",
+          "row": 8,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "B023",
+          "row": 135,
+          "message": "Function definition does not bind loop variable `requests`"
+        },
+        {
+          "code": "B023",
+          "row": 138,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 140,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 142,
+          "message": "Function definition does not bind loop variable `provider`"
+        },
+        {
+          "code": "B023",
+          "row": 143,
+          "message": "Function definition does not bind loop variable `tenant`"
+        },
+        {
+          "code": "I001",
+          "row": 507,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "BLE001",
+          "row": 565,
+          "message": "Do not catch blind exception: `BaseException`"
+        }
+      ]
+    },
+    "ruff_qualification": "Identical eight findings before and after: I001 x2, B023 x5, BLE001 x1. No lint configuration, suppression or unrelated style changes. This file is outside the unchanged bounded CI Ruff paths."
+  },
+  "independent_reviews": {
+    "design": "Acceptance reviewer and root approved exact-thread/URL/same-Store/disposal design before execution.",
+    "source": "Both read the actual a873b5bd diff and returned CLEAR; all91/19 preservation independently verified.",
+    "raw_artifacts": "Acceptance reviewer independently verified RED/GREEN raw artifacts, input/runner digests and observed boundary controls; final evidence descendant review remains separate."
+  },
+  "connection_interruption": {
+    "original_result": "MTerm GREEN-preparation call returned generic MCP -32603 with no PID; two readback attempts also failed. No test, commit or publication command was in that ambiguous script.",
+    "reconciliation": "After authenticated tool access returned, readback at 13:55:21Z showed working RED 6693a4a0, original index f2ed3411/tree cdaa, unchanged source claim, no resource claim and no GREEN preparation outputs. None of the intended durable edit/index effects was observed. The preparation was applied only after that exact-state reconciliation.",
+    "read_only_helper_incident": "First reconciliation formatter raised KeyError for an absent receipt; corrected read-only formatter established state without mutation.",
+    "infrastructure_changes": false,
+    "original_red_preserved": true
+  },
+  "ownership": {
+    "root_reviewed_overlaps": "Existing PR985 phase diagnostics and PR994 SSL ownership touch the test file; neither supplied this profile-readiness correction. Their branches and records were preserved.",
+    "publication": "NONE",
+    "protected_merge": "NONE",
+    "source_claim_release": "Recorded separately in the final private HANDOFF after evidence commit."
+  },
+  "artifact_hashes": {
+    ".tmp/source-profile-readiness/source-claim.json": {
+      "sha256": "cc2b24286bd69831fee747ed5a76e6f96c94529af95d2bdc72af0a5b7d038187",
+      "bytes": 834
+    },
+    ".tmp/source-profile-readiness/preflight.json": {
+      "sha256": "ca772f688c4a35ded5ccf84c56f9e2e66064cd4d372046aa6af65bb3910856e6",
+      "bytes": 2532
+    },
+    ".tmp/source-profile-readiness/red-preparation.json": {
+      "sha256": "2029fb5153d9f1a74e8c1959d8a9855031f388d1abe154377e20cac14a8b9a84",
+      "bytes": 391
+    },
+    ".tmp/source-profile-readiness/red-source.patch": {
+      "sha256": "7e28f59b89efa4d5882fbe5c3c60871c307e2449a4fe13a5ae73280ee6bb59be",
+      "bytes": 4272
+    },
+    ".tmp/source-profile-readiness/validate-red.py": {
+      "sha256": "2e2704df4d5c908785223b934437d409acbd67063b49c89bdd3f4672a515192e",
+      "bytes": 11531
+    },
+    ".tmp/source-profile-readiness/red/receipt.json": {
+      "sha256": "ba47da8e2d972b521fcbf5761d7264b9d790fecde1abe26ba6f8aae46729fca6",
+      "bytes": 94331
+    },
+    ".tmp/source-profile-readiness/red/receipt-before-cleanup.json": {
+      "sha256": "de63060c6c93fdfae26e4106ca0f3905b5a7b197678da8a0cf72c5e4e63d4266",
+      "bytes": 94246
+    },
+    ".tmp/source-profile-readiness/red/pytest.log": {
+      "sha256": "4999581d094dc4a500b5f437e62ce4ad7d9af0a28351aa059def8dd99a317a1b",
+      "bytes": 2873
+    },
+    ".tmp/source-profile-readiness/red/pytest.xml": {
+      "sha256": "afd20d0c836dd8cbbf4bd4297ed80ce7f1041685597a43acfb6dd2396c1e4eab",
+      "bytes": 3579
+    },
+    ".tmp/source-profile-readiness/red/source-under-test.py": {
+      "sha256": "75944ac8cdb04e22b10ed8626b12baa29733f2f4d39bd6bca825011f405a012f",
+      "bytes": 52007
+    },
+    ".tmp/source-profile-readiness/connection-reconciliation.json": {
+      "sha256": "77249ff5f79047cd9ea830da68e38b6b691c06cf3c0463ea68c538cc2a2f48f4",
+      "bytes": 912
+    },
+    ".tmp/source-profile-readiness/green-preparation.json": {
+      "sha256": "b5d6a1dd4f101570e3a6bfebeb3c8ed2dd0805c8c134f97eef36dcedcbcf6d7a",
+      "bytes": 413
+    },
+    ".tmp/source-profile-readiness/green-source.patch": {
+      "sha256": "7fea3d5ca5c4bf342d68116935970d9fc88fc14d88665a3015ed52e1ee92d6f5",
+      "bytes": 14901
+    },
+    ".tmp/source-profile-readiness/validate.py": {
+      "sha256": "a58ea4eb7d6d37bfb4adba25867352c58293a9ee626cccbc96074049736421ab",
+      "bytes": 11578
+    },
+    ".tmp/source-profile-readiness/green/receipt.json": {
+      "sha256": "cd23944f160dcd22579b59c5fa2dd0c86f92bea27cd34a429e7f2e4694535de9",
+      "bytes": 95709
+    },
+    ".tmp/source-profile-readiness/green/receipt-before-cleanup.json": {
+      "sha256": "1faf48af190d7e081ca21a9a72b058ed0985aee4cb8a0bacf563e85412f84ba4",
+      "bytes": 95624
+    },
+    ".tmp/source-profile-readiness/green/pytest.log": {
+      "sha256": "7d12116bb51dd64050b34ac3e94fb374f914f39cbe8fa957dcaa07bfd5b01eeb",
+      "bytes": 4828
+    },
+    ".tmp/source-profile-readiness/green/pytest.xml": {
+      "sha256": "591cfbb688e72e6a5208ef27c43974ab0373911dfe86f6cabb425e0599386e5d",
+      "bytes": 4441
+    },
+    ".tmp/source-profile-readiness/green/source-under-test.py": {
+      "sha256": "78b0c52c3db5112a22bf021b5c090bf1e152e0cb3a33eb4469ad8952802ddc77",
+      "bytes": 58195
+    },
+    ".tmp/source-profile-readiness/ruff-baseline.json": {
+      "sha256": "0b4c54843a735c4ca2cc16a669945f47d79bbb0ce28ecb7394ca9551e99e8645",
+      "bytes": 6793
+    },
+    ".tmp/source-profile-readiness/ruff-candidate.json": {
+      "sha256": "66feee3ea0468e913926cbf95422b810bb563d8d544d8abc514c38257edff40f",
+      "bytes": 6793
+    },
+    ".tmp/source-profile-readiness/static-pretest.json": {
+      "sha256": "5f08a22d00ee84ae304d49c5f0f81ca3ea1a5aa9d56b500ca43e0145ee35e509",
+      "bytes": 3220
+    },
+    ".tmp/source-profile-readiness/whitespace.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    ".tmp/source-profile-readiness/source-commit-receipt.json": {
+      "sha256": "e8b80c7167a6962dc5fd7bd1c6c3b6b8234544be98e6bd27511e85e78170f94d",
+      "bytes": 425
+    },
+    ".tmp/source-profile-readiness/source-provenance.log": {
+      "sha256": "61d919e873cf4c2b248516466404240669048e85e27e7cc6187d42f11230997b",
+      "bytes": 46
+    }
+  },
+  "limitations": [
+    "The original hosted failure remains FAIL; this local result is not a rerun or a replacement for fresh hosted gates.",
+    "The historical cause of the 803.8 ms profile delay is not established.",
+    "The real deadline remains capable of expiring during post-deadline work; this fixture correction does not guarantee scheduling under arbitrary host stalls.",
+    "No production bug fix, external provider traffic, dependency installation or acceptance promotion is claimed.",
+    "Any current-main refresh, publication or protected merge remains root-owned and separately coordinated."
+  ]
+}
