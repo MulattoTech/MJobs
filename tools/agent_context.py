@@ -480,8 +480,12 @@ def bootstrap(root: Path, task: str | None = None, include_github: bool = False,
             raise ValueError("Reviewed handoff preview requires snapshot, review file and source digest")
         if git(root, "ls-files", "--error-unmatch", "planning/SESSION_HANDOFF.md") != "planning/SESSION_HANDOFF.md":
             raise ValueError("Reviewed handoff preview requires a tracked canonical source")
-        if git(root, "status", "--porcelain", "--", "planning/SESSION_HANDOFF.md"):
-            raise ValueError("Reviewed handoff preview refuses a modified canonical source")
+        source_status = git(root, "status", "--porcelain", "--", "planning/SESSION_HANDOFF.md")
+        if source_status is None or source_status:
+            raise ValueError(
+                "Reviewed handoff preview refuses a modified canonical source "
+                "or unverifiable Git status"
+            )
         from tools.verification.handoff_cutover_rehearsal import rehearsal
         verified, preview = rehearsal(
             handoff, reviewed_snapshot, reviewed_review_file, reviewed_source_sha256

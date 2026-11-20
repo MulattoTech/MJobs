@@ -244,3 +244,20 @@ def test_reviewed_preview_flags_rejected_before_other_command_dispatch(scenario,
     with pytest.raises(SystemExit) as exc:
         main(["--root", str(repo), command, "--handoff-snapshot", str(snapshot)])
     assert exc.value.code == 2
+
+
+def test_unavailable_git_status_fails_closed_in_reviewed_mode(scenario, monkeypatch):
+    """An unavailable Git dirty-state check must never be treated as clean."""
+    import tools.agent_context as module
+
+    repo, *_ = scenario
+    original_git = module.git
+
+    def unreadable_handoff_status(root, *args):
+        if args == ("status", "--porcelain", "--", "planning/SESSION_HANDOFF.md"):
+            return None
+        return original_git(root, *args)
+
+    monkeypatch.setattr(module, "git", unreadable_handoff_status)
+    with pytest.raises(ValueError, match="unverifiable Git status"):
+        bootstrap(repo, **_options(scenario))

@@ -51,7 +51,8 @@ transfer preserve their existing behavior.
 - Missing any of the three inputs fails; no partial option is silently
   ignored or accepted as a complete review.
 - An untracked or locally modified canonical handoff file fails: preview
-  source identity must be grounded in the assigned Git worktree.
+  source identity must be grounded in the assigned Git worktree. An
+  unavailable Git dirty-state check also fails closed.
 - The source file, archive and review selection must all match the explicit
   source checksum. Missing snapshots, corrupted sections, forged status,
   changed manifest, or stale review inputs are rejected by existing B3
@@ -78,10 +79,11 @@ rendering, missing arguments, stale source checksum, local dirty/untracked
 canonical handoff, forged review identity, CLI scope and a separate-process
 invocation.
 
-The expanded focused preview suite passed **20 tests** on Windows,
-including rejection of preview flags on other agent-context commands.
-The combined agent-context and B3 recovery suites passed **115 primary tests
-and 462 subtests**, with 4 skips and no failures. Repository policy,
+The expanded focused preview suite passed **21 tests** on Windows,
+including rejection of preview flags on other agent-context commands and
+refusal to trust an unavailable Git cleanliness check. The combined
+agent-context and B3 recovery suites passed **116 primary tests and 462
+subtests**, with 4 skips and no failures. Repository policy,
 catalogue, progress, dashboard, ownership, agent skills, syntax, whitespace
 and commit provenance passed locally. These are local checks only;
 fresh exact-head hosted CI remains mandatory before protected integration.
