@@ -2,7 +2,7 @@
 
 Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
 
-- Main verified at f912491d17ad562b4ca094042626fa17341a632a.
+- Latest main incorporated: db9cdc54f9b0fe060ffb58ad5afd9fa24ec59216 (ownership-index PR #1061); comparison source/test blobs remain identical to the tested source below.
 - Continuing existing PR1045 / MJ-REF-039 / issue415, preserving original work.
 - Source tested: 6c5db928b316ee751453fe25d71f288b36d872a8 (functional source387c1082 plus scoped Python lint cleanup).
 - Local continuation branch: web/20261120-d9b89794/comparison-saved-filters.

@@ -108,3 +108,13 @@ production data edit, service restart, tunnel/DNS/auth change, or acceptance
 promotion was performed. Existing production and fixture stacks were preserved.
 Rollback after any later authorized integration is a normal protected revert;
 there is no schema migration or data rewrite in this comparison patch.
+
+## Current-main refresh before publication
+
+Main advanced to `db9cdc54f9b0fe060ffb58ad5afd9fa24ec59216` when the independent
+ownership-index PR #1061 merged. This continuation merges that exact revision
+without conflicts. All six reviewed comparison source/test blobs remain identical
+to tested source `6c5db928b316ee751453fe25d71f288b36d872a8`.
+The new ownership-index freshness check passes. Fresh hosted checks must validate
+the final containing merge commit. Live publication preflight now counts 66 open
+development PRs plus two dependency PRs; this update adds no PR.
