@@ -18,6 +18,16 @@ files and their byte/estimated-token totals. Each file uses a floored
 this is only a planning heuristic and does not claim model-tokenization
 accuracy.
 
+For a read-only changed-file check preview:
+
+    python -m tools.agent_context verify --path apps/web/src/theme.tsx
+    python -m tools.verification.changed_file_verification --execute
+
+The preview lists exact commands and rationales; execution is opt-in. It
+always includes repository policy/integrity checks and conservatively
+recommends full verification for migrations, dependencies, shared contracts,
+planning authorities, or unmapped paths.
+
 Read AGENTS.md, the compact planning/REQUIREMENT_INDEX.json, and only the affected issue/spec/source. Inspect active ownership and exact PR/CI facts for this task. Do not reread thousands of historical files or the whole repository every time a model changes. Provider-private context does not transfer: only verified persistent artifacts do.
 
 ## Preserve user intent; normalize the execution method

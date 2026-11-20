@@ -163,11 +163,59 @@ on the implementation branch before publication:
 | Hosted exact-head checks for PR 1059 | PASS on parent head `57131ee3cac941ae16d4fc69e691dbea4091a910`; the review-fix commit requires a fresh exact-head run |
 | Focused agent-context unit scope | PASS locally: 24 passed, 1 skipped, 462 subtests |
 
+### A1 merged/current-head closeout
+
+Merged A1 revision: `9bdcd706a9ef65ab95d94253362f3dca4f0c92e6`
+(PR [#1059](https://github.com/MulattoTech/MJobs/pull/1059), merge commit;
+review-fix head `78d47c4cf395e2923d12dbac3736b8d087d9743`).
+
+Current-head hosted observation: **15/15 checks PASS** on the merged A1 exact
+head, including the five required fast/repository gates and protected
+integration/secret/dependency/code-scanning observations. This is exact-head
+hosted evidence, not an extension of local acceptance to future A2 revisions.
+
+### A2 changed-file verification result
+
+Implemented a read-only changed-file verification profile in
+`tools.verification.changed_file_verification` and exposed the same preview
+through `python -m tools.agent_context verify`. The planner accepts explicit
+`--path` values or collects committed, staged, unstaged, and untracked changed
+paths against an explicit Git base. The default is a JSON dry-run; `--execute`
+is opt-in.
+
+The mapping is conservative:
+
+- Repository catalogue, progress, dashboard, skill, policy, workflow, and
+  whitespace checks are always included.
+- Agent-context Python changes select the two agent-context unit modules.
+- Explicit test files run only their own focused pytest target.
+- Frontend source and test changes select matching Vitest files, lint, and
+  type-check inputs.
+- Planning authorities, migrations, dependency manifests/locks, shared API,
+  service, persistence/model contracts, workflows/specifications, and
+  unmapped paths escalate to broader or full validation.
+- No matched or unmapped path is silently treated as covered.
+
+Measured A2 setup and verification evidence on this Windows checkout:
+
+| Setup or command | Baseline | A2 result |
+| --- | --- | --- |
+| Discover exact affected checks | Manual review of audit, CI, scripts, and tests | One `verify` preview reports exact commands and rationale |
+| Affected setup steps | Several separate shell/script choices | 1 preview command plus opt-in execution |
+| Focused A2 command | Not available in A1 | 7 proposed checks for A2 paths |
+| Measured focused unit scope | A1 24/462 scope, 12.71–15.81s | 32 tests + 466 subtests passed, 1 skipped, 21.13s |
+| Repository-time outcome | Manual or broad default | Conservative profile with explicit full-recommendation escalation |
+
+The timing samples are local Windows measurements of Python test setup and
+execution, not hosted CI benchmarks or a guarantee of integration/browser
+duration. Broad profiles intentionally retain the existing explicit commands
+and recommend the full suite rather than claiming a focused result.
+
 ## Conflict-safe roadmap
 
 1. Land A1 as an isolated tooling/documentation PR.
-2. Independently inventory CI selectors and implement A2 without touching
-   acceptance matrices.
+2. A2 changed-file verification is implemented locally on this branch without
+   touching acceptance matrices. Preserve it as a separate reviewable PR.
 3. Generate A3 from existing ownership docs; serialize only the generated
    artifact/freshness check.
 4. Add characterization tests for `apps/web/src/main.tsx`; only then split one

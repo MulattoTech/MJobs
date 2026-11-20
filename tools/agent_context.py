@@ -547,7 +547,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=(
         "bootstrap", "status", "resume", "checkpoint", "validate",
-        "transfer", "normalize", "freshness", "recover",
+        "transfer", "normalize", "freshness", "recover", "verify",
     ))
     parser.add_argument("--task", help="Requirement ID or owned task name")
     parser.add_argument("--objective")
@@ -566,9 +566,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--blocker", action="append", default=[])
     parser.add_argument("--pr-sha", help="Optional pull request HEAD SHA for freshness validation")
     parser.add_argument("--github", action="store_true", help="Optional bounded read-only PR query")
+    parser.add_argument("--base", default="origin/main", help="Git base ref for changed-file verification")
+    parser.add_argument("--path", action="append", default=[], help="Explicit changed path for verification planning")
+    parser.add_argument("--execute", action="store_true",
+                        help="Execute verification checks instead of only previewing them")
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     try:
+        if args.command == "verify":
+            from tools.verification.changed_file_verification import (
+                build_verification_plan,
+                execute_verification_plan,
+            )
+
+            plan = build_verification_plan(args.root, args.path, args.base)
+            if args.execute:
+                result = execute_verification_plan(args.root, plan)
+                print(json.dumps(result, indent=2))
+                return 0 if result["passed"] else 1
+            print(json.dumps(plan, indent=2))
+            return 0
         if args.command == "checkpoint":
             if not all((args.task, args.objective, args.owner, args.next_action)):
                 parser.error("checkpoint needs --task, --objective, --owner and --next-action")
