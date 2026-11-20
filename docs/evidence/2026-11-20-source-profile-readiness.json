@@ -634,5 +634,518 @@
     "protected_merge_authorized": false,
     "publication_status": "PRIVATE_PENDING_FINAL_REVIEW_AND_ORDINARY_EXISTING_PR_UPDATE_ADMISSION",
     "previous_evidence_fields_preserved": true
+  },
+  "runtime_router_refresh_and_profile_delay_target": {
+    "recorded_utc": "2026-11-20T15:22:29.702095+00:00",
+    "state": "PRIVATE_CURRENT_MAIN_SOURCE_QUALIFIED_PENDING_FRESH_HOSTED_CHECKS",
+    "actual_main": "87ca270f44ada37fa4c0155f725301f170c93eac",
+    "actual_main_tree": "f5967583bf34ff78d1f345b037f48ccee9e5b44f",
+    "main_advance": {
+      "pr": 1067,
+      "merged_at_utc": "2026-11-20T14:44:26Z",
+      "parents": [
+        "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+        "df8c8cd7a69d053e0d3a0a5ec84b7e8715c51631"
+      ],
+      "paths": [
+        "apps/api/main.py",
+        "apps/api/runtime_routes.py",
+        "tests/integration/test_api_main_characterization.py"
+      ],
+      "performed_by_this_root": false
+    },
+    "source_commit": "a6f56839d22de4932a627584897c54568367494f",
+    "source_tree": "43513d21909c4312dac2ed4c7fb3fe708e687a72",
+    "source_parent": "d7d08580b44ae97b38b45539dc00f26d7dcf3ffe",
+    "source_tree_equals_executed_index": true,
+    "fixture_blob": "f2612b89a41e2118c2ea70bba52fa8f40e9a5dc5",
+    "navigation_test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+    "candidate_paths_against_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "input_binding": {
+      "profile_imports": 256,
+      "key_inputs": 14,
+      "distinct_backend_paths": 260,
+      "git_and_raw_imported_working_bytes_match": true,
+      "key_canonical_working_bytes_match": true,
+      "frontend_files": 326,
+      "frontend_git_and_canonical_working_bytes_match": true,
+      "frontend_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "canonical_acceptance_blobs_unchanged": true,
+      "tests_reexecuted": false
+    },
+    "prior_published_execution": {
+      "head": "e95d702148316965b026af1c292c6abbdcaa5e6b",
+      "base": "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+      "synthetic_merge": "34e28303aaf97bdb75fdc0ec4b2dc51a807ca6bc",
+      "tree": "f8065d6eacf73f8ab03c44af884c43d611f15f9c",
+      "checks_passed": 15,
+      "required_gates_passed": 5,
+      "unit": {
+        "primary_passed": 5749,
+        "subtests_passed": 5238,
+        "skipped": 55,
+        "warnings": 1
+      },
+      "web": {
+        "tests_passed": 1294,
+        "files_passed": 165,
+        "typecheck": "PASS",
+        "build": "PASS",
+        "warnings_retained": true
+      },
+      "integration": {
+        "primary_passed": 3389,
+        "subtests_passed": 1974,
+        "skipped": 56,
+        "warnings": 26,
+        "failures": 0,
+        "errors": 0,
+        "run_id": 44755362188
+      },
+      "compose": {
+        "browser_tests_passed": 5,
+        "run_id": 44755362190,
+        "completed_at_utc": "2026-11-20T14:57:48Z",
+        "onboarding": "PARTIAL; synthetic discovery does not prove live-provider discovery/source identity",
+        "source_restart_inventory": "PASS: 2 jobs and 4 source copies",
+        "backup_restore_replay": "PASS",
+        "separate_post_restore_public_inventory": "NOT_RUN; fictional-demo baseline contained none",
+        "external_submission": false
+      },
+      "integration_receipt_sha256": "db758d8ebf6b3364d30d602d4fb6c5fc3b37c43f95cf82b8c2939bdf361096af",
+      "nonintegration_receipt_sha256": "c215b7da77e117306d7f1a969a917da2faf81651b3e05090fdbcd7f6eb8d96e7",
+      "qualification": "These first-attempt workflows completed on f297 plus e95. They do not qualify this new source on 87ca. No workflow was rerun, cancelled or dispatched."
+    },
+    "actual_failed_refresh": {
+      "source": "d7d08580b44ae97b38b45539dc00f26d7dcf3ffe",
+      "fixture_blob": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+      "primary_passed": 20,
+      "subtests_passed": 14,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "seconds": 55.71,
+      "test": "test_lever_eu_finite_deadline_with_slow_profile_preparation",
+      "failure": "Measured preparation 0.8899999999994179 did not satisfy the added >= 0.9 lower bound. Failure occurred before mandatory TCP assertions in that case; its transport success is not established.",
+      "receipt_sha256": "51cc71db19560cfec4cbc53aedb0713c557a80100342ddfaff895af65bdb4398",
+      "classification": "Owned fixture-delay lower-bound failure; no API-router or product regression causation established."
+    },
+    "clock_metadata": {
+      "monotonic": {
+        "implementation": "GetTickCount64()",
+        "monotonic": true,
+        "adjustable": false,
+        "resolution": 0.015625
+      },
+      "perf_counter": {
+        "implementation": "QueryPerformanceCounter()",
+        "monotonic": true,
+        "adjustable": false,
+        "resolution": 1e-07
+      }
+    },
+    "clock_qualification": "The short interval is consistent with the observed 0.015625-second GetTickCount64 resolution; its exact contribution remains untraced.",
+    "delay_correction": "Both owned injected profile-delay seams wait until the same real monotonic elapsed duration reaches the requested delay; sleep receives only positive remaining time. One owned callback returns early once, then calls real sleep.",
+    "preserved_contract": "No product edits, global time/sleep patches, cached profile results, threshold relaxation or deadline changes. Existing .9s delay lower bound, .8s worker deadline, 1s transport bound, real collector reread, socket and cleanup assertions remain.",
+    "preserved_ast": {
+      "previous21": {
+        "methods": 21,
+        "assertions": 116,
+        "method_asts_equal": true,
+        "assertion_asts_preserved": true
+      },
+      "original19": {
+        "methods": 19,
+        "assertions": 91,
+        "method_asts_equal": true,
+        "assertion_asts_preserved": true
+      }
+    },
+    "fresh_proof": {
+      "source": "a6f56839d22de4932a627584897c54568367494f",
+      "tree": "43513d21909c4312dac2ed4c7fb3fe708e687a72",
+      "red": {
+        "summary": "1 failed, 1 warning in 3.14s",
+        "status": "EXPECTED_REGRESSION_FAILURE",
+        "failure": [
+          {
+            "test": "test_lever_eu_profile_delay_retries_early_return",
+            "message": "AssertionError: 0.0 not greater than or equal to 0.9"
+          }
+        ],
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\receipt.json",
+          "sha256": "94899c6fb366b9878c91f06dc2f2bf5674f5d03ff2f44bb87c64b8417a7443aa",
+          "bytes": 98767
+        },
+        "run_count": 1
+      },
+      "green": {
+        "summary": "22 passed, 1 warning, 14 subtests passed in 62.67s (0:01:02)",
+        "status": "PASS",
+        "primary_tests": 22,
+        "subtests": 14,
+        "totals": {
+          "tests": "36",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "62.670"
+        },
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\receipt.json",
+          "sha256": "e6e1be420585538783d36b67e971cff078b362642b1aaf1fa0a92b242e1b7401",
+          "bytes": 99059
+        },
+        "run_count": 1,
+        "control_lines": [
+          "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.016 first_execution_seconds=0.000 connects=1",
+          "uOWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          "uOWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          ".uuuuu.OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.015 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.907 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_DELAY_EARLY_RETURN",
+          "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.907 first_execution_seconds=0.000 connects=1",
+          "OWNED_PROFILE_DELAY_SLEEP_CALLS count=2",
+          ".OWNED_PROFILE_READINESS mode=profile_deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.906 connects=0",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1"
+        ],
+        "warnings": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Lib\\site-packages\\_pytest\\config\\__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio"
+        ]
+      },
+      "import_count": 256,
+      "import_manifest_sha256": "aebc53b326746f021ce0c48a97b43f4b7657387c36fe72ab3cf5ee8ad08abfd1",
+      "comparison_to_failed_refresh": {
+        "comparison_source": "Prior actual failed run at d7/87ca; comparison does not relabel its result",
+        "previous_file_count": 256,
+        "current_file_count": 256,
+        "changed_git_blobs": {
+          "tests/integration/test_source_adapter_connect_cancellation.py": {
+            "previous": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+            "current": "f2612b89a41e2118c2ea70bba52fa8f40e9a5dc5"
+          }
+        },
+        "changed_working_sha256": {
+          "tests/integration/test_source_adapter_connect_cancellation.py": {
+            "previous": "78b0c52c3db5112a22bf021b5c090bf1e152e0cb3a33eb4469ad8952802ddc77",
+            "current": "1dfad90720b26fec0d5863a9347c55bf409193b05f1a52c2e429e21cff6753fd"
+          }
+        },
+        "added_files": {},
+        "removed_files": {},
+        "added_module_names": [],
+        "removed_module_names": []
+      },
+      "network": {
+        "policy": "OWNED_LOOPBACK_ONLY",
+        "loopback_events": {
+          "socket.bind": 72,
+          "socket.connect": 107
+        },
+        "blocked_attempts": []
+      },
+      "runtime": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.26300-SP0"
+      },
+      "dependencies": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "SQLAlchemy": "2.1.1",
+        "httpx": "0.28.1",
+        "pytest": "9.1.1"
+      },
+      "dependency_origins": {
+        "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+      }
+    },
+    "source_handoff": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\HANDOFF.json",
+      "sha256": "05160d11e4d5219145478095c56369294c5cb55c1962ecb4b3e9995a8e2bb4cb"
+    },
+    "independent_review": {
+      "reviewer": "acceptance_backlog",
+      "result": "CLEAR",
+      "scope": "Immutable diff; all 21 prior methods and 116 assertion ASTs plus the original 19/91 baseline; deterministic RED and full GREEN; all 256 imports / 260 distinct inputs; all 32 artifact hashes; source/tree equality and exact claim releases."
+    },
+    "root_source_review": "CLEAR: elapsed is compared directly, only positive remaining sleep is requested, and the callback is limited to owned injected profile delays.",
+    "static_validation": {
+      "receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\receipt.json",
+        "sha256": "c419eeaa738a6c6d86cef0b02c600e22cdf66f9a15e3ea8778cddb485edbcd8a",
+        "bytes": 4488
+      },
+      "ast_preservation": {
+        "previous21": {
+          "methods": 21,
+          "assertions": 116,
+          "method_asts_equal": true,
+          "assertion_asts_preserved": true
+        },
+        "original19": {
+          "methods": 19,
+          "assertions": 91,
+          "method_asts_equal": true,
+          "assertion_asts_preserved": true
+        }
+      },
+      "syntax": "PASS",
+      "whitespace": {
+        "working_whitespace": "PASS",
+        "staged_whitespace": "PASS"
+      },
+      "ruff_disposition": "FAIL_EXISTING_FINDINGS; baseline and candidate have identical code/message multiset; no new findings",
+      "ruff_codes": {
+        "I001": 2,
+        "B023": 5,
+        "BLE001": 1
+      },
+      "baseline_comparison": "PASS_NO_NEW_FINDINGS"
+    },
+    "provenance": {
+      "exit_code": 0,
+      "result": "PASS: provenance complete for 1 source files"
+    },
+    "source_resource_claims_released": true,
+    "navigation_retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "tests_passed": 4,
+      "typecheck": "PASS",
+      "expected_failure_controls": 3,
+      "qualification": "All 326 frontend Git entries and canonical working bytes remain identical; no local frontend rerun was needed."
+    },
+    "canonical_acceptance": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59
+      },
+      "changes": 0,
+      "release_readiness": "UNKNOWN"
+    },
+    "hosted_checks_on_new_source": "NOT_RUN",
+    "publication_status": "PRIVATE_PENDING_FINAL_REVIEW_AND_ORDINARY_UPDATE_ADMISSION",
+    "protected_merge_approved": false,
+    "previous_1029_approval_consumed": true,
+    "previous_evidence_fields_preserved": true,
+    "tests_reexecuted_for_documentation": false,
+    "limits": [
+      "Historical hosted profile failures retain their separate traces and unknown causes.",
+      "The current full-file proof is local Windows execution with one retained anyio assertion-rewrite warning.",
+      "Full Ruff remains FAIL_EXISTING_FINDINGS: the same eight baseline findings, with no new findings or suppressions.",
+      "All previous failures and controls remain retained; no acceptance promotion or production deployment is implied."
+    ],
+    "complete_source_handoff_artifacts": {
+      "validate.py": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\validate.py",
+        "sha256": "3eccb2a44aa62ef0f749a9e992da17ec55edfc935422067eea4f5604cdeb57b2",
+        "bytes": 15860
+      },
+      "runner-adaptation.patch": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\runner-adaptation.patch",
+        "sha256": "15301669af34f6ac1ee7d68daec53aa3fe9163953e7a650e0217fd41db9ab111",
+        "bytes": 9424
+      },
+      "baseline-source.py": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\baseline-source.py",
+        "sha256": "78b0c52c3db5112a22bf021b5c090bf1e152e0cb3a33eb4469ad8952802ddc77",
+        "bytes": 58195
+      },
+      "source-claim.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\source-claim.json",
+        "sha256": "f594a263372b8565ce459b936d8bc9e15c68c4cfc3fb3d8587c5970858c76248",
+        "bytes": 733
+      },
+      "red-preparation.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red-preparation.json",
+        "sha256": "570413ddb793d952527931282f28ecb21f3d923604c21bdcc13dc5dd4a12ce8a",
+        "bytes": 1797
+      },
+      "red-source.patch": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red-source.patch",
+        "sha256": "c4dc7dd20147de1f9033ac61cd688f8671d7407a730e779b4598626b675023ac",
+        "bytes": 3831
+      },
+      "green-preparation.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green-preparation.json",
+        "sha256": "c7af0745aa364e019d1d10119eb084fe529e75da091b060aeea36b155a0a938e",
+        "bytes": 1268
+      },
+      "green-source.patch": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green-source.patch",
+        "sha256": "7b44602db476969dba2ba6eb73f67fe7674e36944ccb034867743db94eca5ca4",
+        "bytes": 4076
+      },
+      "bootstrap-stdout.txt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\bootstrap-stdout.txt",
+        "sha256": "af23c4e5ad177fbfabcc42d60e7d403b2f2dac736f8656433cd5807f3a36fdd3",
+        "bytes": 5242
+      },
+      "bootstrap-stderr.txt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\bootstrap-stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "red/receipt.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\receipt.json",
+        "sha256": "94899c6fb366b9878c91f06dc2f2bf5674f5d03ff2f44bb87c64b8417a7443aa",
+        "bytes": 98767
+      },
+      "red/receipt-before-cleanup.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\receipt-before-cleanup.json",
+        "sha256": "6c4f926088426ac125979c2d8921dd1cd90460f453a59944ce0cf4f4046c474f",
+        "bytes": 98682
+      },
+      "red/pytest.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\pytest.log",
+        "sha256": "06be231673e31824735a9a45d9556e71c308e6e1a2f52d0b106813593747799e",
+        "bytes": 2124
+      },
+      "red/pytest.xml": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\pytest.xml",
+        "sha256": "703cf40632d220e3c5a1a60ad8ca170e8e9c17ab53751ff8c7302cbe6e029de2",
+        "bytes": 1575
+      },
+      "red/source-under-test.py": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\source-under-test.py",
+        "sha256": "adc25ba2ed0507eafed673b21ffa30cfa61925d5de4b7d07c4c60dae00cf45ad",
+        "bytes": 59140
+      },
+      "green/receipt.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\receipt.json",
+        "sha256": "e6e1be420585538783d36b67e971cff078b362642b1aaf1fa0a92b242e1b7401",
+        "bytes": 99059
+      },
+      "green/receipt-before-cleanup.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\receipt-before-cleanup.json",
+        "sha256": "d9a63ee379fd2a02fef9ca725aaf4e20a3a11da2467c219eb510bdef90385333",
+        "bytes": 98974
+      },
+      "green/pytest.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\pytest.log",
+        "sha256": "9b3a547527d28b7f0d2bcb554522c785ea319a65bff887c94860879d83ab3125",
+        "bytes": 5127
+      },
+      "green/pytest.xml": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\pytest.xml",
+        "sha256": "c5e6caf30ef369e65066f940077ba96f1efeff28ba5ce4af17eb840b228e45f7",
+        "bytes": 4631
+      },
+      "green/source-under-test.py": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\source-under-test.py",
+        "sha256": "1dfad90720b26fec0d5863a9347c55bf409193b05f1a52c2e429e21cff6753fd",
+        "bytes": 59440
+      },
+      "static/receipt.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\receipt.json",
+        "sha256": "c419eeaa738a6c6d86cef0b02c600e22cdf66f9a15e3ea8778cddb485edbcd8a",
+        "bytes": 4488
+      },
+      "static/baseline-ruff.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\baseline-ruff.json",
+        "sha256": "5e974e6e412af6cf715cd43a64dc3ef31bc8039032481b8212dd660c823c9710",
+        "bytes": 6737
+      },
+      "static/candidate-ruff.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\candidate-ruff.json",
+        "sha256": "3f0e0e44747508385eff72783c92ccbbcb10d32c3266c3af63883402775b4710",
+        "bytes": 6737
+      },
+      "static/baseline-ruff.stderr.txt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\baseline-ruff.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "static/candidate-ruff.stderr.txt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\candidate-ruff.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "static/working_whitespace.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\working_whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "static/staged_whitespace.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\staged_whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "source-commit-message.txt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\source-commit-message.txt",
+        "sha256": "d9301a21a414b7b6013c125053030656a433a2936a2954ae539855da7ab75841",
+        "bytes": 1257
+      },
+      "source-commit.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\source-commit.log",
+        "sha256": "d72722837aaa47d12445aa3df6794ede63169ac3d01b1dd9abf62f1a7a7a1795",
+        "bytes": 176
+      },
+      "commit-provenance.log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\commit-provenance.log",
+        "sha256": "61d919e873cf4c2b248516466404240669048e85e27e7cc6187d42f11230997b",
+        "bytes": 46
+      },
+      "source-commit.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\source-commit.json",
+        "sha256": "66e100336b9f6b7a9efb5921bfc4d54eed32eb71927603d8e0f14e7f0a942d45",
+        "bytes": 1080
+      },
+      "claim-release.json": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\claim-release.json",
+        "sha256": "cdf4d9d92294c0da4da07a35bc437271144dac7d83dd5aab37e3591622113dfd",
+        "bytes": 681
+      }
+    },
+    "retained_prior_evidence": [
+      {
+        "label": "Original profile-readiness RED",
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-profile-readiness\\.tmp\\source-profile-readiness\\red\\receipt.json",
+        "sha256": "ba47da8e2d972b521fcbf5761d7264b9d790fecde1abe26ba6f8aae46729fca6",
+        "unchanged": true
+      },
+      {
+        "label": "Original profile-readiness GREEN",
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-profile-readiness\\.tmp\\source-profile-readiness\\green\\receipt.json",
+        "sha256": "cd23944f160dcd22579b59c5fa2dd0c86f92bea27cd34a429e7f2e4694535de9",
+        "unchanged": true
+      },
+      {
+        "label": "Actual failed unchanged-fixture d7 refresh",
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-validation\\green\\receipt.json",
+        "sha256": "51cc71db19560cfec4cbc53aedb0713c557a80100342ddfaff895af65bdb4398",
+        "unchanged": true
+      },
+      {
+        "label": "Prior failed refresh handoff",
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-validation\\FAILED-HANDOFF.json",
+        "sha256": "081342fa5a2b5afda9a011aa67b26a581ba7ba6f86778c643146f704eb7bc743",
+        "unchanged": true
+      },
+      {
+        "label": "Observed local clock metadata",
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-validation\\clock-observation.json",
+        "sha256": "dfa0e92ff7ff5942d72e8fc424a1ea02f97c46fa8a7ca7fc1ff11dcec0dfd361",
+        "unchanged": true
+      }
+    ]
   }
 }
