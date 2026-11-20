@@ -95,6 +95,11 @@ def test_corrupted_or_missing_checkpoints_fail_closed():
     with pytest.raises(ValueError, match="Unsupported checkpoint schema"):
         recover_exact(chunks, modified)
 
+    modified = json.loads(json.dumps(plan))
+    modified["checkpoints"][0]["heading_level"] = 1
+    with pytest.raises(ValueError, match="Checkpoint segmentation mismatch"):
+        recover_exact(chunks, modified)
+
 
 def test_metadata_only_json_and_quiet_status_do_not_write(tmp_path):
     source = tmp_path / "handoff.md"

@@ -136,6 +136,12 @@ def recover_exact(checkpoint_bytes: Sequence[bytes], manifest: dict) -> bytes:
     if (manifest.get("source_length") != len(data)
             or manifest.get("source_sha256") != hashlib.sha256(data).hexdigest()):
         raise ValueError("Source recovery digest mismatch")
+    parsed = split_handoff(data)
+    if (len(parsed) != len(entries)
+            or any(section.start != entry["start"]
+                   or section.heading_level != entry["heading_level"]
+                   for section, entry in zip(parsed, entries, strict=True))):
+        raise ValueError("Checkpoint segmentation mismatch")
     return data
 
 
