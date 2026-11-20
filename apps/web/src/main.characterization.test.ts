@@ -1,21 +1,25 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { MAIN_TABS, tabTitle } from './navigation';
 
 const mainSource = readFileSync(new URL('./main.tsx', import.meta.url), 'utf8');
 const navigationSource = readFileSync(new URL('./navigation.tsx', import.meta.url), 'utf8');
 const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
 describe('web entrypoint characterization', () => {
-  it('keeps the existing primary navigation order and labels', () => {
-    expect(navigationSource).toContain(
-      "export type Tab = 'Jobs'|'Pipeline'|'Profile'|'Career Stories'|'Learning'|'Sources'|'Applications'|'Review Queue'|'AI Settings'|'Activity';",
-    );
-    expect(navigationSource).toContain(
-      "export const MAIN_TABS: Tab[]",
-    );
-    expect(navigationSource).toContain(
-      "if(tab==='Jobs')return 'Find your next opportunity.'",
-    );
+  it('keeps the existing primary navigation order, labels, and titles', () => {
+    expect(MAIN_TABS.map(tab => [tab, tabTitle(tab)])).toEqual([
+      ['Jobs', 'Find your next opportunity.'],
+      ['Pipeline', 'Move opportunities forward.'],
+      ['Profile', 'Your experience, in your words.'],
+      ['Career Stories', 'Build reusable career stories.'],
+      ['Learning', 'Understand your matches.'],
+      ['Sources', 'Choose where to look.'],
+      ['Applications', 'Every application, accounted for.'],
+      ['Review Queue', 'Review application blockers.'],
+      ['AI Settings', 'Choose models by task.'],
+      ['Activity', 'See what is happening.'],
+    ]);
   });
 
   it('keeps first-run actions mapped to their current tabs and anchors', () => {
