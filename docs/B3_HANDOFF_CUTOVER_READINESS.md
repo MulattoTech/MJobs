@@ -29,8 +29,16 @@ From a verified isolated repository checkout:
 
 The default scan reports Git HEAD, local source SHA-256, handoff byte length,
 registered worktree count, dirty/unverifiable registered worktree counts,
-and blockers. It deliberately does NOT treat unenumerated independent clones
-as clean. No historical handoff text or local worktree paths are printed.
+and blockers. It also compares actual handoff bytes across each enumerated
+checkout to the canonical source, and independently compares the canonical
+worktree file with its committed Git blob. Changes hidden by Git flags such
+as `assume-unchanged` or `skip-worktree` must not count as clean evidence.
+A different committed historical handoff is reported as a **content
+difference**, not inaccurately called an uncommitted edit; both need owner
+reconciliation before a new reader may be activated.
+
+The scan deliberately does NOT treat unenumerated independent clones as
+clean. No historical handoff text or local worktree paths are printed.
 
 Include each **known** independent Git clone when running the review:
 

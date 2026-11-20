@@ -572,3 +572,81 @@ def test_new_writer_lock_after_initial_verification_fails_closed(
     assert "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION" in report["blockers"]
     assert report["ready_for_review"] is False
     assert lock.read_bytes() == b"FOREIGN_WRITER_STARTED"
+
+
+
+def test_registered_clean_branch_with_different_committed_handoff_blocks(sample):
+    """A committed older/newer handoff is not an uncommitted edit, but blocks."""
+    repo = sample["repo"]
+    sibling = sample["root"] / "independent-agent-worktree"
+    git(repo, "worktree", "add", "-q", "-b", "synthetic-other-branch", str(sibling))
+    other_source = sibling / "planning" / "SESSION_HANDOFF.md"
+    other_source.write_bytes(other_source.read_bytes() + b"OTHER_BRANCH_HANDOFF_COMMIT")
+    git(sibling, "add", "planning/SESSION_HANDOFF.md")
+    git(sibling, "commit", "-qm", "synthetic other handoff")
+    assert git(sibling, "status", "--porcelain") == ""
+
+    report = readiness.readiness_report(repo, **pins(sample))
+    assert report["worktree_count"] == 2
+    assert report["dirty_handoff_worktrees"] == 0
+    assert report["different_handoff_worktrees"] == 1
+    assert "HANDOFF_BYTES_DIFFER_IN_WORKTREE" in report["blockers"]
+    assert report["technical_evidence"] == "SOURCE_ARCHIVE_REVIEW_PREVIEW_CONSISTENT"
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+    assert str(sibling) not in json.dumps(report)
+
+
+def test_independent_assume_unchanged_handoff_is_detected_by_digest(sample):
+    """Git status may hide a modified tracked file; compare raw bytes anyway."""
+    clone = sample["root"] / "assume-unchanged-synthetic-clone"
+    git(sample["repo"], "clone", "-q", str(sample["repo"]), str(clone))
+    git(clone, "update-index", "--assume-unchanged", "planning/SESSION_HANDOFF.md")
+    changed = clone / "planning" / "SESSION_HANDOFF.md"
+    changed.write_bytes(changed.read_bytes() + b"HIDDEN_INDEPENDENT_HANDOFF_CHANGE")
+    assert git(clone, "status", "--porcelain", "--", "planning/SESSION_HANDOFF.md") == ""
+
+    values = pins(sample)
+    values["independent_checkouts"] = [clone]
+    result = readiness.readiness_report(sample["repo"], **values)
+    assert result["dirty_independent_checkouts"] == 0
+    assert result["different_independent_checkouts"] == 1
+    assert "HANDOFF_BYTES_DIFFER_IN_INDEPENDENT_CHECKOUT" in result["blockers"]
+    assert result["technical_evidence"] == "SOURCE_ARCHIVE_REVIEW_PREVIEW_CONSISTENT"
+    assert result["ready_for_review"] is False
+    assert result["can_cutover"] is False
+    assert "HIDDEN_INDEPENDENT_HANDOFF_CHANGE" not in json.dumps(result)
+
+
+def test_canonical_assume_unchanged_handoff_differs_from_committed_head(sample):
+    """Root handoff cannot be trusted from Git status even with a matching pin."""
+    repo = sample["repo"]
+    git(repo, "update-index", "--assume-unchanged", "planning/SESSION_HANDOFF.md")
+    source = sample["source"]
+    source.write_bytes(source.read_bytes() + b"HIDDEN_ROOT_HANDOFF_CHANGE")
+    assert git(repo, "status", "--porcelain", "--", "planning/SESSION_HANDOFF.md") == ""
+
+    report = readiness.readiness_report(repo)
+    assert "SOURCE_HANDOFF_DIFFERS_FROM_COMMITTED_HEAD" in report["blockers"]
+    assert report["source_git_head"] == sample["head"]
+    assert report["source_sha256"] != sample["source_sha"]
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+    assert "HIDDEN_ROOT_HANDOFF_CHANGE" not in json.dumps(report)
+
+
+def test_registered_assume_unchanged_worktree_is_detected_by_digest(sample):
+    repo = sample["repo"]
+    sibling = sample["root"] / "hidden-modified-worktree"
+    git(repo, "worktree", "add", "-q", "-b", "hidden-changes", str(sibling))
+    git(sibling, "update-index", "--assume-unchanged", "planning/SESSION_HANDOFF.md")
+    source = sibling / "planning" / "SESSION_HANDOFF.md"
+    source.write_bytes(source.read_bytes() + b"ASSUME_UNCHANGED_REVIEW_TEST")
+    assert git(sibling, "status", "--porcelain", "--", "planning/SESSION_HANDOFF.md") == ""
+
+    result = readiness.readiness_report(repo, **pins(sample))
+    assert result["dirty_handoff_worktrees"] == 0
+    assert result["different_handoff_worktrees"] == 1
+    assert "HANDOFF_BYTES_DIFFER_IN_WORKTREE" in result["blockers"]
+    assert result["ready_for_review"] is False
+    assert result["can_cutover"] is False

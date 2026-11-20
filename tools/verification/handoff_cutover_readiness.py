@@ -60,6 +60,19 @@ def _worktree_paths(root: Path) -> list[Path]:
     return paths
 
 
+def _handoff_digest(checkout: Path) -> str:
+    """Hash bytes directly, even when Git status hides a modified tracked file."""
+    source = checkout / _HANDOFF
+    if source.is_symlink() or not source.is_file():
+        raise ValueError("Handoff source is missing or symbolic")
+    if source.stat().st_size > _MAX_HANDOFF_BYTES:
+        raise ValueError("Handoff exceeds bounded size")
+    content = source.read_bytes()
+    if len(content) > _MAX_HANDOFF_BYTES:
+        raise ValueError("Handoff changed beyond bounded size while reading")
+    return hashlib.sha256(content).hexdigest()
+
+
 def scan_handoff_worktrees(
     repo: Path, independent_checkouts: Sequence[Path] | None = None
 ) -> dict:
@@ -72,11 +85,13 @@ def scan_handoff_worktrees(
         "source_length": None,
         "worktree_count": None,
         "dirty_handoff_worktrees": 0,
+        "different_handoff_worktrees": 0,
         "unverifiable_worktrees": 0,
         "independent_checkout_count": (
             None if independent_checkouts is None else len(independent_checkouts)
         ),
         "dirty_independent_checkouts": 0,
+        "different_independent_checkouts": 0,
         "unverifiable_independent_checkouts": 0,
         "independent_checkout_coverage": (
             "NOT_DECLARED" if independent_checkouts is None
@@ -113,8 +128,18 @@ def scan_handoff_worktrees(
             if size > _MAX_HANDOFF_BYTES:
                 raise ValueError("Handoff exceeds bounded inventory size")
             data = source.read_bytes()
+            if len(data) > _MAX_HANDOFF_BYTES:
+                raise ValueError("Handoff changed beyond bounded size while reading")
             checked["source_sha256"] = hashlib.sha256(data).hexdigest()
             checked["source_length"] = len(data)
+            # Git status can suppress changes marked assume-unchanged or
+            # skip-worktree. Independently verify against the committed blob.
+            committed = _git(repo, "rev-parse", f"HEAD:{_HANDOFF}")
+            current = _git(repo, "hash-object", f"--path={_HANDOFF}", "--", _HANDOFF)
+            if committed != current:
+                checked["observations"].append(
+                    "SOURCE_HANDOFF_DIFFERS_FROM_COMMITTED_HEAD"
+                )
         except (OSError, ValueError):
             checked["observations"].append("CANONICAL_HANDOFF_UNVERIFIABLE")
 
@@ -134,10 +159,15 @@ def scan_handoff_worktrees(
                 )
                 if state:
                     checked["dirty_handoff_worktrees"] += 1
-            except ValueError:
+                if checked["source_sha256"] is not None:
+                    if _handoff_digest(path) != checked["source_sha256"]:
+                        checked["different_handoff_worktrees"] += 1
+            except (ValueError, OSError):
                 checked["unverifiable_worktrees"] += 1
         if checked["dirty_handoff_worktrees"]:
             checked["observations"].append("UNCOMMITTED_HANDOFF_IN_WORKTREE")
+        if checked["different_handoff_worktrees"]:
+            checked["observations"].append("HANDOFF_BYTES_DIFFER_IN_WORKTREE")
         if checked["unverifiable_worktrees"]:
             checked["observations"].append("WORKTREE_HANDOFF_STATUS_UNVERIFIABLE")
     except ValueError:
@@ -172,10 +202,15 @@ def scan_handoff_worktrees(
                 )
                 if status:
                     checked["dirty_independent_checkouts"] += 1
+                if checked["source_sha256"] is not None:
+                    if _handoff_digest(other) != checked["source_sha256"]:
+                        checked["different_independent_checkouts"] += 1
             except (ValueError, OSError):
                 checked["unverifiable_independent_checkouts"] += 1
         if checked["dirty_independent_checkouts"]:
             checked["observations"].append("UNCOMMITTED_HANDOFF_IN_INDEPENDENT_CHECKOUT")
+        if checked["different_independent_checkouts"]:
+            checked["observations"].append("HANDOFF_BYTES_DIFFER_IN_INDEPENDENT_CHECKOUT")
         if checked["unverifiable_independent_checkouts"]:
             checked["observations"].append("INDEPENDENT_CHECKOUT_STATUS_UNVERIFIABLE")
     checked["observations"] = sorted(set(checked["observations"]))
@@ -255,9 +290,11 @@ def readiness_report(
         "source_length": scan["source_length"],
         "worktree_count": scan["worktree_count"],
         "dirty_handoff_worktrees": scan["dirty_handoff_worktrees"],
+        "different_handoff_worktrees": scan["different_handoff_worktrees"],
         "unverifiable_worktrees": scan["unverifiable_worktrees"],
         "independent_checkout_count": scan["independent_checkout_count"],
         "dirty_independent_checkouts": scan["dirty_independent_checkouts"],
+        "different_independent_checkouts": scan["different_independent_checkouts"],
         "unverifiable_independent_checkouts": scan["unverifiable_independent_checkouts"],
         "independent_checkout_coverage": scan["independent_checkout_coverage"],
         "technical_evidence": "NOT_QUERIED",
