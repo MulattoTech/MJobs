@@ -80,3 +80,17 @@ PostgreSQL-specific checks, authenticated public functionality, production
 deployment, and real employer submission were not performed. Existing runtime
 and fixture stacks were preserved. This patch has no migration or user-data
 rewrite; later rollback is an ordinary protected source revert.
+
+## Approved serial integration continuation
+
+The user explicitly approved serial protected integration of PR1045 then PR1034, including the necessary base refresh and required checks. Production deployment remains separately reserved.
+
+PR1045 merged at 2026-11-20T06:53:35Z as `d9e3bf11aa135a58bc1aa786edddae8cec478f66`; its tree exactly matches the previously verified `abe15feb` candidate. PR1034 refreshed cleanly onto that main.
+
+The combined tree `4437b70a9b9c577e327d1de44211152172f25fa2` was committed identically as `94b1502b5052869411bdacbe1c52da9df91e4998`. Fresh execution on this composition passed **63 frontend tests** across five suites and **41 Python/API/browser tests plus 28 subtests**, with zero failures/skips (pytest 45.12 seconds). TypeScript and a fresh production build passed; the existing bundle-size advisory remains. Logs/JUnit are retained as `.tmp/approved-integration-*`.
+
+The Python run combined the six comparison files listed in the comparison evidence with `tests/unit/test_application_rehearsal.py` and `tests/browser/test_application_rehearsal.py`. The frontend run combined the three comparison suites, application rehearsal, and main characterization. This verifies the integrated feature composition; the final documentation/checkpoint commit leaves that tested source unchanged.
+
+Fresh hosted checks on the updated published head remain required before the already authorized PR1034 merge. Earlier `ed78ee3d` checks passed all 15 records but do not substitute for the new head. MJ-REQ-136 remains PARTIAL and MJ-REF-039 remains NOT_RUN at this checkpoint; canonical acceptance is not changed by these integration results.
+
+The separately completed synthetic guarded backup/upgrade/fresh-project restore is now recorded in [the recovery evidence](2026-11-20-guarded-recovery-d9b89794.json). Its executed candidate is explicitly `ed78ee3d`, and it is not production deployment evidence.
