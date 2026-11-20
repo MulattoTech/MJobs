@@ -157,7 +157,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
                    transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0,
                    cancel_dispatch_delay=0, cancel_service_delay=0,
-                   profile_setup_delay=0, profile_read_delay=0):
+                   profile_setup_delay=0, profile_read_delay=0, profile_delay_sleep=None):
         tenant = tenant or source_tenant(provider)
         cold_ssl = mode == "cold_ssl_deadline"
         pre_ssl_deadline = mode == "pre_ssl_deadline"
@@ -228,6 +228,17 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         sample["exited_at"] = time.monotonic()
                 return observed
 
+            def wait_for_profile_delay(seconds):
+                sleep = time.sleep if profile_delay_sleep is None else profile_delay_sleep
+                started = time.monotonic()
+                while True:
+                    elapsed = time.monotonic() - started
+                    if elapsed >= seconds:
+                        return
+                    remaining = seconds - elapsed
+                    if remaining > 0:
+                        sleep(remaining)
+
             def observe_profile_read(worker_store, profile_id, version=None, connection=None):
                 targeted = (threading.current_thread() is worker
                             and profile_id == PROFILE["id"]
@@ -240,14 +251,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 try:
                     if profile_setup_delay and not profile_setup_delayed[0]:
                         profile_setup_delayed[0] = True
-                        time.sleep(profile_setup_delay)
+                        wait_for_profile_delay(profile_setup_delay)
                     if (profile_read_delay and not profile_preparing[0]
                             and not profile_read_delayed[0]):
                         self.assertTrue(deadline_started_at,
                                         "Slow collector profile read must follow deadline construction")
                         profile_read_delayed[0] = True
                         sample["delayed_after_deadline"] = True
-                        time.sleep(profile_read_delay)
+                        wait_for_profile_delay(profile_read_delay)
                     return original_profile(worker_store, profile_id, version, connection)
                 finally:
                     sample["exited_at"] = time.monotonic()
@@ -913,6 +924,23 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def test_lever_eu_finite_deadline_with_slow_profile_preparation(self):
         self.run_source("lever", "deadline", tenant="eu:synthetic",
                         coordinator_delay=1.05, profile_setup_delay=.9)
+
+    def test_lever_eu_profile_delay_retries_early_return(self):
+        sleep_calls = []
+
+        def return_early_once(seconds):
+            sleep_calls.append(seconds)
+            if len(sleep_calls) == 1:
+                print("OWNED_PROFILE_DELAY_EARLY_RETURN")
+                return
+            time.sleep(seconds)
+
+        self.run_source("lever", "deadline", tenant="eu:synthetic",
+                        coordinator_delay=1.05, profile_setup_delay=.9,
+                        profile_delay_sleep=return_early_once)
+        self.assertGreaterEqual(len(sleep_calls), 2)
+        self.assertTrue(all(seconds > 0 for seconds in sleep_calls))
+        print(f"OWNED_PROFILE_DELAY_SLEEP_CALLS count={len(sleep_calls)}")
 
     def test_lever_eu_slow_profile_read_after_deadline_prevents_connect(self):
         self.run_source("lever", "profile_deadline", tenant="eu:synthetic", profile_read_delay=.9)
