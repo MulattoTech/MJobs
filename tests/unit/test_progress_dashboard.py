@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from tools.verification.progress import append_milestone
 from tools.verification.progress_dashboard import main, render_dashboard, snapshot, write_dashboard
 
 
@@ -69,6 +70,46 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("1 PASS / 0 PARTIAL / 1 NOT_RUN", page)
         self.assertIn("Full-spec release readiness: **NOT_RUN**", page)
         self.assertIn("| P0 |", page.replace(chr(96), ""))
+
+    def test_recorded_milestone_advances_dashboard_without_changing_counts(self):
+        evidence = self.root / "docs/checkpoint.json"
+        evidence.write_text("{}", encoding="utf-8")
+        entry = {
+            "milestone_id": "CURRENT_ACCEPTANCE",
+            "timestamp": "2026-11-20T07:00:00Z",
+            "current_phase": "ACCEPTANCE_RECORDING",
+            "completed_steps": ["Reviewed one requirement"],
+            "files_added": ["docs/checkpoint.json"],
+            "files_modified": [],
+            "tests_completed": ["Focused acceptance checks"],
+            "tests_remaining": [],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": [],
+            "last_safe_checkpoint": {
+                "git_commit": "a" * 40,
+                "evidence_path": "docs/checkpoint.json",
+            },
+        }
+        before = snapshot(self.root)
+        state_path = self.root / "planning/IMPLEMENTATION_STATE.json"
+
+        append_milestone(state_path, entry)
+
+        recorded = snapshot(self.root)
+        self.assertEqual(recorded["milestone"], "CURRENT_ACCEPTANCE")
+        self.assertEqual(recorded["original"], before["original"])
+        self.assertEqual(recorded["reference"], before["reference"])
+        self.assertIn("CURRENT_ACCEPTANCE", render_dashboard(self.root))
+        later = {**entry, "milestone_id": "LATER_ACCEPTANCE",
+                 "timestamp": "2026-11-20T07:01:00Z"}
+
+        append_milestone(state_path, later)
+
+        self.assertEqual(snapshot(self.root)["milestone"], "LATER_ACCEPTANCE")
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["milestone_journal"], [entry, later])
 
     def test_check_is_read_only_and_write_is_idempotent(self):
         target = self.root / "docs/PROGRESS_DASHBOARD.md"
