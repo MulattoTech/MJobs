@@ -994,7 +994,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return JSONResponse({"detail": "Entity not found"}, status_code=404)
 
     from apps.api.runtime_routes import create_runtime_router
-    app.include_router(create_runtime_router(
+    runtime_router = create_runtime_router(
         store=store,
         mock_origin=mock_origin,
         redis_url=redis_url,
@@ -1004,7 +1004,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         browser_profile=browser_profile,
         notifications_enabled=notifications_enabled,
         redis_client=Redis,
-    ))
+    )
+    app.router.routes.extend(runtime_router.routes)
 
     def queued(kind, entity_id, params, *, connection=None, preparation_priority=None):
         try:
