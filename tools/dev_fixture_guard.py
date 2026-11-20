@@ -115,10 +115,25 @@ def compose_args(project):
 
 def cleanup(project, token, env=None):
     verify_owned(project, token)
+    # Compose interpolates its config even for "down". Supply non-production,
+    # cleanup-only placeholders if the independent watchdog has no parent env.
+    # Never read or reuse production secrets when reaping an expired fixture.
+    rows = containers(project)
+    expiries = {row.get(EXPIRY_LABEL) for row in rows}
+    if len(expiries) != 1 or not next(iter(expiries)):
+        raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
+    compose_env = dict(os.environ if env is None else env)
+    compose_env.update({
+        "MJOBS_DEV_GUARD_TOKEN": token,
+        "MJOBS_DEV_GUARD_EXPIRES": next(iter(expiries)),
+    })
+    compose_env.setdefault("POSTGRES_PASSWORD", "fixture-cleanup-only")
+    compose_env.setdefault("MJOBS_CREDENTIAL_ENCRYPTION_KEY", "fixture-cleanup-only")
+    compose_env.pop("COMPOSE_FILE", None)
     # Only newly generated, token-labelled projects reach this call. Preserve
     # images/build cache; delete the disposable project's own test volumes.
     docker(*compose_args(project), "down", "--remove-orphans", "--volumes",
-           env=env, timeout=180)
+           env=compose_env, timeout=180)
 
 
 def inventory():
