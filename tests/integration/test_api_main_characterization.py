@@ -2,10 +2,12 @@
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
+from apps.api.runtime_routes import create_runtime_router
 from packages.persistence.store import Store
 
 
@@ -31,6 +33,34 @@ class ApiMainCharacterizationTests(unittest.TestCase):
         import apps.api.main as main
 
         self.assertFalse(hasattr(main, "app"))
+
+    def test_runtime_router_factory_exposes_status_routes(self):
+        directory, store, _ = self._app()
+        try:
+            paths = {
+                route.path
+                for route in create_runtime_router(
+                    store=store,
+                    mock_origin="http://127.0.0.1:1",
+                    redis_url="redis://127.0.0.1:6379/0",
+                    operation_mode="PERSONAL",
+                    deploy_sha=None,
+                    submission_policy=SimpleNamespace(
+                        hourly_limit=0,
+                        daily_limit=0,
+                        company_limit=0,
+                    ),
+                    browser_profile="default",
+                    notifications_enabled=False,
+                ).routes
+            }
+            self.assertEqual(
+                paths,
+                {"/health", "/readiness", "/ready", "/__deployment", "/settings"},
+            )
+        finally:
+            store.engine.dispose()
+            directory.cleanup()
 
     def test_factory_registers_boundary_routes_and_initializes_state(self):
         directory, store, app = self._app()
