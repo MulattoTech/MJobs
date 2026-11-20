@@ -90,6 +90,7 @@ import { createCompanyPreferenceClient } from './company-preferences-client';
 import { CompanyDiscoveryPolicy, type CompanyDiscoveryPolicyValue } from './company-discovery-policy';
 import { ApplicationRoutePreference, type ApplicationRoutePreferenceValue } from './application-route-preference';
 import { FirstRunWizard, type FirstRunWizardStep } from './first-run-wizard';
+import {MainNavigation, firstRunNavigationTarget, tabTitle, type Tab} from './navigation';
 import {
   CareerFactRejection, CareerFactReviewReload,
   FACT_REVIEW_VERSION_MISMATCH_MESSAGE, assertProfileDraftUnchanged, factReviewMatchesProfileVersion,
@@ -217,7 +218,6 @@ function utcDateBound(value:string){if(!value)return'';return `${value.length===
 function utcDateInput(value:unknown){if(typeof value!=='string'||!value)return'';return value.replace(/\+00:00$/,'').replace(/Z$/,'').slice(0,19);}
 function legacyDateWindow(value:string|undefined):DateWindowControl{return({1:'LAST_24_HOURS',3:'LAST_3_DAYS',7:'LAST_7_DAYS',14:'LEGACY_14_DAYS',30:'LAST_30_DAYS'} as Record<string,DateWindowControl>)[value||'']||'';}
 type OperationMode = 'FIXTURE'|'PERSONAL';
-type Tab = 'Jobs'|'Pipeline'|'Profile'|'Career Stories'|'Learning'|'Sources'|'Applications'|'Review Queue'|'AI Settings'|'Activity';
 type AITaskKey = 'job_parsing'|'job_scoring'|'requirement_extraction'|'resume_tailoring'|'cover_letters'|'free_form_answers'|'company_summarization';
 type AIProviderChoice = 'disabled'|'ollama'|'openai';
 type AITaskSelection = {provider:AIProviderChoice;model:string|null};
@@ -1642,8 +1642,14 @@ function App() {
     {id:'run-first-search',label:'Run first search',description:'Run your saved search on one enabled source. Results are filtered and matched using your profile.',complete:firstRunSearchComplete,action:'search',actionLabel:'Run saved search'},
   ];
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
-    <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Pipeline','Profile','Career Stories','Learning','Sources','Applications','Review Queue','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:item==='Review Queue'?reviewQueueApplications.filter(application=>application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL').length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
-    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Pipeline'?'Move opportunities forward.':tab==='Profile'?'Your experience, in your words.':tab==='Career Stories'?'Build reusable career stories.':tab==='Learning'?'Understand your matches.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='Review Queue'?'Review application blockers.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div><ThemeControl/></header>
+    <MainNavigation
+      tab={tab}
+      jobsCount={jobs.length}
+      applicationsCount={apps.length}
+      reviewQueueCount={reviewQueueApplications.filter(application=>application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL').length}
+      onNavigate={setTab}
+    />
+    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tabTitle(tab)}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div><ThemeControl/></header>
       <FirstRunWizard
         key={profileId||'new-profile'}
         profileId={profileId}
@@ -1655,17 +1661,7 @@ function App() {
         canRunSearch={!!profileId&&!!selectedFirstRunSource&&!!selectedFirstRunSearch}
         busy={!!busy}
         onNavigate={stepId=>{
-          const destination:Record<string,{tab:Tab;anchor:string}>={
-            'create-profile':{tab:'Profile',anchor:'create-profile'},
-            'upload-resume':{tab:'Profile',anchor:'upload-resume'},
-            'review-extracted-facts':{tab:'Profile',anchor:'review-extracted-facts'},
-            'configure-desired-jobs':{tab:'Sources',anchor:'configure-desired-jobs'},
-            'configure-location':{tab:'Profile',anchor:'configure-location'},
-            'configure-application-preferences':{tab:'Profile',anchor:'configure-application-preferences'},
-            'configure-ai':{tab:'AI Settings',anchor:''},
-            'enable-sources':{tab:'Sources',anchor:'enable-sources'},
-          };
-          const target=destination[stepId];
+          const target=firstRunNavigationTarget(stepId);
           if(!target)return;
           setFirstRunAnchor(target.anchor);
           setTab(target.tab);
