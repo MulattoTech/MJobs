@@ -337,7 +337,7 @@
     "Local execution used Windows Python 3.12.10 and pytest 9.1.1; the failed hosted job used Linux and pytest 9.0.3. Fresh exact-head hosted checks remain required.",
     "Five disposable-PostgreSQL cases were skipped, not passed.",
     "No repeated full suite, external provider request, global package install, production/config/key access, scanner-policy change or acceptance promotion.",
-    "Original and reference acceptance authorities, journal, shared SESSION and other task handoffs remain unchanged by this branch.",
+    "Original and reference acceptance authorities, journal, shared SESSION and other task handoffs remain unchanged by the fixture source and evidence commits b6e85405 and 08f4b1d2.",
     "Publication and any protected repair merge remain pending root review and their normal authorization/gates."
   ],
   "next_action": "Root independently reviews and composes the local completion/failure checkpoint, then performs ordinary PR publication and evaluates fresh exact-head required gates. No hosted retry or public action was performed here."
