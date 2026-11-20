@@ -1,3 +1,26 @@
+# MJobs approved integration checkpoint - 2026-11-20T07:05:29Z
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web remains the sole integration/acceptance writer.
+
+- The user explicitly approved serial protected integration of PR1045 then PR1034, including necessary base refreshes and required checks, followed by acceptance review and deployment preparation. Production deployment remains separately reserved.
+- PR1045 merged at 2026-11-20T06:53:35Z as d9e3bf11aa135a58bc1aa786edddae8cec478f66. Its tree exactly equals approved abe15feb; all 15 pre-merge checks and all five required gates passed.
+- PR1034 refreshed without conflicts onto that main. The exact tested combined tree 4437b70a9b9c577e327d1de44211152172f25fa2 is committed as 94b1502b5052869411bdacbe1c52da9df91e4998.
+- Combined validation: 63 frontend tests; 41 Python/API/browser tests plus28subtests, zero failures/skips; TypeScript and fresh production build PASS. The final checkpoint/evidence commit leaves tested feature sources unchanged.
+- PR1034 needs one normal existing-branch publication and fresh required hosted checks, then its already authorized protected merge. Do not request the same merge approval again. Read current GitHub head/main before acting.
+- Comparison acceptance validation also passed on actual merged d9e3bf11: 30 Python/API/browser tests plus28subtests and20frontend tests, fresh build/typecheck, zero failures/skips. AC4 canonical/report recording and AC5 feature-specific provenance recording remain pending owner review.
+- Canonical acceptance remains original188PASS/82PARTIAL/96NOT_RUN of366 and reference19PASS/4PARTIAL/36NOT_RUN of59. MJ-REF-039 stays NOT_RUN and MJ-REQ-136 stays PARTIAL in this checkpoint. No acceptance promotion is performed here.
+- The full synthetic guarded native backup, upgrade20261025di01->20261104rv01 and fresh-project restore to the old head PASS. It preserved13baseline table snapshots/document bytes, recovered1synthetic encrypted credential, and confirmed zero applications/attempts/submissions. Owned fixture containers/volumes/networks were removed and independently confirmed absent.
+- Durable sanitized recovery report: docs/evidence/2026-11-20-guarded-recovery-d9b89794.json. Its actual executed candidate is ed78ee3d, separate from this later integration validation; the retained image is a rehearsal artifact.
+- Production remains healthy on6a47f562. No production backup, migration, rollout, shared-service restart, updater change, Cloudflare change or credential change was performed. A read-only production preparation pass found that the current configuration file's ancestry fails the private-file guard; classify and prepare a verified recovery-key/configuration path before proposing maintenance.
+- Guarded production execution must compare actual release-checkout/image bytes and use a new genuine production receipt. Never reuse a synthetic receipt or assume an old-image restart reverses the schema.
+- Primary/original worktrees, unrelated active agents and existing production/fixture stacks were preserved. Private test receipts, archive and image remain retained; no secrets are published.
+
+Next: finish the approved PR1034 integration after its current-head gates; then complete a separately reviewable acceptance-record change and concrete production proposal. Existing user authorization covers ordinary preparation; newly scoped protected merges or production operations retain their stated approval boundaries.
+
+Earlier checkpoint history follows and may describe gates now completed.
+
+---
+
 # MJobs engineering checkpoint - 2026-11-20 UTC
 
 Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
