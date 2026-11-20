@@ -336,6 +336,8 @@ def execute_operation(operation_id, *, registry_module=None,
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
+                        parent_operation_id=operation_id,
+                        parent_operation_attempt=operation["attempt_count"],
                         refresh_matches=search_profile is None,
                         **collection_options,
                     )
@@ -389,8 +391,39 @@ def execute_operation(operation_id, *, registry_module=None,
                             profile_version=params.get("profile_version"),
                         )
                         history_results = len(discovery_jobs)
+            elif operation["kind"] == "COMPANY_DISCOVER" and "aggregator_bootstrap" in operation["params"]:
+                # Presence selects this restricted path even for malformed
+                # markers. An unverified aggregator hint must never fall through
+                # to a broader company-discovery handler.
+                from services.company_discovery.aggregator_bootstrap import bootstrap_schemas
+                params = operation["params"]
+                try:
+                    schemas = bootstrap_schemas(params.get("aggregator_bootstrap_version"))
+                except ValueError:
+                    raise FixtureOperationDisabled() from None
+                if (params.get("aggregator_bootstrap") != schemas[0]
+                        or params.get("fetch_mode") != "PUBLIC_HTTPS"
+                        or not params.get("discovery_request_id")
+                        or any(key in params for key in (
+                            "fixture_monitoring", "fixture_source_id", "fixture_native_acquisition",
+                            "monitoring_source_id", "verification_policy", "verification_policy_override"))):
+                    raise FixtureOperationDisabled()
+                from services.company_discovery.aggregator_workflow import execute_aggregator_bootstrap
+                result = execute_aggregator_bootstrap(
+                    store, operation, check=check, total_timeout=min(90, timeout() - 5))
+            elif operation["kind"] == "COMPANY_DISCOVER" and (
+                    "fixture_monitoring" in params or "fixture_source_id" in params):
+                # Presence selects the restricted handler even for a malformed
+                # marker. It may never fall through to broad company discovery.
+                if operation_mode != "FIXTURE":
+                    raise FixtureOperationDisabled()
+                from services.company_discovery.fixture_monitoring import refresh_fixture_source
+                result = refresh_fixture_source(store, origin, operation, check=check)
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
+                fixture_native = "fixture_native_acquisition" in params
+                if fixture_native and (operation_mode != "FIXTURE" or not params.get("discovery_request_id")):
+                    raise FixtureOperationDisabled()
                 if params.get("monitoring_source_id") or params.get("discovery_request_id"):
                     cancellation_check = check
                     def check():
@@ -401,7 +434,9 @@ def execute_operation(operation_id, *, registry_module=None,
                         if params.get("discovery_request_id"):
                             return authorize_discovery_request(store, operation)
                     check()
-                if operation_mode == "PERSONAL":
+                if operation_mode == "PERSONAL" or fixture_native:
+                    # The existing request guard above revalidates native proof
+                    # before client creation, on every read and at enrollment.
                     client = PublicCompanyClient(params["candidate"].get("company_website"), check=check, total_timeout=min(90, timeout()-5))
                 else:
                     if params.get("fetch_mode") == "PUBLIC_HTTPS":
@@ -598,7 +633,14 @@ def execute_operation(operation_id, *, registry_module=None,
                     except DurableEvaluationError as failure:
                         state, error = 'BLOCKED', ai_operation_error_category(failure.code)
             finished_at = now()
-            retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
+            v2_bootstrap = (operation['kind'] == 'COMPANY_DISCOVER'
+                and operation['params'].get('aggregator_bootstrap') == 'AGGREGATOR_BOOTSTRAP_PENDING_V2')
+            # V2 is a single bounded attempt. A transport 503/Retry-After or
+            # transient DNS result must not enter the generic discovery retry
+            # policy, create next_attempt_at, or revive this pending grant.
+            if v2_bootstrap and state == 'FAILED':
+                state = 'BLOCKED'
+            retry = None if v2_bootstrap else discovery_retry_plan(connection, operation, retry_failure, finished_at)
             if retry is not None and deadline is not None and time.monotonic() >= deadline:
                 # The fenced operation and any committed receipt now have
                 # precedence. Recheck the monotonic deadline only for a failure

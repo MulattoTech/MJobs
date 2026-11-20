@@ -512,6 +512,14 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
                     # Persist before navigation or any wait for user input. A
                     # crash before this observation remains unknown and held.
                     on_process(capture_browser_identity(context, profile))
+                from services.applications.browser_profile_metadata import record_browser_profile_use
+
+                # The process owner is recorded first. This advisory observation
+                # cannot authorize authentication, retry, or submission.
+                login_origin = urlsplit(login_url)
+                record_browser_profile_use(
+                    application_root, profile, provider="mock-ats",
+                    site=urlunsplit((login_origin.scheme, login_origin.netloc, "", "", "")))
                 context.route("**/*", lambda browser_route: (
                     browser_route.continue_()
                     if client.allowed(browser_route.request.url)

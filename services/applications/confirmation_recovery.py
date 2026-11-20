@@ -268,6 +268,8 @@ def reconcile_confirmation(store, profile_id, application_id, mock_origin,
         if not client.allowed(route["url"]):
             raise ConfirmationConflict("CONFIRMATION_ORIGIN_MISMATCH")
         receipt = _receipt(receipt_client, application, route["requisition"])
+        from services.applications.owned_ats_execution import validate_native_receipt
+        receipt = validate_native_receipt(store, application, route, client.origin, receipt)
         check_unavailable = receipt_client.timed_out
     except TimeoutError:
         # A timeout says nothing about whether the earlier submit was received.

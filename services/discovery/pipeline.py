@@ -38,7 +38,7 @@ class MockClient:
     bounded_redirects = True
     fixture_only = True
 
-    def __init__(self, origin, check=None):
+    def __init__(self, origin, check=None, *, allow_redirects=True):
         parsed = urlsplit(origin)
         allowed_hosts = ("127.0.0.1", "localhost") + (("mock",) if os.environ.get("MJOBS_COMPOSE_MOCK") == "1" else ())
         if (parsed.scheme != "http" or parsed.hostname not in allowed_hosts
@@ -46,6 +46,7 @@ class MockClient:
             raise ValueError("Mock origin must be an explicit local fixture server")
         self.origin = origin.rstrip("/")
         self.check = check or (lambda: None)
+        self.allow_redirects = allow_redirects
         # Own connect/read sockets before a response exists so the worker check
         # also bounds DNS, pending connects, and response headers.
         self.client = httpx.Client(transport=SourceTransport(self.check), timeout=10,
@@ -92,6 +93,8 @@ class MockClient:
                 with self.client.stream("GET", url) as response:
                     active_response.append(response)
                     if response.is_redirect:
+                        if not self.allow_redirects:
+                            raise ValueError("FIXTURE_DIRECT_ENDPOINT_REDIRECT_BLOCKED")
                         redirect = urljoin(url, response.headers["location"])
                     else:
                         response.raise_for_status()
@@ -160,7 +163,8 @@ def mock_skill_evidence(row, title, description):
     }
 
 
-def discover(store, mock_origin, profile_id, check=None, profile_version=None, *, capture_only=False):
+def discover(store, mock_origin, profile_id, check=None, profile_version=None, *, capture_only=False,
+             company_source=None, import_guard=None, import_receipt=None):
     """Cooperatively stop work without committing an interrupted job batch.
 
     Job, posting, match, lifecycle and completion-audit writes share the final
@@ -168,70 +172,105 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
     step, so a stopped batch can be retried against already discovered sources.
     """
     profile = store.profile(profile_id, profile_version)
-    client = MockClient(mock_origin, check=check)
+    client_options = {"allow_redirects": False} if company_source is not None else {}
+    client = MockClient(mock_origin, check=check, **client_options)
     try:
-        aggregator = client.get(mock_origin + "/board/jobs").json()["jobs"]
-        sources = {}
-        all_rows = [("mock-board", row) for row in aggregator]
-        for row in aggregator:
-            client.check()
-            company_website = row.get("company_website") or ""
-            company_name = row.get("company") or ""
-            candidate = {
-                "company_name": company_name,
-                "company_website": company_website,
-                "application_url": row.get("application_url") or "",
-                "trigger_evidence": ["DISCOVERED_VIA_AGGREGATOR_BOARD"],
-            }
-            if row.get("company_domain"):
-                candidate["company_domain"] = row["company_domain"]
-            resolved = resolve_company(store, candidate)
-            company_id = resolved["company_id"]
-            if not directly_monitored(store, company_id):
-                discovery_result = discover_company_source(
-                    store,
-                    candidate,
-                    client,
-                    check=check,
-                    profile_id=profile_id,
-                    profile_version=profile["version"] if profile else None,
-                )
-                endpoint = discovery_result["endpoint"]
-                employer_jobs = discovery_result.get("jobs") or []
-                sources[company_id] = {
-                    "company": company_name, "domain": company_website,
-                    "tenant": discovery_result["tenant"], "endpoint": endpoint,
-                    "career_url": discovery_result["careers_url"],
+        if company_source is not None:
+            # A reviewed direct refresh reads this employer endpoint only. It
+            # neither visits the aggregator nor enrolls/replaces company sources.
+            store.assert_workspace_mode("FIXTURE")
+            source = company_source
+            if (source.get("provider") != "mock-ats" or source.get("collection_strategy") != "FIXTURE"
+                    or not source.get("enabled") or not client.allowed(source.get("endpoint", ""))
+                    or not callable(import_guard) or not callable(import_receipt)):
+                raise ValueError("FIXTURE_DIRECT_SOURCE_INVALID")
+            with store.engine.begin() as connection:
+                import_guard(connection)
+            response = client.get(source["endpoint"])
+            if str(response.url) != source["endpoint"]:
+                raise ValueError("FIXTURE_DIRECT_ENDPOINT_CHANGED")
+            payload = response.json()
+            rows = payload.get("jobs") if isinstance(payload, dict) else None
+            if not isinstance(rows, list) or len(rows) > 200:
+                raise ValueError("FIXTURE_DIRECT_INVENTORY_INVALID")
+            identities = set()
+            for row in rows:
+                if (not isinstance(row, dict) or row.get("tenant") != source["tenant"]
+                        or not isinstance(row.get("company_website"), str)
+                        or identity(row["company_website"]) != source["company_id"]
+                        or not client.allowed(row.get("application_url", ""))
+                        or not isinstance(row.get("source_job_id"), str) or not row["source_job_id"]
+                        or not isinstance(row.get("requisition"), str) or not row["requisition"]
+                        or row["source_job_id"] in identities):
+                    raise ValueError("FIXTURE_DIRECT_JOB_IDENTITY_CHANGED")
+                identities.add(row["source_job_id"])
+            all_rows = [(source["endpoint"], row) for row in rows]
+            sources = {}
+        else:
+            aggregator = client.get(mock_origin + "/board/jobs").json()["jobs"]
+            sources = {}
+            all_rows = [("mock-board", row) for row in aggregator]
+            for row in aggregator:
+                client.check()
+                company_website = row.get("company_website") or ""
+                company_name = row.get("company") or ""
+                candidate = {
+                    "company_name": company_name,
+                    "company_website": company_website,
+                    "application_url": row.get("application_url") or "",
+                    "trigger_evidence": ["DISCOVERED_VIA_AGGREGATOR_BOARD"],
                 }
-            else:
-                with store.engine.connect() as connection:
-                    source_row = connection.execute(
-                        select(m.company_sources).where(
-                            m.company_sources.c.company_id == company_id,
-                            m.company_sources.c.enabled.is_(True),
-                        ).order_by(m.company_sources.c.id)
-                    ).mappings().first()
-                if source_row:
-                    endpoint = source_row["endpoint"]
-                    payload = client.get(endpoint).json()
-                    employer_jobs = payload.get("jobs", []) if isinstance(payload, dict) else []
+                if row.get("company_domain"):
+                    candidate["company_domain"] = row["company_domain"]
+                resolved = resolve_company(store, candidate)
+                company_id = resolved["company_id"]
+                if not directly_monitored(store, company_id):
+                    discovery_result = discover_company_source(
+                        store,
+                        candidate,
+                        client,
+                        check=check,
+                        profile_id=profile_id,
+                        profile_version=profile["version"] if profile else None,
+                    )
+                    endpoint = discovery_result["endpoint"]
+                    employer_jobs = discovery_result.get("jobs") or []
                     sources[company_id] = {
                         "company": company_name, "domain": company_website,
-                        "tenant": source_row["tenant"], "endpoint": endpoint,
-                        "career_url": source_row["career_url"],
+                        "tenant": discovery_result["tenant"], "endpoint": endpoint,
+                        "career_url": discovery_result["careers_url"],
                     }
                 else:
-                    endpoint = None
-                    employer_jobs = []
-            if row.get("company_domain"):
-                record_company_domain(
-                    store, company_id, row["company_domain"],
-                    "FIRST_PARTY_JOB_LINK", ["fixture company domain"],
-                )
-            if endpoint and not any(source == endpoint for source, _ in all_rows):
-                all_rows.extend((endpoint, employer) for employer in employer_jobs)
+                    with store.engine.connect() as connection:
+                        source_row = connection.execute(
+                            select(m.company_sources).where(
+                                m.company_sources.c.company_id == company_id,
+                                m.company_sources.c.enabled.is_(True),
+                            ).order_by(m.company_sources.c.id)
+                        ).mappings().first()
+                    if source_row:
+                        endpoint = source_row["endpoint"]
+                        payload = client.get(endpoint).json()
+                        employer_jobs = payload.get("jobs", []) if isinstance(payload, dict) else []
+                        sources[company_id] = {
+                            "company": company_name, "domain": company_website,
+                            "tenant": source_row["tenant"], "endpoint": endpoint,
+                            "career_url": source_row["career_url"],
+                        }
+                    else:
+                        endpoint = None
+                        employer_jobs = []
+                if row.get("company_domain"):
+                    record_company_domain(
+                        store, company_id, row["company_domain"],
+                        "FIRST_PARTY_JOB_LINK", ["fixture company domain"],
+                    )
+                if endpoint and not any(source == endpoint for source, _ in all_rows):
+                    all_rows.extend((endpoint, employer) for employer in employer_jobs)
         captured_job_ids = set()
         with store.engine.begin() as connection:
+            if import_guard is not None:
+                import_guard(connection)
             client.check()
             for company_id, source in sources.items():
                 client.check()
@@ -322,9 +361,12 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                     upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
                         "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             client.check()
-            store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {
-                "sources": len(sources), "raw_postings": len(all_rows),
-                "source_capabilities": fixture_source_capabilities().as_dict()})
+            if company_source is None:
+                store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {
+                    "sources": len(sources), "raw_postings": len(all_rows),
+                    "source_capabilities": fixture_source_capabilities().as_dict()})
+            if import_receipt is not None:
+                import_receipt(connection)
             # Keep the final control check inside the transaction: raising after
             # context exit would report a stop while retaining committed jobs.
             client.check()

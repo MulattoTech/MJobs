@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-017.F07-ARBEITNOW-ACCEPTANCE-20261114",
+  "created_at_utc": "2026-11-14T19:47:15Z",
+  "requirement_id": "MJ-REQ-017.F07",
+  "issue": {
+    "repository": "MulattoTech/MJobs",
+    "number": 317,
+    "url": "https://github.com/MulattoTech/MJobs/issues/317",
+    "state_at_reconciliation": "OPEN",
+    "status_intent": "FUTURE/OPTIONAL until promoted by the parent requirement",
+    "parent_requirement": "MJ-REQ-017"
+  },
+  "decision": {
+    "result": "SCOPED_PASS",
+    "adjudicator": "MJobs integration owner",
+    "adjudicated_on_utc": "2026-11-14",
+    "scope": "The five literal MJ-REQ-017.F07 issue criteria for the Arbeitnow source adapter.",
+    "limits": [
+      "MJ-REQ-017 remains PARTIAL.",
+      "No deployment or production enrollment is claimed.",
+      "No complete provider inventory, pagination, broad geography coverage, or application submission is claimed.",
+      "No MJ-REQ-292 60-step campaign status is changed."
+    ],
+    "canonical_matrix_update": "PENDING_SEPARATE_PROTECTED_ACCOUNTING_PR"
+  },
+  "current_protected_main_snapshot": {
+    "revision": "dc400b80a10a886b602fc89f9208d0b407fc6156",
+    "capability_matrix_sha256": "d2f7aac04817e358107b15a5b93b154361fb7225c717bc93b7f4591d099c3855",
+    "requirement_row_result_at_snapshot": "NOT_RUN",
+    "original_matrix": {
+      "PASS": 185,
+      "PARTIAL": 82,
+      "NOT_RUN": 99,
+      "total": 366
+    },
+    "reference_matrix": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "total": 59
+    }
+  },
+  "criteria": [
+    {
+      "criterion": 1,
+      "text": "Declare exact capabilities supported rather than implying unsupported behavior.",
+      "result": "PASS",
+      "evidence": [
+        {
+          "path": "services/discovery/sources/arbeitnow.py",
+          "protected_main_blob": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61"
+        },
+        {
+          "path": "docs/sources/ARBEITNOW.md",
+          "protected_main_blob": "aec0224c11bf1e4ce5006f1dded2b4eb051ed91d"
+        }
+      ]
+    },
+    {
+      "criterion": 2,
+      "text": "Add deterministic fixtures/contract tests.",
+      "result": "PASS",
+      "evidence": [
+        {
+          "paths": [
+            "tests/fixtures/arbeitnow.json",
+            "tests/unit/test_arbeitnow_source.py",
+            "tests/unit/test_arbeitnow_provenance.py",
+            "tests/integration/test_arbeitnow.py",
+            "tests/unit/test_source_adapter_contract_223.py"
+          ],
+          "run_source_revision": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+          "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+          "result": {
+            "passed": 193,
+            "subtests_passed": 68,
+            "failed": 0,
+            "errors": 0,
+            "skipped": 0
+          }
+        }
+      ]
+    },
+    {
+      "criterion": 3,
+      "text": "Perform bounded live read-only validation where appropriate and safe.",
+      "result": "PASS",
+      "evidence": {
+        "run_id": "0ea6cd30",
+        "source_revision": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+        "method": "GET",
+        "endpoint": "https://www.arbeitnow.com/api/job-board-api",
+        "invocations": 1,
+        "received": 300,
+        "normalized": 300,
+        "complete_inventory": false,
+        "pagination_followed": false,
+        "database": "none",
+        "persistence_performed": false,
+        "external_applications": false
+      }
+    },
+    {
+      "criterion": 4,
+      "text": "Record limitations and last-tested evidence.",
+      "result": "PASS",
+      "evidence": [
+        {
+          "path": "docs/sources/ARBEITNOW.md",
+          "protected_main_blob": "aec0224c11bf1e4ce5006f1dded2b4eb051ed91d"
+        },
+        {
+          "path": "docs/evidence/2026-11-13-arbeitnow-source.json",
+          "sha256": "1acc59230873d5f24a428f6d5c9e5e2411fbcb89bd73a59b9ee6638e421a403f",
+          "protected_main_blob": "e257f11e2c9944f1cc219f22443a3dc17e2d1657"
+        }
+      ]
+    },
+    {
+      "criterion": 5,
+      "text": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+      "result": "PASS",
+      "evidence": {
+        "fixed_public_endpoint": true,
+        "verified_tls_default_transport": true,
+        "redirects_followed": false,
+        "response_selected_destinations": false,
+        "page_crawling": false,
+        "credentials_used": false,
+        "review_result": "No blocking source findings"
+      }
+    }
+  ],
+  "verification_events": [
+    {
+      "kind": "backend_tests",
+      "result": "PASS",
+      "source_revision": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+      "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+      "counts": {
+        "passed": 193,
+        "subtests_passed": 68,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "environment": "synthetic HTTP fixtures, temporary SQLite and in-process API clients; no PostgreSQL or Redis"
+    },
+    {
+      "kind": "browser_test",
+      "result": "PASS",
+      "source_revision": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+      "source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "environment": "built React UI, Uvicorn/API, Chromium, synthetic fixture profile, temporary SQLite, loopback interception; zero external requests"
+    },
+    {
+      "kind": "live_read_only_validation",
+      "result": "PASS",
+      "source_revision": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+      "method": "single GET",
+      "received": 300,
+      "normalized": 300,
+      "database_or_persistence": false,
+      "pagination": false,
+      "application_submission": false,
+      "complete_inventory": false
+    },
+    {
+      "kind": "protected_pull_request",
+      "number": 1019,
+      "url": "https://github.com/MulattoTech/MJobs/pull/1019",
+      "state": "MERGED",
+      "head_revision": "786d0a4659cc10188b067550c73c8fc11bdfd09e",
+      "merge_revision": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+      "merged_at_utc": "2026-11-13T18:49:31Z",
+      "checks": {
+        "total": 15,
+        "successful": 15,
+        "failed": 0,
+        "head_revision": "786d0a4659cc10188b067550c73c8fc11bdfd09e",
+        "names": [
+          "Analyze (actions)",
+          "Analyze (javascript-typescript)",
+          "Analyze (python)",
+          "CI / required",
+          "CodeQL",
+          "Dependencies / introduced vulnerabilities",
+          "Disposable Compose / mock end-to-end",
+          "Integration / PostgreSQL and Redis",
+          "Integration / shard 0",
+          "Integration / shard 1",
+          "Integration / shard 2",
+          "Python / unit and integrity",
+          "Repository / policy and docs",
+          "Security / secret scan",
+          "Web / Vitest and production build"
+        ]
+      },
+      "protected_main_contains_merge_commit": true
+    }
+  ],
+  "historical_manifest": {
+    "path": "docs/evidence/2026-11-13-arbeitnow-source.json",
+    "sha256": "1acc59230873d5f24a428f6d5c9e5e2411fbcb89bd73a59b9ee6638e421a403f",
+    "protected_main_blob": "e257f11e2c9944f1cc219f22443a3dc17e2d1657",
+    "preserved_historical_delivery_flags": {
+      "integrated": false,
+      "hosted_check_verified": false,
+      "formally_accepted": false
+    },
+    "reconciliation": "Those flags are preserved as captured in the original run manifest. Current PR/main evidence above records later integration and hosted checks; the new owner decision is scoped to F07."
+  },
+  "limitations": [
+    "The live provider check sampled one latest-page GET only; coverage is incomplete and changes over time, and no pagination was followed.",
+    "No salary, detail, direct submission, application status, expiration guarantee, or trusted-employer/ATS authority is established.",
+    "The provider remote flag does not establish country eligibility; retained geography and application-route limitations remain as documented.",
+    "Local test runs occurred on their recorded source revisions, distinct from the exact hosted PR head; they are not relabeled as runs on the merge commit.",
+    "This receipt records no deployment, production enrollment, database persistence, broad source coverage, or 60-step campaign acceptance."
+  ],
+  "canonical_update_workflow": {
+    "status": "NOT_APPLIED_IN_THIS_RECEIPT",
+    "scope": "The root integration owner applies the row to CAPABILITY_MATRIX only after review; REFERENCE_GAP_MATRIX and MJ-REQ-292 remain separate.",
+    "commands": [
+      "python tools/mjobs_reconcile_planning.py --apply",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m tools.verification.progress_dashboard --write",
+      "python -m tools.verification.progress_dashboard --check",
+      "git diff --check"
+    ],
+    "generated_outputs": "progress_dashboard --write also regenerates docs/PROGRESS_CARD.json and docs/PROGRESS_CARD.svg via tools/verification/progress_card.py.",
+    "publication_note": "Do not report the resulting 186/366 proposed count as protected-main until the separate accounting PR merges and exact main revision is re-read."
+  },
+  "denominator_separation": {
+    "original_matrix_total": 366,
+    "reference_gap_total": 59,
+    "separate_mj_req_292_campaign_total": 60,
+    "campaign_acceptance_effect": "None; this F07 receipt does not change the separate campaign ledger or its counts."
+  }
+}

@@ -516,22 +516,57 @@ class NativeDomCaptureTests(unittest.TestCase):
                 self.assertEqual(page.calls[-1], "detach")
                 self.assertEqual(page.pending_tasks, 0)
 
+    @mock.patch.object(debug_capture_module, "time", SimpleNamespace(monotonic=lambda: 100.0))
     def test_oversized_or_invalid_native_values_never_reach_json_decode(self):
+        # Isolate reply validation from host scheduling. Only the capture clock
+        # is fixed; asyncio waits and cleanup still use the real event-loop clock.
         for value in ("x" * (debug_capture_module.MAX_DOM_REPLY_BYTES + 1), "private-\u2603", ""):
             with self.subTest(length=len(value)), mock.patch.object(
                     debug_capture_module.json, "loads", side_effect=AssertionError("must not decode")) as decode:
                 page = _CdpPage(None, response={"result": {"type": "string", "value": value}})
-                self.assertEqual(self.snapshot(page)["status"], "OMITTED_CAPTURE_FAILED")
+                dom = self.snapshot(page, deadline=102.0)
+                self.assertEqual(dom["status"], "OMITTED_CAPTURE_FAILED")
                 decode.assert_not_called()
+                self.assertEqual(page.calls, ["create", "target", "world", "send", "detach"])
+                self.assertEqual(page.pending_tasks, 0)
+                self.assertNotIn("private", json.dumps(dom).lower())
         for response in ({"exceptionDetails": {"text": "PRIVATE"}},
                          {"result": {"type": "object", "value": {"root": {}}}},
                          {"result": {"type": "string", "value": '{"PRIVATE":1}'}},
                          {"result": {"type": "string", "value": 'invalid'}}):
             with self.subTest(response=response):
                 page = _CdpPage(None, response=response)
-                dom = self.snapshot(page)
+                dom = self.snapshot(page, deadline=102.0)
                 self.assertEqual(dom["status"], "OMITTED_CAPTURE_FAILED")
                 self.assertNotIn("PRIVATE", json.dumps(dom))
+                self.assertEqual(page.calls, ["create", "target", "world", "send", "detach"])
+                self.assertEqual(page.pending_tasks, 0)
+
+    def test_malformed_native_reply_obeys_deadline_after_sync_bridge_returns(self):
+        dom_deadline = 100.0 + debug_capture_module.DOM_TIMEOUT_MS / 1000
+        for returned_at, expected_status in (
+                (dom_deadline - .001, "OMITTED_CAPTURE_FAILED"),
+                (dom_deadline, "OMITTED_TIMEOUT")):
+            clock = [100.0]
+            page = _CdpPage(None, response={"result": {"type": "string", "value": ""}})
+
+            def return_after_loop(coroutine, bridge=page._sync, clock=clock, returned_at=returned_at):
+                result = bridge(coroutine)
+                # All native work and cleanup finished; model time spent before
+                # the sync bridge hands its malformed reply back to the caller.
+                clock[0] = returned_at
+                return result
+
+            page._sync = return_after_loop
+            with self.subTest(returned_at=returned_at), mock.patch.object(
+                    debug_capture_module, "time", SimpleNamespace(monotonic=lambda clock=clock: clock[0])), \
+                    mock.patch.object(debug_capture_module.json, "loads",
+                        side_effect=AssertionError("must not decode")) as decode:
+                dom = self.snapshot(page, deadline=102.0)
+                self.assertEqual(dom["status"], expected_status)
+                decode.assert_not_called()
+                self.assertEqual(page.calls, ["create", "target", "world", "send", "detach"])
+                self.assertEqual(page.pending_tasks, 0)
 
 
 if __name__ == "__main__":

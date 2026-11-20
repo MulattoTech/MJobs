@@ -1,0 +1,918 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-292",
+  "issue": 293,
+  "pr": 973,
+  "state": "DRAFT_REVIEWED_LOCAL_COMPONENTS; ACCEPTANCE_PARTIAL; NEW_HEAD_CI_NOT_RUN",
+  "recorded_at_utc": "2026-11-15T06:20:36.942262+00:00",
+  "baseline_pr_sha": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+  "main_sha": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+  "implementation_sha": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+  "composed_tested_sha": "a544104cd0fc436f17704fb79c310b1919a85a97",
+  "merged_sha": null,
+  "behavior": [
+    "Use actual acceptance_journey.monitoring_recovery_baseline helper, not nonexistent monitoring member",
+    "Admit genuine terminal failed-segment evidence without relabeling unchanged numbered rows; reject forged PARTIAL/PASS and invalid state/category/order/timestamps",
+    "Validate preparation-bound monitoring baseline for completed recovery prefix after monitor_after failure"
+  ],
+  "review": {
+    "requirement": "MJ-REQ-292",
+    "milestone": "M1 verifier integrity",
+    "decision": "APPROVE",
+    "review_type": "Independent NONAUTHOR local review",
+    "findings": [],
+    "reviewed_commit": "ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+    "base_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "captured_at_utc": "2026-11-15T02:47:03.268373+00:00",
+    "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "python_version": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "source_sha256": {
+      "tools/verification/acceptance_ledger.py": "fd113fdac5c5bcc83a64543589979bb2a7154435a6f946fb36baca7a370c8016",
+      "tests/unit/test_acceptance_ledger.py": "7c4821fdbe5082eb3fa959c15a22194794b04c3d1dec8087c5fc51baae0cc54d"
+    },
+    "artifacts_sha256": {
+      "green-junit.xml": "d286c02fbdb13c73d85efd30173ce259b39390ac7e1e71b15099c181cd5768c8",
+      "green.txt": "1238ef0968871695b636940ba432b8d4be1277994d86765a1946ec874753e3e1",
+      "independent-probes.json": "f70a9438053fd396c31d1c893aa2d76b6f7fbf3a4dbae75aa96ae1bdbeb11032",
+      "independent-probes.py": "080e8d740742009e08dde647e95fec16a77f7e2d35f3d3d44213cb8c195c3b3f",
+      "record-review.py": "55f3d862a437b5398dc4574209880ea5642af19e9ba80b0ef88c1e930d4b6e64",
+      "red.txt": "bbf92e2efbb37788ed62b20efdf6fd0cee3eb8fb4147390745dae5b9b6d87a80",
+      "review.md": "4ad4350539d556510b43cb0e9bd2381ac9705e75b9b9f8756839d6aa629201dc"
+    },
+    "baseline_patch_sha256": "8baf869ea86fc13298a2ad3c83ff213f99d1738c5cd962d0e1e868e40153d172",
+    "checks": [
+      {
+        "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py tests/unit/test_acceptance_journey.py tests/unit/test_acceptance_monitoring.py tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py --junitxml=outputs/mj292-review-01a1dcec/green-junit.xml",
+        "exit_code": 0,
+        "result": "551 passed, 64 subtests passed in 12.51s",
+        "output": "green.txt"
+      },
+      {
+        "command": "python outputs/mj292-review-01a1dcec/independent-probes.py",
+        "exit_code": 0,
+        "result": "18 negative controls rejected",
+        "output": "independent-probes.json"
+      },
+      {
+        "command": "python -m pytest -q tests/unit/test_acceptance_ledger.py -k 'real_monitoring_baseline or real_producer_failure'",
+        "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-review-red-01a1dcec/MJobs",
+        "exit_code": 1,
+        "result": "3 failed, 124 deselected in 2.57s",
+        "output": "red.txt",
+        "expected": "RED baseline production unchanged"
+      },
+      {
+        "command": "git diff --check 3605e2c96e87467312bd32711a12af7579fb9fcf ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+        "exit_code": 0
+      },
+      {
+        "command": "python -m tools.verification.commit_provenance --commit ed046f939c2f1e51370d1a0d5291e2265b8c9ed5",
+        "exit_code": 0,
+        "result": "provenance complete for 2 source files"
+      }
+    ],
+    "tracked_status": "",
+    "scope_limits": [
+      "offline verifier patch only",
+      "intersegment fail without active segment rejected diagnostic evidence",
+      "third edge baseline RED not independently isolated",
+      "full unit/services/browser/provider/connected60/hosted gates/merge readiness NOT_RUN"
+    ]
+  },
+  "composed_validation": {
+    "head": "a544104cd0fc436f17704fb79c310b1919a85a97",
+    "started_utc": "2026-11-15T02:50:52.189443+00:00",
+    "checks": [
+      {
+        "name": "composed-tests",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/unit/test_acceptance_ledger.py",
+          "tests/unit/test_acceptance_journey.py",
+          "tests/unit/test_acceptance_monitoring.py",
+          "tests/unit/test_compose_recovery.py",
+          "tests/unit/test_compose_recovery_target.py",
+          "tests/unit/test_cli_operation_progress.py",
+          "tests/unit/test_operation_progress.py",
+          "tests/unit/test_arbeitnow_source.py",
+          "tests/unit/test_arbeitnow_provenance.py",
+          "tests/integration/test_acceptance_monitoring_read_consistency.py",
+          "tests/integration/test_fixture_monitoring_worker_recovery.py"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\composed-tests.txt",
+        "sha256": "bb15357915b876e0d663f1b48c5cc26cb274d85cc185d62933a89f8536d825ee"
+      },
+      {
+        "name": "catalogue",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\catalogue.txt",
+        "sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "name": "progress",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\progress.txt",
+        "sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+      },
+      {
+        "name": "dashboard",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\dashboard.txt",
+        "sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4"
+      },
+      {
+        "name": "skills",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\skills.txt",
+        "sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      },
+      {
+        "name": "diff",
+        "command": [
+          "git",
+          "diff",
+          "--check",
+          "3605e2c96e87467312bd32711a12af7579fb9fcf",
+          "HEAD"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\diff.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "provenance",
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.commit_provenance",
+          "--commit",
+          "HEAD"
+        ],
+        "exit_code": 0,
+        "log": "outputs\\mj292-integration-01a1dcec\\provenance.txt",
+        "sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657"
+      }
+    ],
+    "ended_utc": "2026-11-15T02:51:30.832357+00:00"
+  },
+  "composed_receipt_sha256": "966c0e5618aec440460e8d783a92c3eec81454ca635aaf2a4a0bc7029b5edbf0",
+  "public_prerequisite": {
+    "result": "BLOCKED_EXTERNAL",
+    "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "executed_at_utc": "2026-11-15T02:36:02Z",
+    "observed": "One production feed read each: WWR100/Remotive16 rows; first two distinct companies unchanged; no direct Greenhouse hint; no candidate-page fetch",
+    "receipt_sha256": "7fc6caa4f3534a3bc1eafcac686d0ca9399006a6b6456b39d05be0f26fb50270",
+    "limit": "Fresh-empty-profile selection assumption only; existing-profile database state not read. Prior gated-page evidence remains historical. No connected acceptance."
+  },
+  "recovery_component": {
+    "result": "PASS",
+    "source_commit": "3605e2c96e87467312bd32711a12af7579fb9fcf",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -v -p no:cacheprovider tests/unit/test_compose_recovery.py tests/unit/test_compose_recovery_target.py tests/unit/test_persisted_job_inventory_recovery.py tests/unit/test_acceptance_monitoring.py tests/integration/test_acceptance_monitoring_read_consistency.py tests/integration/test_fixture_monitoring_worker_recovery.py",
+    "exit_code": 0,
+    "observed": "61 tests and77subtests passed;0skips",
+    "log_sha256": "0c455d765de9090f492b47595bc32ed4581aee8232c25cf5bcd69fe302aae7b1",
+    "limit": "SQLite/ephemeral loopback mock-ats FIXTURE; no actual Compose restart/PostgreSQL/Redis/RQ/browser/public-company resumption",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+    }
+  },
+  "acceptance_delta": {
+    "promoted_steps": [],
+    "verified_pass": 0,
+    "partial": 53,
+    "not_run": 7
+  },
+  "limits": [
+    "No numbered acceptance promoted; canonical MJ292 ledger unchanged",
+    "No actual local stack restart or natural RQ/scheduler resumption; foreign10service stack preserved",
+    "No public same-employer chain or employer submission",
+    "Hosted checks on new candidate NOT_RUN at recording; previous head success does not transfer",
+    "No merge, deployment, release readiness, or same-merged-SHA acceptance claimed",
+    "Intersegment failures without active_segment remain rejected diagnostic evidence"
+  ],
+  "rollback": "Preserve3605e2c9/ed046f93/a544104c and raw ignored receipts. Revert reviewed two-file source commit through normal protected PR if needed; no reset/force push. No data/schema/runtime mutations.",
+  "composition_review": {
+    "decision": "APPROVE",
+    "source": "a544104cd0fc436f17704fb79c310b1919a85a97",
+    "receipt_sha256": "a5e333a6f97759a6ab973a26fbff72d1536e1e418cf14336335b24ee553a94d6",
+    "metadata_review_sha256": "50040207bd53150f724cb14b412d1a45734157cca44afd3ea1e3c8ee5095894d",
+    "limits": [
+      "No test suite rerun by composition reviewer; exact-head integrator receipt logs and hashes verified",
+      "M1 independent tests remain attached to M1 source; exact M1 blobs retained",
+      "No MJ-REQ-292 acceptance promotion; incoming main Arbeitnow017.F07 PASS preserved",
+      "No connected campaign, hosted gate or merge readiness certification"
+    ]
+  },
+  "hosted_followup": {
+    "first_candidate": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+    "unit_failure": {
+      "status": "FAIL",
+      "head": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "run": 43670021815,
+      "failure": "test_compatible_rate_window_keeps_real_cross_origin_waits[7]: proofNone",
+      "counts": "1failed5334passed55skipped5203subtests",
+      "log_sha256": "f7454bcfd3484ba06ed1484890864ed8bca19136f963fa8b327e3336d1ec1574",
+      "other_jobs": "integration/Compose still running",
+      "cause": "UNPROVEN; local3ratevariants pass; bounded read-only diagnosis delegated"
+    },
+    "synthetic_compose": "PASS run43670021823 on first candidate; not public acceptance",
+    "repair": {
+      "commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
+      "author_receipt_sha256": "6d34760cf014878ec73f8caedc7cf50fd59ec325b7aabec56b42184b111e6abd",
+      "validation": "174tests26subtests PASS; independent same suite PASS; baseline negative independently reproduced",
+      "review": "APPROVE",
+      "scope": "One test file only; module-scoped fake clocks; production unchanged",
+      "historical_cause": "Matching clock-interference failure path reproduced; exact hosted interleaving not traced"
+    },
+    "review": {
+      "decision": "APPROVE",
+      "findings": [],
+      "review_type": "Independent NONAUTHOR local review",
+      "requirement": "MJ-REQ-292",
+      "reviewed_commit": "c65ca5183ac2719dc981ea7777eab13192a05616",
+      "base_commit": "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+      "captured_utc": "2026-11-15T03:11:14.527590+00:00",
+      "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "python_version": "3.12.10",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "source_sha256": "0e42fa8ecf395dd9b0281bfc728cb172fa908dd2f3bee9f535699bf0ef25c3a8",
+      "author_receipt_sha256": "6d34760cf014878ec73f8caedc7cf50fd59ec325b7aabec56b42184b111e6abd",
+      "verified_author_artifacts": {
+        "diff-check.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frozen.patch": "9bd4aff1b735d3a82da36b4e94f41ee8273c4be7697d5686464d9ed42ef390c8",
+        "green-rate-neighbors.txt": "b7f12ab8cc59d1370fbd817e82c90e1796f25560bd3b06e08477b63862f0aa4b",
+        "red-clock-isolation.txt": "e0dffaa77f60c5ba0a148de1c3fb8a0b705199f15d0ab480248a733175bc47a1",
+        "tests-only-red.patch": "19b2bb085bed84a05a00d39d0a636e034f2e67f6c99d58dc80c92583fb75fb01"
+      },
+      "verified_diagnostic_script_sha256": "df34e0c5f6071ad87e8c42434d7c3bcee9a79f5d2f97d4b7f7ddff0cbb3ec08e",
+      "diagnostic_result_sha256": "637be1f255160b5cf9e6050ae5654221a72cdc563efb356b70ab7da78a1c3572",
+      "artifacts_sha256": {
+        "green-junit.xml": "a61ad3163e3b6c482f724740fa2c082fe82c3381703dd6c9153d287a82d84b1a",
+        "green.txt": "2b6395f034aec9ff766f699542bebe65a2f33174e91ac6f372f0951f8ae44c7a",
+        "record-review.py": "73d8af715ffaa18743845a04d2fb03672984e33c04141c2b0bb1b01aaff3c9d6",
+        "red-green-probe.json": "0485176c1ddd7f8ff0dcb42be88e4ee2521a82ed89f9b9bda5b0cff036b43b7c",
+        "red-green-probe.py": "9d547ad8dc7abfa99b1de891bbcb42e2d28cbd0624e65486f81946687ff4a96b",
+        "review.md": "f54def9aa07b163b44282bebd72075ac748a9c4d53f8ada9ed13638829b8c9db"
+      },
+      "checks": [
+        {
+          "command": "python -m pytest -q tests/unit/test_aggregator_bootstrap.py tests/unit/test_public_company_client.py tests/unit/test_public_company_response_cleanup.py tests/unit/test_company_fetch_policy.py --junitxml=outputs/mj292-rate-review-01a1dcec/green-junit.xml",
+          "exit_code": 0,
+          "result": "174 passed, 26 subtests passed in 2.24s",
+          "log": "green.txt"
+        },
+        {
+          "command": "python outputs/mj292-rate-review-01a1dcec/red-green-probe.py",
+          "exit_code": 0,
+          "result": "Expected isolated baseline RED then candidate GREEN; global time restored; no source edits",
+          "log": "red-green-probe.json"
+        },
+        {
+          "command": "git diff --check 4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a c65ca5183ac2719dc981ea7777eab13192a05616",
+          "exit_code": 0
+        },
+        {
+          "command": "python -m tools.verification.commit_provenance --commit c65ca5183ac2719dc981ea7777eab13192a05616",
+          "exit_code": 0
+        }
+      ],
+      "tracked_status": "",
+      "limits": [
+        "Exact historical hosted interference remains inferential",
+        "No production limits or acceptance promoted",
+        "Full local unit, hosted candidate rerun, live network/provider and stack NOT_RUN"
+      ]
+    },
+    "review_receipt_sha256": "f460309940c04fd57b690cfc864869642af7299c04c90112d1df0f9a7376401e",
+    "composed_tests": {
+      "head": "4b7a0b19de9fad7a134328d44f4a27d20da2b7a7",
+      "started_utc": "2026-11-15T03:11:48.572484+00:00",
+      "checks": [
+        {
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/unit/test_acceptance_ledger.py",
+            "tests/unit/test_acceptance_journey.py",
+            "tests/unit/test_acceptance_monitoring.py",
+            "tests/unit/test_compose_recovery.py",
+            "tests/unit/test_compose_recovery_target.py",
+            "tests/unit/test_cli_operation_progress.py",
+            "tests/unit/test_operation_progress.py",
+            "tests/unit/test_arbeitnow_source.py",
+            "tests/unit/test_arbeitnow_provenance.py",
+            "tests/integration/test_acceptance_monitoring_read_consistency.py",
+            "tests/integration/test_fixture_monitoring_worker_recovery.py",
+            "tests/unit/test_aggregator_bootstrap.py",
+            "tests/unit/test_public_company_client.py",
+            "tests/unit/test_public_company_response_cleanup.py",
+            "tests/unit/test_company_fetch_policy.py"
+          ],
+          "exit_code": 0,
+          "log": "composed-rate-tests.txt",
+          "sha256": "454a9064b8de26cbeeb6272870611c99534e3fb621bd940f26a7d22d3c1c8f0a"
+        },
+        {
+          "command": [
+            "git",
+            "diff",
+            "--check",
+            "4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "final-diff.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "command": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-m",
+            "tools.verification.commit_provenance",
+            "--commit",
+            "HEAD"
+          ],
+          "exit_code": 0,
+          "log": "final-provenance.txt",
+          "sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657"
+        }
+      ],
+      "ended_utc": "2026-11-15T03:12:27.148072+00:00"
+    },
+    "composed_receipt_sha256": "161cc31d34d5ee2159635c4f241f1908fa4f0c3f24bd4c5dfb2b24b22d059fd7",
+    "latest_candidate_hosted": "NOT_RUN at recording; previous failures preserved",
+    "composition": "Exact test fix blobs retained; all executable files identical to independently reviewed c65ca518; only handoff differs"
+  },
+  "controlled_recovery_followup": {
+    "source": "d53c19e55d15f13afdac8c19b003f676d9981832",
+    "run": "mj292-recovery-01a1dcec-27b29ce84d1c",
+    "result": "PARTIAL",
+    "exit_code": 2,
+    "producer_observations": {
+      "PASS": 56,
+      "PARTIAL": 4
+    },
+    "controlled_recovery_steps": "54–60 producerPASS with CONTROLLED_FIXTURE; not public sameemployer acceptance",
+    "natural_worker_attempts": 1,
+    "public_chain": "NOT_RUN; actualordinaryemployer route diagnosis now authorized",
+    "canonical_acceptance": "UNCHANGED 0VERIFIED/53PARTIAL/7NOT_RUN",
+    "independent_actual_run_review": {
+      "state": "CONTROLLED_COMPONENTS_PASS_STRICT_LEDGER_BLOCKED",
+      "receipt_sha256": "3d4022efe23d267e40396a734272f638ca1675525206a8bb17517eaf099d8392",
+      "validation_sha256": "a2c3fbe373d194d9e2b388042f4ae40888eec44fba21c7553f60c76574698fc3",
+      "negative_controls": 5,
+      "strict_blockers": [
+        "Runtime manifest digest compared to archive digest",
+        "Producer baseline status COMPLETE rejected by reference loader",
+        "Missing merged revision and numbered reviewer gates"
+      ],
+      "acceptance": "No canonical promotion",
+      "subsequent_verifier_probe": "M7 cc5c8742 removes two structuralerrors;14 requiredreview/mergeerrors remain enforced; report still not accepted."
+    },
+    "merged_implementation": "NOT_RUN; PR973 OPEN DRAFT",
+    "artifacts": {
+      "journey\\journey.json": "33509390e3eeb0800b8c8dc9a7aa019553754056b18e61add5b6d0b384d9c498",
+      "journey\\monitor_prepare.json": "a1fc56f72a1256ebc9ac865115d97010b6177aa416173e55540a6eecee6ffc18",
+      "journey\\monitor_after.json": "3ab1c6fd1d9141781bdfd9e35f7b2bc983d182a6de48f1b4f8dcd7f2c48adbfd",
+      "journey\\recovery.json": "c0c02f6ef89fcffadaf31933e1bc9982e5f044b9d39de52b16f928a05affc427",
+      "journey-execution-receipt.json": "afdc487e46b215f18eada8015c2103979b88b2e3b193227d95548ba8bd91ffc2",
+      "owned-stack-preserved.json": "323c7561a5f001df4e4be4283ed075cfa9cec6c2ef271fda56c648ab4ee9a6bc"
+    },
+    "resources": "All11owncontainers stopped; volumes/images/networks/configuration preserved; no active heavy runner",
+    "next_action": "Diagnose first failed ordinaryemployer transition and reproduce smallest reusable product defect, no easierselector",
+    "partial_step_numbers": [
+      9,
+      11,
+      16,
+      25
+    ]
+  },
+  "ordinary_employer_diagnosis": {
+    "employer": "Coalition Technologies (not Coalition Inc)",
+    "retained_aggregator_requisition": "Remotive1680495",
+    "official_careers": "https://coalitiontechnologies.com/jobs",
+    "official_careers_read": "Productclient403; freshbrowser307then403challenge; stopped",
+    "native_detail": "https://app.testedrecruits.com/posting/16788; freshbrowser200",
+    "native_inventory": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+    "native_inventory_product_read": {
+      "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "started_at_utc": "2026-11-15T05:12:51.833613+00:00",
+      "purpose": "Diagnostic only; no automatic origin authority or enrollment credit",
+      "policy": "Unmodified PublicCompanyClient default request/rate/robots/DNS/SSRF/redirect/body caps, total_timeout=30",
+      "logical_page_gets": 1,
+      "retries": 0,
+      "result": "PAGE_READ",
+      "status": 200,
+      "final_url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 34866,
+      "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+      "redirect_urls": [],
+      "robots_loaded": true,
+      "completed_at_utc": "2026-11-15T05:12:53.627229+00:00"
+    },
+    "inventory_observation": {
+      "url": "https://app.testedrecruits.com/embedJobs/1/coalition-technologies",
+      "body_sha256": "9b4d46add0cc46460bff80a633ef28eac73212f0525faffeac36816a59dd3fae",
+      "title": [
+        "\n        Coalition Technologies Jobs &amp; Careers     "
+      ],
+      "count_text": [
+        "Current Job Postings: 28 Search / Filter Location All CA TX "
+      ],
+      "unique_posting_count": 28,
+      "posting_ids": [
+        "16787",
+        "16788",
+        "16790",
+        "16791",
+        "16792",
+        "16793",
+        "16794",
+        "16795",
+        "16796",
+        "16797",
+        "16798",
+        "16799",
+        "16800",
+        "16801",
+        "16802",
+        "16803",
+        "16804",
+        "16805",
+        "16806",
+        "16807",
+        "16808",
+        "16812",
+        "16813",
+        "16816",
+        "16817",
+        "16818",
+        "16819",
+        "16820"
+      ],
+      "has_16788": true,
+      "pagination_terms": [],
+      "nonposting_link_paths": [
+        "app.testedrecruits.com",
+        "app.testedrecruits.com/embedJobs/1/coalition-technologies",
+        "app.testedrecruits.com/faqs"
+      ],
+      "script_paths": [
+        "www.googletagmanager.com/gtag/js",
+        "app.testedrecruits.com/js/iframeResizer/iframeResizer.contentWindow.js",
+        "static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ]
+    },
+    "boundary": "KnownURL diagnostic only; automatic employer authority, duplicateidentity and publicjourney acceptance unproved",
+    "account_path": "Publicread doesnotneedaccount; applicantflow submitsapplication; registrationcreatesemployeraccount. No accounts created.",
+    "next": "Assess minimal existingframework nativeadapter with failclosedcount/identity/foreignhost controls; no guessedAPI"
+  },
+  "terminal_bootstrap_continuation": {
+    "committed_revision": "bfb77c7710ff57afe24d6b4a459184ed0129a4fa",
+    "behavior": "Already attempted terminal exact bootstrap rows no longer consume fresh two-employer slots; current canonical authority and incomingraw/normalized/requisition binding retained. Malformedhistoricalauthority failsclosed without failing sourcecollection.",
+    "review": "APPROVE",
+    "review_receipt_sha256": "1c4ec29e4e2eca04b89d5f2eef759ea9b0655d1ea969967872986ebb756238eb",
+    "author_receipt_sha256": "394fb0ef61d0181304cbc9055abdba5ec6a2c0ac7112080eb3121b35d9434cb9",
+    "validation": "author234pass16PGskip64subtests; independentcollection45pass26subtests; exactmalformedprobe nowhealthy",
+    "previous_candidate": "7c53b7c8d4d2d9497dbda81e7ad661dcde4a93ba; CHANGES_REQUESTED preserved, fixed infollowup",
+    "runtime": "NOT_RUN onnewsource; correctedfixture recoveryboundonlytod53",
+    "public_chain": "NOT_RUN; noacceptancepromotion",
+    "rollback": "Revert twocommits; no schema/data migrations or employer mutations"
+  },
+  "configured_testedrecruits_listing": {
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "author_tests": "129tests89subtestsPASS",
+    "review": "APPROVE3915; final65tests56subtests; prior120tests66subtests; literalcapture/live inventorydigests match",
+    "live_read": {
+      "source": "3915ceb51f302918a867c74119e6f823284995f6",
+      "started_at_utc": "2026-11-15T06:05:16.852946+00:00",
+      "config": {
+        "provider": "testedrecruits",
+        "tenant": "1/coalition-technologies",
+        "request_timeout": 15,
+        "rate_limit": 60,
+        "concurrency": 1
+      },
+      "logical_listing_reads": 1,
+      "retries": 0,
+      "purpose": "Configured listing read only; no automatic authority/enrollment/duplicate/public journey credit",
+      "policy": "Unmodified registered production adapter and PublicCompanyClient robots/DNS/SSRF/rate/deadline/body gates",
+      "result": "PASS",
+      "complete_inventory": true,
+      "health": "HEALTHY",
+      "company": "Coalition Technologies",
+      "company_identity": [
+        "testedrecruits",
+        "1"
+      ],
+      "posting_count": 28,
+      "unique_posting_count": 28,
+      "includes_retained_native_16788": true,
+      "inventory_sha256": "996fe9fac072e87f4815d5ddd0fa0be93f1d47e2eb3874b5eecdf4b0df92cd3c",
+      "normalized_sha256": "7ea1fdee39ea40e32d54b35c5d3596a4c85f3fc36c895ab96883282d67f8a637",
+      "all_listing_excerpts": true,
+      "unknown_location_preserved": true,
+      "completed_at_utc": "2026-11-15T06:05:18.584060+00:00"
+    },
+    "live_receipt_sha256": "62cf68ab62a1d2046d7b467f996c3260562ea5f24681455845a69adb9265cb21",
+    "boundary": "Configured publiclisting, no automatic employer domainauthority/enrollment/dedupe or fulljobdetail",
+    "rollback": "Revert three M6 source commits; no migrations or external writes",
+    "review_receipt_sha256": "391554c4cdbfdf1b09d13ce6dc98a257712d17488618c1ac98ab8d0f2f49318b",
+    "publication_gate": "All path ownership and local fixture gates resolved; final4503aba0 review APPROVE; hosted gate pending"
+  },
+  "runtime_receipt_verifier_followup": {
+    "state": "APPROVED_INTEGRATED_LOCALLY",
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "owner": "verifier_impl",
+    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-ledger-runtime-01a1dcec\\MJobs",
+    "branch": "codex/mj292-ledger-runtime-01a1dcec",
+    "owned_paths": [
+      "tools/verification/acceptance_ledger.py",
+      "tests/unit/test_acceptance_ledger.py"
+    ],
+    "reviewer": "verifier_review",
+    "deadline_utc": "2026-11-15T06:16:00Z",
+    "positive": "Real producer/runtime manifest and baseline references validate correct digest domains and shape",
+    "negative": "Bad digest/state/extra fields remain rejected; missing merge/review gates stay rejected",
+    "prerequisite": "Independent actual recovery review found two source/consumer contract mismatches",
+    "rollback": "Revert source commit; never rewrite retained artifacts or promote acceptance",
+    "candidate": "cc5c87425988021a742fa3bd1d2e6588e6bf4508",
+    "author_receipt_sha256": "16d3a5c64aa43e0c1ca55c1c2ad7fdb19a88a6faaf2d547c968455f75256785d",
+    "review_receipt_sha256": "8c026b8a8e0f6f5d919350130cc612fa1f9230761260c3412f2f30688ed3dc68",
+    "tests": "Author544PASS40subtests11.69s; independent544PASS40subtests13.57s; two genuineREDs; fiveactualreference negativesreject",
+    "actual_receipt_probe": "Old16errors -> new14errors, ONLY missing seven numbered reviews and seven protectedmerge gates; no acceptancepromotion",
+    "actual_probe_sha256": "2d3f96007fa83fa213f7c3051bc84333e22294c24c1c1478d22c35a478d41584"
+  },
+  "current_implementation_sha": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+  "registry_fixture_followup": {
+    "source": "4503aba0975ca86a38aa865a1e4e9a6959f15d24",
+    "red_log_sha256": "26140ce1a1b074ffa00bce40bc702a1633f8763f993f9ede805a2344cb67c56d",
+    "green": {
+      "source_parent": "cc5c87425988021a742fa3bd1d2e6588e6bf4508",
+      "tested_source_hashes": {
+        "tests/integration/test_company_source_view.py": "1c55b3870e428ffc4571dd0ef56174c25fe7c3d69bceb15bc142b132f3412ada",
+        "tests/unit/test_extension_point_contracts.py": "e683db0e5094279549504c4028ef3aa9dc692888859427fcbb95e8f51fcc36da"
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_company_source_view.py",
+        "tests/unit/test_extension_point_contracts.py",
+        "tests/integration/test_supported_provider_collection.py"
+      ],
+      "exit_code": 0,
+      "utc": "2026-11-15T06:19:19.785925+00:00",
+      "log_sha256": "d130b3298cd80e3f278fe92a4eff483ec5013989a00df9dd661fbdb512d6ffb1"
+    },
+    "result": "30PASS4PGskips2subtests; productionvalidators and everyassertionpreserved",
+    "review": "APPROVE exact4503aba0; frozen source hashes and RED/GREEN logs independently verified, tests not independently rerun",
+    "review_receipt_sha256": "31c4f25fc9457280ec4b2723f84541668f71a5d03e98cd43a228e9b032f17263"
+  },
+  "latest_integrity_checks": {
+    "source": "3915ceb51f302918a867c74119e6f823284995f6",
+    "utc": "2026-11-15T06:07:42.907842+00:00",
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "log_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      }
+    ]
+  },
+  "publication_followup": {
+    "tested_implementation_sha": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+    "previous_published_sha": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
+    "state": "REVIEWED_READY_FOR_PREFLIGHT",
+    "hosted": "NOT_RUN on corrected candidate; prior exact-head jobs finished",
+    "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+    "remaining_user_decisions": []
+  },
+  "m9_m10_currentness": {
+    "state": "REVIEWED_INTEGRATED_LOCALLY_NOT_MERGED",
+    "source": "92650326ca20698a742d7089ace76b9cf1862399",
+    "prerequisite": "M9/M10 existing PR fixes reproduced against current campaign source; no duplicate branch-wide adoption",
+    "owned_paths": [
+      "services/applications/answer_resume.py",
+      "tests/integration/test_application_answer_resume_api.py",
+      "services/documents/generate.py",
+      "tests/integration/test_application_prepare_route_binding.py"
+    ],
+    "owner": "Codex sole integration owner 01a1dcec",
+    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-integration-01a1dcec\\MJobs",
+    "reviewer": "currentness_review; independent local Luna review, not hosted/human review",
+    "positive": "Fresh preflight resumes; changed route produces next document revision and preserves old audit/documents; same-route reuse remains",
+    "negative": "Stale resume refuses before adapter; route switch refuses locked states and active owners; immutable completed receipts remain replayable",
+    "red": "M9 two stale-preflight regressions failed before fix; M10 route/owner regressions failed before fix",
+    "composition": {
+      "source_tree": "28389241207fc8731766b392c8de0a2dd5db8f55",
+      "parents": [
+        "9dbaeb5ca96c2968095cd72c71219309902d99c3",
+        "f508eac5716ebb26b931d9b0d686c1f223c8ab15"
+      ],
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_application_answer_resume_api.py",
+        "tests/integration/test_application_prepare_route_binding.py",
+        "tests/integration/test_application_reprepare.py",
+        "tests/integration/test_application_preflight.py",
+        "tests/unit/test_mock_answer_bindings.py",
+        "tests/unit/test_application_preflight_dynamic_metadata.py"
+      ],
+      "start_utc": "2026-11-15T07:02:08.550214+00:00",
+      "end_utc": "2026-11-15T07:02:58.933792+00:00",
+      "exit_code": 0,
+      "log_sha256": "0381fb608ad8628465254daae1832a4ee39c26f32d52c86a8aa39d45c858f6e3",
+      "limits": "Synthetic localSQLite/loopback; hosted/browser/currentpublicsource NOT_RUN oncomposition",
+      "committed_revision": "92650326ca20698a742d7089ace76b9cf1862399",
+      "tested_tree_matches_commit": true
+    },
+    "review_receipt_sha256": "09977104ebd9d6324258ac67cb2e5fbd295d73f6976a7fa712b6b32de741a6d5",
+    "m9": {
+      "commit": "9dbaeb5ca96c2968095cd72c71219309902d99c3",
+      "author_receipt_sha256": "3fc3a0d5d60912b6a8855f9ad5b72bcab97d8406e9daf9072c4d1bbfb9e39ea4",
+      "review_receipt_sha256": "6d4fcde47c965ec401be0fe0b3a54dd490b0b6fb596f02a5f7f46109a7e31cc",
+      "tests": "Author9PASS6subtests plus28PASS15subtests; independent9PASS6subtests; no skips"
+    },
+    "m10": {
+      "commit": "f508eac5716ebb26b931d9b0d686c1f223c8ab15",
+      "author_receipt_sha256": "8abc24c4b7fff43e8cae4e2c3950502dfe3f3b3631858d9d947443e721bb8a04",
+      "review_receipt_sha256": "544b5735fdc9a17f6c8fe38d9aeb11c02b5edc9edd6949bbb4a7f8736d57d42c",
+      "tests": "Author25PASS17subtests; independent25PASS17subtests; no skips"
+    },
+    "gate": "GO for existing draft PR update after live preflight; NO-GO for whole-journey acceptance or merged-SHA claims",
+    "rollback": "Revert reviewed source commits through protected workflow; preserve prior documents, receipts, worktrees and failed evidence",
+    "limitations": "52PASS33subtests on exact composition; synthetic SQLite/loopback. Hosted/browser/public-source NOT_RUN on this new source. No external submissions."
+  },
+  "previous_candidate_hosted": {
+    "tested_implementation_sha": "1b03ac22dbf23dbfd818bac4d49e7fb3c0e7ae9f",
+    "previous_published_sha": "439fd201899d2e887bc68fe205b97808685b2c8a",
+    "state": "PUBLISHED_DRAFT_HOSTED_FAIL_FINISHED",
+    "hosted": "13SUCCESS including all PostgreSQL/Redis shards/aggregate and Compose; unit/requiredFAIL only six isolated-host fixture cases",
+    "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "canonical_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+    "remaining_user_decisions": [],
+    "published_head": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
+    "capacity": "60development;WARNING;existingPRupdateallowed",
+    "preflight": "outputs/mj292-integration-01a1dcec/publication-preflight-m11-m13.json",
+    "preflight_sha256": "b60b6d2b379fdab25d109f5634ae87af2f2bbfac1a8a3e04f137a939917e2421",
+    "hosted_snapshot": "outputs/mj292-integration-01a1dcec/hosted-d3faf4cc-final.json",
+    "unit_failure_receipt": "outputs/mj292-integration-01a1dcec/hosted-d3-unit-failure-receipt.json",
+    "unit_failure_receipt_sha256": "c427b6960c884bc4cc50d3f7dfc9574a8fdb2a9cc5cef8c2383f6f7a9435a019",
+    "publication_checkpoint_utc": "2026-11-15T07:57:09.865112+00:00",
+    "hosted_snapshot_sha256": "ef4d5aaacd8ee242942d7b9f37f97590592ef2efd5ac8f2c3117d97993974ab6"
+  },
+  "profile_and_currentness_prerequisites": {
+    "M11": {
+      "state": "APPROVED_INTEGRATED_LOCALLY",
+      "requirement": "MJ-REQ-126/#127 prerequisite; no full acceptance",
+      "source": "92650326ca20698a742d7089ace76b9cf1862399",
+      "original_source": "bcd5d82af2110f5510686aeae2b2fbcdfa9b4398",
+      "owner": "public_prerequisite Luna",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-profile-metadata-01a1dcec/MJobs",
+      "reviewer": "currentness_review after frozen source",
+      "deadline_utc": "2026-11-15T07:38:00Z",
+      "resource": "One loopback browser test runner; no Docker/external network",
+      "negative": "Preserve native ATS early return, path/privacy protections, control errors and submission-off; no cookie reads",
+      "gate": "RED then GREEN and independent review before integration",
+      "rollback": "Revert M13 then M11 through normal protected workflow; preserve profile directories and historical evidence",
+      "commit": "c61ccc9bb2b81592a0dc8d9619b95fdf56bea437",
+      "integration_commit": "80888a3f2d85117d2ac7e90846f1fac3cf7af88c",
+      "author_receipt_sha256": "0f26949c28a7f8c6dbfa3a4bbb26e7e9aa2ca455458121ae4f8190a39d58e708",
+      "review_receipt_sha256": "d5302b75ed700de75cd7044f3e37e9e37fa92f76bb429355069d78d3d3fb4caa",
+      "validation": "Author and independent51PASS3skips37subtests; each named-profile1PASS and close-lifecycle2PASS realloopbackbrowser; source metadata advisory/nonsecret; no full126acceptance",
+      "paths": [
+        "services/applications/browser_profile_metadata.py",
+        "services/applications/manual_auth.py",
+        "services/applications/manual_auth_host.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_manual_auth_close_lifecycle.py",
+        "tests/integration/test_named_browser_profile.py",
+        "tests/unit/test_browser_profile_metadata.py",
+        "tests/unit/test_manual_auth_deadline.py",
+        "tests/unit/test_manual_auth_host.py"
+      ],
+      "prerequisite": "Actual existing-profile Playwright launch reached AUTH_REQUIRED without lifecycle sidecar; test failed before hooks",
+      "positive": "Persist bounded nonsecret identity/provider/origin/status/times; actual host and later worker retain profile identity and creation time"
+    },
+    "M12": {
+      "state": "APPROVED_INTEGRATED_LOCALLY",
+      "source": "439fd201899d2e887bc68fe205b97808685b2c8a",
+      "owner": "route_adoption Luna",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-currentness-01a1dcec/MJobs",
+      "paths": [
+        "tests/integration/test_owned_ats_execution.py"
+      ],
+      "prerequisite": "Root reproduced2native409 failures before M11; helper reuses stale preflight after reprepare",
+      "positive": "Actual fresh native preflight and fresh review support approved non-submitting resume",
+      "negative": "Cached stale review still409; no manufactured preflight, no externalPOST, unchanged native safety assertions",
+      "reviewer": "currentness_review after freeze",
+      "gate": "Both nativefixture modules and answer-resume regressions pass on frozen source, then independent review",
+      "deadline_utc": "2026-11-15T07:40:00Z",
+      "resource": "Isolated loopback HTTPfixture; no browser or Docker",
+      "rollback": "Revert test-only commit; retain allfailedlogs and productionguard",
+      "commit": "17e676a1823e0074c2175d2d95491a1f0b111b03",
+      "integration_commit": "429e5d78b551384fdd9df1db6461fcfe2ea58044",
+      "author_receipt_sha256": "e129f2ab3db1a05f45704f3d2ebbea5383589394be037c030b77c5d1e2ce1e57",
+      "review_receipt_sha256": "bcf830633ef775529e9a9ef17a9d788ba7b64da7ffcd7b2cb38549ee577d2f65",
+      "tests": "Author57PASS20subtests0skips208.84s; independent5targetedPASS37.29s; genuinefreshpreflight, stale409/nooperation and delayedinput noattempt/zeroPOST controls retained",
+      "log_sha256": "04dd6f0e20b133cb9491692c3316122bbd75ce00c548026e107eda19c1ea3f44"
+    },
+    "M13": {
+      "state": "APPROVED_INTEGRATED_LOCALLY",
+      "source": "c61ccc9bb2b81592a0dc8d9619b95fdf56bea437",
+      "owner": "public_prerequisite Luna",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-host-runtime-01a1dcec/MJobs",
+      "paths": [
+        "services/applications/manual_auth_isolated.py",
+        "tests/unit/test_manual_auth_isolated.py",
+        "tests/browser/test_manual_auth_isolated.py"
+      ],
+      "prerequisite": "Baseline Windows503: actual treeEXITED total3 active0 terminated0 buthostexit3; child raises launchError. Exact host bootstrap imports systemPlaywright1.65.2 vsparentvenv1.63.0. Causality pending correctiontest.",
+      "positive": "Privatehost imports same validated runtime deps asparent and real native signin persists for separate dryrun",
+      "negative": "No privateenv expansion, inherited secrets, changedprocesscontainment, silent globaldependency fallback or automatic submission",
+      "reviewer": "currentness_review after M12",
+      "gate": "Genuine importprecedence RED then GREEN; same Windows testpluscontainment negativecontrols; independentreview",
+      "deadline_utc": "2026-11-15T07:55:00Z",
+      "resource": "Sole loopback browser test runner; no Docker/externalnetwork",
+      "rollback": "Revert scopedsourcecommit; preserve diagnostics; no global package/env changes",
+      "commit": "89e182e31129bd9aae76b9f8439da441ebc05f1d",
+      "author_receipt_sha256": "c83857315a55c37efb925c07bc2763e2078667d6eb632492e3f79678faa9b3d9",
+      "tests": "Author11PASS15subtests + actualWindowsmetadata1PASS11.97s; independent11PASS15subtests9.92s + actualWindowsmetadata1PASS11.62s; strict environment and standardlib precedence preserved",
+      "integration_commit": "1b03ac22dbf23dbfd818bac4d49e7fb3c0e7ae9f",
+      "review_receipt_sha256": "99cd7ca71a97500abaf3bbfe67b5671c9e519a169144ca9028411b222d9a1fe1"
+    }
+  },
+  "profile_and_currentness_composition": {
+    "source": "1b03ac22dbf23dbfd818bac4d49e7fb3c0e7ae9f",
+    "source_tree": "ffdba24b7dfa567c70b0aa94a367dac542abf992",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_owned_ats_execution.py",
+      "tests/integration/test_native_mock_ats_fixture.py",
+      "tests/integration/test_application_answer_resume_api.py",
+      "tests/integration/test_application_prepare_route_binding.py",
+      "tests/integration/test_application_reprepare.py",
+      "tests/integration/test_application_preflight.py",
+      "tests/unit/test_mock_answer_bindings.py",
+      "tests/unit/test_application_preflight_dynamic_metadata.py",
+      "tests/unit/test_browser_profile_metadata.py",
+      "tests/unit/test_manual_auth_host.py",
+      "tests/unit/test_manual_auth_deadline.py",
+      "tests/unit/test_manual_auth_isolated.py",
+      "tests/unit/test_browser_tree_private_input.py",
+      "tests/unit/test_browser_tree_containment.py",
+      "tests/integration/test_named_browser_profile.py",
+      "tests/browser/test_manual_auth_close_lifecycle.py",
+      "tests/browser/test_manual_auth_isolated.py::ManualAuthIsolatedBrowserTests::test_native_sign_in_persists_for_separate_worker_dry_run_without_replay"
+    ],
+    "start_utc": "2026-11-15T07:47:22.003224+00:00",
+    "end_utc": "2026-11-15T07:51:38.808741+00:00",
+    "exit_code": 0,
+    "log_sha256": "8cbb8306d45aa9b4804e7056d9a3782db747371a29574526780d0b363bebeba4",
+    "limitations": "Synthetic SQLite/loopback and owned local Chromium; hosted/public employer/full journey NOT_RUN on this composition; skips not passes",
+    "result": "167 passed, 3 skipped, 96 subtests; 253.46 seconds",
+    "resource_cleanup": "Post-run CIM: zero owned test processes and zero Chrome/Chromium processes; no processes terminated",
+    "integrity_checks": "Catalogue PASS; progress validation PASS; dashboard CURRENT; agent skills PASS; diff check PASS on this source",
+    "state": "PASS",
+    "review_receipt_sha256": "2af702651f6518ffced7efff65a7b86aa4ab4c669ed0218b204dddb9c409ddc6",
+    "scope": "Owned synthetic application/containment/browser composition; no public employer or merged-source acceptance"
+  },
+  "preserved_failure_boundaries": {
+    "native": "Exact439 hosted shard1 failed16stale-preflight fixturecases; original failed checks retained, not rerun unchanged. Corrected tests obtain actual fresh preflight; no fabricated metadata.",
+    "windows": "Original isolated-host503 reproduced before M11; process tree exited naturally but host loaded conflicting system Playwright. Narrow runtime precedence fix passes same actual Windows test and metadata durability checks; private environment/containment unchanged.",
+    "public": "Coalition official origin403 remains blocked; no further challenge retries, account workaround, external applications, public-chain or same-merged-SHA claim."
+  },
+  "m14_host_fixture_portability": {
+    "state": "APPROVED_INTEGRATED_READY_FOR_PUBLICATION",
+    "source": "d3faf4ccd2eed7ee410bcf671bff579a85d1f2e1",
+    "owner": "public_prerequisite Luna",
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-host-fixture-01a1dcec/MJobs",
+    "paths": [
+      "tests/unit/test_manual_auth_isolated.py"
+    ],
+    "prerequisite": "Exacthosted6fail reproduced bystdlibunittest innetwork-none cachedLinuxcontainer; fixturemocksWindowsplatformwithoutWindowsruntimepath",
+    "positive": "Existing unit launch/ownership/closure cases execute actualvalidated bootstrap with a modeled validWindowsruntime directory onbothOSes",
+    "negative": "No productionguard weakening orskips; retain importorder/stdlib-shadow and alloriginal launch/cancel/compensation assertions",
+    "reviewer": "currentness_review afterfreeze",
+    "gate": "WindowsmodulePASS and actualLinuxmodulePASS, independentreview, then one update onlyaftercurrenthostedrunfinishes",
+    "deadline_utc": "2026-11-15T08:20:00Z",
+    "resource": "One boundedcachedLinuxunitcontainer;networknone/read-onlysource; noinstall/fullstack",
+    "rollback": "Revert test-onlycommit; preserveoriginalunit/CIREDs",
+    "red_log_sha256": "72a807631e710bc77b6647eec85d24c8bd6d5acba63fd928e26a41a90e2e5f07",
+    "commit": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+    "author_receipt_sha256": "341c2eeddc772b5e10ca314e8cd1720fc2991f722c783a1ff19e2e7f77595af1",
+    "review_receipt_sha256": "d0d40a85b8eb5630bdf1f19bc62ad835aa084da9b178036909797812685a6709",
+    "validation": "Author and reviewer Windows11PASS15subtests; each cached offlineLinux unittest11PASS; root affectedneighbors39PASS61subtests16.39s; no skips or assertion removals",
+    "neighbor_checks": {
+      "source": "ebb55ba9677444d11d8c9fc7c97a56ebf123e4db",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_manual_auth_isolated.py",
+        "tests/unit/test_browser_tree_private_input.py",
+        "tests/unit/test_browser_tree_containment.py",
+        "tests/unit/test_manual_auth_host.py",
+        "tests/unit/test_manual_auth_deadline.py"
+      ],
+      "start_utc": "2026-11-15T08:10:49.509680+00:00",
+      "end_utc": "2026-11-15T08:11:06.426240+00:00",
+      "exit_code": 0,
+      "log_sha256": "ccd8e07246055ba59552d0911414ed13b81d1b642814532d11742c2b1dbc5eb5",
+      "limits": "Windows affected unit scope; independent Linux module separately passed; full hosted new head NOT_RUN"
+    },
+    "production_source": "Unchanged from1b03ac22; its167PASS3skips96subtests remain source-bound historical evidence, not a new run on ebb55ba9"
+  },
+  "prior_hosted_candidate_439fd201": {
+    "state": "PUBLISHED_DRAFT_HOSTED_FAIL",
+    "published_head": "439fd201899d2e887bc68fe205b97808685b2c8a",
+    "tested_implementation_sha": "92650326ca20698a742d7089ace76b9cf1862399",
+    "previous_published_sha": "16942a6ed06b17834dbd6affec48ec163810a871",
+    "main": "80eec0bad2d4d56ad6256820101f61b5301bafda",
+    "utc": "2026-11-15T07:12:17.654811+00:00",
+    "preflight": "outputs/mj292-integration-01a1dcec/publication-preflight-currentness.json",
+    "preflight_sha256": "b60b6d2b379fdab25d109f5634ae87af2f2bbfac1a8a3e04f137a939917e2421",
+    "capacity": "60 development; WARNING; existing update allowed",
+    "hosted": "13SUCCESS; shard1 and aggregateFAIL. Exact shard16native stale-preflight helperfailures,1056PASS27skips486subtests; M12 correctionpending; no unchangedrerun.",
+    "acceptance": "0VERIFIED/53PARTIAL/7NOT_RUN unchanged; no protected merge",
+    "hosted_snapshot": "outputs/mj292-integration-01a1dcec/hosted-439fd201-final.json",
+    "hosted_snapshot_sha256": "423c4aca8b8bc71208731230bf695d1b387a593091a814e684225bff0249ece6",
+    "failure_receipt_sha256": "f6f0581677a2315e59cc70137a207a1e918bad72f3323a993213963a80f7c9bc",
+    "unit": "5379PASS55skips5204subtests262.33s; secondary50PASS39subtests2.05s"
+  },
+  "m14_acceptance_boundary": "Only the unit fixture changed after d3. Application code is byte-identical to1b03ac22, whose167PASS3skips96subtests remain historical exact-source evidence. Current ebb source has author/reviewer Windows11PASS15subtests and offlineLinux11PASS, plus root39PASS61subtests. No new fulljourney/mergedsource acceptance."
+}

@@ -21,7 +21,19 @@ from services.discovery.sources.registry import (
 DESCRIPTION = '<p>Build Python systems.</p><script>privateAttack()</script>'
 POSTED = '2026-10-20T12:00:00+00:00'
 LEVER_ID = '00000000-0000-0000-0000-000000000101'
+USAJOBS_IDENTITY = {
+    'usajobsControlNumber': 101, 'hiringAgencyCode': 'ZZ01',
+    'hiringDepartmentCode': 'ZZ', 'positionOpenDate': '2026-10-20',
+    'announcementNumber': 'SYNTHETIC-101',
+}
 FIXTURES = {
+    'usajobs': {'metadata': {**USAJOBS_IDENTITY, 'positionTitle': 'Platform Engineer',
+                            'jobcategories': [{'series': '2210'}]},
+                'announcement_text': {**USAJOBS_IDENTITY, 'summary': DESCRIPTION}},
+    'arbeitnow': {'slug': 'platform-engineer-101', 'company_name': 'Acme',
+                  'title': 'Platform Engineer', 'description': DESCRIPTION,
+                  'created_at': int(datetime.fromisoformat(POSTED).timestamp()),
+                  'url': 'https://www.arbeitnow.com/jobs/companies/acme/platform-engineer-101'},
     'greenhouse': {'id': 101, 'title': 'Platform Engineer', 'content': DESCRIPTION,
                   'first_published_at': POSTED,
                   'absolute_url': 'https://job-boards.greenhouse.io/acme/jobs/101'},
@@ -33,16 +45,22 @@ FIXTURES = {
     'remoteok': {'id': 101, 'position': 'Platform Engineer', 'description': DESCRIPTION,
                  'company': 'Acme', 'date': POSTED,
                  'url': 'https://remoteok.com/remote-jobs/platform-engineer-101'},
+    'testedrecruits': {'id': '101', 'title': 'Platform Engineer', 'company_name': 'Acme',
+                       'description': 'Build Python systems.',
+                       'posting_url': 'https://app.testedrecruits.com/posting/101'},
     'wwr': {'title': 'Acme: Platform Engineer', 'description': DESCRIPTION,
             'pubDate': 'Tue, 20 Oct 2026 12:00:00 +0000',
             'guid': 'https://weworkremotely.com/remote-jobs/acme-platform-engineer',
             'link': 'https://weworkremotely.com/remote-jobs/acme-platform-engineer'},
 }
 MINIMAL_FIELDS = {
+    'usajobs': ('metadata', 'announcement_text'),
+    'arbeitnow': ('slug', 'company_name', 'title', 'url'),
     'greenhouse': ('id', 'title'),
     'lever': ('id', 'text', 'hostedUrl'),
     'remotive': ('id', 'title'),
     'remoteok': ('id', 'position'),
+    'testedrecruits': ('id', 'title', 'company_name'),
     'wwr': ('title', 'guid'),
 }
 
@@ -53,10 +71,23 @@ def adapter(provider, requests):
     def respond(request):
         requests.append(request)
         assert request.method == 'GET'
-        if provider == 'greenhouse':
+        if provider == 'usajobs':
+            section = 'announcement_text' if request.url.path.endswith('/announcementtext') else 'metadata'
+            payload = {'data': [raw[section]]}
+        elif provider == 'arbeitnow':
+            payload = {'data': [raw]}
+        elif provider == 'greenhouse':
             payload = {'jobs': [raw]} if request.url.path.endswith('/jobs') else {'name': 'Acme'}
         elif provider == 'remotive':
             payload = {'jobs': [raw]}
+        elif provider == 'testedrecruits':
+            body = '''<html><head><title>Acme Jobs &amp; Careers</title></head><body>
+              <p>Current Job Postings: 1</p><table><tr>
+              <td class="job-title"><a href="https://app.testedrecruits.com/posting/101">Platform Engineer</a></td>
+              <td class="job-description">Build Python systems.</td>
+              <td class="job-apply-btn"><a href="https://app.testedrecruits.com/posting/101">Apply</a></td>
+              </tr></table></body></html>'''
+            return httpx.Response(200, content=body, headers={'content-type': 'text/html'})
         elif provider in {'lever', 'remoteok'}:
             payload = [raw]
         else:
@@ -65,9 +96,14 @@ def adapter(provider, requests):
                                   headers={'content-type': 'application/rss+xml'})
         return httpx.Response(200, json=payload)
 
-    tenant = 'global:acme' if provider == 'lever' else 'acme'
-    return source_adapter({'provider': provider, 'tenant': tenant},
-                          transport=httpx.MockTransport(respond))
+    tenant = ('default' if provider in {'arbeitnow', 'usajobs'} else
+              '7/acme-company' if provider == 'testedrecruits' else
+              'global:acme' if provider == 'lever' else 'acme')
+    result = source_adapter({'provider': provider, 'tenant': tenant},
+                            transport=httpx.MockTransport(respond))
+    if provider == 'usajobs':
+        result.clock = lambda: datetime.fromisoformat(POSTED)
+    return result
 
 
 def test_contract_fixture_covers_every_builtin_source_adapter():
@@ -97,14 +133,25 @@ def test_source_search_returns_stable_jobs_and_valid_normalized_fields(provider)
         assert url.username is None and url.password is None
         assert job['attributes']['provider'] == provider
         posted = job['attributes']['reported_posted_at']
-        if provider == 'lever':
-            # This public inventory has no posting timestamp; do not invent one.
+        if provider in {'lever', 'usajobs', 'testedrecruits'}:
+            # These sources provide no exact posting instant; do not invent one.
             assert posted is None
         else:
             assert datetime.fromisoformat(posted).isoformat() == POSTED
     assert source.health() == 'HEALTHY'
     assert not source.capabilities().as_dict()['direct_application']
     assert requests and all(request.method == 'GET' for request in requests)
+    if provider == 'arbeitnow':
+        assert first.complete_inventory is False and second.complete_inventory is False
+        assert all(str(request.url) == 'https://www.arbeitnow.com/api/job-board-api'
+                   for request in requests)
+    if provider == 'usajobs':
+        assert first.complete_inventory is False and second.complete_inventory is False
+        assert len(requests) == 4
+        assert all(request.url.host == 'data.usajobs.gov' for request in requests)
+        assert [request.url.path for request in requests] == [
+            '/api/historicjoa', '/api/historicjoa/announcementtext',
+        ] * 2
 
 
 @pytest.mark.parametrize('provider', FIXTURES)
@@ -116,8 +163,14 @@ def test_missing_optional_source_fields_preserve_identity_without_inventing_valu
     assert minimal == before
     assert job['requisition']
     assert job['title'] == 'Platform Engineer'
-    assert job['description'] == ''
-    assert job['skills'] == []
+    if provider == 'usajobs':
+        # Joined announcement text is required; the fixture otherwise retains
+        # only native identity/title/series and that required text section.
+        assert job['description'] == 'Summary\nBuild Python systems.'
+        assert 'Python' in job['skills']
+    else:
+        assert job['description'] == ''
+        assert job['skills'] == []
     assert job['attributes']['reported_posted_at'] is None
     for malformed in ({}, None, []):
         with pytest.raises(SourceError):
