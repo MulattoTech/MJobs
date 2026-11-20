@@ -214,5 +214,66 @@
     "canonical_acceptance_changed": false,
     "private_identity_receipt": ".tmp/navigation-review/refresh-acceptance/identity.json",
     "private_identity_sha256": "6b04fc0ee9848b3133b131924b5ad1035bdc59aa264944e0f62a0b985511a732"
+  },
+  "pending_repair_base_refresh": {
+    "recorded_at_utc": "2026-11-20T12:03:21.006737Z",
+    "result": "PASS: history-preserving private refresh with identical frontend inputs",
+    "publication_status": "NOT_PUBLISHED",
+    "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+    "prior_private_head": "18bf887134dc0dd239b6e826a33ba1234341979e",
+    "prepared_source": "efc626ea31d90bc4fa6105ec068388e3c8171eb7",
+    "prepared_tree": "81346089749646133e8158845c1310da8527dec2",
+    "parents": [
+      "18bf887134dc0dd239b6e826a33ba1234341979e",
+      "12bfea6afe7395fc3312d2235a394e7746c4607d"
+    ],
+    "base_pr": 1068,
+    "prepared_base": "12bfea6afe7395fc3312d2235a394e7746c4607d",
+    "base_state": "PUBLISHED_BUT_UNMERGED at the fresh preflight; PR1068 is not actual main",
+    "actual_main_at_preflight": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+    "prior_acceptance_merge": "PR1064 was merged as 6916d08ca947615f77b530e77ed28626d4ad46ba; that actual main is already an ancestor of this pending repair base. Earlier refresh records retain their original observations.",
+    "incremental_paths_against_prepared_base": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "source_change": "No reimplementation. The existing assertion of actual MAIN_TABS/tabTitle values and all ten ordered pairs is byte-identical.",
+    "identity_proof": {
+      "scope": "All tracked apps/web files, including product source, characterization inputs, package manifest and lockfile, Vite and TypeScript configuration.",
+      "frontend_file_count": 326,
+      "additions": 0,
+      "deletions": 0,
+      "changed_git_blobs": 0,
+      "changed_canonical_working_files": 0,
+      "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+      "test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362",
+      "source_identity_receipt": ".tmp/navigation-review/refresh-repair-12bfea6a/identity.json",
+      "source_identity_receipt_sha256": "1eb34042037d1693f0b2efcd0386f339ae13e1b22acf2e251f472a5956ef4afa",
+      "previous_evidence_bytes_sha256": "cac00dd4574fe3b507605b2b2f4bfeef78dbcadbba02b15ac4e2dc2a6d203b09"
+    },
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_positive_tests_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": "Three expected failures: empty tabs, swapped Jobs/Pipeline order, and an incorrect Pipeline title. Each failed only the preservation assertion and kept the other three cases passing.",
+      "interpretation": "These are earlier executions carried by exact unchanged frontend inputs, not fresh runs on the refreshed candidate."
+    },
+    "checks_executed_on_refresh": {
+      "history_and_two_path_incremental_scope": "PASS",
+      "git_and_canonical_working_frontend_identity": "PASS: 326 files",
+      "merge_commit_provenance": "PASS; merge has no authored source-code changes, and required trailers were independently parsed",
+      "whitespace": "PASS"
+    },
+    "tests_reexecuted": false,
+    "all_prior_evidence_fields_preserved": true,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "limits": [
+      "This branch remains private; no push, PR creation, original branch update, or protected merge was performed.",
+      "PR1068's candidate is pending integration. Root must bind the actual integrated base and obtain fresh exact-head hosted gates before a later protected merge.",
+      "No imported product, canonical matrix, shared session handoff, or task checkpoint was authored by this refresh; only the existing characterization test and its evidence differ from the prepared base.",
+      "No new full frontend, browser, or integration execution, provider traffic, dependency download, or production operation was performed."
+    ]
   }
 }
