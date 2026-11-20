@@ -6,6 +6,7 @@ from unittest.mock import patch
 import httpx
 
 from services.discovery.sources import greenhouse
+from workers.operations import OperationCancelled, OperationTimedOut
 
 
 class AdmissionClock:
@@ -51,6 +52,45 @@ class GreenhouseRateAdmissionTests(unittest.TestCase):
         self.assertAlmostEqual(dispatches[0], 0.25)
         self.assertAlmostEqual(dispatches[1] - dispatches[0], 0.1)
         self.assertTrue(all(client.is_closed for client in clients))
+
+    def test_slow_budget_refresh_does_not_consume_request_spacing(self):
+        clock = AdmissionClock()
+        dispatches = []
+        client_ready = [False]
+        delayed = [False]
+        real_client = httpx.Client
+
+        def check():
+            return None
+
+        def remaining_seconds():
+            if client_ready[0] and not delayed[0] and not dispatches:
+                clock.now += 0.25
+                delayed[0] = True
+            return 10.0 - clock.now
+
+        check.remaining_seconds = remaining_seconds
+
+        def handler(request):
+            dispatches.append(clock.now)
+            return httpx.Response(200, json={"jobs": []})
+
+        def capture_client(*args, **kwargs):
+            client = real_client(*args, **kwargs)
+            client_ready[0] = True
+            return client
+
+        adapter = greenhouse.Greenhouse("example", rate_limit=600, check=check)
+        with patch.object(greenhouse, "time", clock), patch.object(
+                greenhouse, "SourceTransport",
+                side_effect=lambda check: httpx.MockTransport(handler)), patch.object(
+                greenhouse.httpx, "Client", side_effect=capture_client):
+            adapter._request("/jobs")
+            adapter._request("/jobs")
+
+        self.assertTrue(delayed[0], "the fixture must delay a pre-dispatch budget refresh")
+        self.assertEqual(len(dispatches), 2)
+        self.assertAlmostEqual(dispatches[1] - dispatches[0], 0.1)
 
     def test_late_wakeup_rebases_the_next_request_admission(self):
         clock = AdmissionClock()
@@ -118,6 +158,48 @@ class GreenhouseRateAdmissionTests(unittest.TestCase):
         self.assertEqual(len(clients), 1)
         self.assertTrue(clients[0].is_closed)
         self.assertEqual(adapter.health(), "NOT_CHECKED")
+
+    def test_exhausted_budget_preserves_local_stop_without_dispatch(self):
+        for failure in (None, OperationCancelled("cancelled"), OperationTimedOut("expired")):
+            with self.subTest(stop=type(failure).__name__):
+                clock = AdmissionClock()
+                requests = []
+                clients = []
+                real_client = httpx.Client
+
+                def check():
+                    if failure is not None and clock.now > 0 and adapter._last_request == clock.now:
+                        raise failure
+
+                check.remaining_seconds = lambda: 0.04
+
+                def handler(request):
+                    requests.append(request)
+                    return httpx.Response(200, json={"jobs": []})
+
+                def capture_client(*args, **kwargs):
+                    client = real_client(*args, **kwargs)
+                    clients.append(client)
+                    return client
+
+                adapter = greenhouse.Greenhouse("example", rate_limit=600, check=check)
+                adapter._last_request = 0.0
+                expected = type(failure) if failure is not None else OperationTimedOut
+                with patch.object(greenhouse, "time", clock), patch.object(
+                        greenhouse, "SourceTransport",
+                        side_effect=lambda check: httpx.MockTransport(handler)), patch.object(
+                        greenhouse.httpx, "Client", side_effect=capture_client), \
+                        self.assertRaises(expected) as raised:
+                    adapter._request("/jobs")
+
+                if failure is not None:
+                    self.assertIs(raised.exception, failure)
+                else:
+                    self.assertEqual(str(raised.exception), "OPERATION_TIMEOUT")
+                self.assertEqual(requests, [])
+                self.assertEqual(len(clients), 1)
+                self.assertTrue(clients[0].is_closed)
+                self.assertEqual(adapter.health(), "NOT_CHECKED")
 
     def test_dispatch_timeout_uses_budget_remaining_after_setup_and_admission(self):
         clock = AdmissionClock(now=1.0)

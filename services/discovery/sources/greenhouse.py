@@ -148,15 +148,28 @@ class Greenhouse:
                                        name="mjobs-greenhouse-cancellation", daemon=True)
             watcher.start()
             try:
-                # Local client/watcher setup must not consume the spacing
-                # between actual admissions. Keep response work outside the gate.
+                # Budget refresh may read durable control state. Finish it and
+                # local client/watcher setup before the final rate admission.
+                budget_deadline = None
+                if callable(remaining_budget):
+                    budget_started = time.monotonic()
+                    # Anchor before the callback so its elapsed time is charged
+                    # conservatively, never added to the worker's remaining time.
+                    budget_deadline = budget_started + remaining_budget()
                 if self.transport is None:
                     self._wait_for_rate_limit()
                 else:
                     self.check()
                 request_timeout = self.request_timeout
-                if callable(remaining_budget):
-                    request_timeout = min(request_timeout, remaining_budget())
+                if budget_deadline is not None:
+                    available = budget_deadline - time.monotonic()
+                    if available <= 0:
+                        # Preserve an authoritative local stop if already known.
+                        # This failure path never dispatches a request.
+                        self.check()
+                        from workers.operations import OperationTimedOut
+                        raise OperationTimedOut("OPERATION_TIMEOUT")
+                    request_timeout = min(request_timeout, available)
                 with client.stream("GET", self._request_url(suffix), params=params,
                                    timeout=request_timeout) as response:
                     active_response.append(response)
