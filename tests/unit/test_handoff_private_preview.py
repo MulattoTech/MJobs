@@ -51,7 +51,7 @@ def scenario(tmp_path):
         }), encoding="utf-8",
     )
     destination = tmp_path / "private-output"
-    destination.mkdir()
+    destination.mkdir(mode=0o700)
     return source, archive, reviewer, destination, digest, original, tmp_path
 
 
@@ -404,3 +404,33 @@ def test_modified_receipt_review_digest_rejected_against_explicit_pin(scenario):
             expected_source_sha256=digest,
             expected_review_sha256=result["review_sha256"],
         )
+
+
+def test_posix_world_accessible_destination_is_refused_before_write(scenario):
+    if os.name != "posix":
+        pytest.skip("POSIX permissions require a Linux-hosted run")
+    source, archive, reviewer, destination, digest, original, _ = scenario
+    original_mode = destination.stat().st_mode & 0o777
+    try:
+        destination.chmod(0o755)
+        with pytest.raises(ValueError, match="owner-only permissions"):
+            private.create_candidate(source, archive, reviewer, digest, destination)
+        assert list(destination.iterdir()) == []
+        assert source.read_bytes() == original
+    finally:
+        destination.chmod(original_mode)
+
+
+def test_posix_group_accessible_destination_is_refused_before_write(scenario):
+    if os.name != "posix":
+        pytest.skip("POSIX permissions require a Linux-hosted run")
+    source, archive, reviewer, destination, digest, original, _ = scenario
+    original_mode = destination.stat().st_mode & 0o777
+    try:
+        destination.chmod(0o750)
+        with pytest.raises(ValueError, match="owner-only permissions"):
+            private.create_candidate(source, archive, reviewer, digest, destination)
+        assert list(destination.iterdir()) == []
+        assert source.read_bytes() == original
+    finally:
+        destination.chmod(original_mode)

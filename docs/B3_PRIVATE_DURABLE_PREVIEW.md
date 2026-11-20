@@ -80,7 +80,11 @@ The original archive remains authoritative for recovering the legacy bytes.
 The writer uses an exclusive create-only destination lock, restrictive
 permissions before writing private bytes, staging-directory fsync, independent
 staged readback, source/archive/review re-verification, and an atomic
-same-volume directory rename. A pre-existing candidate is reverified and
+same-volume promotion. On POSIX, it also rejects an existing destination
+directory with any group/other access bits; Windows ACL suitability remains
+an explicit responsibility of the operator. Tests for directory-mode refusal
+must run on a capable POSIX-hosted runner before protected integration.
+A pre-existing candidate is reverified and
 never overwritten. A corrupt or unexpected candidate fails closed. An
 unowned lock is never broken or deleted. An interruption before promotion
 removes only this invocation's newly owned stage and lock.

@@ -142,6 +142,11 @@ def create_candidate(
     """Write one copy-once preview; never touch the original source or reader."""
     receipt, payload = _content_free_plan(source, snapshot, reviewed_file, source_sha)
     root = _safe_root(destination)
+    # A nominally private child under a group/world-readable destination can
+    # still leak lock names and metadata. On POSIX require a private root
+    # before creating any candidate files or writer lock.
+    if os.name == "posix" and (root.stat().st_mode & 0o077):
+        raise ValueError("Private preview destination must have owner-only permissions")
     # The manifest and sections in an archive are immutable. A new preview
     # must never be placed inside the archive snapshot, even if not in Git.
     snapshot_path = Path(snapshot).resolve(strict=True)
