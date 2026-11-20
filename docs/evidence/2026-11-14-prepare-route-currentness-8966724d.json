@@ -615,7 +615,7 @@
       "historical_handoff_blob": "3e6a5d201118dca32ad8bc35cffbb8e42c2e6c20",
       "evidence_preimage_sha256": "1e871351ef9ed2f0796d820c63ee1ec1b6dd752d84e6304faf320ea4c1240ac7",
       "historical_route_and_fixture_failures": "Preserved without reclassification",
-      "original_pr_hosted_secret_scan": "Existing PR1029 historical Secret Scan failure remains unexplained; not relabeled transient or cleared."
+      "original_pr_hosted_secret_scan": "Historical failed run remains recorded; its seven provenance-hash findings have documented dispositions. Refreshed Secret Scan is NOT_RUN, and fresh exact-head hosted scanning remains required."
     },
     "new_tests": "NOT_RUN; the recorded executed input scope is unchanged",
     "local_secret_scan": {
@@ -692,7 +692,7 @@
     "limits": [
       "The 50-test result is PREVIOUS_EXECUTION at 2f2df001, not a test run on this descendant. It is retained only through the recorded source/configuration identity proof.",
       "No new tests, scanner installation, downloads, provider traffic, global packages, PR mutation, protected merge, policy change or production action.",
-      "The historical hosted Secret Scan failure remains unexplained; NOT_RUN does not clear it."
+      "Historical failed run remains recorded; its seven provenance-hash findings have documented dispositions. Refreshed Secret Scan is NOT_RUN, and fresh exact-head hosted scanning remains required."
     ]
   }
 }
