@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "scope": "Unpublished first-parent campaign history after published c1; metadata-only correction",
+  "published_base": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
+  "preserved_branch": "codex/mj292-preserved-c1-repair-trailers-20261106",
+  "original_head": "08f1e5dd795a59a0b399614078ee79667224afd2",
+  "repaired_head": "29509754248aff32803b90491d82f807e5eaa725",
+  "repaired_message_commit": "388a8884eb00b01fb755ced5f66735a2d6eb9564",
+  "source_trees_and_authorship_unchanged": true,
+  "all_merge_parents_preserved_or_mapped": true,
+  "strict_provenance": "PASS",
+  "commits": [
+    {
+      "original_commit": "388a8884eb00b01fb755ced5f66735a2d6eb9564",
+      "repaired_commit": "10e54cc3b8bbe432cf63e175a4974501302d7b4b",
+      "identical_tree": "f88e2320fe864021667834db599e9313ebf271f4",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "c1b349810cefa260cbb5e064d0812a13cebe8c45"
+      ]
+    },
+    {
+      "original_commit": "8275d1aa9467b8348e6dfbd464a00437f591af49",
+      "repaired_commit": "e07e9311352762a5381f7ca5b1f5ef96af3331a7",
+      "identical_tree": "a085fc77a0e278fa8a7a4f002101805a1dd17752",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "10e54cc3b8bbe432cf63e175a4974501302d7b4b"
+      ]
+    },
+    {
+      "original_commit": "cf03c73a052c286dcdd475b612df330c70db5922",
+      "repaired_commit": "150fc54c623234c5a658e4e33736ae1ab7cbc8bd",
+      "identical_tree": "74f2b0ba29bcb57fd7a69638203ed574a373fd1e",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "e07e9311352762a5381f7ca5b1f5ef96af3331a7"
+      ]
+    },
+    {
+      "original_commit": "b2cd8a316ea11c697241059a749c87cab89f7041",
+      "repaired_commit": "ffc17c5a69c7add22ac0cfa89283cd2dd739a0b8",
+      "identical_tree": "8595cf6deb7e2499c8541de10f841f6715fc5f72",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "150fc54c623234c5a658e4e33736ae1ab7cbc8bd",
+        "971ba931418fc271e7a652e27c288e1776448b6d"
+      ]
+    },
+    {
+      "original_commit": "71735a3a9d12b03b5f3c9491c8d1671a9603adea",
+      "repaired_commit": "079f43ad830baac977ce6d9be9d67cbacb7a33b0",
+      "identical_tree": "83e286f690b9d39eb3dd5710a4f63dc9f6436c57",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "ffc17c5a69c7add22ac0cfa89283cd2dd739a0b8"
+      ]
+    },
+    {
+      "original_commit": "36db9ac9c83df27fdd420836256fd23169377619",
+      "repaired_commit": "52235d32d008bb73b73da914ee875d7d4fccc38e",
+      "identical_tree": "a2251eb9b79832cd627b185bbb99bf249e2b6eb8",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "079f43ad830baac977ce6d9be9d67cbacb7a33b0"
+      ]
+    },
+    {
+      "original_commit": "6e254c54d6e61adccbd6159aa0b7337c11cb6fa7",
+      "repaired_commit": "85ba1a55b0411aeba68335ad86a6553e949b803e",
+      "identical_tree": "d4ca0be67b764a14cc2f50c632808989a99e209d",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "52235d32d008bb73b73da914ee875d7d4fccc38e"
+      ]
+    },
+    {
+      "original_commit": "19eac4fe1b1c07c78ebb3a57fc897637b5f1b646",
+      "repaired_commit": "04917bcf032fde781024779f307cbed061e11170",
+      "identical_tree": "d14be8e2ac3c7015bd002dc1c0fd222f3f3b1861",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "85ba1a55b0411aeba68335ad86a6553e949b803e"
+      ]
+    },
+    {
+      "original_commit": "3cc75c4b8159aa367d619ee0c2b9cfe9a19dfdd9",
+      "repaired_commit": "433801d6347e7a0423eb414845d7bebfbf3ad226",
+      "identical_tree": "db5ce848452445b18b94c05a7bb5f21d27a853dd",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "04917bcf032fde781024779f307cbed061e11170"
+      ]
+    },
+    {
+      "original_commit": "b07571494d800606ac39f85e0ad27377fdb20c08",
+      "repaired_commit": "0e623db9b3331451b279c12037dd9e85bc996726",
+      "identical_tree": "d3eba28d52fd1170bb39f618cf012f2d5ddc7ce7",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "433801d6347e7a0423eb414845d7bebfbf3ad226"
+      ]
+    },
+    {
+      "original_commit": "bfa44010872b14f5ccd133bf5028e7e30a8ce60e",
+      "repaired_commit": "19bb0b2e5a29e362636362e09c068294fcc73bc7",
+      "identical_tree": "a53e3da7ab967166d4e97edffef5160879f444c3",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "0e623db9b3331451b279c12037dd9e85bc996726"
+      ]
+    },
+    {
+      "original_commit": "08f1e5dd795a59a0b399614078ee79667224afd2",
+      "repaired_commit": "29509754248aff32803b90491d82f807e5eaa725",
+      "identical_tree": "ea9c8a34d6b89e865862928d3c3d17302796954e",
+      "author_and_committer_preserved": true,
+      "parents": [
+        "19bb0b2e5a29e362636362e09c068294fcc73bc7"
+      ]
+    }
+  ]
+}

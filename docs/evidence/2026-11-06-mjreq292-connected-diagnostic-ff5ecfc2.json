@@ -1,0 +1,704 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "classification": "INCOMPLETE_CONNECTED_RUN_NOT_ACCEPTANCE",
+  "recorded_at_utc": "2026-11-06T12:53:47.971246+00:00",
+  "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+  "source_tree": "ff1e271d42461718c06cc4cd0dbbd2418643140f",
+  "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+  "run_receipt_timestamp": "2026-11-06T12:43:01.980312+00:00",
+  "target": {
+    "project": "mjobs-fixture-ff5ecfc200de",
+    "base_url": "http://127.0.0.1:18736"
+  },
+  "image_id": "sha256:645d7e75bc40438c4da88437391556c46bf15d2beb92b15839c33e0e010b1634",
+  "original_ui_artifact_sha256": "5cbd55258c11d02d542788c7784393fb16ffea604281cc68cf52a2a1536019fa",
+  "original_startup_receipt_sha256": "cb6e7f93c112f90fd9e1223d1062531871f597c239d496c91809ab27c9fdc824",
+  "original_artifact_locations": {
+    "ui": "outputs/mjreq292-native-ff5ecfc200de-journey/ui.json",
+    "startup": "outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json"
+  },
+  "startup_observation": "Single owned Compose startup; ten long-running services healthy, migration exit0, no preexisting project resources. Runtime preflight passed.",
+  "failure": {
+    "stage": "Connected UI workflow",
+    "type": "TimeoutError"
+  },
+  "failure_detail": "Document provenance locator timed out while runner was still on Jobs tab; no final connected UI completion, restart, or monitoring receipt.",
+  "observed_row_counts": {
+    "PASS": 27,
+    "PARTIAL": 5
+  },
+  "acceptance_observations": [
+    {
+      "checks": [
+        {
+          "name": "dashboard_heading_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {},
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Dashboard landing screen is visible in the browser.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 2
+    },
+    {
+      "checks": [
+        {
+          "name": "resume_upload_and_extraction_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Synthetic resume was uploaded and extracted through the UI.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 4
+    },
+    {
+      "checks": [
+        {
+          "name": "extracted_suggestions_remain_unapproved",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Extracted suggestions remain pending until reviewed and approved.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 5
+    },
+    {
+      "checks": [
+        {
+          "name": "corrected_fact_read_back",
+          "passed": true
+        },
+        {
+          "name": "corrected_fact_remains_pending",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "An extracted fact was corrected and saved as an unapproved pending fact.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 6
+    },
+    {
+      "checks": [
+        {
+          "name": "approved_fact_set_matches_review",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Only the explicitly reviewed synthetic Python and SQL facts are approved.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 7
+    },
+    {
+      "checks": [
+        {
+          "name": "remote_it_search_read_back",
+          "passed": true
+        },
+        {
+          "name": "remote_data_search_read_back",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Remote IT and Data Engineer searches were saved through the Sources UI.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 8
+    },
+    {
+      "checks": [
+        {
+          "name": "discovery_operation_completed",
+          "passed": true
+        },
+        {
+          "name": "search_scoped_job_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Fixture discovery completed and search-scoped jobs were read back.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 10
+    },
+    {
+      "checks": [
+        {
+          "name": "same_profile_public_readonly_jobs_observed",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Synthetic fixture discovery does not prove real-provider jobs.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PARTIAL",
+      "step": 11
+    },
+    {
+      "checks": [
+        {
+          "name": "source_rows_visible",
+          "passed": true
+        },
+        {
+          "name": "multiple_sources_enabled",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The fixture does not expose multiple enabled job sources.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PARTIAL",
+      "step": 9
+    },
+    {
+      "checks": [
+        {
+          "name": "matching_job_visible",
+          "passed": true
+        },
+        {
+          "name": "nonmatching_job_hidden",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Text search narrowed the visible fixture job list.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 12
+    },
+    {
+      "checks": [
+        {
+          "name": "filtered_job_visible",
+          "passed": true
+        },
+        {
+          "name": "other_title_hidden",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Job title filter retained only the requested fixture title.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 13
+    },
+    {
+      "checks": [
+        {
+          "name": "match_sort_order",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Visible fixture jobs follow the match-score order from readback.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 14
+    },
+    {
+      "checks": [
+        {
+          "name": "canonical_duplicate_job_available",
+          "passed": true
+        },
+        {
+          "name": "duplicate_count_matches_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The job card and readback expose the same duplicate posting count.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 17
+    },
+    {
+      "checks": [
+        {
+          "name": "canonical_job_detail_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The canonical fixture job opened in the detail panel.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 18
+    },
+    {
+      "checks": [
+        {
+          "name": "salary_range_visible",
+          "passed": false
+        },
+        {
+          "name": "salary_filter_retains_jobs",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Fixture salary fields or the salary-filtered list are unavailable.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PARTIAL",
+      "step": 15
+    },
+    {
+      "checks": [
+        {
+          "name": "remote_filter_returned_a_remote_job",
+          "passed": false
+        },
+        {
+          "name": "remote_job_type_visible",
+          "passed": false
+        },
+        {
+          "name": "employer_remote_restrictions_available",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Remote type and location are shown; fixture data does not state employer remote restrictions.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PARTIAL",
+      "step": 16
+    },
+    {
+      "checks": [
+        {
+          "name": "source_copy_ids_read_back",
+          "passed": true
+        },
+        {
+          "name": "source_copy_panels_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Every known fixture source copy is listed in the job detail.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 19
+    },
+    {
+      "checks": [
+        {
+          "name": "verified_ats_authority_visible",
+          "passed": true
+        },
+        {
+          "name": "preferred_route_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The verified employer ATS route is visibly preferred and persists on readback.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 20
+    },
+    {
+      "checks": [
+        {
+          "name": "application_route_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The selected verified employer route is visible as a saved application link.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 21
+    },
+    {
+      "checks": [
+        {
+          "name": "visible_numeric_match_score",
+          "passed": true
+        },
+        {
+          "name": "selected_job_requirement_explanation_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The selected job score and requirement explanation are visible.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 22
+    },
+    {
+      "checks": [
+        {
+          "name": "previously_unknown_employer_observed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 23
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_discovery_ran_automatically",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 24
+    },
+    {
+      "checks": [
+        {
+          "name": "official_employer_domain_verified",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Official employer domain remains unverified in this fixture.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PARTIAL",
+      "step": 25
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_careers_page_found",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 26
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_ats_tenant_identified",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 27
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_source_enrolled_automatically",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 28
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_openings_enumerated",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 29
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_only_opening_observed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 30
+    },
+    {
+      "checks": [
+        {
+          "name": "employer_duplicate_sources_collapsed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+        "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 31
+    },
+    {
+      "checks": [
+        {
+          "name": "strong_match_available",
+          "passed": true
+        },
+        {
+          "name": "saved_status_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The selected Data Engineer job was saved and read back.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 32
+    },
+    {
+      "checks": [
+        {
+          "name": "application_prepared_readback",
+          "passed": true
+        },
+        {
+          "name": "profile_job_pins_match",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The selected B application was prepared and read back with its profile and job pins.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 36
+    },
+    {
+      "checks": [
+        {
+          "name": "route_bound_to_job",
+          "passed": true
+        },
+        {
+          "name": "selected_route_matches_application",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+      },
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "observable_result": "The displayed application route matched the selected route readback for B.",
+      "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "status": "PASS",
+      "step": 37
+    }
+  ],
+  "stage_lineage": [
+    {
+      "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+      "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+      "operation_id": "89f2a4d89c32a7548d3c2fc5cf1d9ef919347e2f44f4c15c795c16ffda926d75",
+      "operation_kind": "PREPARE",
+      "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+      "request_id": "f3d7db73-8183-450f-9cf1-d2eff55755f9",
+      "step": 36
+    },
+    {
+      "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+      "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+      "operation_id": "89f2a4d89c32a7548d3c2fc5cf1d9ef919347e2f44f4c15c795c16ffda926d75",
+      "operation_kind": "PREPARE",
+      "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+      "request_id": "f3d7db73-8183-450f-9cf1-d2eff55755f9",
+      "step": 37
+    }
+  ],
+  "boundary": "Sanitized diagnostic projection of an incomplete synthetic full-stack run. Raw observation PASS values are producer observations, not independently reviewed or protected-merge acceptance. No ledger PASS is granted. Original raw artifacts remain in the frozen runtime worktree; this projection is not a replacement producer receipt."
+}

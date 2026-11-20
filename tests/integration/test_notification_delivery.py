@@ -20,9 +20,11 @@ from services.notifications.contract import DeliveryResult, NotificationError
 from services.notifications.events import event_from_row, read_event_page
 from services.notifications.journal import DeliveryJournal
 from services.notifications.providers.ntfy import NtfyProvider
+from services.notifications.providers import create_provider
 from services.notifications.runner import run_once
 from tests.unit.test_notification_configuration import config_data
 from tests.unit.test_ntfy_provider import acknowledgement
+from tests.unit.test_email_provider import FakeSMTP
 
 
 class Clock:
@@ -400,3 +402,122 @@ def test_mock_notifications_accept_actual_current_and_legacy_producers_only(tmp_
             run_once(store, config, journal, Sender())
             clock.advance()
         assert set(sent) == {current["operation_id"], legacy} and len(sent) == 2
+
+
+def test_discord_selection_runs_through_the_durable_notification_runner(tmp_path, monkeypatch):
+    clock = Clock()
+    store = make_store(tmp_path)
+    try:
+        add_operation(store, clock, "discord-operation")
+        raw = {
+            "version": 1, "enabled": True, "provider": "discord", "profile_id": "fixture",
+            "webhook_id": "12345678901234567", "token_env": "DISCORD_SYNTHETIC_TOKEN",
+            "state_path": str(tmp_path / "discord-state.db"),
+        }
+        config = parse_config(raw)
+        requests = []
+
+        def handler(request):
+            requests.append(request)
+            assert request.url.host == "discord.com"
+            assert b"PRIVATE_ERROR_DO_NOT_EXPORT" not in request.content
+            return httpx.Response(204)
+
+        provider = create_provider(
+            config, transport=httpx.MockTransport(handler),
+            environ={"DISCORD_SYNTHETIC_TOKEN": "synthetic_webhook_token"},
+        )
+        journal = DeliveryJournal(config, clock=clock)
+        result = run_once(store, config, journal, provider)
+        assert result == {"enabled": True, "queued": 1, "attempted": 1,
+                          "outcome": "NOTIFICATION_SERVER_ACCEPTED"}
+        assert len(requests) == 1
+        assert journal.status()["counts"] == {"DELIVERED": 1}
+    finally:
+        store.engine.dispose()
+
+
+def test_slack_selection_runs_through_the_notification_cli_and_durable_runner(
+        tmp_path, monkeypatch, capsys):
+    raw = {
+        "version": 1, "enabled": True, "provider": "slack", "profile_id": "fixture",
+        "slack_team_id": "T0123456789", "slack_service_id": "B0123456789",
+        "token_env": "SLACK_SYNTHETIC_TOKEN",
+        "state_path": str(tmp_path / "slack-state.db"),
+    }
+    config_path = tmp_path / "slack-config.json"
+    config_path.write_text(json.dumps(raw), encoding="utf-8")
+    store = make_store(tmp_path)
+    clock = Clock()
+    clock.value = datetime.now(timezone.utc).timestamp()
+    add_operation(store, clock, "slack-operation")
+    database_url = f"sqlite:///{(tmp_path / 'application.db').as_posix()}"
+    store.engine.dispose()
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("SLACK_SYNTHETIC_TOKEN", "synthetic_slack_webhook_secret")
+    requests = []
+    real_create_provider = create_provider
+
+    def controlled_provider(config, *, cancellation_event=None):
+        return real_create_provider(
+            config, transport=httpx.MockTransport(
+                lambda request: requests.append(request) or httpx.Response(200, text="ok")),
+            cancellation_event=cancellation_event,
+        )
+
+    monkeypatch.setattr("cli.notifications.create_provider", controlled_provider)
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output == {"enabled": True, "queued": 1, "attempted": 1,
+                      "outcome": "NOTIFICATION_SERVER_ACKNOWLEDGED"}
+    assert len(requests) == 1
+    assert requests[0].url.host == "hooks.slack.com"
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    second_output = json.loads(capsys.readouterr().out)
+    assert second_output == {"enabled": True, "queued": 0, "attempted": 0, "outcome": None}
+    assert len(requests) == 1
+    assert DeliveryJournal(parse_config(raw)).status()["counts"] == {"DELIVERED": 1}
+
+
+def test_email_selection_runs_through_cli_and_durable_dedupe_without_network(
+        tmp_path, monkeypatch, capsys):
+    raw = {
+        "version": 1, "enabled": True, "provider": "email", "profile_id": "fixture",
+        "smtp_host": "smtp.example.test", "smtp_sender": "notify@example.test",
+        "smtp_recipient": "owner@example.test", "smtp_username": "mjobs-app",
+        "smtp_password_env": "SMTP_SYNTHETIC_PASSWORD",
+        "state_path": str(tmp_path / "email-state.db"),
+    }
+    config_path = tmp_path / "email-config.json"
+    config_path.write_text(json.dumps(raw), encoding="utf-8")
+    store = make_store(tmp_path)
+    clock = Clock()
+    clock.value = datetime.now(timezone.utc).timestamp()
+    add_operation(store, clock, "email-operation")
+    database_url = f"sqlite:///{(tmp_path / 'application.db').as_posix()}"
+    store.engine.dispose()
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("SMTP_SYNTHETIC_PASSWORD", "synthetic-email-password")
+    real_create_provider = create_provider
+    FakeSMTP.instances = []
+    FakeSMTP.login_error = FakeSMTP.send_result = FakeSMTP.send_error = None
+    FakeSMTP.exit_error = FakeSMTP.during_send = None
+
+    def controlled_provider(config, *, cancellation_event=None):
+        return real_create_provider(
+            config, smtp_factory=FakeSMTP,
+            environ={"SMTP_SYNTHETIC_PASSWORD": "synthetic-email-password"},
+            cancellation_event=cancellation_event,
+        )
+
+    monkeypatch.setattr("cli.notifications.create_provider", controlled_provider)
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output == {"enabled": True, "queued": 1, "attempted": 1,
+                      "outcome": "NOTIFICATION_SMTP_ACCEPTED"}
+    assert len(FakeSMTP.instances) == 1
+    assert main(["--config", str(config_path), "run", "--once"]) == 0
+    second = json.loads(capsys.readouterr().out)
+    assert second == {"enabled": True, "queued": 0, "attempted": 0, "outcome": None}
+    assert len(FakeSMTP.instances) == 1
+    assert DeliveryJournal(parse_config(raw)).status()["counts"] == {"DELIVERED": 1}
