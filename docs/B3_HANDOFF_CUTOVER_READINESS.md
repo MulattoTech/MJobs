@@ -72,6 +72,18 @@ The full check validates:
    restoration, in-memory summary rehearsal and byte-exact rollback.
 5. Private inactive candidate receipt and preview, independently bound to
    the supplied source, review and preview hashes.
+6. A second local Git/worktree/independent-checkout inventory after private
+   evidence validation. If the canonical source, another owner's handoff,
+   registered worktree list, or source Git HEAD changes during the audit,
+   technical readiness fails closed instead of reusing stale clean-state facts.
+
+After the worktree postflight, it also re-checks the independent reviewed
+selection digest, immutable archive reconstruction, private candidate digest
+and writer-lock/staging paths. A review edit, corrupted archive piece, altered
+candidate or new writer lock during the first verification fails closed.
+
+These postflight checks are race-detection barriers, not process locks or a
+durability guarantee. Other writers can still change state after the report.
 
 All content inspection is in memory. Output contains status labels, hashes,
 byte counts and aggregate worktree counts, not historical or reviewer prose.

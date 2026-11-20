@@ -235,7 +235,11 @@ def readiness_report(
     Full mode requires all six pins and paths. No source or reviewer text,
     private paths or worktree names are present in the result.
     """
-    scan = scan_handoff_worktrees(repo, independent_checkouts)
+    # Freeze the caller's declared inventory for preflight and postflight.
+    # A mutable list changing while verification runs is not an authority.
+    checkouts = (tuple(independent_checkouts)
+                 if independent_checkouts is not None else None)
+    scan = scan_handoff_worktrees(repo, checkouts)
     full_inputs = (
         expected_head, expected_source_sha256, snapshot, review_file,
         expected_review_sha256, candidate, expected_preview_sha256,
@@ -313,6 +317,50 @@ def readiness_report(
         except (OSError, ValueError, UnicodeError):
             result["technical_evidence"] = "FAILED"
             result["blockers"].append("PINNED_PRIVATE_EVIDENCE_UNVERIFIABLE")
+        # The first worktree scan predates the expensive archive/review
+        # verification. If a handoff writer, Git HEAD or registered checkout
+        # changes while that runs, its initial clean state is stale. This
+        # second scan is a detection barrier, not a process lock.
+        try:
+            postflight = scan_handoff_worktrees(repo, checkouts)
+            if postflight != scan:
+                result["technical_evidence"] = "FAILED"
+                result["blockers"].append(
+                    "HANDOFF_OR_CHECKOUT_STATE_CHANGED_DURING_VERIFICATION"
+                )
+                result["blockers"].extend(postflight["observations"])
+        except (OSError, ValueError):
+            result["technical_evidence"] = "FAILED"
+            result["blockers"].append("POSTFLIGHT_HANDOFF_STATUS_UNVERIFIABLE")
+        # The initial reviewer/archive/candidate proof can also become stale
+        # after its first check. Require the same independent pins to verify
+        # again before reporting an internally consistent technical review.
+        if result["technical_evidence"] == "SOURCE_ARCHIVE_REVIEW_PREVIEW_CONSISTENT":
+            try:
+                _private_inputs(snapshot, review_file, candidate)
+                review_after = Path(review_file).read_bytes()
+                if hashlib.sha256(review_after).hexdigest() != expected_review_sha256:
+                    raise ValueError("Reviewer selection changed during verification")
+                replay_after, text_after = rehearsal(
+                    Path(repo) / _HANDOFF, snapshot, review_file,
+                    expected_source_sha256,
+                )
+                if (replay_after["review_sha256"] != expected_review_sha256
+                        or replay_after["preview_sha256"] != expected_preview_sha256
+                        or replay_after["rollback_sha256"] != expected_source_sha256):
+                    raise ValueError("Pinned archive or summary changed during verification")
+                candidate_after = verify_candidate(
+                    candidate, expected_preview_sha256=expected_preview_sha256,
+                    expected_source_sha256=expected_source_sha256,
+                    expected_review_sha256=expected_review_sha256,
+                )
+                if candidate_after["preview_length"] != len(text_after.encode("utf-8")):
+                    raise ValueError("Private candidate changed during verification")
+            except (OSError, ValueError, UnicodeError):
+                result["technical_evidence"] = "FAILED"
+                result["blockers"].append(
+                    "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION"
+                )
     result["blockers"] = sorted(set(result["blockers"]))
     result["ready_for_review"] = (
         not result["blockers"]

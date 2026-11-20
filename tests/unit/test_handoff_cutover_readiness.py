@@ -403,3 +403,172 @@ def test_full_preflight_rejects_review_file_nested_inside_archive(sample):
     assert report["technical_evidence"] == "FAILED"
     assert "PINNED_PRIVATE_EVIDENCE_UNVERIFIABLE" in report["blockers"]
     assert report["can_cutover"] is False
+
+
+def test_source_mutation_during_evidence_verification_rejected_at_postflight(
+    sample, monkeypatch
+):
+    verified = readiness.verify_candidate
+
+    def mutate_source_after_candidate_check(*args, **kwargs):
+        result = verified(*args, **kwargs)
+        sample["source"].write_bytes(
+            sample["original"] + b"SIMULATED_MID_AUDIT_WRITER_UPDATE"
+        )
+        return result
+
+    monkeypatch.setattr(
+        readiness, "verify_candidate", mutate_source_after_candidate_check
+    )
+    result = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert result["technical_evidence"] == "FAILED"
+    assert "HANDOFF_OR_CHECKOUT_STATE_CHANGED_DURING_VERIFICATION" in result["blockers"]
+    assert "UNCOMMITTED_HANDOFF_IN_WORKTREE" in result["blockers"]
+    assert result["ready_for_review"] is False
+    assert result["can_cutover"] is False
+
+
+def test_independent_clone_mutation_during_audit_rejected_at_postflight(
+    sample, monkeypatch
+):
+    clone = sample["root"] / "independent-postflight-clone"
+    git(sample["repo"], "clone", "-q", str(sample["repo"]), str(clone))
+    values = pins(sample)
+    values["independent_checkouts"] = [clone]
+    verified = readiness.verify_candidate
+
+    def mutate_independent_after_candidate_check(*args, **kwargs):
+        result = verified(*args, **kwargs)
+        file = clone / "planning" / "SESSION_HANDOFF.md"
+        file.write_bytes(file.read_bytes() + b"OTHER_AGENT_CHANGED_DURING_AUDIT")
+        return result
+
+    monkeypatch.setattr(
+        readiness, "verify_candidate", mutate_independent_after_candidate_check
+    )
+    report = readiness.readiness_report(sample["repo"], **values)
+    assert report["technical_evidence"] == "FAILED"
+    assert "HANDOFF_OR_CHECKOUT_STATE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert "UNCOMMITTED_HANDOFF_IN_INDEPENDENT_CHECKOUT" in report["blockers"]
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+    assert str(clone) not in json.dumps(report)
+
+
+def test_git_head_changing_after_evidence_validation_is_rejected(
+    sample, monkeypatch
+):
+    verified = readiness.verify_candidate
+
+    def advance_synthetic_head(*args, **kwargs):
+        result = verified(*args, **kwargs)
+        new_file = sample["repo"] / "synthetic-revision-note.txt"
+        new_file.write_text("A parallel agent committed another revision")
+        git(sample["repo"], "add", "synthetic-revision-note.txt")
+        git(sample["repo"], "commit", "-qm", "parallel synthetic commit")
+        return result
+
+    monkeypatch.setattr(readiness, "verify_candidate", advance_synthetic_head)
+    report = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert report["technical_evidence"] == "FAILED"
+    assert "HANDOFF_OR_CHECKOUT_STATE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+
+
+def test_review_selection_changed_after_initial_verification_fails_closed(
+    sample, monkeypatch
+):
+    first_verify = readiness.verify_candidate
+    called = [0]
+
+    def mutate_review_after_first_check(*args, **kwargs):
+        result = first_verify(*args, **kwargs)
+        called[0] += 1
+        if called[0] == 1:
+            sample["review_file"].write_bytes(
+                sample["review_file"].read_bytes() + b" "
+            )
+        return result
+
+    monkeypatch.setattr(
+        readiness, "verify_candidate", mutate_review_after_first_check
+    )
+    report = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert called[0] == 1
+    assert report["technical_evidence"] == "FAILED"
+    assert "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+
+
+def test_archived_checkpoint_changed_after_initial_validation_fails_closed(
+    sample, monkeypatch
+):
+    first_verify = readiness.verify_candidate
+    calls = [0]
+    piece = sorted((sample["snapshot"] / "pieces").glob("*.bin"))[0]
+
+    def corrupt_archive_after_first_candidate_check(*args, **kwargs):
+        result = first_verify(*args, **kwargs)
+        calls[0] += 1
+        if calls[0] == 1:
+            piece.write_bytes(piece.read_bytes() + b"SYNTHETIC_ARCHIVE_TAMPER")
+        return result
+
+    monkeypatch.setattr(
+        readiness, "verify_candidate", corrupt_archive_after_first_candidate_check
+    )
+    report = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert calls[0] == 1
+    assert report["technical_evidence"] == "FAILED"
+    assert "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert report["ready_for_review"] is False
+
+
+def test_candidate_changed_after_initial_validation_fails_closed(
+    sample, monkeypatch
+):
+    first_verify = readiness.verify_candidate
+    calls = [0]
+
+    def corrupt_candidate_after_first_check(*args, **kwargs):
+        # Count attempted verifications, including one correctly rejected
+        # before verify_candidate can return an accepted result.
+        calls[0] += 1
+        result = first_verify(*args, **kwargs)
+        if calls[0] == 1:
+            file = sample["candidate"] / "preview.md"
+            file.write_bytes(file.read_bytes() + b"UNREVIEWED_EXTRA_TEXT")
+        return result
+
+    monkeypatch.setattr(readiness, "verify_candidate", corrupt_candidate_after_first_check)
+    report = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert calls[0] == 2
+    assert report["technical_evidence"] == "FAILED"
+    assert "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert report["ready_for_review"] is False
+    assert report["can_cutover"] is False
+
+
+def test_new_writer_lock_after_initial_verification_fails_closed(
+    sample, monkeypatch
+):
+    first_verify = readiness.verify_candidate
+    calls = [0]
+    lock = sample["preview_root"] / private._LOCK_NAME
+
+    def introduce_foreign_lock(*args, **kwargs):
+        result = first_verify(*args, **kwargs)
+        calls[0] += 1
+        if calls[0] == 1:
+            lock.write_bytes(b"FOREIGN_WRITER_STARTED")
+        return result
+
+    monkeypatch.setattr(readiness, "verify_candidate", introduce_foreign_lock)
+    report = readiness.readiness_report(sample["repo"], **pins(sample))
+    assert calls[0] == 1
+    assert report["technical_evidence"] == "FAILED"
+    assert "PINNED_PRIVATE_EVIDENCE_CHANGED_DURING_VERIFICATION" in report["blockers"]
+    assert report["ready_for_review"] is False
+    assert lock.read_bytes() == b"FOREIGN_WRITER_STARTED"
