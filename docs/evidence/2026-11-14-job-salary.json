@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-14T13:35:27.741537+00:00",
+  "requirement": "MJ-REQ-292",
+  "issue": 293,
+  "scope": "Step15 canonical salary detail presentation; full connected campaign remains PARTIAL",
+  "source_head": "d4efdb85c7e7409219a0cf4950a7b74a9e11c8da",
+  "base_head": "ca8cc90760e5dd4436d08838a2766107a48e5c55",
+  "adopted_source_commit": "f7d784fe988fa0e2c388f375c63898fee8580e83",
+  "source_pr": 973,
+  "implementation": "Reuse the existing campaign salary component; reconcile current-main types and a single detail renderer",
+  "source_sha256": {
+    "apps/web/src/main.tsx": "0324490458b467ff0fb67a60e6e75297c0b822f0d9a17c6cce5c26c9b7e8c46e",
+    "apps/web/src/job-salary.tsx": "e440d69b0b5e0a8964a47b9c3d863fa891cb81c08a0054bec204ef7eaf3676ac",
+    "apps/web/src/job-salary.test.tsx": "2a818fc546167b8a8f8e50d7ec973f52f8680ed1dad930b140a27a979982c6e9",
+    "tests/browser/test_job_salary.py": "d39bb744a6a4dcb1f9793199acdfac301690f882c9cac1381ab20bda87677a8a"
+  },
+  "regressions": [
+    {
+      "behavior": "Actual local API returns scalar salary but baseline detail lacks a salary region",
+      "before": "FAIL",
+      "after": "PASS"
+    },
+    {
+      "behavior": "Explicit canonical nulls must not revive stale legacy EUR salary through duplicate renderer",
+      "before": "FAIL",
+      "after": "PASS"
+    }
+  ],
+  "validation": [
+    {
+      "command": "npm --prefix apps/web test -- --run src/job-salary.test.tsx",
+      "result": "PASS",
+      "tests": 26
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Existing bundle-size advisory remains"
+    },
+    {
+      "command": "pinned venv python -m pytest -q tests/browser/test_job_salary.py tests/browser/test_browser_job_extraction_confirm_capture.py --tb=short",
+      "result": "PASS",
+      "tests": 2,
+      "seconds": 22.49
+    },
+    {
+      "command": "pinned venv python -m pytest -q tests/browser/test_job_salary.py --tb=short",
+      "result": "PASS",
+      "tests": 1,
+      "seconds": 14.01,
+      "note": "Rerun after import-order-only Ruff correction"
+    },
+    {
+      "command": "ruff check tests/browser/test_job_salary.py; focused ESLint on salary component and tests; git diff --check; commit_provenance",
+      "result": "PASS"
+    }
+  ],
+  "review": {
+    "task_review": "Local Luna spec and quality approved after one fix round",
+    "final_branch_review": "Separate local Luna review approved368333d0; later change only sorts Python imports and passed its affected test"
+  },
+  "not_run": [
+    "Full60-step campaign on integrated source",
+    "Salary filter browser flow",
+    "Real-provider salary capture",
+    "Production deployment",
+    "Real application submission"
+  ],
+  "acceptance_counter_change": false
+}

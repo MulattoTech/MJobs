@@ -21,6 +21,7 @@ from .work_history import WorkHistory
 from .progress_history import ProgressHistory
 from .campaign_progress import campaign_progress
 from .delivery_ledger import DeliveryLedger
+from .development_activity import read_development_activity
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
 
@@ -158,6 +159,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
     def refresh_models(request: Request):
         mission.require_token(request, mission.token)
         return mission.refresh_models()
+
+    @app.get("/api/development-activity")
+    def development_activity():
+        """Show GitHub delivery without changing canonical acceptance or local sessions."""
+        return read_development_activity()
 
     @app.get("/api/progress")
     def release_progress():

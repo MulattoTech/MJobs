@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-292-prepare-route-8966724d",
+  "objective": "Ensure explicit changed-route preparation updates the correct application route while preserving active-work and history boundaries; MJ-REQ-292 steps36-38",
+  "owner": "ChatGPT-Web / WEB-20261114T030910Z-8966724d-b851-435e-8966-7db737d60c21",
+  "branch": "web/8966724d/prepare-route-currentness",
+  "head_sha": "9776a511c2efd3398463fbb746fb839aa3c92044",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish the independently reviewed bounded source candidate through fresh admission, observe exact-head required gates, and hand it to existing2d integration owner; parent292 remains incomplete",
+  "created_at": "2026-11-14T04:13:01.826865+00:00",
+  "requirements": [
+    "MJ-REQ-292-prepare-route-8966724d"
+  ],
+  "tests": [
+    {
+      "command": "Clean9776a511:7 primary+12 subtests PASS,0failure/error/skip,11.854s; new route-binding module plus existing saved-route reprepare control",
+      "result": "PASS"
+    },
+    {
+      "command": "Source/test review, commit provenance and git diff --check PASS; new test Ruff PASS; generator diagnostics unchanged from base",
+      "result": "PASS"
+    },
+    {
+      "command": "Published-head hosted gates, PostgreSQL/browser full journey, deployment and formal parent acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Security scanner currently requires existing2d owner adoption of two reviewed historical PR1028 provenance-hash fingerprints; source/acceptance ownership is not bypassed"
+  ]
+}

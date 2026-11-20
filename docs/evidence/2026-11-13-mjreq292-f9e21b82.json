@@ -1,0 +1,2275 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "issue": 293,
+  "prepared_at_utc": "2026-11-13 09:00:30 UTC",
+  "classification": "PARTIAL_IMPLEMENTATION_AND_PRESERVED_FAILED_RUNTIME_EVIDENCE",
+  "acceptance_promoted": false,
+  "real_external_application_submission": "OFF",
+  "first_attempt": {
+    "source": {
+      "commit": "27a7e2517754c3cf01ab773d4eed44586c7a2150",
+      "tree": "66f9ba4734c3aa0647266ccc7c4bf80966ea748e",
+      "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_tree_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run_id": "mj292-f9e21b82-fd663cf129aa",
+    "project_name": "mjobs-fixture-fd663cf129aa",
+    "campaign_result": "FAIL",
+    "command_exit_code": 1,
+    "started_at_utc": "2026-11-13T03:33:09.728103+00:00",
+    "completed_at_utc": "2026-11-13T03:35:08.219203+00:00",
+    "numbered_observations": {
+      "PASS": 49,
+      "PARTIAL": 4,
+      "NOT_RUN": 7
+    },
+    "formal_verified_pass": 0,
+    "partial_steps": [
+      9,
+      11,
+      16,
+      25
+    ],
+    "not_run_steps": [
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "public_error_code": "PUBLIC_OBSERVATION_API_OR_RECORD_INVALID",
+    "public_provider_selected": "remotive",
+    "public_provider_request_observed": false,
+    "resumable": false,
+    "bounded_diagnostic": {
+      "result": "PREFLIGHT_FAILED_REQUIRES_STATE_INSPECTION",
+      "failed_stage": "preflight",
+      "root_cause": "PROJECT_CONTAINER_UNHEALTHY immediately after pausing the exact owned scheduler",
+      "collection_invoked": false,
+      "source_setup_invoked": false,
+      "scope": "Preflight-only diagnostic, then exact-owned pause recovery; no campaign resume or provider retry"
+    },
+    "cleanup": {
+      "stop_result": "OWNED_FIXTURE_STOPPED_DATA_RETAINED",
+      "stopped_container_count": 11,
+      "preserved_volume_count": 6,
+      "heavy_claim": "RELEASED",
+      "retained_pauses_recovered": 2,
+      "journey_resumed": false
+    },
+    "artifact_hashes": {
+      "frontend-build-receipt.json": "0dfccb95c864cf3e293d56abcd44a5a92a232a09494ee0732688bf4c0007a024",
+      "startup-receipt.json": "e43f469f9bc4f2edf3d12d98f7bb505673219561d41e14d2cdbf62407f04ab9d",
+      "journey/journey.json": "9057a56b6a63736af01a5d92903878159d0d5031e1605bd7f81e6634f0a53fb0",
+      "journey/ui.json": "3b0f583e39271f0afaf0cdbd65123570a42f7d2b7acf18fb31f96ed97a19bcb0",
+      "journey/public.json": "df226116bf0fb0dab5a3aa295799c19bf8835557d90bb8d336c7d7e4c44eb5f9",
+      "campaign-command-result.json": "12383c2847797cd47870b59d15008dcb940eb588a29f17e7afb31b60ee83bbe2",
+      "public-preflight-diagnostic-576d77641d65/result.json": "f6671f17c9749d19304ce40fa437829a3028004d0ef97a872fb50aa2fa892145",
+      "retained-pause-recovery-result.json": "cca127adad5334e0a4e7bf7dcd06b4a319ff1eb48224704a10a00512ba3b21a2",
+      "diagnostic-pause-recovery-result.json": "b23a4e40ec1012032227c8dbbf9654adb08347c19f804cc437b808d4a43f2c9b",
+      "stop-preserve-receipt.json": "fc920d692a826f17850b81281e2c371a26e0cbae2ff72ea46c53f0228adbc703"
+    },
+    "independent_review_sha256": "23177f0ce63417e9c3ad5c3ed42ae2a4fa7db54ab9ba964d103f94edbc317fcc",
+    "limits": [
+      "A completed UI prefix is not a completed 60-step campaign.",
+      "The public segment failed local admission before collection.",
+      "Step9 source setup, public jobs/browser proof, live employer domain proof, and connected restart/monitoring remained incomplete.",
+      "Supplemental screenshots retained unavailable rehearsal/retention panels; the prefix is not described as error-free.",
+      "No formal step, parent requirement, canonical acceptance, protected integration or production deployment was promoted."
+    ]
+  },
+  "second_attempt": {
+    "source": {
+      "commit": "c60258a9b43055b525a54a4cf599447168d844a1",
+      "tree": "9333f5e673ee665388be1f4338ebce8354faa3a6",
+      "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_tree_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run_id": "mj292-f9e21b82-44b019808142",
+    "project_name": "mjobs-fixture-44b019808142",
+    "campaign_result": "FAIL",
+    "command_exit_code": 1,
+    "started_at_utc": "2026-11-13T04:48:59.094519+00:00",
+    "completed_at_utc": "2026-11-13T04:53:24.570173+00:00",
+    "numbered_observations": {
+      "PASS": 49,
+      "PARTIAL": 4,
+      "NOT_RUN": 7
+    },
+    "formal_verified_pass": 0,
+    "partial_steps": [
+      9,
+      11,
+      16,
+      25
+    ],
+    "not_run_steps": [
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "ui": {
+      "segment_status": "COMPLETE",
+      "producer_result": "PARTIAL",
+      "numbered_observations": 52,
+      "runtime_boundary": "startup and UI only; public completion boundary unavailable"
+    },
+    "build": {
+      "result": "PASS",
+      "runtime_manifest_files": 1963,
+      "frontend_assets": 3,
+      "frontend_test_build_layer": "CACHED",
+      "fresh_frontend_test_execution": false,
+      "image_id": "sha256:81aa305115723b5be3caeeacdf8059966bc35461df1e2effe62c300ede658ce3"
+    },
+    "startup": {
+      "long_running_services": 10,
+      "migration_exit_code": 0,
+      "result": "PASS"
+    },
+    "public": {
+      "provider": "remotive",
+      "error_code": "SOURCE_CONTAINMENT_LEASE_EXPIRED",
+      "cleanup_at_failure": "PRESERVED_OWNERSHIP_CHANGED",
+      "collection_dispatched": false,
+      "provider_request_observed": false,
+      "primary_source_created_enabled": true,
+      "secondary_source_created_disabled": true,
+      "recorded_real_jobs": 0,
+      "child_discovery": "NOT_RUN",
+      "domain_proof_readback": "NOT_RUN",
+      "basis": "PERSISTED_RECEIPT_METADATA",
+      "diagnosis": "Composed source-setup callback returned an old proof while inner same-owner guards renewed; outer helper rejected cached expiry before consuming renewed proof.",
+      "diagnosis_limit": "Source and durable lease timing establish the protocol mismatch; no per-guard latency log establishes a precise Docker/API timing contribution."
+    },
+    "cleanup": {
+      "recovery_result": "OWNED_SOURCE_DISABLED_AND_SCHEDULER_RESTORED",
+      "all_sources_disabled": true,
+      "active_operations": 0,
+      "original_terminal_operation_count": 17,
+      "selected_mock_baseline_unchanged": true,
+      "readiness_restored_before_stop": true,
+      "stop_result": "OWNED_FIXTURE_STOPPED_DATA_RETAINED",
+      "stopped_container_count": 11,
+      "preserved_volume_count": 6,
+      "heavy_claim": "RELEASED",
+      "journey_resumed": false,
+      "provider_request_retried": false
+    },
+    "artifact_hashes": {
+      "frontend-build-receipt.json": "a7a112ab814c3a8f2a67f9c6f44ea98d5c197558f4ebcf10b277a8d0904465be",
+      "startup-receipt.json": "72dbbd70382a7512ab8ed802fd34c93f4923ca03b41cf2533a6c2dcfe4e24ab5",
+      "journey/journey.json": "5fb26b21ece75430681f72a05d7f152491613062b0272b19942c56bf07bcb3c4",
+      "journey/ui.json": "456881b14396907340c6c44604c4736ae762811194aa08257a5e4eef1120cca9",
+      "journey/public.json": "406d2bb28caa59433b4d82e0eb42d113e1231a2f2070e95570d9f881d193c61e",
+      "campaign-command-result.json": "866ffc0dc8060d8f0bc68fceccfb9f5a8445ec87f0e969aae5ae30e2408d5495",
+      "retained-state-02.json": "0a5a34a0e57a38a8cf79d08a3cdb04541e8221cb85c8e39436ab3e4b973f0ca0",
+      "retained-pause-recovery-02-result.json": "15781ca2c73a94cac970d3db74fabe7c9f788ca71dab128325cd0183070c431d",
+      "stop-preserve-receipt.json": "b4f2975bdb142c2227c7ebce59f9cc448b7acdc0e256c32c7f55aa3a9465858e"
+    },
+    "resumable": false,
+    "limitations": [
+      "The 49 passing observations are not 49 formally accepted steps.",
+      "Step9 source-setup browser work has no completed durable source-setup segment in this failed run.",
+      "Real public jobs, employer proof, restart, persistence and monitoring remain unverified in the connected campaign.",
+      "Saved mobile UI includes retention status/configuration errors and a loading placeholder; no error-free-page assertion is made.",
+      "Persisted domain metadata support does not establish public HTTP, full inventory completeness or a native application-route association."
+    ],
+    "independent_reviews": {
+      "campaign02-partial-review-c60258a9.json": "c26e0e58a41e4679b5fcb3bce53d636defdc0330755f5c8dac3643b521d78f7c",
+      "campaign02-recovery-stop-review-c60258a9.json": "caf8c733b89804229306975091347aa31bf9a58058fdf2bff707df602d2d2a2e"
+    }
+  },
+  "publication": {
+    "candidate_branch_source": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+    "private_runtime_merge_published": false,
+    "main_integrated": false,
+    "production_deployed": false,
+    "shared_handoff_review": "The approved shared handoff remains byte-identical in the private 032 composition. This saved source preservation does not substitute for fresh canonical-owner and PR resolution at metadata adoption.",
+    "shared_handoff_approval_url": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6844324003",
+    "reviewed_private_runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+    "source_relation": "All four failed connected campaigns remain unchanged. The source-binding repair was authored at dbac after runtime04; private 032 combines exactly those four reviewed paths with frozen 9e and preserves every other tree entry. The separate profile/UI/restore component bd3 is excluded. New controlled composition execution is separate from the actual 9e runtime, and no fifth connected campaign is planned merely to repeat the known blocked discovery path.",
+    "main_ancestor_in_runtime03": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "main_integration_scope": "MJ-REQ-292 candidate and private runtime composition; the separately merged main prerequisite at 5b2 is only an ancestor.",
+    "draft_only": true,
+    "publication_action_performed": false,
+    "candidate_branch_source_at_runtime03": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+    "candidate_branch_tree": "a2634aa3a239669509e5e4a85d8cf49b09728add",
+    "candidate_source_observed_at_utc": "2026-11-13T08:26:50.045877+00:00",
+    "combined_tests": "PASS_CONTROLLED_AT_EXACT_PRIVATE_032081A5_AFTER_PRESERVED_RUNTIME04_FAILURE",
+    "publication_status": "NOT_RUN",
+    "current_pr_snapshot_included": false,
+    "root_must_refresh_source_pr_and_claims_at_apply": true,
+    "metadata_apply_scope": "Tracked metadata and publication remain NOT_RUN. Root must use an independently reviewed operator with the exact OFF-string schema, all four original failures, actual new source/test/evidence inputs, and correct Git-versus-canonical-export binding. The inherited raw-hash-equals-Git assumption fails for six retained CRLF-export files and is being corrected separately. Retarget only the permitted driver metadata scope after fresh source/PR/ownership and stopped-runtime resolution.",
+    "head_resolution_rule": "The handoff implementation head must be an actual verified source commit before metadata publication. Record the final publication head separately only after actual Git/PR readback; never predict a self-referential future HEAD.",
+    "reviewed_private_composition_source": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+    "reviewed_private_composition_tree": "606eb61e61b7493ebcd15ad9545379356dd69937",
+    "reviewed_private_composition_test_receipt_sha256": "5498b6faf56532c5bddddbb65fb2b637af8f381d24fc2a879baa179e64716b0b",
+    "reviewed_private_runtime_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+    "reviewed_private_runtime_source_at_v7": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+    "metadata_operator_successor_requirements": [
+      "Preserve the established real_external_application_submission schema value as the exact string OFF. Operator v1 incorrectly required BooleanFalse; keep v1 immutable and correct only a separately reviewed successor.",
+      "Accept and validate the actual fourth campaign failure and completed-but-not-ingested public prefix; do not substitute a planned success or erase the first three failures.",
+      "Require actual stopped-runtime and resource-disposition receipts plus fresh native driver/PR/source resolution before any tracked metadata write.",
+      "Require actual exact 032 controlled proof and final reviewed evidence through supplied immutable bindings; retain exact9e tests/runtime separately.",
+      "Validate tested raw bytes against actual canonical Git export and Git-object identity separately when line-ending attributes produce CRLF; do not rewrite tracked files or waive equality to pass qualification."
+    ],
+    "ready_for_metadata_apply": false
+  },
+  "draft_revision": 9,
+  "implementation": [
+    {
+      "slice": "DOM capture invalid-value test clock isolation",
+      "commit": "3860c1a7a22e6d25944847dc125e60fed20e48b4",
+      "kind": "TEST_ONLY"
+    },
+    {
+      "slice": "Explicit primary public provider and inverse additional-source pair",
+      "commit": "1f6979e5b0d09d89ec2168be068c892924eb7327",
+      "fallback": false
+    },
+    {
+      "slice": "Exact persisted domain-proof API",
+      "authored_commit": "827f0ec7e7cd40789826983df2fac579de3e1a56",
+      "adopted_commit": "744ccce2665bbcff658945be7d6eb8ecda693847",
+      "kind": "METADATA_ONLY"
+    },
+    {
+      "slice": "Exact owned-pause readiness and child-context initialization",
+      "commit": "ecdd3bfb1bd72e3c6c0cafe16fbe05d53b6e9893"
+    },
+    {
+      "slice": "Bounded pre-cleanup persisted domain metadata capture",
+      "authored_commit": "2292905cbcbab0eb8accb6b10c6c447621814c6e",
+      "adopted_commit": "6b78bb4284c6f1e2f50b239b4588ea21c7ae1697",
+      "numbered_step_promotion": false
+    },
+    {
+      "slice": "Bounded same-owner lease continuity across the source-setup callback",
+      "commit": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "tree": "acbfb02f96b46946a606b8ef12633540998ce962",
+      "changed_paths": [
+        "cli/acceptance_public_source.py",
+        "cli/acceptance_source_setup.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_public_source.py"
+      ],
+      "adopted_feature_source": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "implementation_receipt_sha256": "f5d191202f87296ed0449873ae6597ccc3e6874564efc7f9a7750afb9eee3db8",
+      "numbered_step_promotion": false
+    },
+    {
+      "slice": "Bounded parent/child snapshot reconciliation and fixed safe containment diagnostics",
+      "authored_commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+      "tree": "a3a462d259353690c128667228906ac2273984bc",
+      "base_commit": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "changed_paths": [
+        "cli/acceptance_public_source.py",
+        "cli/acceptance_source_containment.py",
+        "tests/integration/test_public_child_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_source_containment.py"
+      ],
+      "local_feature_combination_commit": "3e0a200f4fe0a91527b53cadf6b812060b6115b0",
+      "kind": "CONTROLLED_SOURCE_REPAIR",
+      "behavior": "Reconcile at most3 child snapshots against fresh exact operation inventories. Permit observed active-child retry progress without requiring intermediate samples; keep the parent attempt, identity joins, terminal monotonicity, ownership/lease and cleanup gates strict. Add only fixed allowlisted safe diagnostics; no retry action.",
+      "fixture_change": "The persisted-child integration fixture delegates only its controlled settings/health/readiness GETs to the existing FakeAPI while retaining real API/Store child routes.",
+      "author_receipt_name": "parent-transition-final-receipt.json",
+      "author_receipt_sha256": "8a807ff558f647483c0d8f4e2e8f606e5e7bd1fb4a90d43cac090b6756d6501d",
+      "independent_review_name": "parent-transition-review-a8a467a8.json",
+      "independent_review_sha256": "c559fc1b62ee831d6e659db9a2b3c535c3d856b9558b3678296db4360654ea49",
+      "independent_review_result": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "numbered_step_promotion": false
+    },
+    {
+      "slice": "Explicit impossible bootstrap rate/budget classification before egress",
+      "authored_commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+      "tree": "bcd4ff3cb63f9b519f5e7be3987eedccfad1b455",
+      "base_commit": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "changed_paths": [
+        "services/company_discovery/aggregator_bootstrap.py",
+        "services/company_discovery/aggregator_workflow.py",
+        "tests/unit/test_aggregator_bootstrap.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py"
+      ],
+      "local_feature_combination_commit": "3e0a200f4fe0a91527b53cadf6b812060b6115b0",
+      "kind": "CONTROLLED_DIAGNOSTIC_GUARD",
+      "diagnostic_code": "BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE",
+      "classification": "NON_RETRYABLE_BLOCKED",
+      "behavior": "After validated inputs and fresh authorization, reject an impossible minimum request-spacing budget before client creation/egress. Reauthorize before propagating the dedicated safe error; existing worker handling retains BLOCKED/manual-review/no-retry behavior.",
+      "preserved_policy": "Inherited1/min policy,30-second cap, request/byte/candidate bounds, identity, authorization and receipt controls remain unchanged.",
+      "success_limit": "Passing the necessary lower-bound check does not promise robots, transport, identity or further-read success. This repair improves truthful rejection; it does not create official-domain proof or make the currently infeasible journey complete.",
+      "author_receipt_name": "bootstrap-budget-final-receipt.json",
+      "author_receipt_sha256": "052858dc3a4f8bf9df9b4364d3b0c149a202bc1365dcdc892366e48535d60faf",
+      "independent_review_name": "bootstrap-budget-review-279ce8dc.json",
+      "independent_review_sha256": "a37b6d69e5d00b7fe536ae84ceb4cce6b5caee26f563afe79b68758ab06d6729",
+      "independent_review_result": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "numbered_step_promotion": false
+    },
+    {
+      "slice": "Controlled persisted-child fixture distinguishes new-source budget blocking from compatible existing-source enrollment",
+      "authored_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "tree": "244256b650c767bcc74e5dc1672dcb82b5659b02",
+      "base_commit": "3e0a200f4fe0a91527b53cadf6b812060b6115b0",
+      "kind": "TEST_ONLY_FIXTURE_CORRECTION",
+      "changed_paths": [
+        "tests/integration/test_public_child_containment.py"
+      ],
+      "source_file_sha256": "30a59d31245a49821a566b4390bc9e4e7812f0cfc7bd75a4683034e05c11abee",
+      "source_file_git_blob": "07dc1cd60c066b6279a7bb2435ea35e963e75ed2",
+      "baseline_file_sha256": "32eaf1c17d22786143a74f5d9fddbc9a50e3845f7457999a851320a30208f09f",
+      "behavior": "The unchanged compatible pre-existing-primary case retains real persisted worker/enrollment/exact-audit cleanup coverage. The run-created primary remains subject to the strict1/min policy and now asserts actual non-retryable BLOCKED / BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, no bootstrap client creation or bootstrap wire activity, no official-domain/native enrollment or authority audit, exact child lineage, owned-source disable and safe release.",
+      "production_behavior_changed": false,
+      "policy_limit": "No production rate, budget, authorization, identity or numbered acceptance guard was relaxed. This corrects an impossible positive controlled fixture; it does not make real employer/domain success possible under the unchanged contract.",
+      "commit_receipt_name": "fixture-budget-correction-commit-receipt.json",
+      "commit_receipt_sha256": "a03f6e714c61160f7b454ffd003f7ff87f2ee718c770ba2cd908d0c5abf8701c",
+      "independent_static_review_name": "public-child-budget-fixture-review-3e0-draft.json",
+      "independent_static_review_sha256": "2da678f9aad0c016c85d9d99fc201acc622bef5f8bd9345272923d705bc0e2ff",
+      "static_review_source_qualification": "The independent review inspected the exact one-file proposed bytes on base3e0. The reviewed SHA25630a59d31 was subsequently verified equal to the committed ae0 file and the9e private-composition file. It was not a standalone exact-ae0 pytest execution.",
+      "standalone_ae0_tests": "NOT_RUN",
+      "executed_composition_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "executed_composition_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "numbered_step_promotion": false
+    },
+    {
+      "slice": "Created-source identity and expected policy bind before first guarded readback",
+      "authored_commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+      "tree": "a2634aa3a239669509e5e4a85d8cf49b09728add",
+      "base_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "kind": "PRODUCER_BINDING_REPAIR_WITH_CONTROLLED_COMPOSITION_REGRESSIONS",
+      "changed_paths": [
+        "cli/acceptance_public_source.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_containment.py"
+      ],
+      "source_files": {
+        "cli/acceptance_public_source.py": {
+          "git_blob": "607a5e2961043ab3dcd156bbc77c935f7f30844e",
+          "sha256": "bda51c2aa52eb58d65d92ec7eb92086d1e3c5c7c3f7a6d1f0fe9d40b5cccc396",
+          "base_git_blob": "11da1c07f35ee3a1ff0b0a961715ddaf2ef13fca"
+        },
+        "tests/unit/test_acceptance_public_source.py": {
+          "git_blob": "ab5870f610673977aa55b9af7798eb0a772debd3",
+          "sha256": "842b806c06567879288c2fec485097aa82c06468294d936c16467ad9e3353db0",
+          "base_git_blob": "f56f24e3c34871514033c12efaa215f5ffbb5472"
+        },
+        "tests/browser/test_acceptance_source_setup.py": {
+          "git_blob": "faaf7bf1a1b44beb9ded053833b9370568828ce7",
+          "sha256": "bd699a16ebca9e279ee235e093c18ea03dc2f192012dbe79d22687c7f2e32bc6",
+          "base_git_blob": "86b6f3e42ce1d10813fb683de4025eb64b86748f"
+        },
+        "tests/unit/test_acceptance_containment.py": {
+          "git_blob": "8e85e7f54364e5c9d59e2562d8d9abb611e2f833",
+          "sha256": "1015723104bfce80b71f5cdc258c8b62752652b8dadc448827899ae99a956b9d",
+          "base_git_blob": "1a623f447431fee0d83a3278307352bd84613dbb"
+        }
+      },
+      "protected_unchanged": {
+        "cli/acceptance_source_setup.py": "d6113b4c0fa10330731d7301466ff1a91875843f1f17be00a08b0ee05d38a1da",
+        "cli/acceptance_journey.py": "7739d1a3ad19c0322d2da0e6841c4c0601200531d6b95c8994f1f8365e69194f"
+      },
+      "behavior": "After a safe returned create ID, the producer binds the requested canonical policy and builtin adapter capability fingerprint before the first guarded source read. The owner independently verifies persisted state on both read callbacks. Only exact returned full policy/capability equality establishes the cleanup fingerprint and permits dispatch.",
+      "retained_guards": "The strict source-setup and journey validators are byte-identical. No saved observations are deleted or retroactively filled, and no ownership, source policy, lease, rate or budget gate is weakened. Uncertain creation/readback preserves containment.",
+      "commit_receipt_name": "source-binding-commit-receipt.json",
+      "commit_receipt_sha256": "8e68040d37399d96c98c196697c603f147be02aab9e7edf8e00693398c21630c",
+      "precommit_author_handoff_name": "source-binding-precommit-author-handoff.json",
+      "precommit_author_handoff_sha256": "a7a13f555ce42cb39e093a9c4300a374327dc0d77871a7137cd535147fa8dd40",
+      "independent_static_review_name": "source-binding-root-review-v1.json",
+      "independent_static_review_sha256": "80d982df370611853799c478d6d57efe123bf77571e22caf91ea8bd4a1e44b4f",
+      "independent_commit_review_name": "source-binding-commit-root-review.json",
+      "independent_commit_review_sha256": "8b42ae05651dfa5efe388f7fc19815a33d584a2634242f7391cf9d33b427321e",
+      "tested_source_qualification": "Precommit execution remained at ae0 with working changes. Four changed files and two protected files were hashed before/after; the four changed raw bytes were subsequently equated to dbac Git blobs. Exact private 032 execution is a separate later proof.",
+      "standalone_dbac_tests": "NOT_RUN",
+      "executed_composition_commit": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+      "executed_composition_tree": "606eb61e61b7493ebcd15ad9545379356dd69937",
+      "connected_runtime_after_repair": "NOT_RUN",
+      "numbered_step_promotion": false
+    }
+  ],
+  "local_tests": [
+    {
+      "receipt_name": "pause-health-tests-1c81f90f74dc4fa3a9774d7ba7e363ba.json",
+      "receipt_sha256": "433bb49d146f1b1a0f73b35499e3a93b0c58a39b5722e553ef0bb584b1abde8e",
+      "source_commit": "ecdd3bfb1bd72e3c6c0cafe16fbe05d53b6e9893",
+      "passed": 156,
+      "subtests": 209,
+      "skipped": 2,
+      "source_binding": "EXACT_COMMITTED_SOURCE",
+      "skip_reason": "Existing Windows symlink privilege cases"
+    },
+    {
+      "receipt_name": "domain-capture-tests-942111f8d87d4f27afd9d1b0b680bc91.json",
+      "receipt_sha256": "e63cf78773ecd3ebc0c57d4405ffaccff290b349d2e9d9d21eb9e84945eedbd7",
+      "passed": 85,
+      "subtests": 56,
+      "skipped": 2,
+      "source_binding": "TWO_CHANGED_FILES_VERIFIED_IDENTICAL_TO_COMMIT",
+      "skip_reason": "Existing Windows symlink privilege cases",
+      "equivalence_target_commit": "2292905cbcbab0eb8accb6b10c6c447621814c6e",
+      "executed_head": "744ccce2665bbcff658945be7d6eb8ecda693847",
+      "tested_changes": [
+        "cli/acceptance_public_source.py",
+        "tests/unit/test_acceptance_public_source.py"
+      ],
+      "scope_limit": "Controlled precommit tests; equivalence records cover these two changed files, not every tested repository byte. Exact c602 combined tests are the stronger complete-source composition evidence."
+    },
+    {
+      "receipt_name": "combined-guard-tests-1a26688556b646eda3bf110d6453cf9a.json",
+      "receipt_sha256": "b769fc64a6a05b3c676c2e8aa0f6c830f3d428c2a65304030b60c8d5fdbff817",
+      "source_commit": "c60258a9b43055b525a54a4cf599447168d844a1",
+      "passed": 544,
+      "subtests": 243,
+      "skipped": 2,
+      "source_binding": "EXACT_PRIVATE_MERGE_SOURCE",
+      "skip_reason": "Existing Windows symlink privilege cases"
+    },
+    {
+      "receipt_name": "lease-continuity-exact-tests-64a691c322294fbc988ade69f881ecd8.json",
+      "receipt_sha256": "2ba7ec511e016e1793e416ed9112eea8e0ce045c5b1d6e5d0cd77adf25aa7efd",
+      "source_commit": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "source_tree": "acbfb02f96b46946a606b8ef12633540998ce962",
+      "passed": 510,
+      "subtests": 280,
+      "skipped": 2,
+      "duration_seconds": 17.9,
+      "source_binding": "EXACT_COMMITTED_SOURCE",
+      "scope": "CONTROLLED_FOCUSED_OFFLINE_SOURCE",
+      "modules": [
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py"
+      ],
+      "recorded_source_file_hash_count": 4,
+      "recorded_before_after_hashes_equal": true,
+      "clean_before_and_after": true,
+      "observed_exit_code": 0,
+      "log_sha256": "26abf46e0ed2f62803fdc87c24ebe6c253a1d51711ed2b5a430f573663689832",
+      "junit_sha256": "2110120e03263f2d1b4b484a9f76af6bbec3598976093117bd3d18ed0a81e5cb",
+      "log_and_junit_hashes_verified": true,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "skip_reason": "Two existing Windows symlink controls require privilege 1314.",
+      "scope_limit": "The controlled six-module suite ran at this exact clean commit. Explicit before/after hash coverage is the four changed files; no all-repository byte manifest is implied. No live-provider or connected campaign acceptance is supplied by this test run."
+    },
+    {
+      "receipt_name": "lease-composition-tests-03-92c70ad0f5074a0fab15589216a2bc51.json",
+      "receipt_sha256": "1a182584d11022a3c7b52d0a334215dc79b0ce9c3493b49e1fb12dc8a9455870",
+      "selected_receipt_name": "lease-composition-tests-03-selected.json",
+      "selected_receipt_sha256": "5f61ea3cb7386bf4d4a9bd5b0b4cda5eaf310fcb48816831ada0d2db0294ed49",
+      "source_commit": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+      "source_tree": "2d42529370849239025ca7870256a3f3de580ff1",
+      "passed": 510,
+      "subtests": 280,
+      "skipped": 2,
+      "duration_seconds": 17.19,
+      "source_binding": "EXACT_PRIVATE_COMPOSITION_SOURCE",
+      "scope": "CONTROLLED_FOCUSED_PRIVATE_LEASE_COMPOSITION",
+      "modules": [
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py",
+        "tests/browser/test_acceptance_source_setup.py"
+      ],
+      "recorded_source_file_hash_count": 65,
+      "recorded_before_after_hashes_equal": true,
+      "clean_after": true,
+      "observed_exit_code": 0,
+      "log_sha256": "b7dcdd71d47146c112535ede0e015a034bdfbf90258206b37f043ebd2426ecaa",
+      "junit_sha256": "7422a9712bded65a05c94a55948e13c8e312c7a4e06ddc41fbbbd9f612198c5e",
+      "log_and_junit_hashes_verified": true,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "skip_reason": "Two existing Windows symlink controls require privilege 1314.",
+      "scope_limit": "This is a separate execution of the six-module suite at private commit 33c4. The 65 recorded source hashes were unchanged; they are not an all-repository manifest. The main restored-settings integration module was not included in this command. Repeated suite results are not added together as unique test coverage or numbered acceptance."
+    },
+    {
+      "receipt_name": "parent-transition-exact-tests-0ea697b2a6564d759d20a8a182031528.json",
+      "receipt_sha256": "7ff50438fb4f394606abac17c62f89586d98f49b53621d12ec00a8ccaec6fd35",
+      "source_commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+      "source_tree": "a3a462d259353690c128667228906ac2273984bc",
+      "passed": 538,
+      "subtests": 312,
+      "skipped": 2,
+      "duration_seconds": 36.2,
+      "source_binding": "EXACT_COMMITTED_SOURCE",
+      "scope": "CONTROLLED_FOCUSED_OFFLINE_SOURCE",
+      "modules": [
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py",
+        "tests/integration/test_public_child_containment.py"
+      ],
+      "observed_exit_code": 0,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "recorded_source_file_hash_count": 5,
+      "recorded_before_after_hashes_equal": true,
+      "clean_before_and_after": true,
+      "log_sha256": "f001e61e4a292072e0a217960e12380b1d4f39d79c01ab8a8f903bfe8c1c4684",
+      "junit_sha256": "8f36d5541b75b6fbf3016d1ea53027262f21e5cf86b033d511d7e26c84e49518",
+      "log_and_junit_hashes_verified": true,
+      "skip_reason": "Two existing Windows symlink controls require privilege1314.",
+      "scope_limit": "The exact clean a8a467a8 commit and five changed files are bound to this seven-module execution. Explicit before/after hashing covers those five files, not every repository byte. No live-provider, connected campaign, combined3e0 source or numbered acceptance is supplied by this run."
+    },
+    {
+      "receipt_name": "bootstrap-budget-exact-tests-b3ad68ecb2834ca9adb854a2b526c9c4.json",
+      "receipt_sha256": "6aab748b432f8d85bf3588e4ed01287382013f75d68a9ba04d6de6ee41cfbb34",
+      "source_commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+      "source_tree": "bcd4ff3cb63f9b519f5e7be3987eedccfad1b455",
+      "passed": 114,
+      "subtests": 20,
+      "skipped": 0,
+      "duration_seconds": 54.46,
+      "source_binding": "EXACT_COMMITTED_SOURCE",
+      "scope": "CONTROLLED_OFFLINE_RATE_GATE_AND_SQLITE_WORKER",
+      "modules": [
+        "tests/unit/test_aggregator_bootstrap.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py",
+        "tests/integration/test_aggregator_bootstrap_collection.py",
+        "tests/integration/test_collection_domain_proofs.py",
+        "tests/integration/test_collection_children.py"
+      ],
+      "observed_exit_code": 0,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "recorded_source_file_hash_count": 4,
+      "recorded_before_after_hashes_equal": true,
+      "clean_before_and_after": true,
+      "log_sha256": "b40df44a828d26a033650a481b1ecd3e71377dc65df527e2fbf298aae603c1f0",
+      "junit_sha256": "ebb36a826cb53e51abf3d87bdc68c20483b659ca1ec2fe8da95d73363c7b8383",
+      "log_and_junit_hashes_verified": true,
+      "skip_reason": null,
+      "scope_limit": "The exact clean279ce8dc commit and four changed files are bound to this five-module execution. Explicit before/after hashes cover those four files. Controlled clock/wire cases retain the production rate gate; worker integration uses isolated SQLite. This is no PostgreSQL, Redis/RQ, real-public transport, combined-source or connected acceptance proof."
+    },
+    {
+      "receipt_name": "parent-budget-composition-tests-04-9095283712e5485a8f28d8677b227154.json",
+      "receipt_sha256": "880ddda0eae5bf7fce2077da4dce3adc348d91557b11310afafa7cb43d723f2e",
+      "source_commit": "0b0a170f8b4b19d25e8783fa983a012710bf05db",
+      "source_tree": "6f52ff112df96670b1630a39f448604608e24b43",
+      "started_at_utc": "2026-11-13T06:48:54.347779+00:00",
+      "completed_at_utc": "2026-11-13T06:50:27.696780+00:00",
+      "result": "FAIL",
+      "passed": 651,
+      "failed": 1,
+      "subtests": 332,
+      "skipped": 2,
+      "duration_seconds": 89.59,
+      "source_binding": "EXACT_PRIVATE_COMPOSITION_SOURCE",
+      "scope": "CONTROLLED_FOCUSED_PRIVATE_PARENT_BUDGET_COMPOSITION_12_MODULES",
+      "modules": [
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/integration/test_public_child_containment.py",
+        "tests/unit/test_aggregator_bootstrap.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py",
+        "tests/integration/test_aggregator_bootstrap_collection.py",
+        "tests/integration/test_collection_domain_proofs.py",
+        "tests/integration/test_collection_children.py"
+      ],
+      "observed_exit_code": 1,
+      "exit_observed": true,
+      "recorded_source_hash_scope_base": "6b78bb4284c6f1e2f50b239b4588ea21c7ae1697",
+      "recorded_source_file_hash_count": 72,
+      "recorded_source_hash_scope": "Recorded changed paths from6b78, not an all-repository raw-file manifest.",
+      "recorded_module_file_hash_count": 12,
+      "recorded_module_hash_scope": "Separate before/after hashes for every one of the12 executed modules.",
+      "recorded_before_after_hashes_equal": true,
+      "clean_after": true,
+      "log_sha256": "1aa0ad6581a41572349f93911c2a982986bddb2c8bfe9bd95c9bd590a8a326dd",
+      "junit_sha256": "91909e214143e76f673f4f50baf8d48ab35da49c4a4cd701b000cc120dc6a177",
+      "log_and_junit_hashes_verified": true,
+      "junit_tests": 986,
+      "junit_failures": 1,
+      "junit_errors": 0,
+      "skip_reason": "Two existing Windows symlink controls require privilege1314.",
+      "failure": {
+        "test": "tests/integration/test_public_child_containment.py::test_actual_enrollment_is_disabled_by_exact_audit_before_release[True]",
+        "expected_state": "COMPLETED",
+        "actual_state": "BLOCKED",
+        "actual_code": "BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE",
+        "interpretation": "The new-primary fixture explicitly applied1/min within the30-second V1 bootstrap budget; its positive completion expectation was incompatible with the production guard. This is an observed controlled composition failure, not the recovered exception from runtime03."
+      },
+      "resource_release_scope": "Saved test receipt reports resource_released=true and cleanup_requires_inspection=false. No later resource availability is inferred.",
+      "scope_limit": "This failure is preserved as its own exact source execution. Parent-commit green results do not override it. The later one-file fixture correction and separate9e execution are recorded independently; repeated suite counts are not additive unique coverage or numbered acceptance."
+    },
+    {
+      "receipt_name": "parent-budget-composition-tests-04b-9fd021f2599448c3af4316fd4d376759.json",
+      "receipt_sha256": "474806f0af6103e8c503dc6ef3fdc8fdde99a2aa1a8960c4c42215be7f2234e7",
+      "source_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "source_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "started_at_utc": "2026-11-13T07:07:55.681332+00:00",
+      "completed_at_utc": "2026-11-13T07:09:26.215030+00:00",
+      "result": "PASS",
+      "passed": 652,
+      "failed": 0,
+      "subtests": 332,
+      "skipped": 2,
+      "duration_seconds": 86.91,
+      "source_binding": "EXACT_PRIVATE_COMPOSITION_SOURCE",
+      "scope": "CONTROLLED_FOCUSED_PRIVATE_PARENT_BUDGET_COMPOSITION_12_MODULES",
+      "modules": [
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/integration/test_public_child_containment.py",
+        "tests/unit/test_aggregator_bootstrap.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py",
+        "tests/integration/test_aggregator_bootstrap_collection.py",
+        "tests/integration/test_collection_domain_proofs.py",
+        "tests/integration/test_collection_children.py"
+      ],
+      "observed_exit_code": 0,
+      "exit_observed": true,
+      "recorded_source_hash_scope_base": "6b78bb4284c6f1e2f50b239b4588ea21c7ae1697",
+      "recorded_source_file_hash_count": 72,
+      "recorded_source_hash_scope": "The72 raw source hashes cover the recorded Git delta from6b78; they do not cover every tracked repository file.",
+      "recorded_module_file_hash_count": 12,
+      "recorded_module_hash_scope": "Separate before/after hashes cover all12 executed modules.",
+      "recorded_before_after_hashes_equal": true,
+      "clean_after": true,
+      "log_sha256": "589062ef57c7c973c62b12338498f1a128b24c5d91fccf77d91ef408200b8b1a",
+      "junit_sha256": "d2b69cf0462b5501035c5c50508da4d6c9cee50f5aed54e01accb38fc2304fd0",
+      "log_and_junit_hashes_verified": true,
+      "junit_tests": 986,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "skip_reason": "Two existing Windows symlink controls require privilege1314.",
+      "independent_qualification_name": "private04b-composition-test-qualification-9e8e8a22.json",
+      "independent_qualification_sha256": "ce1afbefe3a6659b0c2fc8ffd6804e730f16ebb9fbc07f247cb0fb7bf5a0b6ae",
+      "independent_qualification_result": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "resource_release_scope": "The independent qualification verified this test's exact native RELEASED record against its saved receipt. It also checked the seven source records at that observation; neither check grants future ownership or asserts that a compute slot remains free.",
+      "scope_limit": "The controlled12-module union ran at exact private9e/treea988. Clean HEAD/tree, the nine reviewed author blobs and the72+12 recorded hash scopes were separately verified. This is no image/build/startup proof, PostgreSQL/Redis/RQ connected-runtime certification, live-provider transport, official employer/domain/ATS proof, hosted-check result, protected integration or numbered acceptance."
+    },
+    {
+      "receipt_name": "source-binding-composition-tests-05-6bb5128b645b4b6182d6d106230cf3f8.json",
+      "receipt_sha256": "5498b6faf56532c5bddddbb65fb2b637af8f381d24fc2a879baa179e64716b0b",
+      "source_commit": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+      "source_tree": "606eb61e61b7493ebcd15ad9545379356dd69937",
+      "started_at_utc": "2026-11-13T08:47:25.836355+00:00",
+      "completed_at_utc": "2026-11-13T08:49:06.475073+00:00",
+      "result": "PASS",
+      "passed": 665,
+      "failed": 0,
+      "subtests": 349,
+      "skipped": 2,
+      "duration_seconds": 96.92,
+      "source_binding": "EXACT_PRIVATE_COMPOSITION_SOURCE",
+      "scope": "CONTROLLED_EXACT_PRIVATE_SOURCE_BINDING_COMPOSITION_12_MODULES",
+      "modules": [
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_campaign.py",
+        "tests/unit/test_acceptance_journey.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/integration/test_public_child_containment.py",
+        "tests/unit/test_aggregator_bootstrap.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py",
+        "tests/integration/test_aggregator_bootstrap_collection.py",
+        "tests/integration/test_collection_domain_proofs.py",
+        "tests/integration/test_collection_children.py"
+      ],
+      "observed_exit_code": 0,
+      "exit_observed": true,
+      "recorded_source_hash_scope_base": "6b78bb4284c6f1e2f50b239b4588ea21c7ae1697",
+      "recorded_source_file_hash_count": 73,
+      "recorded_source_hash_scope": "The 73 raw working-tree hashes retain the previously recorded 72-path scope relative to 6b78 and add tests/unit/test_acceptance_containment.py. They do not hash every tracked repository file. Raw export bytes and Git-object identities are distinct bindings; no CRLF normalization or assertion that all raw hashes equal Git blob bytes is made.",
+      "recorded_module_file_hash_count": 12,
+      "recorded_module_hash_scope": "Separate before/after hashes cover all 12 executed modules.",
+      "recorded_before_after_hashes_equal": true,
+      "clean_after": true,
+      "log_sha256": "80891682a1e65a9e809d28531de2f073dd3ba192b8f41acf316f45537206cf46",
+      "junit_sha256": "aef0ad4ffff2b763b82aff1f5e99b20f22c995eaeef3586650f90c174da19609",
+      "log_and_junit_hashes_verified": true,
+      "junit_tests": 1016,
+      "junit_failures": 0,
+      "junit_errors": 0,
+      "skip_reason": "Two existing Windows symlink controls require privilege 1314.",
+      "author_execution_handoff_name": "source-binding-composition-execution-handoff-05.json",
+      "author_execution_handoff_sha256": "fc70a21d42886411fd363cdd5aa338f5960effb986b1f8e354ec98f0dc0e9485",
+      "independent_qualification_name": "source-binding-composition-root-qualification-05.json",
+      "independent_qualification_sha256": "742b341d73023d699a9afed8689e48f070618b69e8f2a2e05817c089b342ff5e",
+      "independent_qualification_result": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "resource_release_scope": "The independent root qualification verified the saved test resource record was RELEASED and fully equal to native state at08:58:15, and checked all seven source receipts. This draft's author inspected saved artifacts; it did not repeat native queries or claim a slot remains free.",
+      "scope_limit": "The controlled 12-module union ran at exact private 032/tree606. The four reviewed repair blobs, full prior tree preservation,73 recorded raw source hashes and 12 module hashes are distinct evidence scopes. No new image/build/startup, PostgreSQL/Redis/RQ full-stack certification, live-provider transport, official-employer/domain/ATS proof, hosted-check result, protected integration or numbered acceptance is claimed.",
+      "independent_qualification_at_utc": "2026-11-13T08:58:15.111013+00:00",
+      "unique_recorded_raw_paths": 78,
+      "canonical_export_different_from_git_blob_count": 6,
+      "canonical_export_binding": "The independent root qualification verified every recorded before/after/current raw hash against the exact source's canonical working-tree export, while separately verifying Git-object identity. Six canonical exports differ from Git blob bytes; no tracked content or line endings were rewritten to force equality."
+    }
+  ],
+  "independent_source_reviews": {
+    "pause-health-review-ecdd3bfb.json": "d30d2bbe44e0b4586830329c8884fde1cbf292aca286b1499af9e88b3bedf51f",
+    "domaincapture-review-2292905c.json": "e24d591afc990f52110012bce30e97451e9dd9b80a57acc3da43f800ef133209",
+    "build02-review/independent-build-review.json": "67b94c0b0d8b1e056ed22181bd7149ed845056d14931f881919c6e39bddd451c",
+    "lease-continuity-review.json": "9532eea25286d91923daa57ffb5db542865d338421c5df3036fa94354042c1c2",
+    "main5b-composition-assessment.json": "0af91f282d04337483a6c5767ca7e59e849a42beedeefd7c4abc9b7427c4a181",
+    "private03-composition-review-33c4b5dd.json": "ca8eb9586ee41f7a818ccdd8b4a1e2909d4a541941b194ea620dfd55ae29a7aa",
+    "build03-review-33c4b5dd-61e03205.json": "a75609fa0bbbaf8d01372bc43debb6cb40337ae6ff101f561db839ac1b179e7f",
+    "parent-transition-review-a8a467a8.json": "c559fc1b62ee831d6e659db9a2b3c535c3d856b9558b3678296db4360654ea49",
+    "bootstrap-budget-review-279ce8dc.json": "a37b6d69e5d00b7fe536ae84ceb4cce6b5caee26f563afe79b68758ab06d6729",
+    "public-child-budget-fixture-review-3e0-draft.json": "2da678f9aad0c016c85d9d99fc201acc622bef5f8bd9345272923d705bc0e2ff",
+    "private04b-composition-test-qualification-9e8e8a22.json": "ce1afbefe3a6659b0c2fc8ffd6804e730f16ebb9fbc07f247cb0fb7bf5a0b6ae",
+    "runtime04-build-startup-qualification-9e8e8a22.json": "3f883b6b37f365f59bb376213f4a8b5c017529b22602955e332477ce1ea65b00",
+    "runtime04-public-prefix-failure-review-9e8e8a22.json": "dd71c0fb6b49817d3900ea4dff9896bb004b1342571a2da5582da0d479344d15",
+    "runtime04-retained-state-review-bae8b4c9.json": "d8d245b31c69a8eaa4542253b9074a9d3818df38f555aead3ef2e4795998da13",
+    "runtime04-stop-release-review-07747be2.json": "4ad5c58bc9bb8512942a14d2da6d91b837605f53a4afb401cfb5362cd025e82c",
+    "source-binding-root-review-v1.json": "80d982df370611853799c478d6d57efe123bf77571e22caf91ea8bd4a1e44b4f",
+    "source-binding-commit-root-review.json": "8b42ae05651dfa5efe388f7fc19815a33d584a2634242f7391cf9d33b427321e",
+    "source-binding-composition-05-finalizer-root-review.json": "c2b0a09a6221eff323ab240c3c8f48205986d8bf95c4e08f5a549cc227eb50e5",
+    "source-binding-composition-root-qualification-05.json": "742b341d73023d699a9afed8689e48f070618b69e8f2a2e05817c089b342ff5e"
+  },
+  "third_attempt": {
+    "status": "COMPLETED_FAILED",
+    "source": {
+      "commit": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+      "tree": "2d42529370849239025ca7870256a3f3de580ff1",
+      "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_tree_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source_composition": {
+      "feature_parent": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+      "integration_parent": "c4d0fb577793170d1af12941a9caac4a0e2dbbbb",
+      "integration_parent_parents": [
+        "c60258a9b43055b525a54a4cf599447168d844a1",
+        "5b2e306144ca39fff1c199e1b0c215efe18f6fc1"
+      ],
+      "prior_runtime_source": "c60258a9b43055b525a54a4cf599447168d844a1",
+      "main_ancestor": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "main_pr": 1016,
+      "main_pr_url": "https://github.com/MulattoTech/MJobs/pull/1016",
+      "main_change": "Preserve restored AI task-setting row IDs when saving through native SQLite/PostgreSQL conflict updates.",
+      "main_attribution": "The main change at 5b2 was already merged independently. Its source and retained test history were assessed; this draft does not reattribute its hosted checks to private commit 33c4.",
+      "changed_paths_from_runtime02_count": 9,
+      "lease_repair_paths": [
+        "cli/acceptance_public_source.py",
+        "cli/acceptance_source_setup.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_public_source.py"
+      ],
+      "qualified_main_paths": [
+        "docs/evidence/2026-11-13-web-e49a-ai-settings-restored-identity.json",
+        "docs/evidence/2026-11-13-web-e49a-settings-monitoring-composition.json",
+        "packages/persistence/store.py",
+        "planning/agent_handoffs/MJ-REQ-109-e49a.json",
+        "tests/integration/test_ai_task_settings_restored_identity.py"
+      ],
+      "main_save_ai_task_settings_preserved": true,
+      "prior_job_inventory_page_preserved": true,
+      "approved_shared_handoff_bytes_preserved": true,
+      "combined_source_receipt_sha256": "f6524b59d6782070cc8e6ecf8016a254e5b4663061476eb3f2ebf0ba1dc601a2",
+      "private_proposal_receipt_sha256": "6df90e5a9bf90b665ae33a30955df8fb03076e16d16afeff5d7dc34fa4371944"
+    },
+    "run_id": "mj292-f9e21b82-8670cab87a22",
+    "project_name": "mjobs-fixture-8670cab87a22",
+    "campaign_result": "FAIL",
+    "command_exit_code": 1,
+    "command_timed_out": false,
+    "started_at_utc": "2026-11-13T05:37:11.166121+00:00",
+    "completed_at_utc": "2026-11-13T05:42:31.152585+00:00",
+    "numbered_observations": {
+      "PASS": 49,
+      "PARTIAL": 4,
+      "NOT_RUN": 7
+    },
+    "formal_verified_pass": 0,
+    "partial_steps": [
+      9,
+      11,
+      16,
+      25
+    ],
+    "not_run_steps": [
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "final_scoreboard_limit": "The final journey preserves the completed startup/UI prefix table. Its 49 passing observations do not include the failed public segment and are not formally accepted criteria. Overall campaign FAIL and public step 11 FAIL remain authoritative.",
+    "ui": {
+      "segment_status": "COMPLETE",
+      "producer_result": "PARTIAL",
+      "numbered_observations": 52,
+      "observed_pass": 48,
+      "partial": 4,
+      "emitted_at_utc": "2026-11-13T05:38:44.544686+00:00",
+      "checkpoint_at_utc": "2026-11-13T05:38:55.787353+00:00",
+      "selected_mock_confirmation_count": 1,
+      "external_submission_enabled": false,
+      "runtime_boundary": "Startup and UI verified; no completed public boundary.",
+      "selected_application_and_employer_lineage": "Retained selected Data Engineer discovery, earlier remote-IT employer discovery and final mock application have distinct, correctly joined chronology.",
+      "final_prefix_continuity": "Only failure, result and segment state changed from the immutable prefix snapshot; source, steps, UI hash, runtime/image identity and selected lineages remained equal."
+    },
+    "build": {
+      "result": "PASS",
+      "runtime_manifest_files": 1965,
+      "frontend_assets": 3,
+      "image_id": "sha256:8af0146e0052fe691a119d05168850f514233642c03c642146a8723066362fd5",
+      "runtime_source_manifest_sha256": "42e066e4f56412415df3da39245c286818de2ffef92b9d5cb337bd455cdf740f",
+      "frontend_test_build_layer": "CACHED",
+      "fresh_frontend_test_execution": false,
+      "fresh_frontend_build_execution": false,
+      "cache_qualification": "The actual image build completed and exact source/asset manifests were verified. The npm test && npm run build layer was cached; no fresh frontend test count or new execution of that layer is claimed."
+    },
+    "startup": {
+      "result": "PASS",
+      "started_at_utc": "2026-11-13T05:35:19.185873+00:00",
+      "completed_at_utc": "2026-11-13T05:36:05.912748+00:00",
+      "long_running_services": 10,
+      "migration_exit_code": 0,
+      "source_image_and_container_bindings_verified": true
+    },
+    "public": {
+      "provider": "remotive",
+      "execution_scope_label": "LIVE_PUBLIC_READ_ONLY",
+      "result": "FAIL",
+      "error_code": "PUBLIC_OBSERVATION_API_OR_RECORD_INVALID",
+      "cleanup_at_failure": "PRESERVED_OWNERSHIP_CHANGED",
+      "source_setup_completed_artifact": false,
+      "collection_dispatched": true,
+      "collection_identity_recorded": true,
+      "accepted_parent_receipt_recorded": false,
+      "collection_state_recorded": false,
+      "collection_attempt_recorded": false,
+      "recorded_real_job_ids": 0,
+      "public_observations": 0,
+      "child_discovery": "NOT_RUN",
+      "child_discovery_reason": "PARENT_COLLECTION_NOT_COMPLETED",
+      "domain_proof_readback": "NOT_RUN",
+      "domain_proof_reason": "PARENT_COLLECTION_NOT_COMPLETED",
+      "domain_proof_basis": "PERSISTED_RECEIPT_METADATA",
+      "domain_response_recorded": false,
+      "numbered_step11_observation": "FAIL",
+      "accepted_numbered_step11": false,
+      "accepted_numbered_step25": false,
+      "cancellation_requested_flag": false,
+      "access_log_cancellation_observation": {
+        "request_observed": true,
+        "response_status": 202,
+        "at_utc": "2026-11-13T05:42:30.935452524Z",
+        "basis": "Saved offline first-poll diagnosis and access-log chronology.",
+        "limit": "The artifact's false cancellation_requested flag does not prove no cancellation request occurred. No accepted cancellation result is inferred."
+      },
+      "scope_limit": "The scope label and dispatched collection do not establish successful completion of the public helper, source-setup lifecycle, jobs/browser provenance, employer discovery or numbered acceptance."
+    },
+    "lease_continuity_observation": {
+      "stage": "dispatch",
+      "witness_sha256": "ba429bc7021fc6d62e5809c5a883b738c7bb5ec6e9e4fa23f8061b1c788e8d80",
+      "check_count": 30,
+      "strict_expiry_extensions": 1,
+      "callback_started_at": "2026-11-13T05:40:36.949387+00:00",
+      "original_cached_expiry": "2026-11-13T05:41:07.376894+00:00",
+      "callback_returned_at": "2026-11-13T05:42:09.741385+00:00",
+      "returned_expiry": "2026-11-13T05:42:51.780944+00:00",
+      "return_after_original_expiry_seconds": 62.364491,
+      "final_coverage_remaining_seconds": 42.039559,
+      "minimum_prior_coverage_slack_seconds": 13.685542,
+      "offline_validation": "Schema, same-owner consistency, canonical witness digest, monotonic timestamps, overlapping unexpired checks, nondecreasing expiry, exact final coverage and API timeout buffer all passed.",
+      "processing_continued_to_collection_dispatch": true,
+      "limit": "The offline witness review validates the recorded schema, consistency, digest and overlapping coverage under the designated containment-owner trust boundary. It did not read or reauthenticate the private credential. The full witness remains in retained private artifacts. This check does not prove whole-helper completion, cleanup/release, browser provenance or numbered acceptance.",
+      "later_recovery_identity_check": {
+        "status": "SEPARATELY_CHECKED_DURING_OWNED_RECOVERY",
+        "scope": "Root compared the retained raw claim credential, using canonical JSON hashing, with the public containment summary's recorded digest. That identity check is separate from the offline witness analysis and does not assert that the latter reauthenticated the witness rows.",
+        "recovery_receipt_sha256": "8145cc3ba1c059b91e2ddc398f89cf395ffa66759677471b54373fea368db4d9",
+        "recovery_stop_review_sha256": "7d1a25f5b40613fd3e427d2eaa7426b435bfc4e92cef681d85b1367ebf624a85",
+        "raw_credentials_copied": false
+      }
+    },
+    "post_failure_operational_observations": {
+      "campaign_proof_backfilled": false,
+      "progress_observed_at_utc": "2026-11-13T05:43:46.088179+00:00",
+      "retained_state_observed_at_utc": "2026-11-13T05:53:26.240064+00:00",
+      "observation_method": "GET-only local fixture observations",
+      "provider_calls_by_observers": 0,
+      "operation_count": 20,
+      "active_operations": 0,
+      "parent": {
+        "same_recorded_collection_identity": true,
+        "state": "COMPLETED",
+        "attempt_count": 1,
+        "retry_count": 0,
+        "completed_at_utc": "2026-11-13T05:42:30.815906+00:00",
+        "exact_request_profile_source_attempt_join": true
+      },
+      "sources": [
+        {
+          "provider": "remotive",
+          "enabled_at_observation": true,
+          "jobs_seen": 14,
+          "last_attempt_at_utc": "2026-11-13T05:42:28.908468+00:00",
+          "last_success_at_utc": "2026-11-13T05:42:28.908468+00:00",
+          "failures": 0
+        },
+        {
+          "provider": "wwr",
+          "enabled_at_observation": false,
+          "jobs_seen": 0,
+          "last_attempt_at_utc": null,
+          "last_success_at_utc": null
+        }
+      ],
+      "children": {
+        "exact_parent_lineage_join": true,
+        "response_complete": true,
+        "count": 2,
+        "states": [
+          "BLOCKED",
+          "BLOCKED"
+        ],
+        "revisions": [
+          2,
+          2
+        ],
+        "reason": "COMPANY_DOMAIN_CORROBORATION_REQUIRED",
+        "authorization": "AGGREGATOR_BOOTSTRAP_PENDING",
+        "enrolled_sources": 0,
+        "updated_after_campaign_cli_termination": true
+      },
+      "domain_metadata": {
+        "http_status": 200,
+        "complete": true,
+        "observation_count": 2,
+        "statuses": [
+          "UNAVAILABLE",
+          "UNAVAILABLE"
+        ],
+        "reasons": [
+          "BOOTSTRAP_RECEIPT_NOT_PERSISTED",
+          "BOOTSTRAP_RECEIPT_NOT_PERSISTED"
+        ],
+        "child_and_domain_body_digests_verified": true,
+        "collection_lineage_and_readback_digests_match": true,
+        "official_domain_proof_observed": false,
+        "numbered_step25_proved": false,
+        "limit": "complete=true describes the bounded metadata response/family. Both proof observations remain UNAVAILABLE; it does not establish official-domain corroboration, a native application route or a complete employer inventory."
+      },
+      "selected_mock_state_unchanged": true,
+      "interpretation": "Saved source bookkeeping and joined operation readbacks record successful collection with 14 jobs and two blocked children. These later observations are separate from the failed campaign's missing parent, job-browser, child and domain proof; no acceptance is backfilled."
+    },
+    "failure_diagnosis": {
+      "result": "FAILURE_BOUNDARY_LOCALIZED_EXACT_EXCEPTION_NOT_PERSISTED",
+      "receipt_name": "runtime03-first-poll-diagnosis-33c4b5dd-9ba742c5.json",
+      "receipt_sha256": "a733275708495cba842d88097799bb906d6fd7e3bea71bcfbbb3f416c3e0f6e7",
+      "confirmed_boundary": "The first pre-read containment poll reached a successful children GET after collection dispatch and failed before the helper's first direct parent GET or accepted poll proof.",
+      "strongest_causal_inference": "A same-attempt RUNNING-to-COMPLETED transition occurred between the earlier operation snapshot and the later children response. Frozen validation would reject RUNNING with complete=true as CHILD_READBACK_PARENT_STATE_INVALID.",
+      "confidence_boundary": "The transient response bodies and original exception were discarded. Timing plus frozen source strongly support that transition, but the exact exception was not recovered; other child-response validation failures remain possible.",
+      "cleanup_label_limit": "PRESERVED_OWNERSHIP_CHANGED alone does not establish that another writer took ownership.",
+      "followup_repair_evidence_included": true,
+      "followup_status": "Two subsequent immutable source repairs now have controlled tests and independent reviews: parent-transition reconciliation at a8a467a8 and explicit bootstrap-budget classification at279ce8dc. Neither repair was part of failed runtime03 at33c4. Their local feature combination3e0a200f has no combined test or runtime04 result included here; the original runtime03 exception remains unrecorded.",
+      "followup_source_commits": [
+        "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+        "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9"
+      ]
+    },
+    "cleanup": {
+      "recovery_completed_at_utc": "2026-11-13T05:56:33.501075+00:00",
+      "recovery_result": "OWNED_SOURCE_DISABLED_AND_SCHEDULER_RESTORED",
+      "exact_primary_source_disable_put_count": 1,
+      "readiness_poll_count": 3,
+      "all_sources_disabled": true,
+      "selected_mock_baseline_unchanged": true,
+      "operation_count": 20,
+      "active_operations": 0,
+      "parent_state": "COMPLETED",
+      "parent_attempt": 1,
+      "settled_children": 2,
+      "enrolled_sources": 0,
+      "jobs_seen": 14,
+      "operation_inventory_unchanged_during_recovery": true,
+      "readiness_fully_restored_before_stop": true,
+      "original_containment_claim_archived_unchanged": true,
+      "stop_completed_at_utc": "2026-11-13T05:59:16.561773+00:00",
+      "stop_result": "OWNED_FIXTURE_STOPPED_DATA_RETAINED",
+      "stopped_container_count": 11,
+      "preserved_volume_count": 6,
+      "exact_startup_container_identity_and_image_preserved": true,
+      "all_after_running": false,
+      "all_after_paused": false,
+      "heavy_claim": "RELEASED",
+      "journey_resumed": false,
+      "provider_request_retried": false,
+      "acceptance_promoted": false,
+      "limit": "Recovery and a controlled stop are cleanup evidence. They do not satisfy restart, persistence or monitoring acceptance.",
+      "recorded_recovery_get_count": 22,
+      "readiness_get_count": 3,
+      "actual_get_count": 25,
+      "request_accounting_scope": "The saved request array records22 GETs and1 PUT. Each of the3 readiness polls also performs one direct GET outside that array; total execution was25 GETs and1 PUT."
+    },
+    "artifact_hashes": {
+      "frontend-build-receipt.json": "26d9cc5971c33a9767b22a1fbbbe5ee568f8a75013d74c365eab4f7232104573",
+      "journey/startup-receipt.json": "163da9aca1bbcab21ad3107d22359ce029c6d8eb029956e85c955e28b07e4b51",
+      "journey/startup.json": "2a67b25fb2757c0337da4c0e8e9b509fa6bba6afab3043f8c026528c5c1324e9",
+      "journey/journey.json": "cc79b9affe6c63da3e3b32c2cebe3822e57855cabdb34a85e0bcd666a7e3787d",
+      "journey/ui.json": "927a0b78c93d67fad0e619a4e3e84f5ccafb14de11ffcb1285a082c558a89cee",
+      "journey/public.json": "7b9446a85670c9ad9a8afdbb607facf0c83e0f175d5cd83b79fb7a9edcff45cb",
+      "campaign-command-result.json": "87f40a931c741178965b3174d51a9771a6196662d81be2b63057ae6429448231",
+      "progress-observation-20261113T054346Z.json": "b0dbc946dafaeb2acbfcd53fdf0b2661184d4507c80cc6a01a94412579526bf6",
+      "retained-state-03.json": "6ad58a618c32e1029bf4ee2c6f45494ca65655729b6293f726598ca08ed6d164",
+      "retained-pause-recovery-03-result.json": "8145cc3ba1c059b91e2ddc398f89cf395ffa66759677471b54373fea368db4d9",
+      "stop-preserve-receipt.json": "5384865de08e012c52e3c67db42b995368adcd55f0dec4b5a3ad79310b69c4fd"
+    },
+    "independent_reviews": {
+      "runtime03-ui-prefix-review-33c4b5dd.json": "498064ee43316024d0166c50e68887c6ab0316152b578b12c08c2ba886dddd0b",
+      "runtime03-final-failure-review-33c4b5dd.json": "63f3fe1e201a8da51f1db3ae4ff668af541ed1d8b9c125d837d5b9b710dadb5c",
+      "recovery-stop-03-operator-review.json": "7d1a25f5b40613fd3e427d2eaa7426b435bfc4e92cef681d85b1367ebf624a85"
+    },
+    "resumable": false,
+    "limitations": [
+      "The final UI prefix is retained as 49 passing observations, 4 partial observations and 7 steps not run. Formal accepted count remains zero.",
+      "Steps 9, 11, 16 and 25 retain their unresolved literal-criterion limits. Successful source creation and collection bookkeeping do not replace a completed source-setup artifact or public job/browser proof.",
+      "The later parent/child/domain readbacks are post-failure operational evidence. They cannot promote public step11, employer steps23-31, domain step25 or any other numbered criterion.",
+      "The lease deadline crossing succeeded, but the public helper subsequently failed. Neither a complete helper lifecycle nor an error-free page is claimed.",
+      "Connected restart, persistence and monitoring steps54-60 were not run. Fixture monitoring support already exists in source; its existence is separate from connected acceptance.",
+      "Raw containment claims, private credentials and expanded witness rows remain only in the retained private artifacts.",
+      "No external application was submitted, no campaign was resumed, and no new provider request was made by the offline reviewer or cleanup operator."
+    ]
+  },
+  "prior_immutable_draft": {
+    "name": "campaign-evidence-four-attempts-v8.draft.json",
+    "sha256": "9b10571d7372560c8ea781130183711dad0e8ef91ab4ce59dbf54c75bcc6fd76",
+    "preserved": true,
+    "first_second_third_and_fourth_attempts_preserved": true,
+    "formal_acceptance_checkpoint_preserved": true,
+    "prior_test_source_qualifiers_preserved": true,
+    "root_review": {
+      "name": "publication-draft-v8-root-review.json",
+      "sha256": "a5694632aee6d2bd03cc323c6d3bc4043d880257add79fc65d6e8c4c23c001c8",
+      "result": "HISTORICAL_FACT_BINDINGS_VERIFIED"
+    },
+    "preserved_v8_source_publication_scope": {
+      "publication": {
+        "candidate_branch_source": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+        "private_runtime_merge_published": false,
+        "main_integrated": false,
+        "production_deployed": false,
+        "shared_handoff_review": "The approved preservation-only handoff remains byte-identical in private commit 33c4; publication and alias adoption still require the current canonical owner's coordinated integration.",
+        "shared_handoff_approval_url": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6844324003",
+        "reviewed_private_runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+        "source_relation": "Runtime03 remains private33c4 with its original failed evidence preserved. The reviewed parent/budget fixes combined at3e0; private0b failed a controlled fixture test; test-onlyae0 corrected that fixture; private9e with parentsae0 and0b passed the exact12-module controlled suite. Runtime04 actually built and ran private9e, then failed source-setup history validation after completed public collection/browser observations and recorded release. This does not publish or integrate the campaign.",
+        "main_ancestor_in_runtime03": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "main_integration_scope": "MJ-REQ-292 candidate and private runtime composition; the separately merged main prerequisite at 5b2 is only an ancestor.",
+        "draft_only": true,
+        "publication_action_performed": false,
+        "candidate_branch_source_at_runtime03": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "candidate_branch_tree": "244256b650c767bcc74e5dc1672dcb82b5659b02",
+        "candidate_source_observed_at_utc": "2026-11-13T06:59:21.775393+00:00",
+        "combined_tests": "PASS_CONTROLLED_AT_EXACT_PRIVATE_9E8E8A22_AFTER_PRESERVED_0B_FAILURE",
+        "publication_status": "NOT_RUN",
+        "current_pr_snapshot_included": false,
+        "root_must_refresh_source_pr_and_claims_at_apply": true,
+        "metadata_apply_scope": "Metadata operator v1 remains unexecuted. Actual runtime04 retained-state, stop and resource-release artifacts are now saved and independently bound in this draft. Root must prepare a separately reviewed operator/evidence successor for all four actual outcomes, retarget only the permitted driver scope, and resolve fresh actual source/PR/ownership before tracked metadata writes. This draft performs no tracked metadata, publication or canonical acceptance change.",
+        "head_resolution_rule": "The handoff implementation head must be an actual verified source commit before metadata publication. Record the final publication head separately only after actual Git/PR readback; never predict a self-referential future HEAD.",
+        "reviewed_private_composition_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+        "reviewed_private_composition_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+        "reviewed_private_composition_test_receipt_sha256": "474806f0af6103e8c503dc6ef3fdc8fdde99a2aa1a8960c4c42215be7f2234e7",
+        "reviewed_private_runtime_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+        "reviewed_private_runtime_source_at_v7": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+        "metadata_operator_successor_requirements": [
+          "Preserve the established real_external_application_submission schema value as the exact string OFF. Operator v1 incorrectly required BooleanFalse; keep v1 immutable and correct only a separately reviewed successor.",
+          "Accept and validate the actual fourth campaign failure and completed-but-not-ingested public prefix; do not substitute a planned success or erase the first three failures.",
+          "Require actual stopped-runtime and resource-disposition receipts plus fresh native driver/PR/source resolution before any tracked metadata write."
+        ],
+        "ready_for_metadata_apply": false
+      },
+      "snapshot_scope": {
+        "kind": "POST_RUNTIME04_FAILURE_RETAINED_STATE_AND_STOP_CHECKPOINT",
+        "latest_test_completed_at_utc": "2026-11-13T07:09:26.215030+00:00",
+        "independent_qualification_observed_at_utc": "2026-11-13T07:17:26.395225Z",
+        "campaign_completed_at_utc": "2026-11-13T07:36:14.999050+00:00",
+        "offline_artifact_reviewed_at_utc": "2026-11-13T07:49:53.118588+00:00",
+        "retained_state_and_stop": "ACTUAL_SAVED_ARTIFACTS_INDEPENDENTLY_BOUND",
+        "scope_limit": "This successor records the actual fourth connected campaign failure and completed public/browser/cleanup prefix, then the six-GET retained-state snapshot and exact stop/release receipts. Independent review verifies saved artifact bytes and joins; root's native full-equality and runtime observations remain attributed to the operator, not a new reviewer API/Docker/coordinator query. No source repair, new campaign, publication or formal acceptance is claimed.",
+        "retained_state_at_utc": "2026-11-13T07:53:33.229409+00:00",
+        "stopped_at_utc": "2026-11-13T07:57:33.352755+00:00",
+        "heavy_released_at_utc": "2026-11-13T07:57:33.353790+00:00",
+        "saved_stop_reviewed_at_utc": "2026-11-13T08:02:01.729422+00:00"
+      },
+      "remaining_work": [
+        "Preserve all four failed connected campaigns and the failed0b/successful9e controlled compositions as distinct immutable evidence. Do not resume or relabel an earlier failed run.",
+        "Preserve the actual runtime04 retained-state, exact stopped-container and released-resource artifacts. Resolve fresh source/PR/native-driver ownership at metadata adoption; these dated saved observations do not substitute for that resolution.",
+        "Repair the source-setup created-ID/policy-readback recording boundary with a truthful complete binding or bounded explicit pending state. Preserve strict policy equality and every recorded observation, and prove the full composed flow before a new runtime.",
+        "The inherited1/min bootstrap policy remains incompatible with the30-second successful corroboration path. Runtime04 truthfully observed two explicit budget blocks and no available domain proof; no rate increase, budget extension, provider retry or numbered23-31 acceptance is implied.",
+        "Keep any private activation/UI/restore component separate from this frozen runtime source and from complete V2 verification. Full V2 integration still requires its independently identified revoke/write transaction fence and executed PostgreSQL concurrency proof.",
+        "Prepare a separately reviewed metadata operator successor that preserves the exact OFF-string evidence schema and accepts the actual fourth failure. Require fresh actual source/PR/native-driver resolution and stopped-runtime evidence before tracked writes.",
+        "Formal MJ-REQ-292 acceptance remains0 PASS/53 PARTIAL/7 NOT_RUN until the literal connected criteria, protected integration and independent acceptance requirements are actually satisfied."
+      ]
+    },
+    "earlier_immutable_draft": {
+      "name": "campaign-evidence-three-attempts-v7.draft.json",
+      "sha256": "1545a9074db4b057ed8e6d400df545b7a430f2a5b3c9b60c219f9e4f8bae2cb5",
+      "preserved": true,
+      "first_second_and_third_attempts_preserved": true,
+      "prior_test_source_qualifiers_preserved": true,
+      "root_review": {
+        "name": "publication-draft-v7-root-review.json",
+        "sha256": "6a9508aaf8a6a0cfb34302c1b79c8d41f997cf12a5d86b25639a10394d311b54",
+        "result": "HISTORICAL_FACT_BINDINGS_VERIFIED"
+      },
+      "preserved_pre_runtime04_snapshot": {
+        "fourth_attempt": {
+          "status": "NOT_RUN",
+          "admission_status": "NOT_ADMITTED",
+          "private_composition_status": "EXACT_9E_COMPOSITION_CONTROLLED_TESTS_PASS",
+          "frozen_runtime_source_commit": null,
+          "frozen_runtime_source_tree": null,
+          "build": "NOT_RUN",
+          "startup": "NOT_RUN",
+          "campaign": "NOT_RUN",
+          "candidate_feature_source_context": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+          "qualified_private_source_context": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+          "qualified_private_tree_context": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+          "historical_runtime_state_cutoff_at_utc": "2026-11-13T07:09:26.215030+00:00",
+          "state_scope": "Historical pre-runtime source/test checkpoint only. Later admission or runtime activity is outside this sealed artifact and requires a separate successor; these fields do not describe subsequent live host state.",
+          "result_limit": "No runtime04 image, startup receipt, public transport, campaign completion or numbered acceptance is claimed. A successful controlled composition suite is separate from all connected-runtime stages."
+        },
+        "snapshot_scope": {
+          "kind": "HISTORICAL_PRE_RUNTIME04_SOURCE_AND_CONTROLLED_TEST_CHECKPOINT",
+          "latest_test_completed_at_utc": "2026-11-13T07:09:26.215030+00:00",
+          "independent_qualification_observed_at_utc": "2026-11-13T07:17:26.395225Z",
+          "runtime_state_cutoff_at_utc": "2026-11-13T07:09:26.215030+00:00",
+          "scope_limit": "This sealed snapshot records the reviewed source preparation and controlled composition tests before the next connected runtime. Runtime04 remains NOT_RUN in this evidence scope. It includes no subsequent admission, image, build, startup, provider observation, campaign result or cleanup, and it makes no assertion about later live host state."
+        }
+      },
+      "earlier_immutable_draft": {
+        "name": "campaign-evidence-three-attempts-v6.draft.json",
+        "sha256": "77ac30566688d4e464997159fa42de7cc26d17df4f7d348da54233290762834f",
+        "preserved": true,
+        "first_second_and_third_attempts_preserved": true,
+        "prior_test_source_qualifiers_preserved": true,
+        "root_review": {
+          "name": "publication-draft-v6-root-review.json",
+          "sha256": "23743926ac209424971c04e45e4c8ed74e2926c49206f9d2770e6d5f47957f6b",
+          "result": "HISTORICAL_FACT_BINDINGS_VERIFIED"
+        },
+        "earlier_immutable_draft": {
+          "name": "campaign-evidence-three-attempts-v5.draft.json",
+          "sha256": "0c24d40e49c678b6642f21e13848d2c081630d77d853f7679f7ce11e91562b0f",
+          "preserved": true,
+          "first_and_second_attempts_preserved": true,
+          "prior_test_source_qualifiers_preserved": true
+        }
+      }
+    }
+  },
+  "formal_acceptance_checkpoint": {
+    "PASS": 0,
+    "PARTIAL": 53,
+    "NOT_RUN": 7,
+    "basis": "Unchanged MJ-REQ-292 ledger checkpoint. This historical evidence draft does not alter any numbered criterion, status, verification record or canonical acceptance.",
+    "newly_accepted_steps": []
+  },
+  "prior_draft_corrections": [
+    {
+      "field": "third_attempt.cleanup request accounting",
+      "correction": "22 recorded GET calls plus3 direct readiness GETs equals25 actual GETs; the one exact source-disable PUT is unchanged.",
+      "basis": "Root reviewed the executed recovery operator against its3poll receipt. Direct readiness probes were outside the request log."
+    },
+    {
+      "field": "third_attempt.limitations ranges",
+      "correction": "Use ASCII23-31 and54-60; preserve literal criteria and observed statuses."
+    },
+    {
+      "field": "third_attempt.lease_continuity_observation review scope",
+      "correction": "The offline witness review did not read or reauthenticate the private credential. Root's later recovery separately checked the retained raw claim against the public containment summary's canonical digest. These are different checks and do not retroactively authenticate each witness row."
+    }
+  ],
+  "preserved_followup_test_history": {
+    "counts_are_not_additive_unique_coverage": true,
+    "parent_transition": [
+      {
+        "stage": "RED",
+        "receipt_name": "parent-transition-red-tests-e0be066c2d76438b9ded4dfb9fc33070.json",
+        "receipt_sha256": "d04f444c9141bddb61efe4099e71a26bb9b7223cf7fa688f0e5158f7b0d20536",
+        "executed_head": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "source_binding": "UNCHANGED_BASE_PRODUCTION_WITH_ADDED_TESTS",
+        "failed": 2,
+        "passed": 0,
+        "duration_seconds": 0.92,
+        "scope_limit": "Controlled independent-HTTPX reproductions; added tests mean this was not an unmodified exact-base test run. It does not recover runtime03's discarded exception."
+      },
+      {
+        "stage": "V1_MIXED",
+        "receipt_name": "parent-transition-draft-tests-1eab83506af34687a147110fbad3e757.json",
+        "receipt_sha256": "69d7523320d6bf98830c086aba2e7772e63f7b851923c22708613873cf9587b9",
+        "executed_head": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "source_binding": "PRECOMMIT_V1_WORKTREE",
+        "passed": 529,
+        "subtests": 310,
+        "skipped": 2,
+        "errors": 7,
+        "duration_seconds": 30.59,
+        "scope_limit": "The7 integration setup errors remain failures. They motivated the narrow controlled health-fixture update; this batch is not described as green."
+      },
+      {
+        "stage": "V2_PRECOMMIT_GREEN",
+        "receipt_name": "parent-transition-draft-tests-296afba5134b43ebb445802b30386b14.json",
+        "receipt_sha256": "d0b8fbf03500c2b25eb56206fdefe2df44783db3da878aa3c26a2d88474b8536",
+        "executed_head": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "equivalence_target_commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+        "source_binding": "FIVE_CHANGED_FILES_VERIFIED_IDENTICAL_TO_COMMIT",
+        "passed": 538,
+        "subtests": 312,
+        "skipped": 2,
+        "duration_seconds": 39.07,
+        "scope_limit": "Only the five changed files were explicitly equated to final commit blobs; the subsequent exact-head run supplies the separate committed-source execution."
+      }
+    ],
+    "bootstrap_budget": [
+      {
+        "stage": "RED",
+        "receipt_name": "bootstrap-budget-red-tests-ebabea19a62742cf87fe4b5967407916.json",
+        "receipt_sha256": "99bfba194fd4f69a0797087b765d0b48f706303e91338c7c46e278e7fa1dd92b",
+        "executed_head": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "source_binding": "BASE_PRODUCTION_WITH_ADDED_CONTROLLED_RATE_TESTS",
+        "failed": 5,
+        "passed": 7,
+        "deselected": 45,
+        "duration_seconds": 2.99,
+        "scope_limit": "Reproduces the old generic rejection under the inherited rate policy. It does not prove which check first rejected the actual runtime03 children."
+      },
+      {
+        "stage": "PRECOMMIT_GREEN",
+        "receipt_name": "bootstrap-budget-green-tests-abbd5007b7ec4a5a8cb8334ded360bd7.json",
+        "receipt_sha256": "2200644847fb064d5c7e40b7bbec011bbae5a87bb9ef0b66ce92bdce60589f3a",
+        "executed_head": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+        "equivalence_target_commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+        "source_binding": "FOUR_CHANGED_FILES_VERIFIED_IDENTICAL_TO_COMMIT",
+        "passed": 114,
+        "subtests": 20,
+        "skipped": 0,
+        "duration_seconds": 52.18,
+        "scope_limit": "Controlled precommit worktree; only four changed files were explicitly hashed before/after and equated to final blobs. Exact279ce8dc execution is separately recorded."
+      }
+    ],
+    "private_composition": {
+      "failed_source": "0b0a170f8b4b19d25e8783fa983a012710bf05db",
+      "failed_receipt_sha256": "880ddda0eae5bf7fce2077da4dce3adc348d91557b11310afafa7cb43d723f2e",
+      "one_file_fixture_correction_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "corrected_private_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "successful_receipt_sha256": "474806f0af6103e8c503dc6ef3fdc8fdde99a2aa1a8960c4c42215be7f2234e7",
+      "preservation": "Retain the original failed0b preparation, test receipt/log/JUnit and prior source unchanged. The ae0 one-file test correction and9e execution are successors, not a relabeled or unchanged retry of0b.",
+      "scope_limit": "These are private controlled source compositions. They are not additional connected campaign attempts or accepted numbered steps."
+    },
+    "source_binding": [
+      {
+        "stage": "RED",
+        "receipt_name": "source-binding-red-tests-c120016386a84eab87c2fdb00dcfcc48.json",
+        "receipt_sha256": "b1a2999a468ef3ace18b7eddc38a51103869a3d007e07191365ff6357285b71e",
+        "executed_head": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+        "source_binding": "UNCHANGED_BASE_PRODUCTION_WITH_ADDED_CONTROLLED_BROWSER_JOIN_REGRESSION",
+        "failed": 2,
+        "passed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "observed_exit_code": 1,
+        "pytest_exit_observed": true,
+        "started_at_utc": "2026-11-13T08:13:55.047103+00:00",
+        "completed_at_utc": "2026-11-13T08:14:00.585886+00:00",
+        "log_sha256": "e9bf5758b822b7b8f1e9c8c7611db3e4ba39b685a6506b690fc5b5033aa4131b",
+        "junit_sha256": "f250fefdb4ae88d6c6dca5fa8fe70604d5f3c232898d55c802b2e4d3342155f1",
+        "junit_totals": {
+          "tests": 2,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0
+        },
+        "failure": "Source setup primary policy changed during containment",
+        "scope_limit": "Both WWR and Remotive controlled producer/owner/browser-setup joins reproduce null policy at history indices 39 and 40. Added regression tests mean this is not an unmodified exact-ae0 test execution. The failed connected runtime04 at 9e remains separately preserved."
+      },
+      {
+        "stage": "PRECOMMIT_GREEN",
+        "receipt_name": "source-binding-green-tests-57e4c8de20794fefb8d10145e98b5d8d.json",
+        "receipt_sha256": "823a82fd615ff0d078e87ebdd7db8aea01498afcf456fb9b2f626a90de2f3448",
+        "executed_head": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+        "equivalence_target_commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+        "source_binding": "FOUR_CHANGED_FILES_AND_TWO_PROTECTED_FILES_RECORDED_BEFORE_AFTER; FOUR_CHANGED_FILES_MATCH_IMMUTABLE_DBAC_BLOBS",
+        "passed": 524,
+        "subtests": 329,
+        "skipped": 2,
+        "failed": 0,
+        "errors": 0,
+        "duration_seconds": 46.93,
+        "observed_exit_code": 0,
+        "pytest_exit_observed": true,
+        "started_at_utc": "2026-11-13T08:19:55.769440+00:00",
+        "completed_at_utc": "2026-11-13T08:20:43.902605+00:00",
+        "modules": [
+          "tests/unit/test_acceptance_public_source.py",
+          "tests/browser/test_acceptance_source_setup.py",
+          "tests/unit/test_acceptance_containment.py",
+          "tests/unit/test_acceptance_source_containment.py",
+          "tests/unit/test_acceptance_journey.py",
+          "tests/integration/test_public_child_containment.py"
+        ],
+        "recorded_hash_count": 6,
+        "recorded_hash_scope": "Four changed source/test files plus two protected validator files; no all-repository raw hash equivalence is claimed.",
+        "log_sha256": "2dbfcaf4ca2c7fbddf2735f73bc3e38b772530a090dba6d72b2204b4b4f46135",
+        "junit_sha256": "adae4aa125e466a5a4df53ac713a8c24ce8090888834d0a6017551565b79e264",
+        "junit_totals": {
+          "tests": 855,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "skip_reason": "Two existing Windows symlink controls require privilege 1314.",
+        "scope_limit": "The actual producer, owner, source-setup serializer and unchanged full journey source-setup validator are joined under CONTROLLED_TRANSPORT. The validator succeeds with status NOT_RUN; no controlled-to-live relabeling or new numbered observation follows."
+      }
+    ],
+    "source_binding_joined_history": [
+      {
+        "phase": "red",
+        "provider_parameter_case": 0,
+        "source_setup_artifact_name": "source-binding-red-artifacts-c120016386a84eab87c2fdb00dcfcc48/test_public_creation_history_j0/public-source-setup.json",
+        "source_setup_sha256": "40e220ba86bb0553be941cadb7e5081c7eca5f7af92e6506973b08211e53cfae",
+        "public_artifact_name": "source-binding-red-artifacts-c120016386a84eab87c2fdb00dcfcc48/test_public_creation_history_j0/public.json",
+        "public_sha256": "b3a70eb0c624c3ba86ee7e15fb47957dab0b3dda849deef1ec4d1ed13e96285b",
+        "execution_scope": "CONTROLLED_TRANSPORT",
+        "source_setup_result": "NOT_RUN",
+        "public_helper_result": "PASS",
+        "bound_rows": 78,
+        "missing_bound_indices": [
+          39,
+          40
+        ],
+        "mismatched_nonnull_policy_hash_count": 0,
+        "bound_source_identity_matches_public": true,
+        "cleanup_status": "RESTORED_DISABLED",
+        "proof_limit": "Saved controlled regression artifact; this is not another connected campaign or a formal numbered acceptance result."
+      },
+      {
+        "phase": "red",
+        "provider_parameter_case": 1,
+        "source_setup_artifact_name": "source-binding-red-artifacts-c120016386a84eab87c2fdb00dcfcc48/test_public_creation_history_j1/public-source-setup.json",
+        "source_setup_sha256": "af8c30f2ddec9bdcc94cf122b11615cc44516827bb0feaa3a017e612fb3a375a",
+        "public_artifact_name": "source-binding-red-artifacts-c120016386a84eab87c2fdb00dcfcc48/test_public_creation_history_j1/public.json",
+        "public_sha256": "b33dfe49520dd6dccbac3e0e1060ebedb3e2941d1fa962d280b4533487aa7f92",
+        "execution_scope": "CONTROLLED_TRANSPORT",
+        "source_setup_result": "NOT_RUN",
+        "public_helper_result": "PASS",
+        "bound_rows": 78,
+        "missing_bound_indices": [
+          39,
+          40
+        ],
+        "mismatched_nonnull_policy_hash_count": 0,
+        "bound_source_identity_matches_public": true,
+        "cleanup_status": "RESTORED_DISABLED",
+        "proof_limit": "Saved controlled regression artifact; this is not another connected campaign or a formal numbered acceptance result."
+      },
+      {
+        "phase": "green",
+        "provider_parameter_case": 0,
+        "source_setup_artifact_name": "source-binding-green-artifacts-57e4c8de20794fefb8d10145e98b5d8d/test_public_creation_history_j0/public-source-setup.json",
+        "source_setup_sha256": "1d05859578d5394f7da947bfb0177b9a1b4389c13205aceb9a74f8ec8f54e605",
+        "public_artifact_name": "source-binding-green-artifacts-57e4c8de20794fefb8d10145e98b5d8d/test_public_creation_history_j0/public.json",
+        "public_sha256": "6de97c5353ed473ca4c0683e6d7484860cabd8c313ed07337e831996b5b4a0c4",
+        "execution_scope": "CONTROLLED_TRANSPORT",
+        "source_setup_result": "NOT_RUN",
+        "public_helper_result": "PASS",
+        "bound_rows": 78,
+        "missing_bound_indices": [],
+        "mismatched_nonnull_policy_hash_count": 0,
+        "bound_source_identity_matches_public": true,
+        "cleanup_status": "RESTORED_DISABLED",
+        "proof_limit": "Saved controlled regression artifact; this is not another connected campaign or a formal numbered acceptance result."
+      },
+      {
+        "phase": "green",
+        "provider_parameter_case": 1,
+        "source_setup_artifact_name": "source-binding-green-artifacts-57e4c8de20794fefb8d10145e98b5d8d/test_public_creation_history_j1/public-source-setup.json",
+        "source_setup_sha256": "aeb7e501364b041dab6a976768f8a22b4cef81542836e09d024e395362c47bc0",
+        "public_artifact_name": "source-binding-green-artifacts-57e4c8de20794fefb8d10145e98b5d8d/test_public_creation_history_j1/public.json",
+        "public_sha256": "0fdc6e292b00d60c05beec5a091238e86d33c72c66850b5e4ca01170c4b9455a",
+        "execution_scope": "CONTROLLED_TRANSPORT",
+        "source_setup_result": "NOT_RUN",
+        "public_helper_result": "PASS",
+        "bound_rows": 78,
+        "missing_bound_indices": [],
+        "mismatched_nonnull_policy_hash_count": 0,
+        "bound_source_identity_matches_public": true,
+        "cleanup_status": "RESTORED_DISABLED",
+        "proof_limit": "Saved controlled regression artifact; this is not another connected campaign or a formal numbered acceptance result."
+      }
+    ]
+  },
+  "post_runtime_source_diagnoses": {
+    "domain_corroboration": {
+      "receipt_name": "domain-corroboration-03-diagnosis.json",
+      "receipt_sha256": "88cceb68ea001968f28f95082628539fcf78f551d33786c828ac6b09528c37e2",
+      "source_commit": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+      "proven_configuration": "The inherited1/min rate implies60-second shared spacing. A30-second item budget cannot fit even two required starts; the minimum four-start success chain has180 seconds of spacing before response time.",
+      "original_first_rejection": "UNKNOWN",
+      "runtime03_child_reason_unchanged": "COMPANY_DOMAIN_CORROBORATION_REQUIRED",
+      "subsequent_classification_commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+      "scope_limit": "The new fixed code was not present in runtime03 and must not replace its saved generic child reason. The configuration diagnosis and controlled regression do not retrospectively identify its first rejected check."
+    },
+    "source_setup_primary_binding": {
+      "runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "artifact_name": "runtime04-public-prefix-failure-review-9e8e8a22.json",
+      "artifact_sha256": "dd71c0fb6b49817d3900ea4dff9896bb004b1342571a2da5582da0d479344d15",
+      "finding": "Two pending created-source identity observations lack a policy digest and fail the strict completed-history contract.",
+      "next_requirement": "Repair the producer binding/state boundary without deleting history, retroactive filling, hiding created-source ownership or weakening equality after binding. Require an exact composed regression; no fixed source is claimed here."
+    },
+    "source_setup_primary_binding_followup": {
+      "original_runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "original_runtime_failure_preserved": true,
+      "implemented_repair_commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+      "precommit_scope": "Both providers have controlled RED failures and then GREEN producer/owner/serializer/unchanged-validator joins.",
+      "exact_composition_source": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+      "exact_composition_tests": "PASS_CONTROLLED_665_TESTS_349_SUBTESTS_2_EXISTING_SKIPS",
+      "connected_reexecution": "NOT_RUN",
+      "numbered_acceptance_changed": false
+    }
+  },
+  "local_feature_combination": {
+    "receipt_name": "combined-source-receipt-04.json",
+    "receipt_sha256": "d63d78f748d9628492b51d6bd72b640dec506381dc4ac4e1a791ab60ab6a2cf8",
+    "observed_at_utc": "2026-11-13T06:38:45.281673+00:00",
+    "result": "REVIEWED_DISJOINT_SOURCE_COMBINATION",
+    "source_commit": "3e0a200f4fe0a91527b53cadf6b812060b6115b0",
+    "source_tree": "67a45b19620da13b95b9aebe0feccd304e56cfec",
+    "base_commit": "ab10c069dfc3994ad299b4649ac1791439bcfb5b",
+    "parents": [
+      "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+      "a8a467a85911aee834f7a7e4545aad9b785bfcd0"
+    ],
+    "changed_paths": [
+      "cli/acceptance_public_source.py",
+      "cli/acceptance_source_containment.py",
+      "services/company_discovery/aggregator_bootstrap.py",
+      "services/company_discovery/aggregator_workflow.py",
+      "tests/integration/test_aggregator_bootstrap_worker.py",
+      "tests/integration/test_public_child_containment.py",
+      "tests/unit/test_acceptance_public_source.py",
+      "tests/unit/test_acceptance_source_containment.py",
+      "tests/unit/test_aggregator_bootstrap.py"
+    ],
+    "reviewed_file_count": 9,
+    "each_changed_blob_matches_its_reviewed_author_commit": true,
+    "combination_method": "Fast-forward to279ce8dc, then merge a8a467a8. The disjoint reviewed source files were retained exactly.",
+    "combined_tests": "NOT_RUN",
+    "private_runtime04": "NOT_PREPARED",
+    "publication": "NOT_RUN",
+    "acceptance_changed": false,
+    "scope_limit": "This receipt establishes the local source combination only. Tests on the two parent commits are not an execution of this merge. Private04 needs its own frozen source binding; runtime03 remains33c4.",
+    "state_scope": "The combination-state fields describe the saved06:38:45 source receipt; no later combined execution result is included.",
+    "merge_provenance": {
+      "receipt_name": "combined-source-provenance-3e0a200f.json",
+      "receipt_sha256": "70af4395a7da52595b1ab3a4d170198779d88e38a4e7ce6f92218fa7f9c0da10",
+      "checked_at_utc": "2026-11-13T06:39:50+00:00",
+      "exit_code": 0,
+      "reported_output": "PASS: no source-code changes in this commit",
+      "scope_limit": "This merge-level invocation did not revalidate nine source files. The separately verified parent-commit provenance and exact combined blob comparisons remain the relevant file bindings."
+    }
+  },
+  "fourth_attempt": {
+    "status": "FINAL_CAMPAIGN_FAIL_WITH_COMPLETED_PUBLIC_PREFIX",
+    "source": {
+      "commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_tree_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source_composition": {
+      "private_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "private_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "parents": [
+        "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+        "0b0a170f8b4b19d25e8783fa983a012710bf05db"
+      ],
+      "feature_correction_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "main_ancestor": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "composition_receipt_sha256": "e0c4dbf7147da5c53e143a4860a8f710694da2b07644ae39451871c0fa366c56",
+      "exact_controlled_test_receipt_sha256": "474806f0af6103e8c503dc6ef3fdc8fdde99a2aa1a8960c4c42215be7f2234e7",
+      "exact_controlled_result": "652 passed,332 subtests passed,2 existing Windows symlink privilege skips;86.91seconds",
+      "test_scope_limit": "The controlled test execution preceded this runtime. It is not rerun or counted again here."
+    },
+    "run_id": "mj292-f9e21b82-5ada69fd9475",
+    "project_name": "mjobs-fixture-5ada69fd9475",
+    "campaign_result": "FAIL",
+    "command_exit_code": 1,
+    "command_timed_out": false,
+    "started_at_utc": "2026-11-13T07:26:52.927113+00:00",
+    "completed_at_utc": "2026-11-13T07:36:14.999050+00:00",
+    "numbered_observations": {
+      "PASS": 49,
+      "PARTIAL": 4,
+      "NOT_RUN": 7
+    },
+    "formal_verified_pass": 0,
+    "partial_steps": [
+      9,
+      11,
+      16,
+      25
+    ],
+    "not_run_steps": [
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "final_scoreboard_limit": "The saved journey retains49 observed PASS/4 PARTIAL/7 NOT_RUN from startup/UI. Public artifacts separately report observations for11 and16, but the public segment failed before ingestion; those observations did not alter the journey scoreboard or formal ledger.",
+    "ui": {
+      "segment_status": "COMPLETE",
+      "artifact_result": "PARTIAL",
+      "sha256": "061398fac28bdbedbe4a9a907fff3a2f944a4d2af9b0f23d6bb46d4e5f714c8a",
+      "selected_mock_application_preserved": true,
+      "fixture_discovery_employer_discovery_selected_apply_and_public_parent_distinct": true,
+      "stage_lineage_preserved_by_recapture": true
+    },
+    "build": {
+      "result": "PASS",
+      "runtime_manifest_files": 1965,
+      "frontend_assets": 3,
+      "image_id": "sha256:5356452211284442bad2162e75af6f89bc0c03355de0cba7c606ad147d1560f9",
+      "runtime_source_manifest_sha256": "01ca47af35382267ffa9e1b8100b34a843af0cf1130165ece6ecf7d183efdc7b",
+      "started_at_utc": "2026-11-13T07:24:12.499807+00:00",
+      "completed_at_utc": "2026-11-13T07:24:50.496641+00:00",
+      "frontend_test_build_layer": "CACHED",
+      "fresh_frontend_test_execution": false,
+      "fresh_frontend_build_execution": false,
+      "cache_qualification": "The actual image build and exact source/assets were independently qualified. The npm test && npm run build layer was CACHED; no new1224-test execution or fresh execution of that frontend layer is claimed."
+    },
+    "startup": {
+      "result": "PASS",
+      "completed_at_utc": "2026-11-13T07:26:29.555053+00:00",
+      "long_running_services": 10,
+      "migration_exit_code": 0,
+      "source_image_and_container_bindings_verified": true,
+      "qualification_name": "runtime04-build-startup-qualification-9e8e8a22.json",
+      "qualification_sha256": "3f883b6b37f365f59bb376213f4a8b5c017529b22602955e332477ce1ea65b00",
+      "qualification_limit": "Historical exact build/startup qualification, not current service state or whole-campaign acceptance."
+    },
+    "public": {
+      "artifact_result": "PASS",
+      "execution_scope": "LIVE_PUBLIC_READ_ONLY",
+      "provider": "remotive",
+      "endpoint": "https://remotive.com/api/remote-jobs",
+      "collection_operation_id": "3b168cf858f4baf04a79c7c8b78159a2e81ceea465384abab11b6ff1bb8392a7",
+      "collection_request_id": "public-observation-fbc139e9728d4d83afae9ecc25926943",
+      "collection_operation_attempt": 1,
+      "collection_state": "COMPLETED",
+      "collection_error": null,
+      "source_id": "bd167d13b7071e87126d7b0f9ac8a88421af17b4ba9e621f13bca646c0c8fac5",
+      "source_policy_sha256": "b9090d95bf4177e558eaef2804a63fada21431f0a4ba7d94ae816a8fa837ce63",
+      "observed_real_job_count": 5,
+      "inventory_scope": "AT_MOST_FIVE_CURRENT_COLLECTION_JOBS",
+      "selected_application_is_separate_mock": true,
+      "source_posting_and_snapshot_joins_verified": true,
+      "producer_observations": [
+        {
+          "step": 11,
+          "status": "PASS",
+          "scope": "PUBLIC_READ_ONLY"
+        }
+      ],
+      "children": {
+        "count": 2,
+        "state": "BLOCKED",
+        "reason": "BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE",
+        "operation_attempts": [
+          1,
+          1
+        ],
+        "enrolled_sources": 0,
+        "lineage_sha256": "410af0e270c51c967682a2bf978a213a4ff5ce26b522be4f9b8a799ffc3ad206",
+        "readback_sha256": "b5a5d5bfe6414d3a95e2dc48db0571249ef6a85f2f4114a77f90a4197dac26d1",
+        "proof_scope": "The exact parent/profile/source and immutable child family join was retained. Both explicit budget codes were observed in runtime04; this does not retroactively identify runtime03's original first rejection."
+      },
+      "domain_proof_readback": {
+        "status": "CAPTURED",
+        "basis": "PERSISTED_RECEIPT_METADATA",
+        "response_sha256": "17faf94b2d949492f9fecb0155ded60f91b46ce77e0dda833b8cf32630564e64",
+        "complete": true,
+        "observations": 2,
+        "available_proofs": 0,
+        "unavailable_proofs": 2,
+        "unavailable_reason": "BOOTSTRAP_RECEIPT_NOT_PERSISTED",
+        "numbered25_proof": false
+      },
+      "cleanup_status": "RESTORED_DISABLED"
+    },
+    "public_browser": {
+      "artifact_result": "PASS",
+      "observed_public_jobs": 5,
+      "restriction_visible_rows": 3,
+      "external_browser_requests": 0,
+      "blocked_local_view_posts": 5,
+      "page_errors": 0,
+      "loopback_only": true,
+      "get_head_only": true,
+      "selected_baseline_unchanged": true,
+      "selected_baseline_digest": "bc4ac58290468b75d7b5f2d2c004b8793aec718ca41581f8d8d788a65832348e",
+      "observations": [
+        {
+          "step": 11,
+          "status": "PASS"
+        },
+        {
+          "step": 16,
+          "status": "PASS"
+        }
+      ],
+      "timestamp_utc": "2026-11-13T07:34:04.927613Z",
+      "scope_limit": "Same-profile public job and provider-authored restriction visibility; no real application form or external application submission."
+    },
+    "joined_public_observations": {
+      "artifact_result": "PARTIAL",
+      "observations": [
+        {
+          "step": 11,
+          "status": "PASS"
+        },
+        {
+          "step": 16,
+          "status": "PASS"
+        }
+      ],
+      "public_sha256": "b0b3333b8c3849f62e3ca580e9095ffd7df90a108a49257d3f96d6d2d1548274",
+      "browser_sha256": "d3d39283188ee6cf6666c6e823438df31649ee51808a349d3e98f90676e80bc5",
+      "accepted_into_journey": false,
+      "formal_acceptance_promoted": false
+    },
+    "recovery_baseline": {
+      "produced": true,
+      "recaptured_at_utc": "2026-11-13T07:34:06.394518+00:00",
+      "ui_inventory_jobs": 2,
+      "recaptured_inventory_jobs": 16,
+      "observed_public_jobs_present": 5,
+      "selected_profile_application_route_and_stage_lineage_preserved": true,
+      "ui_sha256": "061398fac28bdbedbe4a9a907fff3a2f944a4d2af9b0f23d6bb46d4e5f714c8a",
+      "public_sha256": "b0b3333b8c3849f62e3ca580e9095ffd7df90a108a49257d3f96d6d2d1548274",
+      "restart_or_recovery_executed": false
+    },
+    "lease_continuity_observation": {
+      "records": [
+        {
+          "stage": "dispatch",
+          "callback_started_at": "2026-11-13T07:30:12.171972+00:00",
+          "checked_at": "2026-11-13T07:31:43.173835+00:00",
+          "previous_expires_at": "2026-11-13T07:30:43.283089+00:00",
+          "lease_expires_at": "2026-11-13T07:32:28.742230+00:00",
+          "sha256": "7e7e262d2c0e38790e4a94f9909cf50fd4068589f94ece20b3204c6685c52b98",
+          "checks": 30,
+          "crossed_previous_expiry": true,
+          "offline_no_token_reauthentication": true
+        }
+      ],
+      "scope_limit": "Offline witness digest, identity-digest and temporal coverage review only. No bearer credential or live native claim was read or reauthenticated by the independent reviewer."
+    },
+    "source_setup": {
+      "artifact_declared_result": "PASS",
+      "original_strict_validation_result": "FAIL",
+      "history_records": 131,
+      "missing_policy_binding_indices": [
+        39,
+        40
+      ],
+      "missing_binding_timestamps": [
+        "2026-11-13T07:30:10.142023+00:00",
+        "2026-11-13T07:30:12.171972+00:00"
+      ],
+      "missing_binding_shape": "primary_source_id is present; primary_policy_sha256 is null",
+      "all_non_null_primary_policy_digests_equal_expected": true,
+      "source_rows_visible_observation": {
+        "step": 9,
+        "status": "PASS",
+        "accepted_into_journey": false
+      },
+      "extra_provider": "wwr",
+      "extra_policy_readbacks": 6,
+      "extra_operation_readbacks": 3,
+      "extra_collection_operation_ids": [],
+      "recorded_release": true
+    },
+    "failure_diagnosis": {
+      "classification": "SOURCE_SETUP_PARTIAL_BINDING_RECORDED_AS_VERIFIED_POLICY",
+      "exact_exception": "ValueError: Source setup primary policy changed during containment",
+      "source_path": "cli/acceptance_journey.py1621 -> validate_source_setup_artifact899 -> _validate_source_setup_release_history796",
+      "mechanism": "The source-create API returns only an ID. The public helper sets owned_source, then invokes a guarded source GET before source_policy_sha256 is known. The wrapper records the pre/post read callbacks with an ID and null digest. Every later non-null digest matches the expected policy, but the strict validator correctly rejects the incomplete earlier pair.",
+      "cause_scope": "Code and saved-row comparison establish the recording boundary. No different live policy or failed cleanup is inferred from the error text.",
+      "fix_proof": "NOT_ESTABLISHED_IN_THIS_SNAPSHOT",
+      "original_failed_artifacts_preserved": true
+    },
+    "cleanup": {
+      "public_primary_recorded_status": "RESTORED_DISABLED",
+      "child_source_cleanup": {
+        "artifact_produced": true,
+        "owned_child_sources": [],
+        "cleanup_actions": {},
+        "acceptance_success": false,
+        "acceptance_result": "PARTIAL"
+      },
+      "extra_source_policy": {
+        "provider": "wwr",
+        "enabled_policy_sha256": "d8164eff4fcb1cba923d9d9915bb548032e2c22ba5f5872bd85c9b874a136805",
+        "disabled_policy_sha256": "e228541c476ab31b02be243b4b33a8c2c2992110aa35619e08f7c75872135dbd",
+        "exact_enabled_to_disabled_readbacks": true,
+        "matching_collection_operations": [],
+        "operation_inventory_counts": [
+          17,
+          17,
+          20
+        ]
+      },
+      "recorded_owner_release": {
+        "released": true,
+        "at_utc": "2026-11-13T07:36:14.820405+00:00",
+        "lease_expired_at": "2026-11-13T07:35:57.363512+00:00",
+        "scheduler_id_matches_startup": true,
+        "scheduler_contained": false,
+        "source_collection_exclusive": false,
+        "source_policy_exclusive": false
+      },
+      "independent_retained_state": {
+        "status": "SAVED_RETAINED_STATE_BINDINGS_VERIFIED",
+        "artifact": "retained-state-04-v2.json",
+        "sha256": "bae8b4c93e9e2682633dd9839bb27960413d0b4be13a85cce894109777335ee7",
+        "observed_at_utc": "2026-11-13T07:53:33.229409+00:00",
+        "review": "runtime04-retained-state-review-bae8b4c9.json",
+        "review_sha256": "d8d245b31c69a8eaa4542253b9074a9d3818df38f555aead3ef2e4795998da13",
+        "http_get_count": 6,
+        "http_write_count": 0,
+        "provider_requests": 0,
+        "configured_collector_sources": 2,
+        "configured_collectors_disabled": 2,
+        "company_source_inventory_count": 13,
+        "company_source_provider_counts": {
+          "remotive": 12,
+          "mock-ats": 1
+        },
+        "company_inventory_sha256": "e24ea07115598c1a743793e4fbff7eb6cc0293069c0ce95db0b14bca23473235",
+        "child_enrollments": 0,
+        "operation_count": 20,
+        "active_operations": 0,
+        "full_readiness": true,
+        "ten_running_healthy_unpaused": true,
+        "migration_exited": true,
+        "containment_file_absent": true,
+        "original_controller_generations_absent": true
+      },
+      "independent_source_disable_audit": {
+        "status": "STATE_READBACK_VERIFIED_NO_SEPARATE_AUDIT_EVENT_CAPTURED",
+        "disabled_policy_fingerprints": {
+          "primary": "7c5553e3ccc483d9b63abb3e9732adcbc7c34a532bbfd0b61516255438062760",
+          "extra": "e228541c476ab31b02be243b4b33a8c2c2992110aa35619e08f7c75872135dbd"
+        },
+        "primary_policy_only_enabled_changed": true,
+        "extra_disabled_policy_exact": true,
+        "scope": "Saved state/readback verification only. No /audit endpoint or separate source-policy audit event was captured by these six GETs."
+      },
+      "stop_preserve": {
+        "status": "OWNED_FIXTURE_STOPPED_DATA_RETAINED",
+        "artifact": "stop-preserve-04-receipt.json",
+        "sha256": "07747be2f8cda3fc49ef4a644dea7ef04aaf4208594d3cd50b2a6310b8a8b9e1",
+        "at_utc": "2026-11-13T07:57:33.352755+00:00",
+        "exact_startup_containers": 11,
+        "all_exited": true,
+        "all_unpaused": true,
+        "preserved_volumes": 6,
+        "preserved_networks": 3,
+        "stop_command_exit_code": 0,
+        "stop_command_timed_out": false,
+        "all_service_exit_codes_zero": false,
+        "service_exit_code_scope": "The stop command succeeded and all exact containers were stopped. Saved individual service exit codes are preserved in the receipt; this is not a claim that every service exited zero.",
+        "review": "runtime04-stop-release-review-07747be2.json",
+        "review_sha256": "4ad5c58bc9bb8512942a14d2da6d91b837605f53a4afb401cfb5362cd025e82c"
+      },
+      "native_heavy_resource_release": {
+        "status": "RELEASED",
+        "artifact": "stop-preserve-04-release-receipt.json",
+        "sha256": "7f38649873a8da5115b82c871bc7ebc8095ad2e807dc825dac102259107c3bfe",
+        "released_at_utc": "2026-11-13T07:57:33.353790+00:00",
+        "release_receipt_at_utc": "2026-11-13T07:57:33.486708+00:00",
+        "released_after_exact_stopped_state": true,
+        "heavy_claim_artifact": "heavy-claim-04.json",
+        "heavy_claim_artifact_sha256": "4b03257c71edd1e78e51709032d9b2ebc74c01f3ce39e28bf87c2a5d3268f5f8",
+        "root_operator_recorded_native_full_equality": true,
+        "reviewer_queried_native_claims": false,
+        "scope": "Root operator and checkpoint record full native equality; this reviewer verifies saved receipt bytes and joins only, without querying coordinator/native state."
+      },
+      "scope_limit": "Recorded cleanup/release is corroborated by the later saved retained-state and stop/release artifacts. These separate observations do not make the source-setup artifact valid, resume the campaign, or change its original FAIL. No separate source-policy audit event or fresh reviewer runtime/native observation is claimed."
+    },
+    "artifact_hashes": {
+      "frontend-build-receipt.json": "473a6fa164c67f11d9d3d00b74d1e485e4299a3a433322e33dc437b13f287192",
+      "startup-receipt.json": "8347bef2b38cf3afc35e98572b54107a8ae634c2b23930ee6d7442a34467af3d",
+      "campaign-command-result.json": "3191bdbc3c4e27a18e4849d5ed47382d454fc95fe477abb4c6e28baa68d318e3",
+      "journey/startup-receipt.json": "8347bef2b38cf3afc35e98572b54107a8ae634c2b23930ee6d7442a34467af3d",
+      "journey/startup.json": "522f0710209ac4eaf2c411a7b41666ed750e044fbe5d661c3a6f0d4cba54a604",
+      "journey/ui.json": "061398fac28bdbedbe4a9a907fff3a2f944a4d2af9b0f23d6bb46d4e5f714c8a",
+      "journey/public.json": "b0b3333b8c3849f62e3ca580e9095ffd7df90a108a49257d3f96d6d2d1548274",
+      "journey/public-browser.json": "d3d39283188ee6cf6666c6e823438df31649ee51808a349d3e98f90676e80bc5",
+      "journey/public-observations.json": "5db31d680dcbabd67fdd3b038b53e32dc8095ea8a0f52fccfb42c0935b0ddd49",
+      "journey/recovery-baseline.json": "589e37b5990098df15f28d92763a8ee186727dc952863afa8d88b5fb3928b9d6",
+      "journey/child-source-cleanup.json": "054fe5e5972df69801f65037005b7b7d84b145879f103219ffa061f434e6b7e2",
+      "journey/public-source-setup.json": "b4470c1141229bb91c69218af024a6d8c4e493f69fd1e1db2154bfdc4bc1df45",
+      "journey/journey.json": "91dbb9adcebd8453a2349904b380a6509f711e5e5021153cb526b55072a0d5a8",
+      "campaign_log": "3c5b323228c9c5ba4c8c5a09c512d48309a102b7f1d9145f658f662fa35270d8",
+      "retained-state-04-v2.json": "bae8b4c93e9e2682633dd9839bb27960413d0b4be13a85cce894109777335ee7",
+      "stop-preserve-04-receipt.json": "07747be2f8cda3fc49ef4a644dea7ef04aaf4208594d3cd50b2a6310b8a8b9e1",
+      "stop-preserve-04-release-receipt.json": "7f38649873a8da5115b82c871bc7ebc8095ad2e807dc825dac102259107c3bfe"
+    },
+    "independent_reviews": {
+      "runtime04-build-startup-qualification-9e8e8a22.json": "3f883b6b37f365f59bb376213f4a8b5c017529b22602955e332477ce1ea65b00",
+      "runtime04-public-prefix-failure-review-9e8e8a22.json": "dd71c0fb6b49817d3900ea4dff9896bb004b1342571a2da5582da0d479344d15",
+      "runtime04-retained-state-review-bae8b4c9.json": "d8d245b31c69a8eaa4542253b9074a9d3818df38f555aead3ef2e4795998da13",
+      "runtime04-stop-release-review-07747be2.json": "4ad5c58bc9bb8512942a14d2da6d91b837605f53a4afb401cfb5362cd025e82c"
+    },
+    "resumable": false,
+    "limitations": [
+      "The four failed connected attempts remain separate source/run histories; their producer observations are not additive accepted criteria.",
+      "Steps11 and16 have useful completed public/browser observations in this run, but public-segment acceptance was not committed and formal status remains unchanged.",
+      "The source-setup PASS label is explicitly rejected by its original validator; its step9 observation cannot bypass that failure.",
+      "The two budget-blocked children and unavailable domain metadata do not prove same-real-employer23-31 behavior or numbered25.",
+      "Restart/recovery and monitoring were not reached;54-60 remain NOT_RUN.",
+      "The source policy boundary is cooperative operator ownership without server-side atomic policy CAS.",
+      "The public timestamp is helper start; journey.updated_at_utc remains a stale prefix timestamp. Actual terminal timing is taken from the command receipt.",
+      "Later retained-state and stop/resource-release artifacts are independently bound as saved observations. The review does not query current runtime/native state, reauthenticate tokens, or claim a separate source-policy audit-event readback."
+    ],
+    "post_failure_operational_observations": {
+      "source_artifact": "retained-state-04-v2.json",
+      "observed_at_utc": "2026-11-13T07:53:33.229409+00:00",
+      "primary_jobs_seen": 14,
+      "primary_last_attempt": "2026-11-13T07:32:02.919639+00:00",
+      "primary_last_success": "2026-11-13T07:32:02.919639+00:00",
+      "extra_jobs_seen": 0,
+      "extra_last_attempt": null,
+      "extra_last_success": null,
+      "configured_collectors_disabled": 2,
+      "company_source_facts_retained": 13,
+      "company_source_provider_counts": {
+        "remotive": 12,
+        "mock-ats": 1
+      },
+      "child_enrollments": 0,
+      "operations_terminal": 20,
+      "operations_active": 0,
+      "parent_result": "COMPLETED",
+      "parent_attempt": 1,
+      "parent_retry_count": 0,
+      "child_results": [
+        "BLOCKED",
+        "BLOCKED"
+      ],
+      "child_errors": [
+        "BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE",
+        "BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE"
+      ],
+      "formal_acceptance_promoted": false,
+      "scope": "Post-failure state corroborates collection and cleanup facts. Thirteen company-source records are retained facts, not thirteen child enrollments. No successful employer domain corroboration or numbered23-31 acceptance follows."
+    },
+    "operational_checkpoint": {
+      "artifact": "checkpoint-runtime04-stopped.json",
+      "sha256": "b99fb2992eacee65a073fe4259cc97f234a500fe27efbd1cdd7506c624abe1ad",
+      "at_utc": "2026-11-13T07:58:43.806835+00:00",
+      "state": "RUNTIME04_FAIL_STOPPED_DATA_RETAINED",
+      "root_recorded_scope_updates": 7,
+      "root_recorded_native_full_equality": true,
+      "metadata_files_changed": false,
+      "actual_failure_preserved": true,
+      "scope": "A dated private root checkpoint. Fresh source/PR/driver resolution remains required before publication."
+    },
+    "private_stop_helper_history": {
+      "campaign_source_modified": false,
+      "campaign_outcome_changed": false,
+      "preflight_failures_preserved": true,
+      "corrections": [
+        "Guard the absent migration Health key in a Docker inspection template.",
+        "Exclude only the stop observer's own exact process identity from controller detection.",
+        "Pin the retained13-row company-source inventory digest; require zero child enrollments without falsely requiring an empty company-source inventory."
+      ],
+      "executed_operator": "runtime-prep/stop-preserve-04-v4.py",
+      "executed_operator_sha256": "8865de944bfc5e5eb5a0451cfab969bb01029937d9f7bf6fb12d0ae1c1302c34",
+      "root_review": "runtime-prep/stop-preserve-04-v4-root-review.json",
+      "root_review_sha256": "8bde9d15c220e418f25cefd34abad535f30d8c1a89c03db58e9b46c2de9e920b",
+      "scope": "Private operator preflight corrections and eventual recorded stop are separate from the frozen application's source and campaign failure."
+    }
+  },
+  "remaining_work": [
+    "Preserve every original connected failure, runtime04 completed-but-not-ingested public prefix, stopped-container/resource evidence, and failed 0b/successful 9e controlled composition. Do not resume or relabel a failed run.",
+    "The source-binding boundary is implemented at dbac and independently reviewed; keep exact 032 controlled proof separate from actual runtime04. Do not retroactively replace null history rows 39/40 or promote the previously uningested observations.",
+    "The unchanged 1/min bootstrap policy remains incompatible with the 30-second successful corroboration path. Runtime04's two explicit budget blocks and unavailable domain proof remain factual; no provider retry, source acceleration or numbered 23-31 acceptance follows from the producer fix.",
+    "The separately qualified private profile/UI/restore component bd3 is excluded from 032. Full V2 integration still requires versioned execution and the reviewed write-authority design with actual PostgreSQL ordering proof for proof/domain/enrollment/collector-import transactions, precise current-state versus committed-revocation semantics and actual worker no-retry proof.",
+    "Finish review of the narrowly corrected metadata operator. Require a fresh actual source/PR/native-driver resolution and all stopped-runtime prerequisites before tracked writes. Exact032 source/test qualification is complete and separately bound; this private draft performs no tracked application.",
+    "Literal recovery/restart/monitoring criteria 54-60 remain NOT_RUN. Formal MJ-REQ-292 acceptance remains 0 PASS / 53 PARTIAL / 7 NOT_RUN until the connected criteria and protected independent acceptance requirements are met."
+  ],
+  "source_provenance": [
+    {
+      "source_commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+      "receipt_name": "parent-transition-provenance-a8a467a8.json",
+      "receipt_sha256": "8889830d0789843a6a0d9a7ff71865284e4b73eb38d32b862c5d43a054833280",
+      "exit_code": 0,
+      "source_file_count": 5,
+      "scope": "Exact parent-transition authored commit."
+    },
+    {
+      "source_commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+      "receipt_name": "bootstrap-budget-provenance-279ce8dc.json",
+      "receipt_sha256": "7275d3a19902c2fe80d038253e8940511ff81171b21bc93a7f698303de48e7d7",
+      "exit_code": 0,
+      "source_file_count": 4,
+      "scope": "Exact bootstrap-budget authored commit."
+    },
+    {
+      "source_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "source_tree": "244256b650c767bcc74e5dc1672dcb82b5659b02",
+      "receipt_name": "fixture-budget-correction-provenance.json",
+      "receipt_sha256": "9f62e2b21972cca387924c03d1e2a0cff9408147edce248e2074f3434a9d3db9",
+      "exit_code": 0,
+      "source_file_count": 1,
+      "reported_output": "PASS: provenance complete for 1 source files",
+      "scope": "Exact one-file authored fixture-correction commit. Provenance metadata is separate from the later controlled9e pytest execution and supplies no runtime acceptance."
+    },
+    {
+      "source_commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+      "source_tree": "a2634aa3a239669509e5e4a85d8cf49b09728add",
+      "receipt_name": "source-binding-provenance-dbaccc0a.json",
+      "receipt_sha256": "68ecdf210336eb65ca4350c660c58ca470e0573e98d1e9042ae19a164c4ace02",
+      "exit_code": 0,
+      "source_file_count": 4,
+      "reported_output": "PASS: provenance complete for 4 source files",
+      "scope": "Authored exact four-file source-binding commit. Precommit controlled tests, exact private 032 composition tests and original runtime04 are separately attributed."
+    },
+    {
+      "source_commit": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+      "source_tree": "606eb61e61b7493ebcd15ad9545379356dd69937",
+      "receipt_name": "private-proposal-receipt-05.json",
+      "receipt_sha256": "809fee931d87748573ec4591c0549ed303653dc30d6bbc0dad5edd87e8768721",
+      "exit_code": 0,
+      "source_file_count": 0,
+      "reported_output": "PASS: no source-code changes in this commit",
+      "scope": "Merge-level verifier selected no combined source delta. Five required merge trailers were independently parsed; this output is not four-file provenance validation or test execution."
+    }
+  ],
+  "snapshot_scope": {
+    "kind": "POST_RUNTIME04_SOURCE_BINDING_REPAIR_AND_EXACT_COMPOSITION_TEST_CHECKPOINT",
+    "latest_test_completed_at_utc": "2026-11-13T08:49:06.475073+00:00",
+    "independent_qualification_observed_at_utc": "2026-11-13T08:58:15.111013+00:00",
+    "campaign_completed_at_utc": "2026-11-13T07:36:14.999050+00:00",
+    "runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+    "retained_state_and_stop": "ACTUAL_SAVED_ARTIFACTS_INDEPENDENTLY_BOUND",
+    "retained_state_at_utc": "2026-11-13T07:53:33.229409+00:00",
+    "stopped_at_utc": "2026-11-13T07:57:33.352755+00:00",
+    "heavy_released_at_utc": "2026-11-13T07:57:33.353790+00:00",
+    "scope_limit": "The first four actual runtime records, their formal acceptance checkpoint and all original test-source qualifiers are preserved. This successor adds the authored source-binding repair, its controlled regression history and the separately qualified private 032 source composition. It makes no new image, startup, provider, connected-campaign, publication or formal acceptance claim.",
+    "offline_new_reference_hashes_checked_at_utc": "2026-11-13T08:59:47.995930+00:00"
+  },
+  "private_source_compositions": {
+    "failed_04": {
+      "source_commit": "0b0a170f8b4b19d25e8783fa983a012710bf05db",
+      "source_tree": "6f52ff112df96670b1630a39f448604608e24b43",
+      "parents": [
+        "3e0a200f4fe0a91527b53cadf6b812060b6115b0",
+        "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8"
+      ],
+      "preparation_receipt_name": "private-proposal-receipt-04.json",
+      "preparation_receipt_sha256": "d44058ef9a4ab03cb9acd8832d78852635062ee9f7169f32419e78b3b04655bd",
+      "prior_actual_runtime_source": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+      "test_receipt_sha256": "880ddda0eae5bf7fce2077da4dce3adc348d91557b11310afafa7cb43d723f2e",
+      "test_result": "FAIL",
+      "preserved": true,
+      "runtime_result": "NOT_RUN",
+      "scope_limit": "Prepared private source and controlled test only. The failed composition was not an admitted fourth connected campaign."
+    },
+    "corrected_04b": {
+      "source_commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "source_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "parents": [
+        "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+        "0b0a170f8b4b19d25e8783fa983a012710bf05db"
+      ],
+      "preparation_receipt_name": "private-proposal-receipt-04b.json",
+      "preparation_receipt_sha256": "e0c4dbf7147da5c53e143a4860a8f710694da2b07644ae39451871c0fa366c56",
+      "prepared_at_utc": "2026-11-13T07:07:20.729443Z",
+      "feature_correction_commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+      "feature_correction_tree": "244256b650c767bcc74e5dc1672dcb82b5659b02",
+      "prior_private_source": "0b0a170f8b4b19d25e8783fa983a012710bf05db",
+      "prior_actual_runtime_source": "33c4b5dd83c31f6ba20ffb03a14c4a538e72c5a8",
+      "prior_actual_runtime_tree": "2d42529370849239025ca7870256a3f3de580ff1",
+      "main_ancestor": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "changed_paths_from_prior_private": [
+        "tests/integration/test_public_child_containment.py"
+      ],
+      "changed_paths_from_prior_actual_runtime": [
+        "cli/acceptance_public_source.py",
+        "cli/acceptance_source_containment.py",
+        "services/company_discovery/aggregator_bootstrap.py",
+        "services/company_discovery/aggregator_workflow.py",
+        "tests/integration/test_aggregator_bootstrap_worker.py",
+        "tests/integration/test_public_child_containment.py",
+        "tests/unit/test_acceptance_public_source.py",
+        "tests/unit/test_acceptance_source_containment.py",
+        "tests/unit/test_aggregator_bootstrap.py"
+      ],
+      "reviewed_source_files": {
+        "services/company_discovery/aggregator_bootstrap.py": {
+          "commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+          "sha256": "a9771659dd5d7bf200bf67e73cb56ba62ed35ab0465e19b1853b69788e5ec975",
+          "git_blob": "63324c95b2704e01983c808b16c7c5f77e628fbd"
+        },
+        "services/company_discovery/aggregator_workflow.py": {
+          "commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+          "sha256": "0403a82a902220e75264339b89e48fb45551698fbb2a455b13bcf1a26e209a11",
+          "git_blob": "1b5ac22e9aa68b92e416b23e9cb82e7f93fc3d2d"
+        },
+        "tests/integration/test_aggregator_bootstrap_worker.py": {
+          "commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+          "sha256": "e819ef706c30d45a9b589d7aba5a62ea5c8fa2ab98fd664673db27d7f0276c5e",
+          "git_blob": "3e63b65b94ce541b5af745fe8d1b1b554ed44287"
+        },
+        "tests/unit/test_aggregator_bootstrap.py": {
+          "commit": "279ce8dcfc6e7e280647f5beca1e29ae2e2b61e9",
+          "sha256": "d5310b4a4e8478b5faac5b3de15d2b635cc6ad3aab9581ff4f8d73e7fc2c659e",
+          "git_blob": "9786cf2c8e630964add505d35587ac80516166a8"
+        },
+        "cli/acceptance_public_source.py": {
+          "commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+          "sha256": "2ce9026e5ba4bf441ed45e12bc3f9853a5b6d3bc528cc5c7bc84160d24d3a1b0",
+          "git_blob": "11da1c07f35ee3a1ff0b0a961715ddaf2ef13fca"
+        },
+        "cli/acceptance_source_containment.py": {
+          "commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+          "sha256": "5a92669c61844c74d69a763b6fd806ac0124a54dec7743d32b372475585ef6bf",
+          "git_blob": "c4ad39ad029152751a54803e32ac49328f400676"
+        },
+        "tests/integration/test_public_child_containment.py": {
+          "commit": "ae0f7233315e7a04b6815fd20ca3f7051882e6d0",
+          "git_blob": "07dc1cd60c066b6279a7bb2435ea35e963e75ed2",
+          "sha256": "30a59d31245a49821a566b4390bc9e4e7812f0cfc7bd75a4683034e05c11abee"
+        },
+        "tests/unit/test_acceptance_public_source.py": {
+          "commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+          "sha256": "f10acd0a44f1bae2bf050cce412f3dee3ba03454a3d7801c9934ea87fa64769a",
+          "git_blob": "f56f24e3c34871514033c12efaa215f5ffbb5472"
+        },
+        "tests/unit/test_acceptance_source_containment.py": {
+          "commit": "a8a467a85911aee834f7a7e4545aad9b785bfcd0",
+          "sha256": "5d41ce32c660583ada02272ebb6d5b50ebe4230367c889d7b741779e58b4cf80",
+          "git_blob": "594f39683628e2a8d5af29e4a46090dc7bfe5165"
+        }
+      },
+      "approved_handoff_bytes_unchanged": true,
+      "store_bytes_unchanged_from_runtime03": true,
+      "store_bytes_unchanged_from_failed_private04": true,
+      "preparation_receipt_recorded_runtime_admitted": false,
+      "preparation_receipt_recorded_tests_run": false,
+      "preparation_snapshot_limit": "The preparation receipt's no-test/no-runtime fields describe07:07:20. The later controlled test execution is recorded separately; no later runtime event is included.",
+      "exact_test_receipt_sha256": "474806f0af6103e8c503dc6ef3fdc8fdde99a2aa1a8960c4c42215be7f2234e7",
+      "exact_test_result": "PASS",
+      "independent_qualification_name": "private04b-composition-test-qualification-9e8e8a22.json",
+      "independent_qualification_sha256": "ce1afbefe3a6659b0c2fc8ffd6804e730f16ebb9fbc07f247cb0fb7bf5a0b6ae",
+      "independent_qualification_at_utc": "2026-11-13T07:17:26.395225Z",
+      "independent_qualification_result": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "scope_limit": "Private source composition and controlled-test qualification only. The final actual runtime remains runtime03 in this historical checkpoint; a later runtime04 must have separate actual admission/build/startup/campaign/cleanup evidence."
+    },
+    "source_binding_05": {
+      "source_commit": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+      "source_tree": "606eb61e61b7493ebcd15ad9545379356dd69937",
+      "parents": [
+        "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+        "9e8e8a22f46ef64547075a28eea6549f3dda8810"
+      ],
+      "preparation_receipt_name": "private-proposal-receipt-05.json",
+      "preparation_receipt_sha256": "809fee931d87748573ec4591c0549ed303653dc30d6bbc0dad5edd87e8768721",
+      "prepared_at_utc": "2026-11-13T08:40:43.180181Z",
+      "feature_commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+      "prior_private_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "prior_actual_runtime_source": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+      "prior_actual_runtime_tree": "a988a6b344a5d12a7cc53ea13aa9d14433b62fc4",
+      "main_ancestor": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "current_main_imported": false,
+      "changed_paths_from_prior_private": [
+        "cli/acceptance_public_source.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_public_source.py"
+      ],
+      "changed_paths_from_prior_actual_runtime": [
+        "cli/acceptance_public_source.py",
+        "tests/browser/test_acceptance_source_setup.py",
+        "tests/unit/test_acceptance_containment.py",
+        "tests/unit/test_acceptance_public_source.py"
+      ],
+      "reviewed_source_files": {
+        "cli/acceptance_public_source.py": {
+          "commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+          "git_blob": "607a5e2961043ab3dcd156bbc77c935f7f30844e",
+          "sha256": "bda51c2aa52eb58d65d92ec7eb92086d1e3c5c7c3f7a6d1f0fe9d40b5cccc396",
+          "base_git_blob": "11da1c07f35ee3a1ff0b0a961715ddaf2ef13fca"
+        },
+        "tests/unit/test_acceptance_public_source.py": {
+          "commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+          "git_blob": "ab5870f610673977aa55b9af7798eb0a772debd3",
+          "sha256": "842b806c06567879288c2fec485097aa82c06468294d936c16467ad9e3353db0",
+          "base_git_blob": "f56f24e3c34871514033c12efaa215f5ffbb5472"
+        },
+        "tests/browser/test_acceptance_source_setup.py": {
+          "commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+          "git_blob": "faaf7bf1a1b44beb9ded053833b9370568828ce7",
+          "sha256": "bd699a16ebca9e279ee235e093c18ea03dc2f192012dbe79d22687c7f2e32bc6",
+          "base_git_blob": "86b6f3e42ce1d10813fb683de4025eb64b86748f"
+        },
+        "tests/unit/test_acceptance_containment.py": {
+          "commit": "dbaccc0a11b9e1488139a5f98ae8395c6693f450",
+          "git_blob": "8e85e7f54364e5c9d59e2562d8d9abb611e2f833",
+          "sha256": "1015723104bfce80b71f5cdc258c8b62752652b8dadc448827899ae99a956b9d",
+          "base_git_blob": "1a623f447431fee0d83a3278307352bd84613dbb"
+        }
+      },
+      "all_other_frozen_tree_entries_unchanged": true,
+      "approved_handoff_bytes_unchanged": true,
+      "store_bytes_unchanged_from_runtime04": true,
+      "excluded_profile_component_commit": "bd3f1e6097cf6686350cbba531da8fefd77bc7b0",
+      "excluded_profile_component_is_ancestor": false,
+      "preparation_receipt_recorded_runtime_admitted": false,
+      "preparation_receipt_recorded_tests_run": false,
+      "preparation_snapshot_limit": "The saved preparation receipt describes 08:40:43 before the new controlled test batch. It is not a later test or runtime result. The private directory suffix 05 is a source-composition identifier, not a fifth connected campaign.",
+      "preparation_failure_and_reconciliation": {
+        "original_result": "PRIVATE_COMMIT_CREATED_RECEIPT_NOT_WRITTEN_PROVENANCE_OUTPUT_ASSERTION_FAILED",
+        "original_failure_log_name": "runtime-prep/source-binding-composition-05-root-execution.log",
+        "original_failure_log_sha256": "7bd22b19fe6de10b902cce4dde3fa3f25dda429e889a9f603d4523ae9d81ce83",
+        "exact_failure": "prepare-private-proposal-05.py asserted a provenance stdout prefix for source-file validation; the actual merge verifier exited 0 and reported PASS: no source-code changes in this commit.",
+        "actual_commit_existed_before_reconciliation": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+        "receipt_not_written_before_reconciliation": true,
+        "original_precreate_observations": "NOT_RECORDED; later observations do not reconstruct them.",
+        "diagnostic_name": "runtime-prep/source-binding-composition-05-provenance-diagnostic.json",
+        "diagnostic_sha256": "eb1a37b490cd66c13ba3b7f931b27219fc1b62478cdcf14f91eab892efa6889f",
+        "finalizer_review_name": "source-binding-composition-05-finalizer-root-review.json",
+        "finalizer_review_sha256": "c2b0a09a6221eff323ab240c3c8f48205986d8bf95c4e08f5a549cc227eb50e5",
+        "reconciliation_complete": true,
+        "source_commit_recreated_or_amended": false,
+        "source_or_git_mutations_during_reconciliation": false,
+        "actual_provenance_exit_code": 0,
+        "actual_provenance_output": "PASS: no source-code changes in this commit",
+        "required_merge_trailers_independently_parsed": [
+          "AI-Agent",
+          "AI-Model",
+          "Requirement",
+          "Validation",
+          "UTC-Date"
+        ],
+        "scope_limit": "This private preparation-helper assertion is distinct from source test history and runtime04 failure. Merge-level provenance selected no combined merge-source delta; it did not revalidate four source files. Exact authored dbac provenance and composed source/blob checks are separate."
+      },
+      "exact_test_result": "PASS",
+      "scope_limit": "Actual source composition and controlled test qualification only. Runtime04 remains actual9e with its original failed evidence and stop/release receipts. No fifth image, startup, provider request, campaign or acceptance is claimed.",
+      "exact_test_receipt_sha256": "5498b6faf56532c5bddddbb65fb2b637af8f381d24fc2a879baa179e64716b0b",
+      "independent_qualification_status": "NO_BLOCKING_ISSUE_IDENTIFIED",
+      "excluded_parallel_profile_component": {
+        "source_commit": "bd3f1e6097cf6686350cbba531da8fefd77bc7b0",
+        "source_tree": "939c956c83172d0be1f7a4d007d6eec328b70d88",
+        "included_in_this_composition": false,
+        "independent_component_qualification_name": "employer-profile-exact-bd3-root-qualification.json",
+        "independent_component_qualification_sha256": "5351a20afb64de718b3108388902e4d19cc83fea192baec77c925c2efac7dda1",
+        "component_scope": "The private profile/UI/restore component has separate exact backend/PostgreSQL/component/build/browser qualification. It is not included in 032 or any of the four actual runtime sources.",
+        "full_v2_write_authority_review_name": "employer-verification-v3-write-authority-review-e34d3a29.json",
+        "full_v2_write_authority_review_sha256": "804be00e52a21ed1ad0b6f2b44d351c11202133461aaac9eef53cd68be1b596d",
+        "full_v2_status": "UNIMPLEMENTED_AND_UNQUALIFIED; required four-transaction PostgreSQL ordering and actual V2 worker no-retry proof remain separate.",
+        "acceptance_promotion": false
+      },
+      "independent_qualification_name": "source-binding-composition-root-qualification-05.json",
+      "independent_qualification_sha256": "742b341d73023d699a9afed8689e48f070618b69e8f2a2e05817c089b342ff5e",
+      "independent_qualification_at_utc": "2026-11-13T08:58:15.111013+00:00",
+      "qualified_reviewed_source_file_count": 11,
+      "qualified_preservation_bindings": {
+        "planning/SESSION_HANDOFF.md": {
+          "commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+          "sha256": "c9c4ebc9766bd4ed2f11534237d6952919bd5abe296ac8df1d29ad1baabaa2c5",
+          "git_blob": "d7854091bb753187165675495410960f8ef1fd79"
+        },
+        "packages/persistence/store.py": {
+          "commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+          "sha256": "d897676c66c5d599943efd75ef6910c9f5918dd430e535b90a4a54d04503a5b7",
+          "git_blob": "00cb5e94fa11b4507837ea0f3157bf62d08d7954"
+        },
+        "cli/acceptance_source_setup.py": {
+          "commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+          "sha256": "d6113b4c0fa10330731d7301466ff1a91875843f1f17be00a08b0ee05d38a1da",
+          "git_blob": "98cfef2da029dd8f7551ef07021b89d28868b06c"
+        },
+        "cli/acceptance_journey.py": {
+          "commit": "9e8e8a22f46ef64547075a28eea6549f3dda8810",
+          "sha256": "7739d1a3ad19c0322d2da0e6841c4c0601200531d6b95c8994f1f8365e69194f",
+          "git_blob": "60df54825d2b5751b46c94079f615065e48e3796"
+        }
+      },
+      "metadata_preparation_qualification": {
+        "name": "metadata-source-test-qualification-05.json",
+        "sha256": "934fbc9a52a735a2c3e8a6974a326a48a3699264ae27acb1dc675e7e5746a1d7",
+        "result": "QUALIFIED_FOR_SCOPED_METADATA_PREPARATION",
+        "scope": "Actual immutable source/test input qualification only. It does not itself perform or authorize tracked metadata publication; reviewed evidence/operator and fresh native driver/PR resolution remain required."
+      },
+      "controlled_joined_histories": [
+        {
+          "provider": "wwr",
+          "bound_rows": 78,
+          "bound_null_hashes": 0,
+          "all_bound_identity_and_policy_match": true,
+          "setup_result": "NOT_RUN",
+          "public_result": "PASS",
+          "public_execution_scope": "CONTROLLED_TRANSPORT",
+          "source_setup_sha256": "4dccae27442aa27ed743bffb3f7eeb959b1f9aba635beeaf605c4f558de717c4",
+          "public_sha256": "0ae299a11a3eb2b457bd3e1269bd673be61d6444c5c69e68290a7fd76c064502",
+          "setup_numbered_step9_status": "NOT_RUN",
+          "actual_regression_test_passed": true,
+          "claim_limit": "The original unchanged validator returns NOT_RUN under controlled transport. No live scope or numbered acceptance is substituted."
+        },
+        {
+          "provider": "remotive",
+          "bound_rows": 78,
+          "bound_null_hashes": 0,
+          "all_bound_identity_and_policy_match": true,
+          "setup_result": "NOT_RUN",
+          "public_result": "PASS",
+          "public_execution_scope": "CONTROLLED_TRANSPORT",
+          "source_setup_sha256": "b9cee584bfd517fb226538f6ffc8e87f09703e6b53c1568c5311c022b900bd4c",
+          "public_sha256": "84943e0733ed1770c9f64d4598a5f923ea01a0cf95e5b45acdc7e91c1ef80c30",
+          "setup_numbered_step9_status": "NOT_RUN",
+          "actual_regression_test_passed": true,
+          "claim_limit": "The original unchanged validator returns NOT_RUN under controlled transport. No live scope or numbered acceptance is substituted."
+        }
+      ],
+      "root_read_only_inspection_correction": "An initial read-only inspection asserted a PASS label for saved controlled setup artifacts and stopped before any artifact write. Actual artifacts intentionally retain NOT_RUN and their test asserts it. The corrected review verifies NOT_RUN labels, all bound hashes, and actual passing JUnit regression cases; no product/test/evidence/validator was changed."
+    }
+  },
+  "fifth_attempt": {
+    "status": "NOT_RUN",
+    "admission_status": "NOT_ADMITTED",
+    "build": "NOT_RUN",
+    "startup": "NOT_RUN",
+    "campaign": "NOT_RUN",
+    "source_composition_context": "032081a5beca7a5c5d1b652e032e3b58bbc2fa1b",
+    "source_composition_tree_context": "606eb61e61b7493ebcd15ad9545379356dd69937",
+    "plan": "No fifth connected run is planned solely to repeat the unchanged blocked employer-discovery path.",
+    "scope_limit": "Private source composition05 and its controlled tests are not a fifth connected runtime. No future run, image or acceptance is promised."
+  }
+}

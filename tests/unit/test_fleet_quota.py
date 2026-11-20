@@ -1,7 +1,23 @@
 from datetime import datetime, timezone
 from unittest.mock import patch
-from tools.agent_dashboard.fleet_quota import normalize_fleet_quota
+from tools.agent_dashboard.fleet_quota import normalize_fleet_quota, read_fleet_quota
 from tools.agent_dashboard import observability
+
+
+def test_fleet_quota_reads_current_fixed_hub_without_spawning_codex():
+    sample = {"fresh": True, "monitorOnline": True,
+              "sampledAt": datetime.now(timezone.utc).isoformat(),
+              "selectedRemainingPercent": 37, "windows": []}
+    with patch("tools.agent_dashboard.fleet_quota.httpx.Client") as client_factory:
+        client = client_factory.return_value.__enter__.return_value
+        client.get.return_value.json.return_value = sample
+        result = read_fleet_quota()
+    assert result["available"] is True
+    assert result["remaining_percent"] == 37
+    client.get.assert_called_once_with("http://127.0.0.1:4320/fleet/api/quota")
+    assert client_factory.call_args.kwargs == {
+        "trust_env": False, "timeout": .6, "follow_redirects": False,
+    }
 
 
 def test_fleet_quota_preserves_zero_and_rejects_stale_or_invalid():

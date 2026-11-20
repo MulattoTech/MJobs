@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017.F07",
+  "related_requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-175"
+  ],
+  "recorded_at_utc": "2026-11-13T04:23:32.312725+00:00",
+  "pr": 1019,
+  "base_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+  "purpose": "Repair two observed required-gate failures while preserving the qualified Arbeitnow provider and all scanner controls.",
+  "hosted_failure": {
+    "candidate_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+    "integration": {
+      "job_id": 131676895627,
+      "merge_sha": "00aba1738b10be9638e1cb27db2464f8e2ae2b19",
+      "test": "CompanyMonitoringPolicyTransportTests.test_real_tls_floor_fifteen_rpm_five_samples_save_receipt",
+      "result": "BLOCKED",
+      "code": "OPERATION_CONTROL_UNAVAILABLE",
+      "sqlite_code": 5,
+      "reader_raise_line": 550,
+      "reader_context_line": 540,
+      "reader_elapsed_ms": 101.045,
+      "passed": 914,
+      "skipped": 19,
+      "subtests_passed": 714,
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43361829719/job/131676895627"
+    },
+    "scanner": {
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43361829777/job/131676895878",
+      "artifact_id": 14007774908,
+      "fingerprint": "60dd9d4a50506cabedddeb1cf12610d6240e1ec2:docs/evidence/2026-11-13-desktop-notifications-ca95.json:generic-api-key:4",
+      "disposition": "The immutable work_key value equals the public Desktop requirement ID in that commit's native task handoff. It is not a credential or coordination token. This separate fetched branch is included by the unchanged --all history scan."
+    }
+  },
+  "adopted_dependency": {
+    "original_commit": "28a57a2fa080b5e607c628de27f19d9c528be43c",
+    "reviewed_peer_head": "258bc436f35aa652923f35d5553656ec3d18865f",
+    "peer_pr": 1018,
+    "scope": [
+      "services/company_discovery/public_client.py",
+      "tests/unit/test_public_company_client.py"
+    ],
+    "behavior": "Cap effective probe concurrency to min(configured ceiling, ceil(request timeout / request spacing)), with a floor of one. Source policy is unchanged.",
+    "source_files": {
+      "services/company_discovery/public_client.py": {
+        "blob": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+        "sha256": "f2fdb7e3e8be07ad5964a23dd9bbe08e36468122994574e00cff0d8234f258a1"
+      },
+      "tests/unit/test_public_company_client.py": {
+        "blob": "1e04f3531637067130b6f02ea07b73b8a1a619f8",
+        "sha256": "e84ad0369a2ef0507196f0e8202fccb59645210601488eac074b2a697bc433fe"
+      },
+      ".gitleaksignore": {
+        "blob": "a6d3d5cae1bbe705c02c83c193e8fae04f29a03e",
+        "sha256": "f4c6e7ea5eb69e8bbf2a587a05f1725ec3ee2f822fe05920ec2cb9c1021b2eee"
+      }
+    },
+    "limits": "Reduces ineffective low-rate workers and control polling. Does not prove the exact prior SQLite writer or eliminate every contention cause. Complete multi-hop probe throughput is not guaranteed.",
+    "excluded_from_adoption": [
+      "planning/SESSION_HANDOFF.md",
+      "peer evidence and handoff files"
+    ]
+  },
+  "scanner_controls_preserved": {
+    "single_exact_fingerprint_added": true,
+    "scanner_version": "8.30.1",
+    "rules_changed": false,
+    "history_scope": "--all",
+    "checkout_fetch_depth": 0,
+    "checksum_validation": true,
+    "redacted_report": true,
+    "policy_files": {
+      ".github/workflows/secret-scan.yml": {
+        "git_blob": "82111982831efece8fd9a3ef6d56e5d8fd87728a",
+        "sha256": "ca33b999ef7c1258aec9e37c0bc121a90e86725261e982d5d0826ae3afb2e3e8"
+      },
+      ".github/secret-scanner.json": {
+        "git_blob": "3d84a2a1f9f4dc4ef4403363ad77de699be17b78",
+        "sha256": "6b9b7b4daf0b061e592ae85067cf5b14f5b063495f8da879c3f0258effd7668c"
+      },
+      "tools/ci/secret_scan.py": {
+        "git_blob": "64c017cdef2a99bd7f40cfb63a921b2664fa0189",
+        "sha256": "c6613ec96d2661f1d35674583b9cb2b07595c23dbb65fe39101c36e3a8e39253"
+      }
+    }
+  },
+  "local_validation": {
+    "status": "PASS",
+    "base_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+    "dirty_source": true,
+    "source_blobs": {
+      "services/company_discovery/public_client.py": {
+        "git_blob": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+        "sha256": "f2fdb7e3e8be07ad5964a23dd9bbe08e36468122994574e00cff0d8234f258a1"
+      },
+      "tests/unit/test_public_company_client.py": {
+        "git_blob": "1e04f3531637067130b6f02ea07b73b8a1a619f8",
+        "sha256": "e84ad0369a2ef0507196f0e8202fccb59645210601488eac074b2a697bc433fe"
+      },
+      "tests/integration/test_company_monitoring_policy_transport.py": {
+        "git_blob": "35cc48f2b9276d039e08a8e3067bf067333af7c6",
+        "sha256": "3cd69751d14bf3ebe10db093f393565694459e515623bbe045ceb3fbc97cb87e"
+      },
+      "tests/unit/test_secret_scan_sustain_176.py": {
+        "git_blob": "ae725434463aaea3b29e2262e176c11ea1310aff",
+        "sha256": "7a46dab61744dbdcd993542b17d71f2f65e684f99ae8ea605d3c7ad3319a4c05"
+      },
+      "tests/unit/test_p0_evidence_secret_fingerprints.py": {
+        "git_blob": "85cb4260a4026a7d8dd136e1c81963ee1c7b9c8a",
+        "sha256": "a792caa74aeac362fac5e63122a9cf2bc230e54f39a37369c268ab470c5e0601"
+      },
+      ".gitleaksignore": {
+        "git_blob": "a6d3d5cae1bbe705c02c83c193e8fae04f29a03e",
+        "sha256": "f4c6e7ea5eb69e8bbf2a587a05f1725ec3ee2f822fe05920ec2cb9c1021b2eee"
+      },
+      ".github/workflows/secret-scan.yml": {
+        "git_blob": "82111982831efece8fd9a3ef6d56e5d8fd87728a",
+        "sha256": "ca33b999ef7c1258aec9e37c0bc121a90e86725261e982d5d0826ae3afb2e3e8"
+      },
+      ".github/secret-scanner.json": {
+        "git_blob": "3d84a2a1f9f4dc4ef4403363ad77de699be17b78",
+        "sha256": "6b9b7b4daf0b061e592ae85067cf5b14f5b063495f8da879c3f0258effd7668c"
+      },
+      "tools/ci/secret_scan.py": {
+        "git_blob": "64c017cdef2a99bd7f40cfb63a921b2664fa0189",
+        "sha256": "c6613ec96d2661f1d35674583b9cb2b07595c23dbb65fe39101c36e3a8e39253"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+      }
+    },
+    "source_unchanged_during_execution": true,
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\ci-prerequisites-focused-86.xml",
+      "tests/unit/test_public_company_client.py",
+      "tests/integration/test_company_monitoring_policy_transport.py",
+      "tests/unit/test_secret_scan_sustain_176.py",
+      "tests/unit/test_p0_evidence_secret_fingerprints.py"
+    ],
+    "started_at": "2026-11-13T04:19:11.776776+00:00",
+    "finished_at": "2026-11-13T04:20:12.639697+00:00",
+    "primary_passed": 40,
+    "subtests_passed": 11,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log_sha256": "b0489d5b98cd3045d9b4e993496a961b341911d2155ca2eff93e647960fba576",
+    "junit_sha256": "c84524b978d587a7204a83339643737f2d268eb410463dbd7859b1cc5dfad28b",
+    "receipt_name": "ci-prerequisites-focused-86.json"
+  },
+  "independent_review": {
+    "reviewer": "/root/p6_readonly",
+    "source_review": "PASS on exact three adopted blobs; confirms source equivalence, unchanged transport/cancellation ceilings and narrow historical scanner disposition",
+    "final_committed_head_review": "PENDING"
+  },
+  "acceptance": {
+    "original_pass": 183,
+    "original_total": 366,
+    "reference_pass": 19,
+    "reference_total": 59,
+    "changed": false
+  },
+  "remaining": [
+    "New candidate exact-head protected checks",
+    "Verified integration stewardship",
+    "Protected merge",
+    "Applicable integrated/deployed runtime proof",
+    "Canonical acceptance review"
+  ]
+}

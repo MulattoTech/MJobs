@@ -59,10 +59,6 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
             @classmethod
             def now(cls, tz=None):
                 return collected_at.astimezone(tz) if tz else collected_at.replace(tzinfo=None)
-        admitted = self.client.post('/sources/' + self.source_id + '/collect',
-            json={'profile_id': 'fixture', 'request_id': request_id})
-        self.assertEqual(admitted.status_code, 202, admitted.text)
-        identifier = admitted.json()['operation_id']
         def boundary(_transport, request):
             self.assertEqual((request.method, request.url.host, request.url.path),
                              ('GET', self.expected_host, self.expected_path))
@@ -73,7 +69,15 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
             return httpx.Response(200, json=self.payload)
         with patch('httpx.HTTPTransport.handle_request', boundary), patch(
                 'services.discovery.sources.collect.now', return_value=collected_at.isoformat()), patch(
-                'services.discovery.sources.collect.datetime', CollectionClock):
+                'services.discovery.sources.collect.datetime', CollectionClock), patch(
+                'packages.persistence.store.datetime', CollectionClock), patch(
+                'workers.operations.datetime', CollectionClock):
+            # Admission, claim/lease and durable observations use the same
+            # simulated poll time, including historical and future collections.
+            admitted = self.client.post('/sources/' + self.source_id + '/collect',
+                json={'profile_id': 'fixture', 'request_id': request_id})
+            self.assertEqual(admitted.status_code, 202, admitted.text)
+            identifier = admitted.json()['operation_id']
             outcome = execute_operation(identifier)
             self.assertEqual(outcome['status'], 'COMPLETED', outcome)
         return identifier

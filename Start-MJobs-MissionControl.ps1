@@ -3,6 +3,7 @@ param(
   [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
+if ($Port -eq 18729) { throw 'Port 18729 is retired. Use Fleet Control Hub at http://127.0.0.1:4320/#development-delivery or Mission-only evidence on port 18726.' }
 $repo = $PSScriptRoot
 $base = "http://127.0.0.1:$Port"
 $logs = Join-Path $repo '.git\mjobs-coordination'

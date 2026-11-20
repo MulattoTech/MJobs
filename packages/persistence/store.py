@@ -220,6 +220,13 @@ class Store:
         previous = self.profile(profile['id']) if current else {}
         profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
         profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
+        from packages.domain.employer_verification import normalize_activation
+        discovery = profile['preferences']['company_discovery']
+        previous_discovery = (previous.get('preferences') or {}).get('company_discovery') or {}
+        discovery['employer_verification'] = normalize_activation(
+            discovery['employer_verification'], previous_discovery.get('employer_verification'),
+            company_discovery_enabled=discovery['company_discovery_enabled'],
+        )
         preferences_changed = current is not None and previous.get('preferences', {}) != profile['preferences']
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
@@ -377,6 +384,9 @@ class Store:
             raise ValueError("AI_TASK_CONFIG_INVALID")
         timestamp = now()
         with self.engine.begin() as connection:
+            insert = {"postgresql": postgres_insert, "sqlite": sqlite_insert}.get(connection.dialect.name)
+            if insert is None:
+                raise ValueError("Unsupported persistence backend")
             current_rows = connection.execute(
                 select(m.ai_task_settings.c.task, m.ai_task_settings.c.provider,
                        m.ai_task_settings.c.model)
@@ -394,14 +404,18 @@ class Store:
                 effective_current = current.get(
                     task, {"provider": "disabled", "model": None})
                 changed = changed or selection != effective_current
-                upsert(connection, m.ai_task_settings, {
-                    "id": identity(profile_id, task),
-                    "profile_id": profile_id,
-                    "task": task,
-                    "provider": selection["provider"],
-                    "model": selection["model"],
-                    "updated_at": timestamp,
-                }, replace=True)
+                statement = insert(m.ai_task_settings).values(
+                    id=identity(profile_id, task), profile_id=profile_id, task=task,
+                    provider=selection["provider"], model=selection["model"],
+                    updated_at=timestamp,
+                )
+                # Restores remap row IDs. The logical setting is still identified
+                # by profile/task; preserve its existing ID when saving again.
+                connection.execute(statement.on_conflict_do_update(
+                    index_elements=[m.ai_task_settings.c.profile_id, m.ai_task_settings.c.task],
+                    set_={"provider": selection["provider"], "model": selection["model"],
+                          "updated_at": timestamp},
+                ))
             if changed:
                 self._audit(connection, profile_id, "SETTING_CHANGED", {})
         return self.ai_task_settings(profile_id)
@@ -1132,10 +1146,28 @@ class Store:
             if provider:
                 statement = statement.where(m.jobs.c.id.in_(select(m.routes.c.job_id).where(m.routes.c.provider == provider)))
             if job_source_id:
-                # Collector attribution is stored on the canonical job during
-                # collection; keep it distinct from application route providers.
-                statement = statement.where(
-                    m.jobs.c.attributes["source_id"].as_string() == job_source_id)
+                # Canonical values can move to a verified first-party source.
+                # Retain exact collector attribution through captured candidates
+                # and their successful configured-source quality observations.
+                # IN avoids duplicating jobs across repeated source captures.
+                attributed_job = m.jobs.alias('source_attributed_job')
+                captured_jobs = select(m.postings.c.job_id).select_from(
+                    m.source_quality_observations.join(m.posting_value_candidates,
+                        m.posting_value_candidates.c.quality_observation_id == m.source_quality_observations.c.id)
+                    .join(m.postings, m.postings.c.id == m.posting_value_candidates.c.posting_id)
+                    .join(m.posting_snapshots,
+                        (m.posting_snapshots.c.id == m.posting_value_candidates.c.posting_snapshot_id)
+                        & (m.posting_snapshots.c.posting_id == m.postings.c.id))
+                    .join(m.company_sources, m.company_sources.c.id == m.posting_value_candidates.c.company_source_id)
+                    .join(attributed_job, attributed_job.c.id == m.postings.c.job_id)
+                ).where(m.source_quality_observations.c.configured_source_id == job_source_id,
+                        m.company_sources.c.company_id == attributed_job.c.company_id,
+                        m.source_quality_observations.c.source_endpoint == m.postings.c.source,
+                        m.source_quality_observations.c.succeeded.is_(True),
+                        m.source_quality_observations.c.available.is_(True))
+                statement = statement.where(or_(
+                    m.jobs.c.attributes["source_id"].as_string() == job_source_id,
+                    m.jobs.c.id.in_(captured_jobs)))
             if sort == "score":
                 statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id)
             elif sort == "title":
@@ -1246,6 +1278,10 @@ class Store:
             if len(selected) >= limit:
                 break
         return selected
+
+    def job_inventory_page(self, profile_id, *, limit=200, cursor=None, snapshot_sha256=None):
+        from packages.persistence.job_inventory import inventory_page
+        return inventory_page(self, profile_id, limit=limit, cursor=cursor, snapshot_sha256=snapshot_sha256)
 
     def job(self, job_id, profile_id=None):
         profile = self.profile(profile_id) if profile_id else None

@@ -34,6 +34,7 @@ class CompanyDiscoveryPolicyTests(unittest.TestCase):
             "minimum_match_for_discovery": 60,
             "priority_match_for_discovery": 80,
             "max_new_company_discoveries_per_hour": 12,
+            "employer_verification": {"version": 1, "mode": "DISABLED", "activation_id": None},
         })
         configured = JobPreferences.model_validate({"company_discovery": {
             "company_discovery_enabled": False,

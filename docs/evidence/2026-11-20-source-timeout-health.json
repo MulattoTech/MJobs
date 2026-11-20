@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T09:26:34.772811+00:00",
+  "task": "Preserve source health at local worker-budget timeout",
+  "related_requirement": "MJ-REQ-004",
+  "acceptance_change": false,
+  "outcome": "LOCAL_SOURCE_VALIDATED_HOSTED_GATES_REQUIRED",
+  "source_revision": "1366de23dc7b77e62f4014aee81bd5478f02eb9d",
+  "source_tree": "faedafeecf5d00c4dee74c27c1f1706766a65c98",
+  "composed_revision": "2dc72ca27ab910a1bc4b8e34c83d68fa4151fb7e",
+  "composed_tree": "ded9ee43402396e6164141a95ccaf747aa956e40",
+  "current_main": "68c8ac18454be004bdc9b6f3f51ba1755781c0d9",
+  "source_blobs": {
+    "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+    "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+    "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7"
+  },
+  "hosted_observation": {
+    "pr": 1066,
+    "head": "a8fa68fed08c49607faf58c2050968f05dea29cc",
+    "run": 44704929221,
+    "job": 136182057567,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/44704929221/job/136182057567",
+    "test": "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_lever_global_finite_deadline_during_real_tcp_connect",
+    "failure": "Public source health was FAILED rather than NOT_CHECKED; earlier durable operation timeout assertions passed.",
+    "summary": "1 failed, 1109 passed, 28 skipped, 474 subtests passed in 1196.09s",
+    "limits": "The hosted log does not expose the source error code or phase timings. The deterministic reproductions establish the code-path defect, not the unobserved scheduler history.",
+    "other_heads": "Earlier PR1065 head5ac and PR1064 head278 passed all required checks with the same old product blob; those runs do not waive the observed failure."
+  },
+  "mechanism": [
+    "The worker budget callback returns deadline minus monotonic time after a durable control read. Pre-callback anchoring subtracted that read latency twice.",
+    "A resulting early HTTPX timeout could reach the collector before a watcher exception. The collector correctly treated that raw timeout as a provider failure.",
+    "Worker finalization may later observe the global deadline and persist OPERATION_TIMEOUT, while the already-written provider failure remains."
+  ],
+  "correction": [
+    "Anchor the remaining budget after the callback returns, before final rate admission.",
+    "Track whether the local remaining budget selected the effective request timeout.",
+    "On HTTPX timeout preserve any known watcher exception. Only budget-limited timeouts trigger an authoritative error-path check.",
+    "If that check returns, preserve any newly reported watcher error and convert to existing OperationTimedOut only after the selected local cutoff has elapsed.",
+    "Keep shorter/no-budget provider timeouts and early unrelated transport timeouts as provider failures; do not let a new slow control read replace an earlier provider failure.",
+    "No new durable callback follows successful final admission. The rate gate, socket cancellation controls, collector and worker persistence code are unchanged."
+  ],
+  "test_interpretation": {
+    "red": "Eleven failed subcases: four double-charged timeout values, four raw HTTPX timeout classes, three lost authoritative local-stop identities. Parent unittest methods are separately counted as passed by pytest-subtests.",
+    "anchor_only": "The intermediate green-unit directory records an incomplete edit after a tool error: source readback confirmed only anchoring/flag changes applied; seven classification subcases still failed. This is retained as intermediate failure evidence.",
+    "fixture_correction": "The first private red run had one fixture-construction TypeError because OperationControlUnavailable takes no arguments. It was corrected before the cited red-corrected-fixture run; initial raw files remain private.",
+    "collector": "Two deterministic real-Lever/HTTPX/Store cases distinguish local-stop restoration from genuine provider failure/history.",
+    "transport": "The full affected adapter connect file, including the exact failing Lever global method, plus TCP/TLS cleanup passed; no deadlines, thresholds, skips or retries were relaxed."
+  },
+  "validation": [
+    {
+      "phase": "red-corrected-fixture",
+      "result": "FAIL",
+      "summary": "11 failed, 6 passed, 8 subtests passed in 0.79s",
+      "elapsed_seconds": 0.969,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "d7e01142f31187df696be65a6f3741a42b554708",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/unit/test_greenhouse_rate_admission.py::GreenhouseTimeoutOriginTests"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 29,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "9cd1f82a28d851d624bbfa237a6fb710781a3c0b28e8a651c92a2f47c2e51ccb",
+      "log_sha256": "e181610980b37d7c0387b3cd3883eefe44ea4553fdffe332e3051f0dfa3427f8",
+      "xml_sha256": "3544a1a8b7b3b8a04422ad12934cab87a5d0c7b26141b26c0c52689e6c2ff372"
+    },
+    {
+      "phase": "green-unit",
+      "result": "FAIL",
+      "summary": "7 failed, 12 passed, 19 subtests passed in 0.83s",
+      "elapsed_seconds": 0.984,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "07e4b331ec5c48a89e73224bc7684f05a24fd1f3",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/unit/test_greenhouse_rate_admission.py"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 29,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "eec64b79f145dc2f300751ff84fc25142a00fb3b97eab744338363476806f10d",
+      "log_sha256": "8a08962ac7ccfec33de554eb705cfb41ccb204070a7ff5344648edf57d86c5f7",
+      "xml_sha256": "4558e2c0daa276fae518cf3e2efd4376a29b1eb6dd8d5c0292402a6dfed8ee19"
+    },
+    {
+      "phase": "corrected-unit",
+      "result": "PASS",
+      "summary": "12 passed, 26 subtests passed in 0.79s",
+      "elapsed_seconds": 0.984,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/unit/test_greenhouse_rate_admission.py"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 29,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "6f4fa12dc72157c910ed0c09d5bc8441a496c66dea8993bac1ade6c43a38a000",
+      "log_sha256": "a8c0bb4a3315a1665168d0fa5f5891c80ffe292db361554815c914937c2aee25",
+      "xml_sha256": "25ec016cb1978c01040abb73a8df6bf417248235cc4f2907911bf7f4016dcd72"
+    },
+    {
+      "phase": "corrected-collector",
+      "result": "PASS",
+      "summary": "2 passed in 2.44s",
+      "elapsed_seconds": 2.672,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_lever_worker_budget_timeout_restores_persisted_source_health",
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_lever_provider_timeout_retains_persisted_failure_history"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 89,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "81a1977fe967cd9c1a73e106a4a5feaa12d1225889eccb90686155c550c617c2",
+      "log_sha256": "f6ead82ae1fb2c1c90e7eb78d2b9c7c1eb4ce92c05e3a7e9b7a6dbd033587426",
+      "xml_sha256": "ad23a8ad6ba2e6d2bddb1426433673021ac42c93c0f22c8bc83d66034be66469"
+    },
+    {
+      "phase": "corrected-focused",
+      "result": "PASS",
+      "summary": "64 passed, 87 subtests passed in 24.14s",
+      "elapsed_seconds": 24.5,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/unit/test_greenhouse_rate_admission.py",
+        "tests/integration/test_greenhouse.py",
+        "tests/unit/test_greenhouse_cancellation_cleanup.py",
+        "tests/unit/test_greenhouse_metadata_inventory.py",
+        "tests/unit/test_greenhouse_salary.py"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 94,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "9d2dc063a09d69513f97c56084ee45cb0b7da36b9b4ddcf8b994d9a23436abdc",
+      "log_sha256": "b6c5849b49be64a473e39a26315efeacfd0a0f03449724ce590ec72013cf95d1",
+      "xml_sha256": "86e207a61ba44a8fbdc81d14c7c7ad7f416c74238478d1681db711c385613411"
+    },
+    {
+      "phase": "corrected-transport",
+      "result": "PASS",
+      "summary": "24 passed, 18 subtests passed in 52.29s",
+      "elapsed_seconds": 53.094,
+      "source_blobs": {
+        "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "14c9aa4a527f86e69585c97ba0b46cb2c7f63055",
+        "workers/tasks.py": "8e26e894e741be0dfc400ef326df66150ef54cf9",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7",
+        "tests/integration/test_source_adapter_connect_cancellation.py": "f2ed3411afdd1bc44ece2ee0bee55fde61643129"
+      },
+      "test_selectors": [
+        "tests/integration/test_source_adapter_connect_cancellation.py",
+        "tests/integration/test_source_http_tcp_cleanup.py",
+        "tests/integration/test_source_http_tls_cleanup.py"
+      ],
+      "dependencies": {
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "soupsieve": "2.10",
+        "beautifulsoup4": "4.15.0",
+        "opentelemetry-api": "1.45.0"
+      },
+      "owned_product_imports": 254,
+      "foreign_product_imports": 0,
+      "receipt_sha256": "fa86ce56d0e11181fedc5981e080ddf84035aa73c96f99e2acb23d2ea9934e80",
+      "log_sha256": "066b36bb84fe47702c3d3dc46e9631955d4bf23e7e75f6c445de30bbe971736f",
+      "xml_sha256": "99e942d5752f7db4916a5e091a8266bb7d408245fb23bb85c2c7b57535d8805a"
+    }
+  ],
+  "main_composition": {
+    "result": "Exact backend/test blobs unchanged after current-main merge",
+    "incoming_paths": [
+      "apps/web/src/main.characterization.test.ts",
+      "apps/web/src/main.tsx",
+      "apps/web/src/navigation.tsx"
+    ],
+    "explanation": "Main advanced only by independently merged PR1063 navigation files. This correction incorporates those exact files; fresh final-head hosted checks remain required."
+  },
+  "independent_review": {
+    "schema_version": 1,
+    "recorded_at_utc": "2026-11-20T09:24:08Z",
+    "reviewer": "acceptance_backlog",
+    "review_type": "Independent read-only source and test semantics review",
+    "verdict": "CLEAR",
+    "reviewed_state": "Uncommitted correction in the owned Greenhouse worktree; exact blobs below",
+    "base_head": "5ac4ea6cf9b66027ed2aadef991d03a02b26e4e7",
+    "reviewed_blobs": {
+      "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+      "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+      "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7"
+    },
+    "blocking_findings": [],
+    "source_review": [
+      "After-callback budget anchoring agrees with workers.tasks.remaining_seconds, which calculates remaining time after durable control reads.",
+      "budget_limited_timeout is per-request and reset before refresh; it is selected after admission against the configured timeout. A true value implies a populated budget_deadline.",
+      "No new durable callback occurs between successful final admission and stream dispatch. Existing actual-time pacing and transport-phase cancellation checks remain intact.",
+      "On HTTPX timeout, recorded watcher errors take precedence. Only worker-budget-limited timeouts trigger the new authoritative check; the watcher is checked again afterward.",
+      "Fallback OperationTimedOut requires the selected local budget cutoff to have elapsed. Early active-budget timeouts and genuinely shorter/no-budget provider timeouts remain HTTPX failures when no authoritative local stop is raised.",
+      "Existing canonical OperationTimedOut/OperationCancelled/OperationControlUnavailable semantics are preserved; no new public exception type or API field is introduced.",
+      "Lever inherits the corrected request and _get behavior. Local stops leave adapter health unchecked, whereas retained HTTPX errors continue to set SOURCE_NETWORK_ERROR."
+    ],
+    "unit_review": [
+      "The six added methods exercise callback latency, four HTTPX timeout subclasses, shorter and absent worker budgets, late provider-check reclassification, authoritative exception identity, and early timeout preservation.",
+      "The module-local clock and dormant watcher model a valid pre-poll race deterministically. Real HTTPX Client/MockTransport behavior and client closure are exercised.",
+      "No additional unit tests requested."
+    ],
+    "integration_review": {
+      "helper": "GreenhouseTests._collect_lever_transport_timeout",
+      "mechanism": "Real Lever adapter with MockTransport, module-local clock, dormant watcher, and existing temporary Store/collect_source fixture. One synthetic request; no external network.",
+      "local_budget_case": "At worker budget 0.04 versus provider timeout 2, asserts canonical OPERATION_TIMEOUT, NOT_CHECKED, zero failures, no last_error/backoff, and no source-quality observations.",
+      "provider_cap_case": "At worker budget 10 versus provider timeout 2, asserts SOURCE_NETWORK_ERROR, FAILED, one failure, NETWORK_ERROR, retained backoff, and one unsuccessful quality observation.",
+      "conclusion": "The cases exercise the actual collector persistence distinction; they do not merely inspect adapter exceptions. Both scopes match the reported failure and its provider-failure counter-control.",
+      "limits": "The helper deliberately uses a no-op authority check and finite remaining_seconds to exercise local fallback. It is not an end-to-end worker deadline or real-socket test."
+    },
+    "validation_reported_by_root": {
+      "initial_corrected_fixture_red": "11 subcase failures before product correction",
+      "intermediate_anchor_only": "7 failures before timeout-origin correction",
+      "corrected_unit": "12 methods and 26 subtests PASS",
+      "corrected_collector_cases": "2 new deterministic Lever cases PASS",
+      "focused_package": {
+        "passed_methods": 64,
+        "passed_subtests": 87,
+        "seconds": 24.14
+      },
+      "real_socket_package": "Root is running test_source_adapter_connect_cancellation.py plus TCP/TLS cleanup; result not independently observed at review time"
+    },
+    "independently_executed_tests": [],
+    "reviewer_actions": [
+      "Read immutable source contracts and live scoped diffs",
+      "Verify base HEAD and all three current Git blob hashes",
+      "Write this private untracked review receipt"
+    ],
+    "limits": [
+      "This is an independent source/test review, not an independently executed test result.",
+      "Root-reported red/green counts are attributed to root; raw execution logs were not replayed by this reviewer.",
+      "Real-socket, refreshed-current-main and hosted CI outcomes remain separate required evidence.",
+      "No production/provider interaction, tracked edits, canonical acceptance updates, PR review submission, or publication performed by this reviewer.",
+      "The review applies only while the three bound blobs remain unchanged."
+    ]
+  },
+  "independent_review_sha256": "9cb59550861750a6b793ef4e0fe78951d7bb28b5a8947a300fb3fc55f1fe40f3",
+  "validators": [
+    "Ruff E9,F PASS",
+    "catalogue PASS",
+    "reference provenance PASS",
+    "ownership index --check PASS",
+    "repository policy PASS",
+    "source commit provenance PASS",
+    "whitespace PASS"
+  ],
+  "limits": [
+    "No new acceptance status promotion",
+    "No live provider validation",
+    "No production changes",
+    "No full repository suite locally",
+    "Protected merge remains unapproved; fresh exact-head CI required"
+  ]
+}

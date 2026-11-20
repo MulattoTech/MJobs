@@ -35,13 +35,30 @@ from packages.persistence.store import Store
 from tests.integration.test_source_http_socket_budget import tcp_connect_stall
 from tests.integration.test_spine import PROFILE
 from workers import tasks as worker_tasks
+from workers import operations as worker_operations
 from workers.tasks import execute_operation
-from services.discovery.sources import http_transport
+from services.discovery.sources import collect as source_collection, http_transport
 from services.discovery.sources.registry import source_adapter
 
 
 ENDPOINTS = {"greenhouse": "HOST", "remoteok": "API_URL", "wwr": "FEED_URL"}
 LEVER_TENANTS = ("global:synthetic", "eu:synthetic")
+
+
+def worker_outcome_diagnostic(result):
+    """Only stable categories, never returned messages, identifiers or values."""
+    statuses = {"COMPLETED", "CANCELLED", "DEAD_LETTERED", "BLOCKED", "FAILED", "QUEUED"}
+    categories = {
+        "OPERATION_TIMEOUT", "OPERATION_CONTROL_UNAVAILABLE", "CANCEL_REQUESTED",
+        "SOURCE_DISABLED", "SOURCE_BACKOFF", "SOURCE_COOLDOWN", "SOURCE_NETWORK_ERROR",
+    }
+    result = result if type(result) is dict else {}
+    status, category = result.get("status"), result.get("error_category")
+    return {
+        "status": status if type(status) is str and status in statuses else "OTHER",
+        "error_category": ("NONE" if category is None else category
+                           if type(category) is str and category in categories else "OTHER"),
+    }
 
 
 def source_tenant(provider):
@@ -88,6 +105,21 @@ def empty_source(provider):
 
 
 class SourceAdapterConnectCancellationTests(unittest.TestCase):
+    def test_worker_phase_diagnostic_excludes_private_results(self):
+        private = "SYNTHETIC_PRIVATE /private/path SELECT secret FROM private"
+        for category in (private, {"message": private}, [private]):
+            with self.subTest(kind=type(category).__name__):
+                diagnostic = worker_outcome_diagnostic({
+                    "status": private, "error_category": category,
+                    "error": private, "failure": {"detail": private},
+                })
+                self.assertEqual(diagnostic, {"status": "OTHER", "error_category": "OTHER"})
+                self.assertNotIn(private, repr(diagnostic))
+        self.assertEqual(worker_outcome_diagnostic({
+            "status": "DEAD_LETTERED", "error_category": "OPERATION_TIMEOUT",
+            "error": private,
+        }), {"status": "DEAD_LETTERED", "error_category": "OPERATION_TIMEOUT"})
+
     def test_injected_transports_keep_control_even_when_falsey(self):
         class FalseyTransport(httpx.MockTransport):
             def __bool__(self):
@@ -155,6 +187,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             transport_completed = threading.Event()
             transport_operation_completed = threading.Event()
             phases = {}
+            pre_ssl_phases = {}
             # Only the cold-SSL accounting case uses a controlled operation
             # clock. The production deadline is still created once at worker
             # entry; its clock advances only inside the real SSL factory below.
@@ -164,6 +197,34 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             cancel_calls = []
             worker_finished_at = []
             worker = None
+
+            def observe_phase(name, action):
+                def observed(*args, **kwargs):
+                    if (threading.current_thread() is not worker
+                            or "collector_entered_at" not in phases
+                            or ssl_context_uses or ssl_factory_calls["entered"]):
+                        return action(*args, **kwargs)
+                    # Fixed names and at most 16 samples per phase; retain no
+                    # arguments, results, SQL, exceptions or connection objects.
+                    samples = pre_ssl_phases.setdefault(name, [])
+                    if len(samples) >= 16:
+                        return action(*args, **kwargs)
+                    sample = {"entered_at": time.monotonic()}
+                    samples.append(sample)
+                    try:
+                        return action(*args, **kwargs)
+                    finally:
+                        sample["exited_at"] = time.monotonic()
+                return observed
+
+            original_factory = source_collection.source_adapter
+
+            def observe_adapter_factory(*args, **kwargs):
+                adapter = observe_phase("adapter_factory", original_factory)(*args, **kwargs)
+                if threading.current_thread() is worker:
+                    cleanup.enter_context(patch.object(
+                        adapter, "search", new=observe_phase("adapter_search", adapter.search)))
+                return adapter
 
             # Transport-ready cases prepare the trust store separately. The
             # cold-context case charges real factory completion to its owned
@@ -186,6 +247,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             def ready_ssl_context(verify=True, cert=None, trust_env=True):
                 if (threading.current_thread() is worker and verify is True
                         and cert is None and trust_env is False):
+                    phases.setdefault("ssl_factory_entered_at", time.monotonic())
                     if unprepared_ssl:
                         ssl_factory_calls["entered"] += 1
                         phases["cold_ssl_wall_started_at"] = time.monotonic()
@@ -205,8 +267,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         ssl_factory_calls["completed"] += 1
                         self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
                         self.assertTrue(context.check_hostname)
+                        phases.setdefault("ssl_factory_completed_at", time.monotonic())
                         return context
                     ssl_context_uses.append(time.monotonic())
+                    phases.setdefault("ssl_factory_completed_at", time.monotonic())
                     return ssl_context
                 return original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -222,6 +286,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "worker_finished_at", "terminal_readback_at",
                     "cold_ssl_started_at", "cold_ssl_completed_at",
                     "cold_ssl_wall_started_at", "cold_ssl_wall_completed_at",
+                    "ssl_factory_entered_at", "ssl_factory_completed_at",
                 )
                 timestamps = {}
                 for key in timestamp_keys:
@@ -243,8 +308,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 connection = state.get("connecting_socket")
                 return (f"phase_ms_from_deadline={relative_ms}; "
                         f"deadline_clock={'controlled' if cold_ssl else 'real'}; "
-                        f"ssl_factory_calls={ssl_factory_calls!r}; phases={phases!r}; "
-                        f"worker_errors={errors!r}; outcomes={len(outcome)}; "
+                        f"ssl_factory_calls={ssl_factory_calls!r}; wall_phase_times={timestamps!r}; "
+                        f"pre_ssl_phases={pre_ssl_phases!r}; "
+                        f"worker_outcome={worker_outcome_diagnostic(outcome[-1] if outcome else None)}; "
+                        f"worker_error_count={len(errors)}; outcomes={len(outcome)}; "
                         f"connects={state.get('connects', 0)}; requests={state.get('requests', 0)}; "
                         f"socket_fd={connection.fileno() if connection is not None else None}")
 
@@ -296,9 +363,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     if owned:
                         phases["connect_ex_status"] = status
                     return status
-                except BaseException as error:
+                except BaseException:
                     if owned:
-                        phases["transport_call_error"] = f"{type(error).__name__}: {error}"
+                        phases["transport_call_error"] = "CONNECT_EXCEPTION"
                     raise
                 finally:
                     if owned:
@@ -358,6 +425,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     new=observe_connect_tcp), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", side_effect=record_timeout), patch(
+                    "workers.operations._read_operation_control",
+                    new=observe_phase("control_read", worker_operations._read_operation_control)), patch.object(
+                    Store, "profile", new=observe_phase("profile", Store.profile)), patch(
+                    "services.discovery.sources.collect.source_adapter", new=observe_adapter_factory), patch(
                     "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
                 if cold_ssl:
                     # Replace this module binding, never attributes on the
@@ -422,8 +493,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                                                if isinstance(result, dict)
                                                                else type(result).__name__)
                             phases["worker_outcome_at"] = time.monotonic()
-                        except BaseException as error:
-                            errors.append(f"{type(error).__name__}: {error}")
+                        except BaseException:
+                            errors.append("WORKER_EXCEPTION")
                             phases["worker_error_at"] = time.monotonic()
                         finally:
                             finished_at = time.monotonic()

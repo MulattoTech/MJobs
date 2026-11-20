@@ -556,6 +556,14 @@ def company_refresh_saved(connection, operation):
     Callers hold the operation lock. The source/monitor pointer can change after
     a later refresh, so only the immutable, exactly bound audit is authoritative.
     """
+    if operation['kind'] == 'COMPANY_DISCOVER':
+        # Ordinary public-company work has no fixture receipt. Avoid loading
+        # that bridge on its cancellation path; present malformed markers must
+        # still reach the helper's exact receipt validation.
+        if 'fixture_monitoring' not in (operation.get('params') or {}):
+            return False
+        from services.company_discovery.fixture_monitoring import fixture_refresh_saved
+        return fixture_refresh_saved(connection, operation)
     if operation['kind'] != 'COMPANY_SOURCE_REFRESH':
         return False
     return connection.execute(select(m.audit.c.id).where(
@@ -718,7 +726,16 @@ def recover_expired(store):
     recovery_started_at = time.monotonic()
     completed_dry_runs = []
     with store.engine.begin() as connection:
-        if connection.dialect.name == "sqlite":
+        if connection.dialect.name == "postgresql":
+            # SKIP LOCKED does not cover later application/receipt locks. Bound
+            # each lock wait to one second, preserving stricter session limits.
+            # SET LOCAL restores the setting on this transaction's commit/rollback.
+            connection.execute(text(
+                "SELECT set_config('lock_timeout', "
+                "CAST(LEAST(NULLIF(setting, '0')::integer, :budget) AS text), true) "
+                "FROM pg_settings WHERE name = 'lock_timeout'"
+            ), {"budget": 1000})
+        elif connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         # Queued workers without a lease have no execution authority. Inline
         # browser ownership retains its separate proof-of-closure policy.
