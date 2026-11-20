@@ -507,5 +507,192 @@
       "The 50-test result was executed on 2f2df001, not on this descendant. It is reused only through the recorded source/config identity proof.",
       "No external provider traffic, global dependency installation, new test execution, PR mutation, protected merge, production action or original worktree modification occurred during this refresh."
     ]
+  },
+  "pending_pr1068_refresh": {
+    "recorded_utc": "2026-11-20T12:07:02.331297+00:00",
+    "state": "PREPARED_UNPUBLISHED",
+    "scope": "Private history-preserving refresh of the existing PR1029 fixture corrections onto published, unmerged PR1068.",
+    "original_pr_head": "925eb2b4eb1479f2c696c8ca9dc5752392ae031e",
+    "prior_prepared_head": "73dc5888d20548c0c309482bc14d772ed467eab1",
+    "source_head": "8cb94ebc27f72eaf38c8abd551a3ea175754083e",
+    "source_tree": "5c734fb072f062a6631af52c406156ecaa4e8d5d",
+    "parents": [
+      "73dc5888d20548c0c309482bc14d772ed467eab1",
+      "12bfea6afe7395fc3312d2235a394e7746c4607d"
+    ],
+    "adopted_base": {
+      "sha": "12bfea6afe7395fc3312d2235a394e7746c4607d",
+      "state_at_preparation": "Published PR1068, not merged; protected integration remains pending",
+      "contains_protected_main": "6916d08ca947615f77b530e77ed28626d4ad46ba"
+    },
+    "merge_conflicts": [],
+    "delta_from_adopted_base": [
+      "docs/evidence/2026-11-14-prepare-route-currentness-8966724d.json",
+      "planning/agent_handoffs/MJ-REQ-292-prepare-route-8966724d.json",
+      "tests/integration/test_greenhouse.py",
+      "tests/integration/test_provider_credential_connection_bounds.py"
+    ],
+    "product_changes_from_adopted_base": [],
+    "validation_kind": "Static exact-source identity and targeted policy checks. No new test execution.",
+    "preserved_execution": {
+      "classification": "PREVIOUS_EXECUTION",
+      "source": "2f2df00136056c578059bb6181e3e45db79965dd",
+      "source_tree": "6e802ab9e31d74d6ee62418b57836d1347fe03a9",
+      "tests": 50,
+      "greenhouse_tests": 35,
+      "credential_boundary_tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 42.947,
+      "network": {
+        "loopback_connects": 32,
+        "loopback_dns": 20,
+        "blocked_external_attempts": []
+      },
+      "runtime_versions": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "SQLAlchemy": "2.1.1",
+        "cryptography": "50.0.2",
+        "pytest": "9.1.1"
+      }
+    },
+    "executed_input_identity": {
+      "status": "PASS",
+      "imported_modules": 236,
+      "distinct_import_files": 236,
+      "changed_import_files": 0,
+      "additional_fixture_config_inputs": 113,
+      "changed_added_or_deleted_fixture_config_inputs": 0,
+      "mode_type_and_blob_equal": true,
+      "import_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-12bfea6\\import-identity.json",
+        "sha256": "c60f9b4098c2d4db8b1b6741f3a75305dcb7c5288bf4adef180627f7efbfede1"
+      },
+      "import_manifest_canonical_sha256": "d235a99fb5dcb4ae43e79333f5f34de22d92eee11c431d7b839be05fa933b6b2",
+      "fixture_config_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-12bfea6\\test-config-identity.json",
+        "sha256": "8deb99fa31cfec6627abb8b0620869aeb369fc139c2f534701e0b6131080db03"
+      },
+      "fixture_config_manifest_canonical_sha256": "d6243c929a42fe56463bc621b92a771b33be8a4a2daf2e2cf35248eee76867fb",
+      "scope": "All tracked fixtures, prompts, migrations, test fixture/support/helper paths, conftests and listed project/test configuration"
+    },
+    "raw_test_artifact_hashes": {
+      "receipt.json": "c8e6d920e19d85479413810c5c655372f6cde02655e4ee6c73102f535f0a0e96",
+      "pytest.log": "32e46d88c2d30ebe13967d4aa3801d7d1455507bd2a8940196c16700f0b067c8",
+      "pytest.xml": "9110b66e211c3eb85d7456ecc6d5919fa10ed8231cbdb44447e56ccf1387a426"
+    },
+    "original_runner_sha256": "e2990bfefca100b148d1648d71e9ed88c9e476fd101ae25f4492a14d9ef1814e",
+    "dependency_declarations": {
+      "before_blob": "8973b956bcefd35542b7f37ff03a792e3819ae3e",
+      "after_blob": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+      "only_replacements": {
+        "soupsieve": [
+          "2.10",
+          "4.0"
+        ],
+        "opentelemetry-api": [
+          "1.45.1",
+          "1.45.2"
+        ]
+      },
+      "interpretation": "Current declarations match the actual private versions recorded in the previous execution; no dependency installation or runtime recheck."
+    },
+    "other_incoming_source": {
+      "paths": [
+        "tests/unit/test_operation_control_reads.py",
+        "tests/unit/test_progress_dashboard.py",
+        "tools/verification/progress.py"
+      ],
+      "qualification": "Outside the 236 recorded imports and the two selected integration files. Their bytes remain identical to the adopted base; this refresh makes no new execution claim for them."
+    },
+    "historical_preservation": {
+      "previous_top_level_fields": 19,
+      "previous_evidence_fields_and_refresh_records": "Unchanged",
+      "historical_handoff_blob": "3e6a5d201118dca32ad8bc35cffbb8e42c2e6c20",
+      "evidence_preimage_sha256": "1e871351ef9ed2f0796d820c63ee1ec1b6dd752d84e6304faf320ea4c1240ac7",
+      "historical_route_and_fixture_failures": "Preserved without reclassification",
+      "original_pr_hosted_secret_scan": "Existing PR1029 historical Secret Scan failure remains unexplained; not relabeled transient or cleared."
+    },
+    "new_tests": "NOT_RUN; the recorded executed input scope is unchanged",
+    "local_secret_scan": {
+      "status": "NOT_RUN",
+      "reason": "No supported cached local scanner identified; no new downloads or scanner resources authorized."
+    },
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.ci.check_repository"
+        ],
+        "exit_code": 0,
+        "log_sha256": "42c15493067b4a025e5b42a63ba6098509181c72f417f33622eb33cd560bf085"
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "python -B -m tools.verification.commit_provenance --commit 8cb94ebc27f72eaf38c8abd551a3ea175754083e --strict",
+        "exit_code": 0,
+        "log_sha256": "28a476f9196c2cabe2a161fc596ca8a874fa254e6ccb54ed1a5164d9e53c7657",
+        "explicit_required_trailers": "PASS"
+      }
+    ],
+    "identity_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-12bfea6\\identity-receipt.json",
+      "sha256": "adad1e58c0242e380a812468e0b2b1459e11eeac612031587625952329f430b6"
+    },
+    "acceptance_scope": "No authored product or canonical acceptance changes. All paths outside the four retained branch paths are identical to PR1068. MJ-REQ-292 remains PARTIAL.",
+    "remaining_gates": [
+      "Root review and exact binding to the actual protected PR1068 merged base.",
+      "Fresh ownership and publication admission before any existing PR1029 update; the remote PR remains unchanged.",
+      "Required exact-head hosted checks, including Secret Scan, and separately authorized protected integration."
+    ],
+    "limits": [
+      "The 50-test result is PREVIOUS_EXECUTION at 2f2df001, not a test run on this descendant. It is retained only through the recorded source/configuration identity proof.",
+      "No new tests, scanner installation, downloads, provider traffic, global packages, PR mutation, protected merge, policy change or production action.",
+      "The historical hosted Secret Scan failure remains unexplained; NOT_RUN does not clear it."
+    ]
   }
 }
