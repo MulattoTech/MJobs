@@ -1,0 +1,1035 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-080-COMPANY-DISCOVERY-SECURITY-20261109-WEB-4F1D",
+  "recorded_at_utc": "2026-11-09T18:01:52.444003+00:00",
+  "run_id": "web-20261109T131824Z-4f1d2da391c4",
+  "requirement_id": "MJ-REQ-080",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/81",
+  "result": "PASS",
+  "result_scope": "Independently reviewed full literal acceptance proposal at the exact tested revision. Canonical promotion is reserved to the designated integration owner.",
+  "canonical_acceptance": {
+    "recorded_result": "PARTIAL",
+    "proposed_result": "PASS",
+    "modified": false
+  },
+  "literal_requirement": {
+    "untrusted_input": "External job content is untrusted; do not blindly fetch internal addresses supplied by it.",
+    "validation_boundaries": [
+      "scheme",
+      "hostname",
+      "redirects",
+      "private IP ranges",
+      "loopback addresses",
+      "link-local addresses",
+      "file://",
+      "unexpected ports"
+    ]
+  },
+  "basis": {
+    "production_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "tested_revision": "75277e08dfa919e27406b2ac7a27e0947ab5a3e8",
+    "new_test": "tests/integration/test_company_discovery_security_acceptance_080.py",
+    "source_equivalence": {
+      "verified": true,
+      "method": "Compared recursive git ls-tree output for both immutable revisions; candidate differs only by the one added integration test. Every pre-existing tracked entry, including all production code, existing tests and configuration, is identical. Rehashed 42 relevant inputs against both Git revisions and working files.",
+      "only_added_path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+      "new_test_blob": "56de2cb5bf6b45c4d228e5006cac6a606f7ec9ed",
+      "new_test_sha256": "ef050a4ac952250fdd3c5f9c036d7047dabba9e5f42ba9535be39bf2291aa800",
+      "verified_input_count": 42
+    },
+    "production_changes": false,
+    "historical_gap_resolved": "The canonical note says production company discovery was not enabled. Current PERSONAL API and durable COMPANY_DISCOVER worker now execute PublicCompanyClient; the added tests verify that actual path and durable rejection."
+  },
+  "criterion_ledger": [
+    {
+      "criterion": "scheme",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "_parse_url",
+          "line": 62,
+          "end_line": 86
+        },
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient.allowed",
+          "line": 136,
+          "end_line": 141
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "Mounted PERSONAL API rejects file, FTP, HTTP and scheme-relative URLs with 422 before any operation, DNS or socket. Production accepts HTTPS only; allowed HTTPS/TLS controls succeed."
+    },
+    {
+      "criterion": "hostname",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "_parse_url",
+          "line": 62,
+          "end_line": 86
+        },
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient.allowed",
+          "line": 136,
+          "end_line": 141
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "Mounted API rejects empty authority, local names, credentials and private numeric literals. Client normalizes IDNA/case and requires exact origin. Independent TLS wrong-host and untrusted-certificate tests reject before HTTP."
+    },
+    {
+      "criterion": "redirects",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._get",
+          "line": 447,
+          "end_line": 479
+        },
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._request_once",
+          "line": 229,
+          "end_line": 391
+        },
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._resolve",
+          "line": 143,
+          "end_line": 177
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_same_origin_redirect_revalidates_changed_dns_before_connecting",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_same_origin_redirect_revalidates_changed_dns_before_connecting",
+            "line": 204,
+            "end_line": 284
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "Real worker executes robots and homepage over owned TLS. Homepage returns same-origin 302. Third real owned resolver process returns loopback; production raises DNS_PRIVATE before a third socket. Only /robots.txt and / are observed, exactly two vetted numeric connections. Existing unit tests also reject cross-origin, unsupported and missing-location redirects and enforce robots on the target."
+    },
+    {
+      "criterion": "private IP ranges",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._resolve",
+          "line": 143,
+          "end_line": 177
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+            "line": 184,
+            "end_line": 196
+          }
+        },
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_mixed_public_and_private_dns_blocks_before_any_socket_and_never_retries",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_mixed_public_and_private_dns_blocks_before_any_socket_and_never_retries",
+            "line": 198,
+            "end_line": 202
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "Real worker rejects private IPv4 and IPv6 answers, including a mixed set containing several public answers followed by private IPv4, before any connection. Whole answer set is validated before address selection; existing cases cover an unsafe answer after nine public records and CGNAT/non-global classification."
+    },
+    {
+      "criterion": "loopback addresses",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._resolve",
+          "line": 143,
+          "end_line": 177
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        },
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+            "line": 184,
+            "end_line": 196
+          }
+        },
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_same_origin_redirect_revalidates_changed_dns_before_connecting",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_same_origin_redirect_revalidates_changed_dns_before_connecting",
+            "line": 204,
+            "end_line": 284
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "Mounted API and real worker cover 127.0.0.1, ::1 and IPv4-mapped IPv6 loopback. Native numeric resolver lookup separately returns public 8.8.8.8 and rejects 127.0.0.1 in the production parent validation."
+    },
+    {
+      "criterion": "link-local addresses",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._resolve",
+          "line": 143,
+          "end_line": 177
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        },
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_private_ipv4_and_ipv6_dns_block_real_worker_and_survive_restart",
+            "line": 184,
+            "end_line": 196
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "API rejects IPv4 metadata/link-local and IPv6 link-local literals; real DNS worker rejects 169.254.169.254 and fe80::1 without a socket and preserves the blocked receipt."
+    },
+    {
+      "criterion": "file://",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "_parse_url",
+          "line": 62,
+          "end_line": 86
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "file:///etc/passwd is rejected by the mounted API with 422 before queue creation, DNS or socket activity; the client supports only HTTPS and cannot pass a file URL to a network or file fetch."
+    },
+    {
+      "criterion": "unexpected ports",
+      "result": "PASS",
+      "production_references": [
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "_parse_url",
+          "line": 62,
+          "end_line": 86
+        },
+        {
+          "path": "services/company_discovery/public_client.py",
+          "symbol": "PublicCompanyClient._resolve",
+          "line": 143,
+          "end_line": 177
+        }
+      ],
+      "new_executed_cases": [
+        {
+          "nodeid": "tests/integration/test_company_discovery_security_acceptance_080.py::CompanyDiscoverySecurityAcceptance080Tests::test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+          "reference": {
+            "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+            "symbol": "CompanyDiscoverySecurityAcceptance080Tests.test_api_rejects_unsafe_schemes_hosts_and_ports_without_queueing_or_dns",
+            "line": 75,
+            "end_line": 98
+          }
+        }
+      ],
+      "observed_or_source_supported_reason": "API rejects HTTPS 80 and 8443; client origin permits only 443. The production resolver schema rejects a returned sockaddr using 80 even when the requested URL port is 443. Fixed-provider endpoints also have no content-selected port."
+    }
+  ],
+  "untrusted_content_boundary": {
+    "result": "SUPPORTED",
+    "production_path": "PERSONAL mounted discovery API persists COMPANY_DISCOVER; workers.tasks constructs PublicCompanyClient. Candidate/homepage/career/sitemap/feed reads route through bounded_get with that client. Application-link samples preserve origin and use the same client. HTML/XML/JSON are parsed as data, not executed.",
+    "tested_effect": "All new worker cases inspect real persisted QUEUED/PUBLIC_HTTPS parameters, invoke execute_operation, observe the call-through original resolver raisingDNS_PRIVATE, and require BLOCKED outcomes. Reopened Store/API readback retains one completed attempt, zero retries, no next_attempt_at, no lease and MANUAL_REVIEW; terminal replay issues no new DNS or request and does not import jobs/sources or alter the profile.",
+    "existing_content_tests": "The two selected CompanyDiscoveryTests use a controlled fixture transport for unsafe/off-origin content and final-origin checks. Their assertions supplement, and do not substitute for, the new real PERSONAL-client tests."
+  },
+  "fixed_provider_handoff": {
+    "result": "NO_CONTENT_CONTROLLED_DESTINATION_BYPASS_FOUND",
+    "hosts": [
+      "boards-api.greenhouse.io",
+      "api.lever.co",
+      "api.eu.lever.co"
+    ],
+    "reviewed_paths": [
+      "services/ats_detection/board_links.py",
+      "services/company_discovery/ats_enrollment.py",
+      "services/discovery/sources/registry.py",
+      "services/discovery/sources/collect.py",
+      "services/discovery/sources/greenhouse.py",
+      "services/discovery/sources/lever.py",
+      "services/discovery/sources/http_transport.py"
+    ],
+    "reasoning": [
+      "Company discovery enrolls only supported Greenhouse/Lever handoffs. Board-link parsing accepts exact supported HTTPS board hosts and bounded tenant grammar; authority tricks, foreign hosts and unexpected ports cannot become a provider endpoint.",
+      "Enrollment reconstructs API endpoints from constants and validated tenant identifiers. Registry factories receive provider/tenant/policy, not a page-controlled endpoint URL. Greenhouse detail identifiers are positive integers; Lever detail identifiers are UUIDs.",
+      "Shared provider request code uses follow_redirects=False and trust_env=False and rejects redirect responses. Provider-returned application URLs are validated/normalized as data rather than fetched by these adapters.",
+      "Under the requirement's untrusted-content-to-arbitrary-address threat boundary, attacker-controlled markup/job text cannot select a new provider host, port or redirect destination. This is a source-supported inference, reinforced by the independently executed provider cases."
+    ],
+    "executed_cases": [
+      {
+        "classname": "tests.unit.test_greenhouse_enrollment.GreenhouseEnrollmentTests",
+        "name": "test_supported_links_and_embeds_select_the_same_tenant",
+        "seconds": 0.002,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_greenhouse_enrollment.GreenhouseEnrollmentTests",
+        "name": "test_untrusted_hosts_paths_schemes_and_text_cannot_select_a_board",
+        "seconds": 0.002,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_cross_region_site_malformed_ids_and_urls_are_rejected",
+        "seconds": 0.004,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_full_pages_are_exhausted_before_complete_inventory",
+        "seconds": 0.115,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_inventory_deadline_interrupts_an_inflight_stream_and_restores_parent_check",
+        "seconds": 0.152,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_later_page_failure_cannot_return_partial_inventory",
+        "seconds": 0.059,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_malformed_other_provider_does_not_hide_valid_lever_link",
+        "seconds": 0.001,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_page_cap_and_duplicate_inventory_fail_closed",
+        "seconds": 0.61,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_structural_board_links_preserve_region_and_reject_ambiguity",
+        "seconds": 0.002,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_lever_source.LeverSourceTests",
+        "name": "test_supported_inventory_uses_exact_regional_endpoint_and_normalization",
+        "seconds": 0.006,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_greenhouse.GreenhouseTests",
+        "name": "test_tenant_redirect_and_large_payload_are_rejected",
+        "seconds": 0.039,
+        "result": "PASS"
+      }
+    ],
+    "explicit_limitation": "SourceTransport itself does not reject non-global DNS answers for these fixed trusted provider hosts. This review does not claim PublicCompanyClient-style DNS filtering or pinning parity for that transport, nor assurance against compromise of provider DNS/routing. Fixed destination allowlisting and certificate verification are the distinct safeguards here."
+  },
+  "new_journeys": [
+    "Sixteen unsafe URLs are rejected by the mounted PERSONAL API before operation creation or DNS.",
+    "Seven private/loopback/link-local/mapped IPv4/IPv6 answers traverse a real queued operation and original client resolver, then persist BLOCKED with no connection.",
+    "Mixed public/private DNS answers fail before a destination is selected; every answer must be safe.",
+    "Two real owned HTTPS requests precede a same-origin redirect; a later private DNS answer is rejected before the redirected connection. TLS and HTTP parsing are real; a checked public numeric destination is explicitly mapped to the owned listener.",
+    "Fresh Store/API readback preserves the exact terminal receipt, one attempt, zero retries and replay idempotency. No job/source is imported and profile facts remain unchanged."
+  ],
+  "safe_error_contract": {
+    "initial_robots_fetch_rejection": "ROBOTS_UNAVAILABLE",
+    "later_redirect_dns_rejection": "DNS_PRIVATE",
+    "lower_level_proof": "An observer calls the original resolver and records its actual DNS_PRIVATE exception; the tests do not manufacture the decision."
+  },
+  "executed_validation": {
+    "author": {
+      "basis": "Exact base plus new test blob; executions preceded the test commit and are not relabeled as post-commit runs.",
+      "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "new_test_object": "56de2cb5bf6b45c4d228e5006cac6a606f7ec9ed",
+      "command": "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python -m pytest -q tests/integration/test_company_discovery_security_acceptance_080.py tests/unit/test_company_fetch_policy.py tests/unit/test_public_company_client.py tests/integration/test_public_company_discovery.py tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_real_native_numeric_lookup_and_parent_private_rejection tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_all_answers_are_validated_before_any_connection tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_blocks_private_or_off_origin_fetch_targets tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_rejects_cross_origin_redirect_result tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_tls12_trusted_hostname_succeeds --junitxml=/workspace/scratch/1d691ba9cdbd/company-security-080-final.xml 2>&1 | tee /workspace/scratch/1d691ba9cdbd/company-security-080-final.log",
+      "result": "45 passed, 45 subtests passed in 11.78s",
+      "exit_code": 0,
+      "log": {
+        "name": "company-security-080-final.log",
+        "sha256": "92f47bd4196c4e7200e4cb4d8c498c7db683067699dba62ab47b84fc49e76699",
+        "bytes": 155
+      },
+      "junit": {
+        "name": "company-security-080-final.xml",
+        "sha256": "ec369e310b4ad4fdf86c57a787919c5b76ca05fc924672038eb023faa072cfdd",
+        "bytes": 8155
+      },
+      "author_receipt": {
+        "name": "company-security-080-author-receipt.json",
+        "sha256": "928b36c1737f02259275b373b797335c98bce66e6ae672c2be027bf9570e753b",
+        "bytes": 45639
+      }
+    },
+    "independent": {
+      "tested_revision": "75277e08dfa919e27406b2ac7a27e0947ab5a3e8",
+      "command": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_company_discovery_security_acceptance_080.py",
+        "tests/unit/test_company_fetch_policy.py",
+        "tests/unit/test_public_company_client.py",
+        "tests/integration/test_public_company_discovery.py",
+        "tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_real_native_numeric_lookup_and_parent_private_rejection",
+        "tests/integration/test_public_company_dns_recovery.py::PublicCompanyDnsRecoveryTests::test_all_answers_are_validated_before_any_connection",
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_blocks_private_or_off_origin_fetch_targets",
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_company_discovery_rejects_cross_origin_redirect_result",
+        "tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_tls12_trusted_hostname_succeeds",
+        "tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_untrusted_certificate_rejected_before_http",
+        "tests/integration/test_public_company_tls_policy.py::PublicCompanyTlsPolicyTests::test_wrong_hostname_rejected_before_http",
+        "tests/unit/test_greenhouse_enrollment.py",
+        "tests/unit/test_lever_source.py",
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_tenant_redirect_and_large_payload_are_rejected",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/company-security-080-independent.xml"
+      ],
+      "started_at_utc": "2026-11-09T17:56:04.236131+00:00",
+      "completed_at_utc": "2026-11-09T17:56:20.474713+00:00",
+      "result": "58 passed, 63 subtests passed in 12.39s; 0 failures, 0 errors, 0 skips",
+      "methods_passed": 58,
+      "subtests_passed": 63,
+      "exit_code": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 12.39,
+      "log": {
+        "name": "company-security-080-independent.log",
+        "sha256": "75cabb8e5377f2a5fd061c0fd099eda903494eda1dec293b5b847fb32ed8bdff",
+        "bytes": 137
+      },
+      "junit": {
+        "name": "company-security-080-independent.xml",
+        "sha256": "2b046347e6eca99892c0b25106d5ffadf420bf5fbb66fabf04bc3e32442ab4a2",
+        "bytes": 10189
+      },
+      "receipt": {
+        "name": "company-security-080-independent-execution.json",
+        "sha256": "c8dd09c6e74018d8ad92b8266d9efba359cdb877fe8570e01ccaf2c7aabaf6f0",
+        "bytes": 16067
+      }
+    },
+    "totals_are_additive": false,
+    "integrity": {
+      "catalogue": "PASS",
+      "progress_journal": "PASS",
+      "progress_dashboard": "CURRENT",
+      "commit_provenance": "PASS",
+      "diff_whitespace": "PASS"
+    }
+  },
+  "hosted_supporting_evidence": {
+    "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "run": {
+      "id": 42647745364,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "attempt": 1,
+      "conclusion": "success",
+      "created_at": "2026-11-09T15:44:50Z",
+      "updated_at": "2026-11-09T16:05:15Z"
+    },
+    "job": {
+      "id": 129265494168,
+      "name": "Integration / shard 2",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/job/129265494168",
+      "all_reported_steps_success": true
+    },
+    "checkout_binding": {
+      "verified": true,
+      "git_log_command_and_output": [
+        "2026-11-09T15:45:13.6581817Z [command]/usr/bin/git log -1 --format=%H",
+        "2026-11-09T15:45:13.6616829Z f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+      ],
+      "shard_environment_lines": [
+        "2026-11-09T15:46:05.6653385Z   SHARD: 2",
+        "2026-11-09T16:05:05.1586772Z   SHARD: 2"
+      ],
+      "execution_command": "python -m tools.ci.run_shard --suite integration --index \"$SHARD\" --count 3",
+      "separate_testsuite_timestamp": "2026-11-09T15:46:06.595049+00:00"
+    },
+    "artifact": {
+      "id": 13688379510,
+      "name": "integration-results-2",
+      "size_in_bytes": 27616,
+      "expired": false,
+      "created_at": "2026-11-09T16:05:06Z",
+      "expires_at": "2026-11-16T16:05:05Z",
+      "official_api_digest": "sha256:501d11ab535bf8d8e12990b0deec182680150b17c3b267962f01b4b13aa7f7b7",
+      "downloaded_zip_sha256": "501d11ab535bf8d8e12990b0deec182680150b17c3b267962f01b4b13aa7f7b7",
+      "matches_official_digest": true,
+      "matches_job_upload_digest": true,
+      "workflow_run": {
+        "id": 42647745364,
+        "repository_id": 1396540139,
+        "head_repository_id": 1396540139,
+        "head_branch": "main",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+      },
+      "zip_member": "integration-2.xml",
+      "xml_sha256": "834ab1a163d79cdb31db7251d329adc51dca58ddafa6d3885cf215de7d931c9f"
+    },
+    "selected_scope": {
+      "modules": [
+        {
+          "path": "tests/integration/test_public_company_discovery.py",
+          "source_blob": "a605c4f39a8a335b063c3c9919a1c294f7317d73",
+          "source_method_count": 10,
+          "xml_testcase_count": 10,
+          "pass": 10,
+          "failures": 0,
+          "errors": 0,
+          "skips": 0,
+          "all_declared_test_methods_present": true,
+          "cases": [
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_claimed_name_and_tenant_cannot_bind_public_site_to_an_existing_company",
+              "seconds": 0.128,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_conflicting_feed_id_preflight_records_failure_without_partial_jobs",
+              "seconds": 0.176,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_explicit_retry_is_fresh_but_replayed_request_stays_idempotent",
+              "seconds": 0.136,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_invalid_public_target_rejected_by_api_without_queue_or_network",
+              "seconds": 1.37,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_personal_worker_reuses_verified_domain_when_discovery_website_is_omitted",
+              "seconds": 0.196,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_production_page_cannot_promote_mock_ats_markup",
+              "seconds": 0.214,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_public_worker_imports_feed_without_claiming_verified_identity_or_ats",
+              "seconds": 0.617,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_robots_denial_and_cancellation_are_distinct_durable_states",
+              "seconds": 0.175,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_stale_fixture_operation_remains_blocked_in_personal_mode",
+              "seconds": 0.143,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests",
+              "name": "test_verified_domain_is_required_for_existing_company_binding_and_ties_need_review",
+              "seconds": 0.126,
+              "status": "PASS",
+              "outcomes": []
+            }
+          ]
+        },
+        {
+          "path": "tests/integration/test_public_company_tls_policy.py",
+          "source_blob": "b73892b4d6bc84b2d2d3d33183c3e9478631bbc6",
+          "source_method_count": 4,
+          "xml_testcase_count": 4,
+          "pass": 4,
+          "failures": 0,
+          "errors": 0,
+          "skips": 0,
+          "all_declared_test_methods_present": true,
+          "cases": [
+            {
+              "classname": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests",
+              "name": "test_obsolete_protocols_rejected_with_working_negative_controls",
+              "seconds": 0.181,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests",
+              "name": "test_tls12_trusted_hostname_succeeds",
+              "seconds": 0.094,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests",
+              "name": "test_untrusted_certificate_rejected_before_http",
+              "seconds": 0.104,
+              "status": "PASS",
+              "outcomes": []
+            },
+            {
+              "classname": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests",
+              "name": "test_wrong_hostname_rejected_before_http",
+              "seconds": 0.066,
+              "status": "PASS",
+              "outcomes": []
+            }
+          ]
+        }
+      ],
+      "test_methods_passed": 14,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "passed_subtest_count": "NOT_SEPARATELY_SERIALIZED_FOR_SELECTED_MODULES"
+    },
+    "trusted_tls12_control": {
+      "case": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests.test_tls12_trusted_hostname_succeeds",
+      "result": "PASS",
+      "seconds": 0.094,
+      "source_assertions": [
+        "Production PublicCompanyClient accepted HTTP 200 with body OK over the real TLS socket.",
+        "Observed negotiated protocol was TLSv1.2.",
+        "The real server observed a GET /jobs HTTP/1.1 request."
+      ],
+      "fixture_seams": [
+        "DNS resolution maps fixture.example.com to a synthetic loopback listener.",
+        "A generated fixture CA is added to the real default verification context."
+      ],
+      "retained_security_boundaries": [
+        "Real socket creation, TLS handshake, hostname verification and HTTP parsing.",
+        "Wrong-hostname and untrusted-certificate controls each reject before HTTP."
+      ]
+    },
+    "obsolete_tls_controls": {
+      "case": "tests.integration.test_public_company_tls_policy.PublicCompanyTlsPolicyTests.test_obsolete_protocols_rejected_with_working_negative_controls",
+      "result": "PASS",
+      "source_coverage": [
+        "TLS1.0 and TLS1.1 endpoints each demonstrated functional by an independent deliberately degraded OpenSSL client.",
+        "Production rejection tested with default policy and explicit MonitoringPolicy(request_timeout=2).",
+        "Protocol-specific rejection reason checked; rejected TLS peer received no HTTP request."
+      ],
+      "counting_note": "The XML records one passing method; individual successful nested subtests are not separately enumerated in its testcase elements."
+    },
+    "whole_shard_summary": {
+      "pytest_methods_passed": 953,
+      "pytest_methods_skipped": 20,
+      "pytest_subtests_passed": 662,
+      "warnings": 2,
+      "seconds": 1131.72,
+      "junit_suite": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "20",
+          "tests": "1635",
+          "time": "1131.716",
+          "timestamp": "2026-11-09T15:46:06.595049+00:00",
+          "hostname": "runnervm7aw5e"
+        }
+      ],
+      "junit_testcase_elements": 973,
+      "scope_note": "These totals cover the entire shard, not only the 14 selected methods. The shard is not reported as zero-skip."
+    },
+    "limitations": [
+      "Hosted execution occurred at the immutable main commit, before the new test-only MJ-REQ-080 branch. Its new joined API/worker test is not executed by this receipt.",
+      "TLS proof uses synthetic loopback endpoints and controlled fixture trust/DNS seams; it does not test a live public employer or deployed endpoint.",
+      "This retrieval does not execute local tests, rerun CI, change source, dispatch a workflow, post messages or decide canonical acceptance.",
+      "The separate shard-0 evidence is not combined into these selected-module totals."
+    ],
+    "receipt": {
+      "name": "req080-hosted-42647745364-assessment.json",
+      "sha256": "43a1debd116f2a7a37a2b7246fc0cb05f47ebe84d8f5a565f7d203a765a53a51",
+      "bytes": 11807
+    }
+  },
+  "independent_review": {
+    "kind": "Independent AI source and executed-criterion review",
+    "verdict": "SUPPORT_FULL_PASS_PROPOSAL",
+    "findings": [],
+    "reviewed_at_utc": "2026-11-09T17:58:04.486432+00:00",
+    "receipt": {
+      "name": "company-security-080-independent-review.json",
+      "sha256": "f5ecd04d19a42d62fa25413ce8a8216af5aa677ab13b4d0eb62ad1adce8d877b",
+      "bytes": 55061
+    },
+    "not_human_approval": true
+  },
+  "input_identities": [
+    {
+      "path": "AGENTS.md",
+      "base_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "head_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "sha256": "4d0da3ede2e4e45c9284de78e6b4af32617690b503aae7a53c07ebdd6f3bce3e"
+    },
+    {
+      "path": "docs/AI_AGENT_CONTINUITY.md",
+      "base_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "head_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "sha256": "7850113a1a434e09207a9c6d96e79ebbdb6e471a835e9939435e0dc4df5a0423"
+    },
+    {
+      "path": "docs/spec/areas/company_ats_discovery.md",
+      "base_blob": "1bf6b510dffd50c4424620b529932b27a66706ea",
+      "head_blob": "1bf6b510dffd50c4424620b529932b27a66706ea",
+      "sha256": "bb0e28312e0f70e6354066a16bba65e860ca2dac5e39c3b8ba3b6212ef3e92ce"
+    },
+    {
+      "path": "apps/api/main.py",
+      "base_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "head_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8"
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "base_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "head_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "base_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "head_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+    },
+    {
+      "path": "services/company_discovery/public_client.py",
+      "base_blob": "30f902610db10b8b259ae1bd103b87a7340c3b27",
+      "head_blob": "30f902610db10b8b259ae1bd103b87a7340c3b27",
+      "sha256": "96452881ea0575b0743baaf5b86453c5b8cd70d70554d4828e789f759152ba14"
+    },
+    {
+      "path": "services/company_discovery/dns_resolver.py",
+      "base_blob": "c8a4525922e946be9bbe5847405881c2e777530d",
+      "head_blob": "c8a4525922e946be9bbe5847405881c2e777530d",
+      "sha256": "dcedf0464d5e55fcee8574d0157547aaeee506fc842cfc3ff759ddf05c4cb6cc"
+    },
+    {
+      "path": "services/company_discovery/fetch_policy.py",
+      "base_blob": "5fb3fb62d65516a28f2ed96ae5e7fcc2e7cbc742",
+      "head_blob": "5fb3fb62d65516a28f2ed96ae5e7fcc2e7cbc742",
+      "sha256": "e95937680a48431e46ffb0cab56fffe90d9238bd538dd617c08ec7c57becc67a"
+    },
+    {
+      "path": "services/company_discovery/triggers.py",
+      "base_blob": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+      "head_blob": "ad1c0326fccc05153cb3a10d87609fb6c77d4223",
+      "sha256": "cd5d1c69dab59d785035893df4a178564c09b7d9f20b66e9c28fca1ecf3e10e2"
+    },
+    {
+      "path": "services/company_discovery/public_resolution.py",
+      "base_blob": "0d5332c40f4e62e4db4e49d36111064ef20a5083",
+      "head_blob": "0d5332c40f4e62e4db4e49d36111064ef20a5083",
+      "sha256": "d6cc5ac7ab7ef5e863bd02ce8a786a85ded497f3ca79d9bd560eb7a16f533e4d"
+    },
+    {
+      "path": "services/company_discovery/domains.py",
+      "base_blob": "7e9d1381b0237c8d08f0ea5750b60ea39e255f8a",
+      "head_blob": "7e9d1381b0237c8d08f0ea5750b60ea39e255f8a",
+      "sha256": "31f99c39e0d0d60acf31314898431b979e38be0c8143493cd2dd835a7c3790c8"
+    },
+    {
+      "path": "services/company_discovery/flywheel.py",
+      "base_blob": "4b009dbd8be43f6bd47717c642835453d3c2a9e6",
+      "head_blob": "4b009dbd8be43f6bd47717c642835453d3c2a9e6",
+      "sha256": "6b5c157a0655749a81699c497cbeddf3328694389a22f212f46e7c72360e8adf"
+    },
+    {
+      "path": "services/company_discovery/career_pages.py",
+      "base_blob": "2c5438bd4432848fd959d0ec366b4ff9907537a0",
+      "head_blob": "2c5438bd4432848fd959d0ec366b4ff9907537a0",
+      "sha256": "e3d6e9b27301dac27a1a7b4536696bb535b4c7b376789087e2dd1c246cdb16a7"
+    },
+    {
+      "path": "services/company_discovery/domain_acquisition.py",
+      "base_blob": "36260416ac5efd51f0a5ece08d9a0b75e72b6835",
+      "head_blob": "36260416ac5efd51f0a5ece08d9a0b75e72b6835",
+      "sha256": "6df81186670fc82c05ce87438ab459a898c71797d7ac6946074f9fcf0d06fa96"
+    },
+    {
+      "path": "services/company_discovery/application_links.py",
+      "base_blob": "ca5e63040c3906273fe71fc7384b7d99d5bf10d0",
+      "head_blob": "ca5e63040c3906273fe71fc7384b7d99d5bf10d0",
+      "sha256": "b6cad494176aa626a46d764fa49648372e1b41f204fe9cd475a3738ebafbd3b3"
+    },
+    {
+      "path": "services/company_discovery/monitoring_policy.py",
+      "base_blob": "8f6dbe76219d2e7a658da4f77d0f8d43a648544b",
+      "head_blob": "8f6dbe76219d2e7a658da4f77d0f8d43a648544b",
+      "sha256": "1367fd305fae71c266d3661ceed4ecf0b1f93d1a8b3f799cd2ba0a527095d669"
+    },
+    {
+      "path": "services/operations/progress.py",
+      "base_blob": "b830147154ea18da5c2e9db1579187c556a50d57",
+      "head_blob": "b830147154ea18da5c2e9db1579187c556a50d57",
+      "sha256": "567858b84bfb91a75dfc9f9c701d28cdc9bada97ad2def1c73c38f7a14c6c654"
+    },
+    {
+      "path": "workers/tasks.py",
+      "base_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "head_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+    },
+    {
+      "path": "workers/operations.py",
+      "base_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "head_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+    },
+    {
+      "path": "workers/dispatch.py",
+      "base_blob": "658f94620a8487f0253189ec75d10795b7182d17",
+      "head_blob": "658f94620a8487f0253189ec75d10795b7182d17",
+      "sha256": "e9d425f4a03bc459e5f58c889545d9c949938b148c30ffb2d37513cfc5c47371"
+    },
+    {
+      "path": "workers/retries.py",
+      "base_blob": "39d47b42cbc8310f2d4dbae9ae4fe53aeb07b357",
+      "head_blob": "39d47b42cbc8310f2d4dbae9ae4fe53aeb07b357",
+      "sha256": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694"
+    },
+    {
+      "path": "tests/fixtures/company_dns.py",
+      "base_blob": "519c7a6f2d3a74f4fb55023c2a50b8105006974e",
+      "head_blob": "519c7a6f2d3a74f4fb55023c2a50b8105006974e",
+      "sha256": "24f51199e5ce7fb1e211f43f188c54d00c5bdfa096e23f607a0b5c6819e0d75f"
+    },
+    {
+      "path": "tests/integration/test_spine.py",
+      "base_blob": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+      "head_blob": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+      "sha256": "4c7f018237cb976c3bcf0640db30d20dec15744a598d2c6a2602ed3ae0ab7184"
+    },
+    {
+      "path": "tests/unit/test_company_fetch_policy.py",
+      "base_blob": "fb7cb95b8c1065206cd8432d3fe90dd4491c88c6",
+      "head_blob": "fb7cb95b8c1065206cd8432d3fe90dd4491c88c6",
+      "sha256": "1984554d4dd33678c04579a613271d90807a5aee806377a2558c8acb230d75af"
+    },
+    {
+      "path": "tests/unit/test_public_company_client.py",
+      "base_blob": "25306b27cf9a3840eab213202075965d22c27d5f",
+      "head_blob": "25306b27cf9a3840eab213202075965d22c27d5f",
+      "sha256": "8decfc29abf66ec01d165722de835aa08f9767cab14c503e10d02cf3180e07c5"
+    },
+    {
+      "path": "tests/integration/test_public_company_discovery.py",
+      "base_blob": "a605c4f39a8a335b063c3c9919a1c294f7317d73",
+      "head_blob": "a605c4f39a8a335b063c3c9919a1c294f7317d73",
+      "sha256": "0c207acf8c1e5636b2b1b467755fe6d683d507f402fa95f2066f1a27c79b8e79"
+    },
+    {
+      "path": "tests/integration/test_public_company_dns_recovery.py",
+      "base_blob": "b894ae7337a7ed1b1ade2205648711edf9304e42",
+      "head_blob": "b894ae7337a7ed1b1ade2205648711edf9304e42",
+      "sha256": "4dcef3b23ebd0f4380d83525d25ccd9231be7c851d1001d0a9a2537469bd3757"
+    },
+    {
+      "path": "tests/integration/test_company_discovery.py",
+      "base_blob": "1d72d56d10f8088490eae3d058a57e008bef572e",
+      "head_blob": "1d72d56d10f8088490eae3d058a57e008bef572e",
+      "sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3"
+    },
+    {
+      "path": "tests/integration/test_public_company_tls_policy.py",
+      "base_blob": "b73892b4d6bc84b2d2d3d33183c3e9478631bbc6",
+      "head_blob": "b73892b4d6bc84b2d2d3d33183c3e9478631bbc6",
+      "sha256": "23667122e31b18eb6bef00f5816fd66af3224c6531f6cc68cbb47cc0e8d09d9f"
+    },
+    {
+      "path": "requirements.txt",
+      "base_blob": "8973b956bcefd35542b7f37ff03a792e3819ae3e",
+      "head_blob": "8973b956bcefd35542b7f37ff03a792e3819ae3e",
+      "sha256": "c9880b7745902bfe51552488573f9cd447388d70f804232476442e45fb4b3764"
+    },
+    {
+      "path": "services/ats_detection/board_links.py",
+      "base_blob": "6ac877e52f01f8c56a992c7110cd5adecaf73e06",
+      "head_blob": "6ac877e52f01f8c56a992c7110cd5adecaf73e06",
+      "sha256": "033152c7c65d5b1b3d6e579920bd02253f33320dbfd8063b2e01cdaa24cac34d"
+    },
+    {
+      "path": "services/company_discovery/ats_enrollment.py",
+      "base_blob": "aa86ff2e86a7f5d7458378a43ca33c39fc763c3b",
+      "head_blob": "aa86ff2e86a7f5d7458378a43ca33c39fc763c3b",
+      "sha256": "2a3915b3721d85b1fae704c95511043c68abd59633f694565fb502b804ae5bc3"
+    },
+    {
+      "path": "services/discovery/sources/registry.py",
+      "base_blob": "2b304038496b9a643e07f08deadd9397b4c8154a",
+      "head_blob": "2b304038496b9a643e07f08deadd9397b4c8154a",
+      "sha256": "3043d1c43c64ba011382439f577d35c9b4f5e110159b4a355514f2b30b990e40"
+    },
+    {
+      "path": "services/discovery/sources/collect.py",
+      "base_blob": "d377cc09c5a6f70aa04d21289d2ad7c38e596c40",
+      "head_blob": "d377cc09c5a6f70aa04d21289d2ad7c38e596c40",
+      "sha256": "4db2e08aaf4a3035c61ba72d039bf006401427c1f6fe1f66d2a20a714321986f"
+    },
+    {
+      "path": "services/discovery/sources/greenhouse.py",
+      "base_blob": "433a773097509b2a97ed1a2e26a48fd6e94fe3a0",
+      "head_blob": "433a773097509b2a97ed1a2e26a48fd6e94fe3a0",
+      "sha256": "a72507de3bd2698405fc396961df75043140a0adaf191b0ee37046af0864c7e4"
+    },
+    {
+      "path": "services/discovery/sources/lever.py",
+      "base_blob": "1e2a85d860bad1141e15038742908a9e9d1022d1",
+      "head_blob": "1e2a85d860bad1141e15038742908a9e9d1022d1",
+      "sha256": "068bb3c00bc92e0b6b86db51783a3ce5c1a7ffcc2a885b181022168f16f7cd38"
+    },
+    {
+      "path": "services/discovery/sources/http_transport.py",
+      "base_blob": "516386410f9f0e43c720de572a450f3233a11f13",
+      "head_blob": "516386410f9f0e43c720de572a450f3233a11f13",
+      "sha256": "702549bbde24463b23fadd6e2231bf8a1e2a34d30226cb20d35c677339b66ff5"
+    },
+    {
+      "path": "tests/unit/test_greenhouse_enrollment.py",
+      "base_blob": "789a404053d315de95017dbb4f12d96525e35cab",
+      "head_blob": "789a404053d315de95017dbb4f12d96525e35cab",
+      "sha256": "fa0124df874749e39c51dc707bde8c21333c9fcaf2a44443cedc9eab7cff9718"
+    },
+    {
+      "path": "tests/unit/test_lever_source.py",
+      "base_blob": "1c5a46b4804611058b60be491a326baefd3b21ec",
+      "head_blob": "1c5a46b4804611058b60be491a326baefd3b21ec",
+      "sha256": "53e31ef2795c46242821fc94748860edb5b45a58233b83e7c796ced13ad51ee5"
+    },
+    {
+      "path": "tests/integration/test_greenhouse.py",
+      "base_blob": "b06ae88f5959498c4b8c9c51a7998452ae4fad1e",
+      "head_blob": "b06ae88f5959498c4b8c9c51a7998452ae4fad1e",
+      "sha256": "ba66aac3c4416e2f80f5dd60f1501f79e17335a6395b2fe8df80b9c6e77c3558"
+    },
+    {
+      "path": "tests/integration/test_company_discovery_security_acceptance_080.py",
+      "base_blob": null,
+      "head_blob": "56de2cb5bf6b45c4d228e5006cac6a606f7ec9ed",
+      "sha256": "ef050a4ac952250fdd3c5f9c036d7047dabba9e5f42ba9535be39bf2291aa800"
+    }
+  ],
+  "environment": {
+    "os": "Linux",
+    "python": "3.12.14",
+    "execution": "Isolated cloud Linux with repository-pinned dependencies; SQLite, owned resolver children and owned loopback TLS fixtures; no workstation tests or build."
+  },
+  "limitations": [
+    "Resolver child answer programs are synthetic. Parent parsing, process ownership, every-address validation, actual client decisions, worker admission and durable persistence execute unchanged.",
+    "The redirect test maps only the already validated public numeric destination (8.8.8.8, 443) to an owned loopback listener, using a synthetic trusted certificate. Real socket, TLS hostname verification and HTTP parsing execute. No live public DNS or employer traffic is claimed.",
+    "The older unit test whose name mentions rebinding executes only one public resolution. Rebinding evidence here comes from the new real redirect/DNS-change test, not that older name.",
+    "Generic fetch_policy tests have different HTTP/fixture semantics from PublicCompanyClient and are not represented as production consumer proof by themselves.",
+    "No browser, public deployment, live employer, PostgreSQL, release-readiness or full repository test result is claimed. Those are not additional literal conditions in issue 81.",
+    "No fresh GitHub-hosted check of this new test commit was executed by the reviewer. Required publication/integration gates remain separate.",
+    "This is an independent AI acceptance proposal, not human approval, a comprehensive security audit, a protected merge authorization or a change to canonical acceptance. Only the authorized integration owner may promote the canonical requirement state.",
+    "No live public-provider or employer request, real application submission, deployment or production-runtime claim.",
+    "The new PR head hosted gates must be assessed after publication; the old hosted receipt is explicitly attributed to immutable main.",
+    "This proposal adds no acceptance claim for other original or reference requirements."
+  ],
+  "scanner_followup": {
+    "source_revision": "62b1e93f567fa0c00cea61bbb1a98c3ab09651fc",
+    "file": ".gitleaksignore",
+    "new_exact_historical_fingerprints": 5,
+    "basis": "Five public Git object references were independently recomputed and precisely reviewed earlier in this run. The identical file passed required hosted scanning on PR1001 and PR1005. No scanner rule, workflow, directory or value-wide exclusion changes.",
+    "separate_from_test_execution": true
+  },
+  "next_action": "Read the live owned PR and exact-head required checks; the designated integration owner reviews applicability, protected integration and any canonical PARTIAL-to-PASS transition. Explicit publication authorization already exists."
+}
