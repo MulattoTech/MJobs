@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
-from sqlalchemy import select, update
+from sqlalchemy import event, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, now
@@ -32,8 +32,9 @@ class OperationControlReadTests(unittest.TestCase):
         seed_operation(self.store)
 
     def test_actual_exclusive_lock_is_bounded_sanitized_and_releases_checkout(self):
-        check_cancelled(self.store, "owned-control", 1)
         with self.store.engine.connect() as blocker:
+            # Warm an independent control connection before measuring SQL lock waiting.
+            check_cancelled(self.store, "owned-control", 1)
             blocker.exec_driver_sql("BEGIN EXCLUSIVE")
             started = time.monotonic()
             with self.assertRaises(OperationControlUnavailable) as failure:
@@ -50,6 +51,19 @@ class OperationControlReadTests(unittest.TestCase):
             row = connection.execute(select(m.operations)).mappings().one()
             self.assertEqual((row["state"], row["attempt_count"], row["cancel_requested"]), ("RUNNING", 1, False))
         self.assertEqual(self.store.engine.pool.checkedout(), 0)
+
+    def test_slow_new_connection_setup_precedes_sql_lock_timing(self):
+        connection_setups = 0
+
+        def delayed_connect(_dbapi_connection, _connection_record):
+            nonlocal connection_setups
+            connection_setups += 1
+            time.sleep(1.1)
+
+        event.listen(self.store.engine, "connect", delayed_connect)
+        self.addCleanup(event.remove, self.store.engine, "connect", delayed_connect)
+        self.test_actual_exclusive_lock_is_bounded_sanitized_and_releases_checkout()
+        self.assertEqual(connection_setups, 1, "The fixture must exercise a new independent connection")
 
     def test_stricter_sqlite_connection_timeout_is_preserved(self):
         with self.store.engine.connect() as connection:
