@@ -27,6 +27,10 @@ existing B3 verification tools before proceeding. Any mismatch fails closed.
 The rehearsal first proves the archive reconstructs the original handoff
 byte-for-byte, including byte order marks, line endings, headings and trailing
 bytes. It then constructs only the reviewer-supplied summary preview.
+After the simulated transition and rollback, it re-reads the source, review
+selection and archive to reject any concurrent mutation of those inputs.
+This is a postflight detection check, not a guarantee of exclusive locking
+or authority to cut over any real reader.
 
 A synthetic, in-memory consumer temporarily selects those summary bytes and
 then restores the archived legacy bytes. The tool checks that the recovered
@@ -74,11 +78,12 @@ Run with the existing B3 tools:
 
     python -m pytest -q tests/unit/test_handoff_cutover_rehearsal.py tests/unit/test_handoff_current_summary.py tests/unit/test_handoff_archive.py tests/unit/test_handoff_checkpoints.py tests/unit/test_document_archive_history_window.py
 
-The expanded local execution passed 74 primary tests and 16 subtests,
+The expanded local execution passed 77 primary tests and 16 subtests,
 with 3 Windows symlink capability skips, 9 pre-existing SQLAlchemy
-warnings, and no failures. The symlink skips require fresh Linux-hosted
-verification at the published commit, and the exact-head repository policy
-gates remain mandatory.
+warnings, and no failures. Postflight negative controls reject concurrent
+source, review-selection, and immutable-archive mutations during rehearsal.
+The symlink skips require fresh Linux-hosted verification at the published
+commit, and the exact-head repository policy gates remain mandatory.
 
 ## Remaining real migration blockers
 

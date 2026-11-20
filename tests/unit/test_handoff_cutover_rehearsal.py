@@ -261,3 +261,60 @@ def test_synthetic_staging_error_preserves_original_pointer(fixtures):
             stage.unlink()
     assert consumer.read_bytes() == original
     assert source.read_bytes() == original
+
+
+def test_source_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+
+    def mutate_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            source.write_bytes(original + b"SIMULATED_EXTERNAL_SOURCE_EDIT")
+
+    monkeypatch.setattr(cutover._InMemoryConsumer, "switch_to", mutate_after_first_switch)
+    with pytest.raises(ValueError, match="Source changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes().endswith(b"SIMULATED_EXTERNAL_SOURCE_EDIT")
+
+
+def test_review_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+
+    def mutate_review_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            review.write_bytes(review.read_bytes() + b" ")
+
+    monkeypatch.setattr(
+        cutover._InMemoryConsumer, "switch_to", mutate_review_after_first_switch
+    )
+    with pytest.raises(ValueError, match="Reviewed selection changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes() == original
+
+
+def test_archive_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    switched = [0]
+    piece = sorted((snapshot / "pieces").glob("*.bin"))[0]
+
+    def mutate_piece_after_first_switch(self, payload):
+        switch(self, payload)
+        switched[0] += 1
+        if switched[0] == 1:
+            piece.write_bytes(piece.read_bytes() + b"SIMULATED_ARCHIVE_TAMPER")
+
+    monkeypatch.setattr(cutover._InMemoryConsumer, "switch_to", mutate_piece_after_first_switch)
+    with pytest.raises(ValueError, match="identity or offset mismatch"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert switched[0] == 2
+    assert source.read_bytes() == original

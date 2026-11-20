@@ -83,6 +83,17 @@ def rehearsal(
     consumer.switch_to(reconstructed)
     if consumer.contents != original or _digest(consumer.contents) != expected_source_sha256:
         raise ValueError("Rollback did not restore exact source bytes")
+    # A source, selection or archive modified during the simulated transition
+    # cannot qualify as a completed rehearsal. Re-read all three authorities
+    # after rollback instead of relying only on their pre-cutover fingerprints.
+    if source.read_bytes() != original:
+        raise ValueError("Source changed during rehearsal")
+    if _digest(reviewer_file.read_bytes()) != _digest(reviewed_json):
+        raise ValueError("Reviewed selection changed during rehearsal")
+    stored_after, manifest_after = _verify_archive(snapshot)
+    if (stored_after != original or
+            manifest_after["source_sha256"] != expected_source_sha256):
+        raise ValueError("Archive changed during rehearsal")
 
     return {
         "result": "MEMORY_ONLY_ROLLBACK_VERIFIED",
