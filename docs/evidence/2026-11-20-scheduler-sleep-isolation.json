@@ -371,5 +371,70 @@
     "The historical main11-warning evidence is preserved unchanged.",
     "Scoped local no-warning success does not certify a warning-free full suite.",
     "Only the lifecycle fixture source and this new evidence record belong to this private candidate."
-  ]
+  ],
+  "current_main_refresh_87ca270f": {
+    "recorded_utc": "2026-11-20T15:41:41.101163+00:00",
+    "state": "PRIVATE_CURRENT_MAIN_REFRESH_VERIFIED_PENDING_ROOT_REVIEW",
+    "prior_private_head": "c18720a5befd274c30f28a5c9e6dec6071669a2f",
+    "actual_main": "87ca270f44ada37fa4c0155f725301f170c93eac",
+    "source_refresh_commit": "42ac88d0994fe2a2aa72b7e9331c030387ba2052",
+    "source_refresh_tree": "115925a4ae8d1e9d12e6138ed1fa2cdb28cd7ec5",
+    "source_refresh_parents": [
+      "c18720a5befd274c30f28a5c9e6dec6071669a2f",
+      "87ca270f44ada37fa4c0155f725301f170c93eac"
+    ],
+    "method": "Normal history-preserving merge of actual main into the existing private branch; no original commit was rewritten.",
+    "incremental_paths_against_main": [
+      "docs/evidence/2026-11-20-scheduler-sleep-isolation.json",
+      "tests/unit/test_discovery_scheduler_lifecycle_160.py"
+    ],
+    "fixture_blob": "02b27d209e3359efadcb3b26547b8fd3ee735a73",
+    "binding": {
+      "imported_files": 28,
+      "key_inputs": 8,
+      "distinct_inputs": 33,
+      "import_manifest_sha256": "ab9b497c292ec21a29f884aa41a53cbad508611aefcc0e9bd1f93613bface5a9",
+      "all_33_tested_git_blobs_and_current_canonical_working_files_unchanged": true,
+      "all_28_recorded_raw_import_hashes_unchanged": true,
+      "main_matches_32_nonfixture_inputs": true,
+      "only_expected_main_difference": "Main retains old lifecycle test blob 3ac546d2ee50f9bf4b895942fc6e055a29d14fc5; the private branch preserves the tested corrected fixture.",
+      "additional_pytest_configuration_files": [],
+      "source_tree_equals_main_plus_two_prior_owned_blobs": true,
+      "source_receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\scheduler-main87-refresh\\source-refresh-receipt.json",
+        "sha256": "e38ecba755de11a1f23583261726a8c03c6a369288e4b81ac03d968ad8da36af"
+      }
+    },
+    "retained_execution": {
+      "source_commit": "02ca6118cf4995b67da36b8c1ea7f781a3645c99",
+      "tested_tree": "d9cb45da92471c8bee6cdb88064e70eeed1576a1",
+      "test_cases_passed": 6,
+      "subtests_passed": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "warnings": 0,
+      "pytest_seconds": 0.89,
+      "green_receipt_sha256": "cffa5c0a43052be33e82b57a09e73e7c80fcc935637ba85eb2368da124dbd406",
+      "runtime_tests_reexecuted_for_refresh": false,
+      "qualification": "These are the original focused Windows results, carried only by unchanged input identity; they are not a new execution on the refreshed commit or a full hosted-suite result."
+    },
+    "overlap_snapshot": {
+      "observed_utc": "2026-11-20T15:30:59Z",
+      "source": "Root integration owner's complete current 64-PR / 475-file inventory",
+      "direct_overlaps_with_lifecycle_test_scheduler_or_supervisor": 0,
+      "related_pr_968": {
+        "head": "2f3377b9b5040bf43e3f270e222b67353dbc27af",
+        "qualification": "Its five reviewed paths implement separate public-company transport retries; it does not duplicate this fixture correction."
+      }
+    },
+    "preserved_qualifications": {
+      "requirement": "MJ-REQ-160 remains PARTIAL; no acceptance state changes.",
+      "red": "Expected identity assertion failure retained. The original cleanup PermissionError was recovered; its reconstructed receipt does not provide a complete RED imported-file manifest.",
+      "ruff": "FAIL_EXISTING_FINDINGS remains recorded: seven baseline findings and six candidate findings. No Ruff rerun, suppressions or policy changes.",
+      "hosted": "No hosted run was started for this private refresh. Fresh exact-head required gates remain necessary before any later protected merge.",
+      "publication": "Private preparation only; no admission, push, PR creation/update, protected merge or production action."
+    },
+    "prior_top_level_fields_preserved": 23
+  }
 }
