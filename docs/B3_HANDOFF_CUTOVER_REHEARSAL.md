@@ -72,13 +72,15 @@ statuses, corrupted snapshots, missing review files, oversized input,
 missing archives, and symlink refusal where the platform supports it.
 Additional disposable synthetic-filesystem tests exercise atomic consumer
 pointer replacement, archive-based restoration after a simulated crash,
-and interruption before replacement. The real handoff is never switched.
+and interruption before replacement. A separate Python process verifies the
+restored file's SHA-256 after rollback, demonstrating process-boundary
+readback on disposable synthetic data. The real handoff is never switched.
 
 Run with the existing B3 tools:
 
     python -m pytest -q tests/unit/test_handoff_cutover_rehearsal.py tests/unit/test_handoff_current_summary.py tests/unit/test_handoff_archive.py tests/unit/test_handoff_checkpoints.py tests/unit/test_document_archive_history_window.py
 
-The expanded local execution passed 77 primary tests and 16 subtests,
+The expanded local execution passed 78 primary tests and 16 subtests,
 with 3 Windows symlink capability skips, 9 pre-existing SQLAlchemy
 warnings, and no failures. Postflight negative controls reject concurrent
 source, review-selection, and immutable-archive mutations during rehearsal.

@@ -318,3 +318,37 @@ def test_archive_mutated_during_switch_fails_postflight(fixtures, monkeypatch):
         cutover.rehearsal(source, snapshot, review, digest)
     assert switched[0] == 2
     assert source.read_bytes() == original
+
+
+def test_disposable_restarted_process_reads_exact_restored_source(fixtures):
+    """Separate Python process must see archived bytes after synthetic rollback."""
+    import os
+    import subprocess
+    import sys
+
+    source, snapshot, review, digest, original, root = fixtures
+    _, preview = cutover.rehearsal(source, snapshot, review, digest)
+    consumer = root / "synthetic-process-restart-current.md"
+    consumer.write_bytes(preview.encode("utf-8"))
+    restored, _ = handoff_archive._verify_archive(snapshot)
+    stage = root / "synthetic-process-restart-rollback.stage"
+    stage.write_bytes(restored)
+    os.replace(stage, consumer)
+
+    result = subprocess.run(
+        [
+            sys.executable, "-c",
+            "import hashlib,pathlib,sys;"
+            "print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())",
+            str(consumer),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == digest
+    assert consumer.read_bytes() == original
+    assert source.read_bytes() == original
+    assert not stage.exists()
