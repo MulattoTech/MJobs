@@ -1,0 +1,375 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T12:59:49.688519+00:00",
+  "status": "PRIVATE_FIXTURE_REPAIR_VALIDATED_NOT_PUBLISHED",
+  "requirement": {
+    "id": "MJ-REQ-160",
+    "issue": 161,
+    "canonical_status": "PARTIAL",
+    "status_changed": false,
+    "scope": "Scheduler test-fixture isolation; no requirement acceptance promotion."
+  },
+  "repository": "MulattoTech/MJobs",
+  "base_commit": "7064ef048df4953f4bc050468ecda141cabba38d",
+  "source_commit": "02ca6118cf4995b67da36b8c1ea7f781a3645c99",
+  "source_tree": "d9cb45da92471c8bee6cdb88064e70eeed1576a1",
+  "tested_index_tree": "d9cb45da92471c8bee6cdb88064e70eeed1576a1",
+  "source_commit_tree_equals_tested_index_tree": true,
+  "test_path": "tests/unit/test_discovery_scheduler_lifecycle_160.py",
+  "base_test_blob": "3ac546d2ee50f9bf4b895942fc6e055a29d14fc5",
+  "repaired_test_blob": "02b27d209e3359efadcb3b26547b8fd3ee735a73",
+  "historical_main_observation": {
+    "source_commit": "7064ef048df4953f4bc050468ecda141cabba38d",
+    "workflow_run_id": 44735659743,
+    "python_job_id": 136286255438,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/44735659743/job/136286255438",
+    "conclusion": "SUCCESS",
+    "summary": "5749 passed, 55 skipped, 11 warnings, 5238 subtests passed in 298.62s",
+    "warnings": {
+      "PytestUnhandledThreadExceptionWarning": 10,
+      "SQLAlchemy_SADeprecationWarning": 1
+    },
+    "preserved_decoded_log_sha256": "a8730b6fe81e4420167eac293225ee6262b6f8037ca93dac2d27619485f83a92",
+    "source_checkout_verified_in_log": true,
+    "observed_trace": [
+      "Scheduler recovery fixture replaces scheduler.time.sleep with a SystemExit(0) sentinel.",
+      "Supervisor monitor threads reach tools/agent_dashboard/supervisor.py:846 time.sleep(1.0).",
+      "The shared standard-library time module sends those calls into unittest.mock and raises SystemExit(0)."
+    ],
+    "classification": "Confirmed test-fixture shared-module mutation. The warnings did not fail the historical CI job.",
+    "limits": "This work does not identify why individual monitor threads were still alive and does not claim a Fleet controller or production lifecycle defect."
+  },
+  "repair": {
+    "method": "test_redis_construction_failure_disposes_real_store_and_reopen_recovers",
+    "change": "Capture the real shared time module and sleep identity, create Mock(wraps=shared_time), attach the existing SystemExit sentinel to that local clock sleep, and patch only scheduler.time.",
+    "assertion": "Inside the existing recovery patch context, assert shared_time.sleep is the original sleep function.",
+    "real_monotonic_delegation": "Mock(wraps=shared_time) delegates monotonic to the existing real function; the scheduler recovery path executes normally until the local sleep sentinel.",
+    "original_assertion_calls_preserved": 39,
+    "new_assertion_calls": 1,
+    "other_test_methods_ast_unchanged": [
+      "test_invalid_intervals_do_not_allocate_store_or_redis",
+      "test_workspace_binding_failure_disposes_store_and_preserves_error",
+      "test_missing_redis_configuration_disposes_bound_store",
+      "test_redis_cleanup_disconnect_preserves_shutdown_and_logs_no_error_details",
+      "test_unexpected_redis_close_error_still_disposes_store"
+    ],
+    "production_and_fleet_source_changed": false
+  },
+  "failing_first": {
+    "selector": "tests/unit/test_discovery_scheduler_lifecycle_160.py::DiscoverySchedulerLifecycleTests::test_redis_construction_failure_disposes_real_store_and_reopen_recovers",
+    "source_state": "Identity regression added while retaining the original global sleep patch; no fixture repair yet.",
+    "test_blob": "9ecaf1ef32d7aab300947d3ce798d572fc3671c5",
+    "result": "FAIL",
+    "expected_regression_detected": true,
+    "summary": "1 failed in 0.75s",
+    "junit_totals": {
+      "tests": "1",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.753"
+    },
+    "failure": "MagicMock sleep is not the original built-in sleep function; exact added identity assertion failed.",
+    "pytest_exit_code": 1,
+    "exit_code_and_receipt_qualification": "Original runner reached cleanup after its explicit exit==1 and single-failure assertions; no runner-error.log was created. Reconstructed from retained raw log/XML/source after original runner lost in-memory receipt serialization during a resource-claim cleanup PermissionError. Test not rerun.",
+    "limits": "Raw imported-file manifest and in-memory runtime fields were not serialized for RED; full input/runtime identity will be captured for GREEN.",
+    "test_rerun": false
+  },
+  "focused_validation": {
+    "result": "PASS",
+    "selectors": [
+      "tests/unit/test_discovery_scheduler_lifecycle_160.py"
+    ],
+    "pytest_exit_code": 0,
+    "summary": "6 passed, 8 subtests passed in 0.89s",
+    "tests_passed": 6,
+    "subtests_passed": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": 0,
+    "junit_totals": {
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.896"
+    },
+    "junit_testcase_elements": 6,
+    "count_note": "JUnit tests=14 includes the eight subtests; pytest reports six test cases plus eight subtests.",
+    "runtime": {
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "dependency_versions": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "SQLAlchemy": "2.1.1",
+        "httpx": "0.28.1",
+        "pytest": "9.1.1"
+      },
+      "environment": "Existing cached Windows virtual environment plus private cached SoupSieve and OpenTelemetry overlays; no install or network."
+    },
+    "hosted_environment_difference": "Historical main used Linux Python3.12.16; this focused local run used Windows Python3.12.10 and pytest9.1.1. This is not a full hosted-suite result.",
+    "source_blobs": {
+      "tests/unit/test_discovery_scheduler_lifecycle_160.py": "02b27d209e3359efadcb3b26547b8fd3ee735a73",
+      "services/discovery/scheduler.py": "9860102f74d355104e08ad694dd4ba7f74975591",
+      "packages/persistence/store.py": "24c3543c21be82c9bd573c4c9e722d401cd7323f",
+      "tools/agent_dashboard/supervisor.py": "46a0ad385afde763b09f3b21edc86ddab04fa141",
+      "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+      "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      ".github/test-requirements.txt": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+      "pyproject.toml": "16d3bebbeb35d69125b7e7993b553836e1b0c95b"
+    },
+    "owned_import_count": 28,
+    "imported_manifest_sha256": "ab9b497c292ec21a29f884aa41a53cbad508611aefcc0e9bd1f93613bface5a9",
+    "foreign_repo_imports": {},
+    "network": {
+      "policy": "ALL_SOCKET_NETWORK_BLOCKED",
+      "blocked_attempts": []
+    },
+    "resources": "Owned temporary SQLite; Redis mocked. No Fleet controllers or background monitor threads started by this regression.",
+    "runner_sha256": "a08c0c3dc68b51625bddb388ae60de9d292ed478268ab1fa5ff7864982cff417",
+    "resource_claim_released": true
+  },
+  "static_validation": {
+    "default_ruff_result": "FAIL_EXISTING_FINDINGS",
+    "baseline": {
+      "exit_code": 1,
+      "counts": {
+        "I001": 1,
+        "SIM117": 6
+      },
+      "findings": [
+        {
+          "code": "I001",
+          "row": 2,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "SIM117",
+          "row": 43,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 58,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 82,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 98,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 130,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 152,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        }
+      ]
+    },
+    "candidate": {
+      "exit_code": 1,
+      "counts": {
+        "I001": 1,
+        "SIM117": 5
+      },
+      "findings": [
+        {
+          "code": "I001",
+          "row": 2,
+          "message": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "code": "SIM117",
+          "row": 43,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 58,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 82,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 136,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        },
+        {
+          "code": "SIM117",
+          "row": 158,
+          "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+        }
+      ]
+    },
+    "default_ruff_interpretation": "Base has one I001 and six SIM117 findings; candidate retains the same I001 and five unchanged SIM117 regions. The new identity assertion separates one former nested-with pair. No Ruff configuration, suppressions, or unrelated style edits were made.",
+    "ci_bounded_ruff_paths": [
+      "apps/api/application_multipage_state.py",
+      "services/operations/pipeline_workbench.py",
+      "services/operations/pipeline_actions.py"
+    ],
+    "ci_scope_note": "The affected lifecycle file is not included in the unchanged CI bounded Ruff command. Full-file Ruff is still reported as failing.",
+    "assertion_ast_preservation": "PASS",
+    "staged_whitespace": "PASS",
+    "working_whitespace": "PASS",
+    "source_commit_provenance": "PASS"
+  },
+  "setup_and_cleanup_incidents": [
+    {
+      "stage": "Initial private worktree-wrapper preparation",
+      "result": "SyntaxError before execution due to generated string newline escaping; corrected before source work or tests. No worktree, claim, or test was created by that failed parse."
+    },
+    {
+      "stage": "RED resource-claim cleanup",
+      "result": "Windows PermissionError occurred during the original atomic claims.json replacement after the expected test failure and verification completed. It interrupted receipt serialization. The identical owned claim was released successfully on one guarded cleanup attempt; its exact leftover temporary file was identified and removed. No permissions or policies changed; the test was not rerun. Raw test log/XML/source and a reconstructed receipt remain preserved."
+    },
+    {
+      "stage": "GREEN runner receipt persistence",
+      "result": "Private runner now serializes the full result before shared claim cleanup. GREEN validation and ordinary exact-record cleanup both completed successfully."
+    }
+  ],
+  "independent_source_review": {
+    "reviewer": "Root integration owner",
+    "reviewed_utc": "2026-11-20T12:57:11Z",
+    "verdict": "CLEAR",
+    "scope": "Read-only review of the staged fixture diff, shared sleep identity and real monotonic delegation; no independent test rerun."
+  },
+  "artifact_hashes": {
+    ".tmp/scheduler-sleep-isolation/setup-attempt01.json": {
+      "sha256": "9275a58f93f4ba39b8f19fa2cc26d71dd82da89ddf089493f949bee61eb1b0a9",
+      "bytes": 296
+    },
+    ".tmp/scheduler-sleep-isolation/red-preparation.json": {
+      "sha256": "45b2092d4aba6583160933beb6a5804e99b56ba49b52a54fe5c2646220f78702",
+      "bytes": 328
+    },
+    ".tmp/scheduler-sleep-isolation/red-source.patch": {
+      "sha256": "00c2e4bd814ac0e33b8e6f2819706014ef913c574377e23b589e245475690512",
+      "bytes": 1474
+    },
+    ".tmp/scheduler-sleep-isolation/validate-red.py": {
+      "sha256": "dc6f835bd6298c37dd39a8df21f200cd0733fccbc258b92722a4f57573a409b6",
+      "bytes": 10334
+    },
+    ".tmp/scheduler-sleep-isolation/red/pytest.log": {
+      "sha256": "bbed13d53d5a48a3109c8df0c7e2c3ba6aa1844052fb60594f7fb9d772a456d1",
+      "bytes": 3580
+    },
+    ".tmp/scheduler-sleep-isolation/red/pytest.xml": {
+      "sha256": "a96bfce875fd659319539015f1fee8c6b9bafdbfc3ea553824ed791f7421fef5",
+      "bytes": 3701
+    },
+    ".tmp/scheduler-sleep-isolation/red/source-under-test.py": {
+      "sha256": "38ef153f959f9eebb0cb8a0ed7989f2a63b1310d4faae970d5cb75f56d17e6b6",
+      "bytes": 9022
+    },
+    ".tmp/scheduler-sleep-isolation/red/receipt.json": {
+      "sha256": "e42253e7b6708fdfe4aebee2f0e375bc406ff4baf451888896fe117180e981cb",
+      "bytes": 1473
+    },
+    ".tmp/scheduler-sleep-isolation/red/cleanup-error.txt": {
+      "sha256": "9dd25eaf01e64f27c7551f2186d203f679943b980427cde28524735077d1487b",
+      "bytes": 355
+    },
+    ".tmp/scheduler-sleep-isolation/red/cleanup-receipt.json": {
+      "sha256": "b64375175b98db3cae47c75223f1760d4f96a02eb6cad42e8b2cb66afc06770f",
+      "bytes": 1050
+    },
+    ".tmp/scheduler-sleep-isolation/red/cleanup-owned-temp-receipt.json": {
+      "sha256": "1bc0704e9644ac04e8b3c0b7704a30db9d105b8f2c842fb18dab3ee94a59057e",
+      "bytes": 357
+    },
+    ".tmp/scheduler-sleep-isolation/green-preparation.json": {
+      "sha256": "9229a51323726c117f9aeb5deae7d7bb50fc45833dd4b2bdfbaddf4b04883b43",
+      "bytes": 526
+    },
+    ".tmp/scheduler-sleep-isolation/green-source.patch": {
+      "sha256": "93c9267d9660ccc39c78b47309e5e3d2e2b3a0ffb5807e7ae089209883bedbc1",
+      "bytes": 1660
+    },
+    ".tmp/scheduler-sleep-isolation/validate.py": {
+      "sha256": "a08c0c3dc68b51625bddb388ae60de9d292ed478268ab1fa5ff7864982cff417",
+      "bytes": 10589
+    },
+    ".tmp/scheduler-sleep-isolation/green/pytest.log": {
+      "sha256": "1e16c94ff5a22a2653af15b8a726486cdccced61ecceb071987e625d4e1eec2e",
+      "bytes": 119
+    },
+    ".tmp/scheduler-sleep-isolation/green/pytest.xml": {
+      "sha256": "84636fd94ce444774261807771c1436d1e49e7a58c3fc86bd46631116f4ef8ca",
+      "bytes": 1389
+    },
+    ".tmp/scheduler-sleep-isolation/green/source-under-test.py": {
+      "sha256": "8fc67eef76d27f9c8000b54c94a32d37c79d11ae44184790be641e732209f78e",
+      "bytes": 9100
+    },
+    ".tmp/scheduler-sleep-isolation/green/receipt-before-cleanup.json": {
+      "sha256": "a2ef9a952ef0b0c9a63a1937a81d0b540c58fc2a1f09254709871b08691b4eb8",
+      "bytes": 13226
+    },
+    ".tmp/scheduler-sleep-isolation/green/receipt.json": {
+      "sha256": "cffa5c0a43052be33e82b57a09e73e7c80fcc935637ba85eb2368da124dbd406",
+      "bytes": 13311
+    },
+    ".tmp/scheduler-sleep-isolation/ruff.log": {
+      "sha256": "8d90b09c9ea50ba123b16ac19a08d5581aa6f5c201610df3c18148de8979adec",
+      "bytes": 5656
+    },
+    ".tmp/scheduler-sleep-isolation/ruff-baseline.json": {
+      "sha256": "fe1a8d42e583b2622e67222d81dc4e97e3f49680256f2384ce8103a505d158d5",
+      "bytes": 4900
+    },
+    ".tmp/scheduler-sleep-isolation/ruff-candidate.json": {
+      "sha256": "e9bd10f0924bf9caaefe7a2b3d8df44f0fde7cf76d13fadcd107e97cb7315c9d",
+      "bytes": 4283
+    },
+    ".tmp/scheduler-sleep-isolation/ruff-comparison.json": {
+      "sha256": "cc9c9895c32f9a3bf092d2a24fa92b69ab311d38ebb1d72facb96c2291e996cf",
+      "bytes": 2624
+    },
+    ".tmp/scheduler-sleep-isolation/static-checks.json": {
+      "sha256": "69d3b6a8b24f73038e202c4b17ec96bc4a751c39c1132d96ffafdb2e90e24064",
+      "bytes": 4353
+    },
+    ".tmp/scheduler-sleep-isolation/source-commit-receipt.json": {
+      "sha256": "b53f7f3091ae26b447b5245658c4f6f3924b4dc01e58550edcb74a5967edde16",
+      "bytes": 522
+    },
+    ".tmp/scheduler-sleep-isolation/source-provenance.log": {
+      "sha256": "61d919e873cf4c2b248516466404240669048e85e27e7cc6187d42f11230997b",
+      "bytes": 46
+    },
+    ".tmp/scheduler-sleep-isolation/historical-main-warning-snapshot.json": {
+      "sha256": "8595e28b208d31b8705d0715b1304559a346e272fd7a3cc766fd63943f5bd05d",
+      "bytes": 12538
+    }
+  },
+  "unperformed_actions": [
+    "Full hosted suite on this private candidate",
+    "PR publication",
+    "Protected merge",
+    "Hosted rerun or dispatch",
+    "Production deployment",
+    "Fleet source edits",
+    "Canonical acceptance or shared SESSION edits"
+  ],
+  "scope_limits": [
+    "The historical main11-warning evidence is preserved unchanged.",
+    "Scoped local no-warning success does not certify a warning-free full suite.",
+    "Only the lifecycle fixture source and this new evidence record belong to this private candidate."
+  ]
+}
