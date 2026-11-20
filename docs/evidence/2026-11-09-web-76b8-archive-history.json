@@ -450,5 +450,91 @@
         "bytes": 7454
       }
     }
+  },
+  "actual_main_binding_0b1c8d01": {
+    "recorded_utc": "2026-11-20T16:07:26.148119+00:00",
+    "state": "PRIVATE_ACTUAL_MAIN_BINDING_VERIFIED_PENDING_ROOT_REVIEW",
+    "prior_private_head": "e30e641a541f454d0d70e1c1320c43d98680048e",
+    "actual_main": "0b1c8d018baed1ae82cd0bceca8d525525a1e64a",
+    "actual_main_tree": "6632baec03d7e53299ba03bddbd77053c740f685",
+    "main_integration_observation": {
+      "pull_request": 1069,
+      "merged_at_utc": "2026-11-20T15:57:39Z",
+      "merged_by": "MulattoTech",
+      "method": "Observed squash integration; sole parent87ca270f and tree identical to reviewed94f5fc80.",
+      "team_action": "This team did not enable or request that protected merge; this record describes only the subsequent authorized private refresh."
+    },
+    "source_refresh_commit": "667801dd8f046b24aefb672e56b4ec2f392ba22b",
+    "source_refresh_tree": "74d18d949f42ea6800903e9e3292ba4adb25932f",
+    "source_refresh_parents": [
+      "e30e641a541f454d0d70e1c1320c43d98680048e",
+      "0b1c8d018baed1ae82cd0bceca8d525525a1e64a"
+    ],
+    "incoming_paths": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "incoming_overlap_with_owned_paths": [],
+    "incoming_overlap_with_tested_inputs": [],
+    "own_incremental_paths": [
+      "docs/evidence/2026-11-09-web-76b8-archive-history.json",
+      "planning/agent_handoffs/MJ-REQ-198-archive-history-76b8.json",
+      "services/applications/supporting_documents.py",
+      "services/documents/archive.py",
+      "services/documents/archive_store.py",
+      "tests/unit/test_document_archive_history_window.py"
+    ],
+    "source_binding": {
+      "tested_input_count": 102,
+      "all_recorded_git_inputs_and_canonical_working_files_preserved": true,
+      "original_recorded_raw_hash_count": 102,
+      "all_recorded_raw_hashes_preserved": true,
+      "all_pre_refresh_raw_working_inputs_preserved": true,
+      "original_implementation_blobs_preserved": {
+        "planning/agent_handoffs/MJ-REQ-198-archive-history-76b8.json": "1e5ef8bfe5b008711a557b43b83701196db14786",
+        "services/applications/supporting_documents.py": "b8e160f5c588c8da06d498b0d5edd1fc4f36f7a7",
+        "services/documents/archive.py": "10887bd615f740d58759dc6ab3b0cbd24607bfe6",
+        "services/documents/archive_store.py": "54aaadb70cf3840bc4a1508ea90982596c674c74",
+        "tests/unit/test_document_archive_history_window.py": "c0d948102a922bf96624c0ddcd0df4b6d05b1630"
+      },
+      "receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main0b-refresh\\source-binding.json",
+        "sha256": "403649e0535089e718c554a3c060c4ce308d1098c13c6b94897b12c508b1e9ac"
+      }
+    },
+    "retained_runtime_execution": {
+      "source": "b7c800add7539a27418d0f3e5e4c69ce6e64f190",
+      "tree": "83630289a451fa3dbb41af7857bef41cc11b0772",
+      "test_methods": 13,
+      "passed_subtests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "warnings": 10,
+      "receipt_sha256": "fa328a82d5f3b834cf708fa104c3164fbbce5d466cdbac7e5662218e71cc5484",
+      "rerun": false,
+      "qualification": "Original execution attribution is retained through unchanged input identity; this is not a runtime test on the new merge or a new hosted result."
+    },
+    "prior_fields_preserved": 24,
+    "acceptance_changes": 0,
+    "preserved_qualifications": [
+      "MJ-REQ-198, MJ-REQ-134 and MJ-REQ-135 remain PARTIAL.",
+      "The historical Secret Scan failure remains recorded with finding classification UNKNOWN; its diagnostic artifact is unavailable and no scanner or allowlist action occurred.",
+      "The original23-method historical executions remain separate from the fresh13-method/16-subtest b7c800ad execution; all10 warnings remain retained.",
+      "PostgreSQL, browser, full hosted-suite and deployed acceptance remain unverified by this local proof."
+    ],
+    "actions_not_performed": [
+      "runtime tests",
+      "admission",
+      "publication",
+      "PR mutation",
+      "scanner execution",
+      "acceptance promotion",
+      "protected merge",
+      "production action"
+    ]
   }
 }
