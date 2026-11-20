@@ -17,6 +17,7 @@ AGGREGATOR_HOSTS = {
     "ziprecruiter.com", "monster.com", "careerbuilder.com", "simplyhired.com",
     "remotive.com", "remoteok.com", "weworkremotely.com",
     "arbeitnow.com", "arbeitnow.co.uk", "arbeitnow.fr", "arbeitnow.ch", "arbeitnow.nl",
+    "usajobs.gov",
 }
 VERIFIED_METHODS = {
     "FIRST_PARTY_JOB_LINK", "VERIFIED_EXISTING_DOMAIN", "ATS_COMPANY_METADATA",

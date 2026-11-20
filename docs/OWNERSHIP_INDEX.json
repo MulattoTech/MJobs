@@ -1,0 +1,475 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "docs/REPO_MAP.md",
+      "sha256": "b2d8b066a4dc738c7a3c4f7b8b138e29548701ddde07d26047e185a0b19ca4ca"
+    },
+    {
+      "path": "docs/AREA_ROUTING.md",
+      "sha256": "219a8c0ace43899f08af48f7152a0af942cf4b6b7b8237af289577e2ea50b134"
+    }
+  ],
+  "repository_map": [
+    {
+      "paths": [
+        "apps/api/"
+      ],
+      "ownership": "FastAPI application, typed routes, request validation and API/UI mounting"
+    },
+    {
+      "paths": [
+        "apps/web/"
+      ],
+      "ownership": "React/TypeScript UI, client contracts and frontend tests"
+    },
+    {
+      "paths": [
+        "packages/domain/"
+      ],
+      "ownership": "Shared domain policy, value types, operation mode and state contracts"
+    },
+    {
+      "paths": [
+        "packages/persistence/"
+      ],
+      "ownership": "SQLAlchemy schema and stores; durable state and provenance"
+    },
+    {
+      "paths": [
+        "services/discovery/"
+      ],
+      "ownership": "Search scheduling, collection, normalization and source adapters"
+    },
+    {
+      "paths": [
+        "services/company_discovery/"
+      ],
+      "ownership": "Employer identity, career discovery, source enrollment and monitoring"
+    },
+    {
+      "paths": [
+        "services/ats_detection/"
+      ],
+      "ownership": "Pure provider/board evidence detection"
+    },
+    {
+      "paths": [
+        "services/dedupe/",
+        "services/matching/"
+      ],
+      "ownership": "Canonical job/source identity, route authority and explainable match scoring"
+    },
+    {
+      "paths": [
+        "services/career_profile/",
+        "services/answers/",
+        "services/learning/"
+      ],
+      "ownership": "Verified profile facts, reviewed answer knowledge and feedback"
+    },
+    {
+      "paths": [
+        "services/documents/"
+      ],
+      "ownership": "Uploaded originals, extraction, generation, validation and artifact history"
+    },
+    {
+      "paths": [
+        "services/applications/"
+      ],
+      "ownership": "Provider review adapters, preparation, controlled dry runs and mock receipts"
+    },
+    {
+      "paths": [
+        "services/ai/",
+        "services/agents/"
+      ],
+      "ownership": "Configured model providers, bounded tools, proposals and traces"
+    },
+    {
+      "paths": [
+        "services/operations/",
+        "services/tracking/"
+      ],
+      "ownership": "Workflow read models/actions, local email status and follow-up drafts"
+    },
+    {
+      "paths": [
+        "services/credentials/",
+        "services/privacy/"
+      ],
+      "ownership": "Credential protection and sanitized observations"
+    },
+    {
+      "paths": [
+        "services/normalization/",
+        "services/source_candidates/"
+      ],
+      "ownership": "Shared normalized values and candidate-source review"
+    },
+    {
+      "paths": [
+        "workers/"
+      ],
+      "ownership": "Flat runtime entry points, dispatch, durable operations/leases, retries and task execution"
+    },
+    {
+      "paths": [
+        "migrations/"
+      ],
+      "ownership": "Versioned Alembic schema evolution and migration environment"
+    },
+    {
+      "paths": [
+        "fixtures/"
+      ],
+      "ownership": "Synthetic source/ATS service and fictional data"
+    },
+    {
+      "paths": [
+        "tests/"
+      ],
+      "ownership": "Unit, integration, browser and CI checks plus shared synthetic fixtures"
+    },
+    {
+      "paths": [
+        "infra/docker/",
+        "infra/deploy/",
+        "infra/ci/"
+      ],
+      "ownership": "Runtime image, protected deployment/update procedures and CI infrastructure"
+    },
+    {
+      "paths": [
+        "cli/"
+      ],
+      "ownership": "Explicit operational commands, synthetic acceptance and guarded recovery"
+    },
+    {
+      "paths": [
+        "tools/"
+      ],
+      "ownership": "Development verification, CI, deployment checks and documentation build"
+    },
+    {
+      "paths": [
+        "docs/"
+      ],
+      "ownership": "Specifications, current guides, decisions, runbooks and sanitized evidence"
+    },
+    {
+      "paths": [
+        "planning/"
+      ],
+      "ownership": "Canonical requirement/acceptance authorities and compact continuity records"
+    }
+  ],
+  "area_routing": [
+    {
+      "area": "governance_safety",
+      "requirements": "MJ-REQ-000…MJ-REQ-014",
+      "code_ownership": "root / docs / planning",
+      "area_spec": "docs/spec/areas/governance_safety.md"
+    },
+    {
+      "area": "core_search_model",
+      "requirements": "MJ-REQ-015…MJ-REQ-039",
+      "code_ownership": "packages/domain; apps/api; services/search",
+      "area_spec": "docs/spec/areas/core_search_model.md"
+    },
+    {
+      "area": "job_identity_dedupe",
+      "requirements": "MJ-REQ-040…MJ-REQ-053",
+      "code_ownership": "services/normalization; services/dedupe",
+      "area_spec": "docs/spec/areas/job_identity_dedupe.md"
+    },
+    {
+      "area": "company_ats_discovery",
+      "requirements": "MJ-REQ-054…MJ-REQ-084",
+      "code_ownership": "services/company_discovery; services/ats_detection",
+      "area_spec": "docs/spec/areas/company_ats_discovery.md"
+    },
+    {
+      "area": "job_lifecycle",
+      "requirements": "MJ-REQ-085…MJ-REQ-087",
+      "code_ownership": "packages/domain/jobs; services/discovery",
+      "area_spec": "docs/spec/areas/job_lifecycle.md"
+    },
+    {
+      "area": "career_profile_documents",
+      "requirements": "MJ-REQ-088…MJ-REQ-107",
+      "code_ownership": "services/career_profile; services/documents",
+      "area_spec": "docs/spec/areas/career_profile_documents.md"
+    },
+    {
+      "area": "matching_ai",
+      "requirements": "MJ-REQ-108…MJ-REQ-120",
+      "code_ownership": "services/matching; services/ai",
+      "area_spec": "docs/spec/areas/matching_ai.md"
+    },
+    {
+      "area": "application_automation",
+      "requirements": "MJ-REQ-121…MJ-REQ-154",
+      "code_ownership": "services/applications; workers/applications",
+      "area_spec": "docs/spec/areas/application_automation.md"
+    },
+    {
+      "area": "orchestration_data_security",
+      "requirements": "MJ-REQ-155…MJ-REQ-180",
+      "code_ownership": "workers; packages/persistence; services/security; observability",
+      "area_spec": "docs/spec/areas/orchestration_data_security.md"
+    },
+    {
+      "area": "web_api_analytics",
+      "requirements": "MJ-REQ-181…MJ-REQ-207",
+      "code_ownership": "apps/web; apps/api; services/analytics",
+      "area_spec": "docs/spec/areas/web_api_analytics.md"
+    },
+    {
+      "area": "test_harness",
+      "requirements": "MJ-REQ-208…MJ-REQ-230",
+      "code_ownership": "tests; fixtures; mock-services",
+      "area_spec": "docs/spec/areas/test_harness.md"
+    },
+    {
+      "area": "performance_learning_history",
+      "requirements": "MJ-REQ-231…MJ-REQ-247",
+      "code_ownership": "services/discovery; services/learning; packages/persistence",
+      "area_spec": "docs/spec/areas/performance_learning_history.md"
+    },
+    {
+      "area": "operations_ux_ci",
+      "requirements": "MJ-REQ-248…MJ-REQ-280",
+      "code_ownership": "apps/web; infra; .github; cli",
+      "area_spec": "docs/spec/areas/operations_ux_ci.md"
+    },
+    {
+      "area": "docs_verification",
+      "requirements": "MJ-REQ-281…MJ-REQ-289",
+      "code_ownership": "docs; tools/verification",
+      "area_spec": "docs/spec/areas/docs_verification.md"
+    },
+    {
+      "area": "delivery_control",
+      "requirements": "MJ-REQ-290…MJ-REQ-300",
+      "code_ownership": "planning; docs; root",
+      "area_spec": "docs/spec/areas/delivery_control.md"
+    },
+    {
+      "area": "agent_orchestration_safety",
+      "requirements": "MJ-REF-013, MJ-REF-014; MJ-REQ-000, 008, 121, 140",
+      "code_ownership": "services/agents; packages/persistence",
+      "area_spec": "services/agents/AREA.md"
+    }
+  ],
+  "area_contracts": [
+    {
+      "path": "apps/api/AREA.md",
+      "title": "Product API",
+      "summary": "Own local profile input, durable discovery/operation routes, job reads and explicit mock application preparation/run/status. FastAPI/Pydantic interfaces are in OpenAPI at /docs. Requirements: MJ-REQ-181 and initial spine cross-area integration. No career fact inference, workflow truth in UI, or external submission switch. Personal operation rejects fictional discovery, preparation and mock-run before queueing; `/settings` reports the active mode. Public source collection remains available. Queued fixture work is also blocked by workers after a mode switch. Production startup refuses PERSONAL mode if the database contains mock routes. `POST /jobs/manual` persists explicitly entered job text and links through the canonical job, posting snapshot, application route and audit records. It never fetches the supplied URLs; retries require the same request key and content, while a new key creates a distinct record. `GET/PUT /profiles/{profile_id}/ai-task-settings` reads and persists non-secret provider/model choices per profile. Invalid selections fail closed without echoing submitted credentials or malformed values. `GET/PUT /profiles/{profile_id}/ai-cost-policy` persists bounded per-profile funnel thresholds. `GET /profiles/{profile_id}/ai-cost-plan` is a read-only preview over stored deterministic match scores; it makes no provider request and never creates documents. Validation errors omit submitted values. `POST /profiles/{profile_id}/ai-cost-plan/evaluate` requires the configured job-scoring provider and runs only after an explicit request. Validated advisory results, the applied cost policy, and non-secret provider/model identifiers are durably stored against the profile version used; profile changes during inference reject persistence. `GET /profiles/{profile_id}/ai-cost-plan/evaluations` returns bounded recent history for that profile. Neither route changes match scores or creates documents. `POST /profiles/{profile_id}/ai-cost-plan/evaluations/{run_id}/review-documents` persists explicit candidate review up to the run's saved document cap, rejects cross-profile and stale-profile decisions, and exposes the review in history. `POST /applications` can carry that evaluation run ID; the API refuses the AI-funnel preparation path unless the same profile explicitly reviewed that job. The existing preparation flow remains a second deliberate user action. Depends on domain/services/persistence; browser work belongs in workers. Contact and facts are bounded and strict; cross-origin mutations are rejected; default deployment publishes only localhost. Test: python -m unittest tests.integration.test_api_queue. Full user authentication, authorization, dashboard/API coverage and production exposure remain unimplemented.",
+      "requirements": [
+        "MJ-REQ-181"
+      ],
+      "sha256": "a8a16c854af9655ae09857a4dfde81ce365697d839402fbb39a24ab74ca4ae9d"
+    },
+    {
+      "path": "apps/web/AREA.md",
+      "title": "Connected local web application",
+      "summary": "Owns the React/TypeScript user journey. Same-origin API is the authority; no submission decision is made by client state. Career facts require explicit verification and approval. Demo data is visibly fictional and opt-in. Builds are served by FastAPI; no frontend development server is required for testing. The Jobs view exposes explicit manual capture with an exact description, saved reference/application links, preserved extra source fields and a visible no-fetch explanation. Captured jobs use the existing canonical detail and document-preparation path; their user-entered source identity is unverified. AI Settings exposes independent provider/model selections for each AI task, loads and saves them through the profile-scoped API, and keeps all tasks disabled until the user explicitly saves a local provider choice. AI cost controls persist per-profile score thresholds and bounded work caps; the read-only funnel preview reports eligible/capped counts without invoking a model or creating documents. Controls remain unavailable until saved policy values for the selected profile load successfully. Evaluation remains an explicit action. Validated advisory results are shown in profile-scoped history after reload; they do not change deterministic scores or create documents.",
+      "requirements": [],
+      "sha256": "c951d27897107c66bda82b2a72e110c54a024ced54daabad03059c30c6ed728c"
+    },
+    {
+      "path": "cli/AREA.md",
+      "title": "Local command ownership",
+      "summary": "The `cli` package owns project-scoped startup probes, safe fixture verification, workspace identity inspection, and offline local backup/restore commands. It does not own the API's durable state or authorization decisions. The backup interface is `python -m cli.local_backup {backup,verify,restore}`; restore only creates a fresh Compose project and never overwrites existing volumes.",
+      "requirements": [
+        "MJ-REQ-013",
+        "MJ-REQ-014",
+        "MJ-REQ-167",
+        "MJ-REQ-168",
+        "MJ-REQ-184"
+      ],
+      "sha256": "6eefbc4383206354ac4dd063a95757d0f9105388ceeed137b46e47e607d8b577"
+    },
+    {
+      "path": "fixtures/AREA.md",
+      "title": "Fictional source/company/ATS environment",
+      "summary": "Own local HTTP fixture contract for MJ-REQ-209 through 213. Data describes Alex Fixture and Example Systems Inc.; it is never user career data or production discovery output. Interface: create_mock_app and fixture_server. Provider endpoints are exposed only inside the private Compose network. Receipts have deterministic application identity and durable mock storage. Tests exercise browser/HTTP/data behavior; acceptance status is recorded separately in the canonical matrix.",
+      "requirements": [
+        "MJ-REQ-209"
+      ],
+      "sha256": "69fc2d0ce12608621c525ae88fc7fd6dc55c2ad533ad391f23207d4b33dec5b6"
+    },
+    {
+      "path": "packages/domain/AREA.md",
+      "title": "Domain safety",
+      "summary": "Own deterministic cross-area contracts and submission decisions (MJ-REQ-000). No network, browser, database, AI, or host configuration side effects belong here.",
+      "requirements": [
+        "MJ-REQ-000"
+      ],
+      "sha256": "0a341059abf36b164301b0cff8980d3400dbe520cff83bbb76b2a161881aed40"
+    },
+    {
+      "path": "packages/persistence/AREA.md",
+      "title": "Durable authority",
+      "summary": "Own relational profiles/fact versions, companies/sources, jobs/postings/routes, matches/documents, applications/attempts, operations and audits. Interfaces: Store(url), save_profile, profile(version), ai_task_settings, save_ai_task_settings, ai_cost_policy, save_ai_cost_policy, jobs, application, transition. Requirements: MJ-REQ-015, 041, 052, 092, 094, 145, 146, 156, 158, 159, 162. SQLAlchemy ORM profile read models share the existing Tables with Core transactional writes. Short-lived read Sessions preserve caller-owned locks, snapshots and transactions; returned values are detached copies. PostgreSQL deployment uses separate least-privileged runtime credentials; explicit SQLite URLs are for tests. Migrations live in migrations/versions and must retain immutable schema history. UI and provider services cannot become durable state authority. Test: .venv/Scripts/python -m unittest discover -s tests. Credentials and personal artifacts are never logged or committed. Counters and submission reservations serialize by profile row.",
+      "requirements": [
+        "MJ-REQ-015"
+      ],
+      "sha256": "96c77b64caa19a62c0868ce4a6f619e228e45810b6dad1a14922cbf8c3d2230b"
+    },
+    {
+      "path": "services/agents/AREA.md",
+      "title": "Local agent tool boundary",
+      "summary": "Owns the typed tool catalog, proposal-only side-effect gate, value-free durable run traces, and least-data prompt projection for MJ-REF-013/014. It does not own model/provider calls, browser sessions, database connections exposed to a model, or external application submission.",
+      "requirements": [
+        "MJ-REF-013",
+        "MJ-REF-014",
+        "MJ-REQ-000",
+        "MJ-REQ-008",
+        "MJ-REQ-121",
+        "MJ-REQ-140"
+      ],
+      "sha256": "1a3cde474deb4fdd989e97ae15103343811cf47788ec4c02b2ba4d9f134c8670"
+    },
+    {
+      "path": "services/ai/AREA.md",
+      "title": "AI Services Area",
+      "summary": "Owns provider-neutral AI contracts and explicitly configured model integrations for MJobs.",
+      "requirements": [
+        "MJ-REQ-108",
+        "MJ-REQ-108.A06",
+        "MJ-REQ-109",
+        "MJ-REQ-110"
+      ],
+      "sha256": "197629d7cecbfc2a9b72cafc133d5ab5b05def83d84300828500005f5e4a49c4"
+    },
+    {
+      "path": "services/ai/providers/AREA.md",
+      "title": "AI Provider Implementations",
+      "summary": "Provider implementations live behind the provider-neutral contract in `services/ai/providers/__init__.py`.",
+      "requirements": [],
+      "sha256": "f4b107214d3ff68865cb24038dc5997c70fa3eec83acb41983ebfa0916d015fe"
+    },
+    {
+      "path": "services/applications/AREA.md",
+      "title": "Mock application adapter",
+      "summary": "Own the explicit local mock ATS headless two-page flow, upload integrity, validation, intervention stop, dry-run and receipt-confirmed mock submission. Interface: apply_mock(store, application_id, mock_origin, output_dir, submit=False). Requirements: MJ-REQ-121, 124, 139, 145, 146, 148, 158, 208, 213. Depend on domain policy, persistence and Playwright. One worker/browser at a time. All HTTP/browser requests are restricted to configured mock origin. No real ATS submission is implemented or enabled. Persist SUBMITTING before click; failed receipt lookup yields SUBMISSION_UNCONFIRMED and never a blind retry. Persistent browser sessions reside only in private output storage. Test: python -m unittest tests.browser.test_mock_application.",
+      "requirements": [
+        "MJ-REQ-084",
+        "MJ-REQ-121",
+        "MJ-REQ-224"
+      ],
+      "sha256": "e0ad4320089f5f12759e0ab9111e48450b202a9c400fb7e78c60921f7ef3f4cc"
+    },
+    {
+      "path": "services/ats_detection/AREA.md",
+      "title": "ATS Detection Area",
+      "summary": "Owns provider identification from public career-page evidence. Detection does not imply job enumeration, authentication, or application automation support.",
+      "requirements": [],
+      "sha256": "18a3b8214a120fe73f03b2be5a342471c1d2cb77401c38fa478bc384aca29b85"
+    },
+    {
+      "path": "services/career_profile/AREA.md",
+      "title": "Career profile extraction",
+      "summary": "This area implements the native, local-first base-resume import boundary for MJ-REQ-090, MJ-REQ-091, and MJ-REQ-092. PDF, DOCX, and UTF-8 TXT input is parsed without network or AI calls. Results remain `READY_FOR_REVIEW` until a user approves individual facts; empty image-only PDFs use bounded local OCR in the Linux Docker runtime. If OCR is unavailable or unsuccessful they report `NEEDS_OCR`; blank/unreadable documents report `UNREADABLE`. Native text remains reviewable even when OCR fails.",
+      "requirements": [
+        "MJ-REQ-088",
+        "MJ-REQ-090",
+        "MJ-REQ-091",
+        "MJ-REQ-092"
+      ],
+      "sha256": "e8cbb4119dc1e2393ed4511545e2a193a6f898c414d7a2668394a682ac06b519"
+    },
+    {
+      "path": "services/company_discovery/AREA.md",
+      "title": "Company Discovery Area",
+      "summary": "Owns company identity resolution, trigger policy, official career-source discovery, automatic source enrollment, and immediate employer enumeration.",
+      "requirements": [
+        "MJ-REQ-054",
+        "MJ-REQ-077",
+        "MJ-REQ-083"
+      ],
+      "sha256": "7ae02c57d821fc08e0bcf093e144518b9829e151df211a3fc9fdb3d5c7deb65d"
+    },
+    {
+      "path": "services/dedupe/AREA.md",
+      "title": "AREA — services/dedupe",
+      "summary": "Owns deterministic duplicate-candidate evidence and later merge/review policy.",
+      "requirements": [],
+      "sha256": "943caced335ab7bd238e7e8e7e15457e891bd3a47acfe9deb497242b01c3da4a"
+    },
+    {
+      "path": "services/discovery/AREA.md",
+      "title": "Discovery services",
+      "summary": "Own the normalized discovery boundary for controlled fixtures and registered public sources. The source contract declares collection strategy and exact capabilities; provider-specific request behavior stays inside adapters.",
+      "requirements": [
+        "MJ-REQ-016",
+        "MJ-REQ-040",
+        "MJ-REQ-085"
+      ],
+      "sha256": "43cb7523fe8d78a1a4544fbf2b429cd03db86510d0006a025baebabb4d6b7ac0"
+    },
+    {
+      "path": "services/discovery/sources/AREA.md",
+      "title": "First-party job-source adapters",
+      "summary": "Own provider collection, parsing, capabilities and bounded public GET requests. Greenhouse currently supports explicitly configured employer boards; global search and application submission are not supported. Requirements: MJ-REQ-016, 018-020, 063.D01, 066-068 and 228 (scoped evidence only).",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-016",
+        "MJ-REQ-017.F06",
+        "MJ-REQ-017.F07"
+      ],
+      "sha256": "de89e8d637951c3352328652a245c3a8263be0ae9c1618b92d190ac354a4c267"
+    },
+    {
+      "path": "services/documents/AREA.md",
+      "title": "Factual documents",
+      "summary": "Own verified-fact DOCX/PDF/TXT preparation and version/provenance/hash records. Also own profile-scoped base-resume storage. PDF, DOCX and UTF-8 TXT uploads are bounded to 10 MiB, validated before storage, marked STORED_UNREVIEWED, and checksum-checked on download. Uploads never create or approve CareerFacts. Private originals live in the document volume's uploads directory, so the offline database/document backup must preserve metadata and bytes together. Interface: prepare(store, job_id, profile_id, output_dir) -> application_id. Requirements: MJ-REQ-092 through 099; MJ095 remains partial. Depend on domain safety/persistence, python-docx/reportlab. Default preparation is deterministic. Explicit AI wording proposals require user review and immutable fact references; never invent qualifications. Private files reside under ignored outputs or the document volume, scoped to application and immutable profile version. Test: python -m unittest tests.integration.test_spine tests.integration.test_resume_upload. Named base resumes retain immutable version entries in resume_revisions; repeated uploads within a series are idempotent and version allocation locks the profile. Repeated content keeps the first authoritative filename, media type, format, and stored path even when a later request uses a different matching extension. Native extraction and review belong to services/career_profile. Tailored resume generation now also emphasizes a responsibility bullet only when that approved fact contains an exact matched target-job skill. New tailored and selected-fact revisions use distinct immutable template/model identifiers; older revisions retain their prior skill-only meaning. Exact wording remains unchanged and the match is validated in history/comparison. Broader summary adjustment, factual rephrasing, advanced chronology and document regeneration remain incomplete. Bounded local scanned-PDF OCR and its review gates are owned by career_profile.",
+      "requirements": [
+        "MJ-REF-003",
+        "MJ-REF-010",
+        "MJ-REQ-092",
+        "MJ-REQ-093",
+        "MJ-REQ-156",
+        "MJ-REQ-269"
+      ],
+      "sha256": "92e15bcc6598c2242da610993bbb71b79d5073e527392f2938ad1f0a0841649c"
+    },
+    {
+      "path": "services/normalization/AREA.md",
+      "title": "AREA — services/normalization",
+      "summary": "Owns deterministic canonical-job presentation and normalization boundaries.",
+      "requirements": [],
+      "sha256": "c8eedb93d299167327d6c9b19265fe7972fbd184448513ae55d23e39905c4ed7"
+    },
+    {
+      "path": "tools/verification/AREA.md",
+      "title": "Control-plane verification",
+      "summary": "Own catalogue completeness, dependency consistency and executed evidence tooling. Requirements: MJ-REQ-007, MJ-REQ-008, MJ-REQ-281, MJ-REQ-290 through MJ-REQ-300. Public interface: validate_catalogue(root: Path) -> list[str]; module CLI exits nonzero on inconsistency. No GitHub mutations or product/personal data access. Dependencies: Python standard library. Tests: python -m unittest discover -s tests. New validators must test observable invalid inputs, not exact source text.",
+      "requirements": [
+        "MJ-REQ-001",
+        "MJ-REQ-002",
+        "MJ-REQ-007",
+        "MJ-REQ-008",
+        "MJ-REQ-281",
+        "MJ-REQ-290",
+        "MJ-REQ-300"
+      ],
+      "sha256": "075c72b0d92781102afd9f3c94ecd9346cb3ab52cf264e49c373b73cddca38da"
+    },
+    {
+      "path": "workers/AREA.md",
+      "title": "Durable dispatch and execution",
+      "summary": "Own deterministic PostgreSQL outbox -> Redis/RQ dispatch and one application worker. Interfaces: enqueue_operation, dispatch_pending, execute_operation. Requirements: MJ-REQ-004, 156, 158, 159 (scoped operation-boundary and initial queue/restart slices). Queue disconnect leaves QUEUED authority in the database. Execution claims use conditional updates; duplicate jobs cannot both claim the same operation. Exhausted and terminal worker failures are durable DEAD_LETTERED rows with attempt timestamps and append-only audit events. Operators may explicitly retry the same operation identity or discard it without erasing its failure record. Submission-ambiguous applications remain in reconciliation and cannot be retried from the dead-letter queue. Redis and worker configuration are private environment values, never job args containing credentials. Error persistence is category only. Tests: integration API/queue tests plus Compose mock E2E. Broader running-operation recovery and manual intervention resume remain PARTIAL; do not requeue a SUBMITTING application for blind retry.",
+      "requirements": [
+        "MJ-REF-016",
+        "MJ-REQ-004",
+        "MJ-REQ-009"
+      ],
+      "sha256": "4a72fe30b6404acd551d5a82278fc1f8a75fa1ce6bcfe6708a6e222711eab96d"
+    }
+  ]
+}

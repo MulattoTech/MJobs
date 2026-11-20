@@ -1,0 +1,79 @@
+{
+  "_fixture": {
+    "kind": "synthetic",
+    "requirement": "MJ-REQ-017.F06",
+    "schema_observed_date": "2026-11-13",
+    "note": "Fictional announcement text. Array shape and nullable fields reflect official docs plus a single-control live probe; plural query remains separately qualified."
+  },
+  "data": [
+    {
+      "usajobsControlNumber": 990000101,
+      "hiringAgencyCode": "ZZIT",
+      "hiringDepartmentCode": "ZZ",
+      "announcementNumber": "SYN-IT-2026-101",
+      "positionOpenDate": "2026-11-12",
+      "positionCloseDate": "2026-11-20",
+      "jobcategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "summary": "<p>Maintain synthetic Windows and Linux services.</p><script>private_script_value()</script>",
+      "duties": "Automate infrastructure using Python and PowerShell.",
+      "requirementsQualifications": "Experience administering Windows Server and Linux systems.",
+      "requirementsEducation": "No degree requirement is specified.",
+      "requirementsConditionsOfEmployment": null,
+      "hiringPathExplanation": "Review the official hiring path before applying.",
+      "requiredDocuments": "Synthetic resume fixture only.",
+      "howToApply": "Review the official announcement manually. Do not submit from this fixture.",
+      "benefitsURL": "https://example.invalid/synthetic-benefits",
+      "videoURL": "https://example.invalid/synthetic-video"
+    },
+    {
+      "usajobsControlNumber": 990000102,
+      "hiringAgencyCode": "ZZIV",
+      "hiringDepartmentCode": "ZZ",
+      "announcementNumber": "SYN-IT-2026-102",
+      "positionOpenDate": "2026-11-10",
+      "positionCloseDate": "2026-11-12",
+      "jobcategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "summary": "Provide synthetic desktop support.",
+      "duties": "Resolve hardware and software incidents.",
+      "requirementsQualifications": "Experience with Windows desktop support.",
+      "requirementsEducation": null,
+      "requirementsConditionsOfEmployment": "The source states that a background review may be required.",
+      "hiringPathExplanation": "Synthetic eligible hiring paths.",
+      "requiredDocuments": null,
+      "howToApply": "This synthetic announcement is closed.",
+      "benefitsURL": "https://example.invalid/synthetic-benefits",
+      "videoURL": "https://example.invalid/synthetic-video"
+    },
+    {
+      "usajobsControlNumber": 990000103,
+      "hiringAgencyCode": "ZZIT",
+      "hiringDepartmentCode": "ZZ",
+      "announcementNumber": "SYN-IT-2026-103",
+      "positionOpenDate": "2026-11-13",
+      "positionCloseDate": "2026-11-20",
+      "jobcategories": [
+        {
+          "series": "2210"
+        }
+      ],
+      "summary": "Work with us on global infrastructure. These words do not establish applicant geography.",
+      "duties": "Maintain Linux and SQL services.",
+      "requirementsQualifications": "Experience with Linux and SQL.",
+      "requirementsEducation": null,
+      "requirementsConditionsOfEmployment": null,
+      "hiringPathExplanation": null,
+      "requiredDocuments": null,
+      "howToApply": "Review eligibility on the official announcement.",
+      "benefitsURL": "https://example.invalid/synthetic-benefits",
+      "videoURL": "https://example.invalid/synthetic-video"
+    }
+  ]
+}

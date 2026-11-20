@@ -215,6 +215,40 @@ def test_pending_real_loopback_connect_observes_worker_stop(trigger, monkeypatch
     assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
 
 
+class _PendingConnectClock:
+    """Start only the worker's test budget after real pending-connect admission."""
+
+    def __init__(self, clock=time.monotonic):
+        self._clock = clock
+        self._origin = clock()
+        self._admitted_at = None
+
+    def admit(self):
+        # Admission is one-way: teardown or a repeated call cannot reset expiry.
+        if self._admitted_at is None:
+            self._admitted_at = self._clock()
+
+    def monotonic(self):
+        admitted_at = self._admitted_at
+        if admitted_at is None:
+            return self._origin
+        return self._origin + self._clock() - admitted_at
+
+
+def test_pending_connect_clock_excludes_preparation_but_cannot_extend_admitted_budget():
+    wall = [10.0]
+    clock = _PendingConnectClock(lambda: wall[0])
+    deadline = clock.monotonic() + .8
+    wall[0] += 30
+    assert clock.monotonic() == 10
+    clock.admit()
+    wall[0] += .4
+    assert clock.monotonic() == pytest.approx(10.4)
+    clock.admit()
+    wall[0] += .41
+    assert clock.monotonic() > deadline
+
+
 class _PublicWorkerPhases:
     """Bounded observations of the owned worker, without payloads or SQL values."""
 
@@ -401,9 +435,10 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
     from apps.api.main import create_app
     from packages.persistence.store import Store
     from tests.integration.test_spine import PROFILE
-    from workers.tasks import execute_operation
+    from workers import tasks
 
     phases = phases or _PublicWorkerPhases()
+    worker_clock = _PendingConnectClock()
     store = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
     store.migrate()
     store.bind_workspace_mode('FIXTURE')
@@ -412,6 +447,11 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
     observers = ExitStack()
     try:
         phases.observe(observers, store.url)
+        # Replace this module's clock reference, never the shared time module.
+        # Socket, database, admission and cleanup watchdogs retain real time.
+        # The unchanged .8s/2s worker budget starts only after the fixture has
+        # proved the pending-connect condition that this test is meant to cover.
+        observers.enter_context(patch.object(tasks, 'time', worker_clock))
         with saturated_loopback_listener() as origin:
             connecting = threading.Event()
             sockets = []
@@ -446,7 +486,7 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 def execute():
                     phases.record('worker_enter')
                     try:
-                        results.append(execute_operation(identifier))
+                        results.append(tasks.execute_operation(identifier))
                         phases.worker_result_count = len(results)
                     except BaseException as error:
                         errors.append(error)
@@ -461,6 +501,8 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 time.sleep(.1)
                 assert sockets and not select.select([], [sockets[-1]], [], 0)[1], 'TCP connect not pending'
                 phases.record('pending_connect_confirmed')
+                worker_clock.admit()
+                phases.record('worker_deadline_admitted')
                 if trigger == 'cancel':
                     assert api.post(f'/operations/{identifier}/cancel').status_code == 202
                 phases.record('join_enter')
@@ -483,6 +525,9 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 reopened.engine.dispose()
     finally:
         try:
+            # A failed admission must still release the real worker to its
+            # finite deadline before the existing cleanup watchdog waits.
+            worker_clock.admit()
             phases.release_terminal.set()
             if worker is not None:
                 worker.join(timeout=11)
@@ -496,6 +541,32 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
 @pytest.mark.parametrize('trigger', ['cancel', 'deadline'])
 def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigger, tmp_path, monkeypatch):
     _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch)
+
+
+def test_public_worker_pending_connect_budget_excludes_slow_client_preparation(tmp_path, monkeypatch):
+    """Constructor work longer than the budget cannot consume connect coverage."""
+    original_init = MockClient.__init__
+    preparation_seconds = []
+    phases = _PublicWorkerPhases()
+
+    def slow_init(client, *args, **kwargs):
+        if threading.current_thread().name != 'mock004-public-worker':
+            return original_init(client, *args, **kwargs)
+        started = time.monotonic()
+        time.sleep(.9)
+        original_init(client, *args, **kwargs)
+        preparation_seconds.append(time.monotonic() - started)
+
+    with monkeypatch.context() as scoped:
+        scoped.setattr(MockClient, '__init__', slow_init)
+        _exercise_public_fixture_worker('deadline', tmp_path, scoped, phases=phases)
+    assert len(preparation_seconds) == 1 and preparation_seconds[0] > .8
+    labels = [record[0] for record in phases.records]
+    assert labels.index('deadline_budget') < labels.index('mock_get_enter')
+    assert labels.index('pending_connect_confirmed') < labels.index('worker_deadline_admitted')
+    assert labels.count('backend_connect_OperationTimedOut') == 1
+    assert phases.http_client.is_closed
+    assert phases.worker_store.engine.pool.checkedout() == 0
 
 
 def test_public_worker_entry_diagnostic_records_pre_connect_failure(tmp_path, monkeypatch):

@@ -706,7 +706,7 @@
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-017.F07",
@@ -714,7 +714,7 @@
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-017.S01",
@@ -2666,7 +2666,7 @@
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-204.N05",
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 86,
-    "PASS": 204,
-    "NOT_RUN": 135
+    "PASS": 207,
+    "NOT_RUN": 132
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

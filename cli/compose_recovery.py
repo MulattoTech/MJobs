@@ -402,6 +402,8 @@ def _stable_job_projection(value):
 
 
 def validate_public_job_inventory(inventory):
+    if isinstance(inventory, dict) and type(inventory.get('schema_version')) is int and inventory['schema_version'] == 4:
+        return validate_persisted_job_inventory(inventory)
     if (isinstance(inventory, dict)
             and type(inventory.get("schema_version")) is int
             and inventory["schema_version"] in (1, 2)):
@@ -501,6 +503,127 @@ def collect_public_job_inventory(get_json, profile_id):
     return validate_public_job_inventory(result)
 
 
+def validate_persisted_job_inventory(inventory):
+    from packages.persistence.job_inventory import MAX_JOBS, MAX_COPIES, MAX_PER_JOB, SCOPE, HEX, digest, snapshot_digest
+    def require(condition):
+        if not condition:
+            raise ValueError('Invalid complete persisted job inventory')
+    def checksum(value):
+        return isinstance(value, str) and HEX.fullmatch(value) is not None
+    require(isinstance(inventory, dict) and set(inventory) == {
+        'schema_version', 'scope', 'profile_id', 'profile_version', 'job_count',
+        'source_copy_count', 'jobs', 'sha256', 'snapshot_sha256'})
+    require(type(inventory['schema_version']) is int and inventory['schema_version'] == 4
+        and inventory['scope'] == SCOPE and isinstance(inventory['profile_id'], str)
+        and 1 <= len(inventory['profile_id']) <= 128 and checksum(inventory['profile_version'])
+        and type(inventory['job_count']) is int and 0 <= inventory['job_count'] <= MAX_JOBS
+        and type(inventory['source_copy_count']) is int and 0 <= inventory['source_copy_count'] <= MAX_COPIES
+        and isinstance(inventory['jobs'], list) and len(inventory['jobs']) == inventory['job_count'])
+    previous, count, posting_ids = None, 0, set()
+    for row in inventory['jobs']:
+        require(isinstance(row, dict) and set(row) == {'job_id', 'canonical_sha256', 'route_count',
+            'source_copy_count', 'source_copies', 'source_copies_sha256'})
+        require(isinstance(row['job_id'], str) and 1 <= len(row['job_id']) <= 128
+            and (previous is None or row['job_id'] > previous) and checksum(row['canonical_sha256'])
+            and type(row['route_count']) is int and 0 <= row['route_count'] <= MAX_PER_JOB
+            and type(row['source_copy_count']) is int and 0 <= row['source_copy_count'] <= MAX_PER_JOB
+            and isinstance(row['source_copies'], list) and len(row['source_copies']) == row['source_copy_count'])
+        previous = row['job_id']
+        previous_copy = None
+        for copy in row['source_copies']:
+            require(isinstance(copy, dict) and set(copy) == {'posting_id', 'source', 'source_job_id', 'source_url', 'sha256'})
+            require(all(isinstance(copy[key], str) and copy[key] for key in ('posting_id', 'source', 'source_job_id', 'source_url'))
+                and len(copy['posting_id']) <= 128 and len(copy['source']) <= 200
+                and len(copy['source_job_id']) <= 128 and len(copy['source_url']) <= 2000
+                and checksum(copy['sha256']) and copy['posting_id'] not in posting_ids
+                and (previous_copy is None or copy['posting_id'] > previous_copy))
+            previous_copy = copy['posting_id']
+            posting_ids.add(copy['posting_id'])
+        require(row['source_copies_sha256'] == digest(row['source_copies']))
+        count += row['source_copy_count']
+    require(count == inventory['source_copy_count'] and inventory['sha256'] == digest(inventory['jobs'])
+        and inventory['snapshot_sha256'] == snapshot_digest(inventory['profile_id'], inventory['profile_version'], inventory['jobs']))
+    return inventory
+
+
+def collect_persisted_job_inventory(get_json, profile_id):
+    """Capture all persisted jobs through bounded, snapshot-bound keyset pages.
+
+    No legacy-list fallback: a missing endpoint, changing snapshot, malformed page
+    or explicit capacity refusal is not evidence of complete persistence.
+    """
+    from packages.persistence.job_inventory import MAX_JOBS, MAX_COPIES, PAGE_SIZE, SCOPE, HEX, digest
+    if not isinstance(profile_id, str) or not 1 <= len(profile_id) <= 128:
+        raise ValueError('Job inventory requires a profile ID')
+    prefix = '/profiles/' + quote(profile_id, safe='') + '/job-inventory'
+    common_keys = ('schema_version', 'scope', 'profile_id', 'profile_version', 'total', 'source_copy_count', 'snapshot_sha256')
+    common, rows, cursor, after, cursors = None, [], None, None, set()
+
+    def check_page(page):
+        if (not isinstance(page, dict) or set(page) != {*common_keys, 'after', 'jobs', 'complete', 'next_cursor'}
+                or type(page['schema_version']) is not int or page['schema_version'] != 4
+                or page['scope'] != SCOPE or page['profile_id'] != profile_id
+                or not isinstance(page['profile_version'], str) or not HEX.fullmatch(page['profile_version'])
+                or not isinstance(page['snapshot_sha256'], str) or not HEX.fullmatch(page['snapshot_sha256'])
+                or type(page['total']) is not int or not 0 <= page['total'] <= MAX_JOBS
+                or type(page['source_copy_count']) is not int or not 0 <= page['source_copy_count'] <= MAX_COPIES
+                or not isinstance(page['jobs'], list) or len(page['jobs']) > PAGE_SIZE
+                or type(page['complete']) is not bool
+                or (page['complete'] and page['next_cursor'] is not None)
+                or (not page['complete'] and (not isinstance(page['next_cursor'], str)
+                    or not 1 <= len(page['next_cursor']) <= 1024 or not page['jobs']))):
+            raise ValueError('Invalid persisted inventory page')
+        actual = {key: page[key] for key in common_keys}
+        if common is not None and actual != common:
+            raise ValueError('Persisted inventory snapshot changed between pages')
+        return actual
+
+    for _ in range(MAX_JOBS // PAGE_SIZE + 1):
+        path = prefix + '?limit=' + str(PAGE_SIZE)
+        if cursor is not None:
+            path += '&cursor=' + quote(cursor, safe='')
+        page = get_json(path)
+        common = check_page(page)
+        if page['after'] != after:
+            raise ValueError('Persisted inventory keyset boundary changed')
+        for row in page['jobs']:
+            if (not isinstance(row, dict) or not isinstance(row.get('job_id'), str)
+                    or (after is not None and row['job_id'] <= after)):
+                raise ValueError('Persisted inventory duplicate or unordered job')
+            rows.append(row)
+            after = row['job_id']
+        if len(rows) > common['total']:
+            raise ValueError('Persisted inventory exceeded declared total')
+        if page['complete']:
+            if len(rows) != common['total']:
+                raise ValueError('Persisted inventory missing jobs')
+            break
+        cursor = page['next_cursor']
+        if cursor in cursors:
+            raise ValueError('Persisted inventory repeated cursor')
+        cursors.add(cursor)
+    else:
+        raise ValueError('Persisted inventory page budget exceeded')
+    result = dict(schema_version=4, scope=SCOPE, profile_id=profile_id,
+        profile_version=common['profile_version'], job_count=len(rows), source_copy_count=common['source_copy_count'],
+        jobs=rows, sha256=digest(rows), snapshot_sha256=common['snapshot_sha256'])
+    validate_persisted_job_inventory(result)
+    confirmation = get_json(prefix + '?limit=1&snapshot_sha256=' + common['snapshot_sha256'])
+    check_page(confirmation)
+    if (confirmation['after'] is not None or confirmation['jobs'] != rows[:1]
+            or len(confirmation['jobs']) != min(common['total'], 1)
+            or confirmation['complete'] != (common['total'] <= 1)):
+        raise ValueError('Persisted inventory final confirmation changed')
+    return result
+
+
+def collect_baseline_job_inventory(get_json, baseline):
+    """Never silently change a baseline's scope or schema during recovery."""
+    inventory = validate_public_job_inventory(baseline['job_inventory'])
+    collector = collect_persisted_job_inventory if inventory['schema_version'] == 4 else collect_public_job_inventory
+    return collector(get_json, baseline['profile_id'])
+
+
 def compare_public_job_inventory(baseline, before_restart, after_restart):
     """Compare an explicit UI baseline with public readbacks around service restart."""
     if "job_inventory" not in baseline:
@@ -509,16 +632,23 @@ def compare_public_job_inventory(baseline, before_restart, after_restart):
     expected = validate_public_job_inventory(baseline["job_inventory"])
     before = validate_public_job_inventory(before_restart)
     after = validate_public_job_inventory(after_restart)
+    if not (expected['schema_version'] == before['schema_version'] == after['schema_version']):
+        raise ValueError('Job inventory scope/schema changed across restart')
     if not (expected["profile_id"] == before["profile_id"] == after["profile_id"]):
         raise ValueError("Public job/source inventory profile changed across restart")
     if expected["sha256"] != before["sha256"]:
         raise ValueError("Pre-restart public job/source inventory differs from UI baseline")
     if before["sha256"] != after["sha256"]:
         raise ValueError("Public job/source inventory changed across restart")
+    if expected['schema_version'] == 4 and not (expected['snapshot_sha256'] == before['snapshot_sha256'] == after['snapshot_sha256']):
+        raise ValueError('Persisted inventory profile/snapshot changed across restart')
     return {"result": "PASS", "profile_id": before["profile_id"],
             "job_count": before["job_count"], "source_copy_count": before["source_copy_count"],
             "sha256": before["sha256"],
-            "scope": "Same-profile public job view, application routes, posting source identities and source-copy payload hashes via bounded GET /jobs readback; hidden, not-interested and blacklisted jobs are excluded"}
+            **({key: before[key] for key in ('schema_version', 'profile_version', 'snapshot_sha256')}
+               if before['schema_version'] == 4 else {}),
+            "scope": ("ALL_PERSISTED_JOBS: complete catalogue, routes, every posting/source-copy and immutable raw snapshot; includes hidden, not-interested and blacklisted jobs"
+                      if before['schema_version'] == 4 else "Same-profile public job view, application routes, posting source identities and source-copy payload hashes via bounded GET /jobs readback; hidden, not-interested and blacklisted jobs are excluded")}
 
 
 def verify_recovered_application(request, baseline):
@@ -572,8 +702,8 @@ def run(baseline_path, evidence_path, project_name, port):
         application_path = verify_recovered_application(request, baseline)
         job_inventory_before = None
         if "job_inventory" in baseline:
-            job_inventory_before = collect_public_job_inventory(
-                lambda path: request("GET", path), baseline["profile_id"])
+            job_inventory_before = collect_baseline_job_inventory(
+                lambda path: request("GET", path), baseline)
             compare_public_job_inventory(baseline, job_inventory_before, job_inventory_before)
         health_before = until(lambda: healthy_containers(initial_targets))
         services_to_restore = tuple(
@@ -610,11 +740,12 @@ def run(baseline_path, evidence_path, project_name, port):
             until(lambda: client.get("/readiness").status_code == 200)
             application_path = verify_recovered_application(request, baseline)
             if job_inventory_before is not None:
-                job_inventory_after = collect_public_job_inventory(
-                    lambda path: request("GET", path), baseline["profile_id"])
+                job_inventory_after = collect_baseline_job_inventory(
+                    lambda path: request("GET", path), baseline)
                 job_inventory_result = compare_public_job_inventory(
                     baseline, job_inventory_before, job_inventory_after)
-                actions.append({"action": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes matched UI baseline and post-restart public readback",
+                actions.append({"action": ("Complete ALL_PERSISTED_JOBS catalogue, routes and every source copy matched the baseline and post-restart snapshot"
+                                if job_inventory_before['schema_version'] == 4 else "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes matched UI baseline and post-restart public readback"),
                                 "result": "PASS", "job_count": job_inventory_result["job_count"],
                                 "source_copy_count": job_inventory_result["source_copy_count"],
                                 "sha256": job_inventory_result["sha256"]})

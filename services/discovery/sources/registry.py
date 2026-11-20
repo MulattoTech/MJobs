@@ -32,10 +32,12 @@ def _factory(module_name, type_name, *, default_tenant=False):
 _BUILTINS = (
     ("lever", _factory("services.discovery.sources.lever", "Lever")),
     ("greenhouse", _factory("services.discovery.sources.greenhouse", "Greenhouse")),
+    ("testedrecruits", _factory("services.discovery.sources.testedrecruits", "TestedRecruits")),
     ("remotive", _factory("services.discovery.sources.remotive", "Remotive", default_tenant=True)),
     ("wwr", _factory("services.discovery.sources.wwr", "WeWorkRemotely", default_tenant=True)),
     ("remoteok", _factory("services.discovery.sources.remoteok", "RemoteOK", default_tenant=True)),
     ("arbeitnow", _factory("services.discovery.sources.arbeitnow", "Arbeitnow", default_tenant=True)),
+    ("usajobs", _factory("services.discovery.sources.usajobs", "USAJobs", default_tenant=True)),
 )
 
 
