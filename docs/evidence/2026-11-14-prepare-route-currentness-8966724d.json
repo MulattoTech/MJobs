@@ -292,5 +292,220 @@
       "No production provider requests, deployment, Docker build, original PR update, protected merge or canonical status change occurred.",
       "Historical task handoff was preserved byte-for-byte and was not rewritten as a new checkpoint."
     ]
+  },
+  "current_refresh": {
+    "recorded_utc": "2026-11-20T11:02:32.846430+00:00",
+    "state": "PREPARED_UNPUBLISHED",
+    "scope": "Retain the two existing PR1029 fixture corrections and their historical records while composing the published approved acceptance candidate.",
+    "original_pr_head": "925eb2b4eb1479f2c696c8ca9dc5752392ae031e",
+    "prior_prepared_head": "0b902d5eacd7a086ffa4b3612cceba3037855e9a",
+    "source_head": "78e4e95282e08756d77c5a93e8f386b56de956e2",
+    "source_tree": "d38f59e412aac20488ea051f7a23295bd625773a",
+    "parents": [
+      "0b902d5eacd7a086ffa4b3612cceba3037855e9a",
+      "98affaa1b266e91a3a40e828c7295a41aa73ea1e"
+    ],
+    "adopted_base": {
+      "sha": "98affaa1b266e91a3a40e828c7295a41aa73ea1e",
+      "state_at_preparation": "Published PR1064 candidate; protected merge pending",
+      "contains_protected_main": "4fae34c78c8962bea7207300bf52a843491edf75"
+    },
+    "merge_conflicts": [],
+    "delta_from_adopted_base": [
+      "docs/evidence/2026-11-14-prepare-route-currentness-8966724d.json",
+      "planning/agent_handoffs/MJ-REQ-292-prepare-route-8966724d.json",
+      "tests/integration/test_greenhouse.py",
+      "tests/integration/test_provider_credential_connection_bounds.py"
+    ],
+    "validation_kind": "Exact-source identity and targeted policy checks. No new pytest execution.",
+    "preserved_execution": {
+      "source_head": "2f2df00136056c578059bb6181e3e45db79965dd",
+      "source_tree": "6e802ab9e31d74d6ee62418b57836d1347fe03a9",
+      "tests": 50,
+      "greenhouse_tests": 35,
+      "credential_boundary_tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_seconds": 42.947,
+      "runtime_versions": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "SQLAlchemy": "2.1.1",
+        "cryptography": "50.0.2",
+        "pytest": "9.1.1"
+      },
+      "raw_artifacts": {
+        "receipt.json": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\run-2f2df001\\receipt.json",
+          "sha256": "c8e6d920e19d85479413810c5c655372f6cde02655e4ee6c73102f535f0a0e96"
+        },
+        "pytest.log": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\run-2f2df001\\pytest.log",
+          "sha256": "32e46d88c2d30ebe13967d4aa3801d7d1455507bd2a8940196c16700f0b067c8"
+        },
+        "pytest.xml": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\run-2f2df001\\pytest.xml",
+          "sha256": "9110b66e211c3eb85d7456ecc6d5919fa10ed8231cbdb44447e56ccf1387a426"
+        }
+      },
+      "runner": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route_fixture_validation.py",
+        "sha256": "e2990bfefca100b148d1648d71e9ed88c9e476fd101ae25f4492a14d9ef1814e"
+      }
+    },
+    "executed_input_identity": {
+      "status": "PASS",
+      "imported_modules": 236,
+      "distinct_import_files": 236,
+      "changed_import_files": 0,
+      "import_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-98affaa1\\import-identity.json",
+        "sha256": "c60f9b4098c2d4db8b1b6741f3a75305dcb7c5288bf4adef180627f7efbfede1"
+      },
+      "import_manifest_canonical_sha256": "d235a99fb5dcb4ae43e79333f5f34de22d92eee11c431d7b839be05fa933b6b2",
+      "additional_test_config_paths": 113,
+      "changed_test_config_paths": 0,
+      "test_config_scope": "All tracked fixtures, prompts, migrations, test fixture/support/helper paths, conftests and listed project/test configuration",
+      "test_config_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-98affaa1\\test-config-identity.json",
+        "sha256": "8deb99fa31cfec6627abb8b0620869aeb369fc139c2f534701e0b6131080db03"
+      },
+      "test_config_manifest_canonical_sha256": "d6243c929a42fe56463bc621b92a771b33be8a4a2daf2e2cf35248eee76867fb",
+      "retained_blob_ids": {
+        "tests/integration/test_greenhouse.py": "27e97689485c57e586fa3d629d0e60a198e5926c",
+        "tests/integration/test_provider_credential_connection_bounds.py": "0405a6cb43381506cce42daf3d7cb57bfec9dd78",
+        "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+        "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c",
+        "services/credentials/connection.py": "933c6d6b171cadeffbf7612ab5a4df7003558b5d",
+        "services/credentials/vault.py": "54bc0501f3c732cc1bb902a9563c21bd32dc02de",
+        "services/documents/generate.py": "244fc4cec8bbb71bba46ec1fbf27d9a79e88ca98",
+        "tests/integration/test_application_prepare_route_binding.py": "e94d3a9ae6bd635d5dbd4962261a6326bab4652d"
+      }
+    },
+    "dependency_declarations": {
+      "path": "requirements.txt",
+      "before_blob": "8973b956bcefd35542b7f37ff03a792e3819ae3e",
+      "after_blob": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+      "only_replacements": {
+        "soupsieve": [
+          "2.10",
+          "4.0"
+        ],
+        "opentelemetry-api": [
+          "1.45.1",
+          "1.45.2"
+        ]
+      },
+      "recorded_runtime": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "SQLAlchemy": "2.1.1",
+        "cryptography": "50.0.2",
+        "pytest": "9.1.1"
+      },
+      "current_cached_versions": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "httpx": "0.28.1",
+        "httpcore": "1.0.9",
+        "SQLAlchemy": "2.1.1",
+        "cryptography": "50.0.2",
+        "pytest": "9.1.1"
+      },
+      "private_origins": {
+        "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+      },
+      "interpretation": "Declarations now match the actual private dependencies of the earlier test run; no install or test rerun."
+    },
+    "other_incoming_source": {
+      "paths": [
+        "tools/verification/progress.py",
+        "tests/unit/test_progress_dashboard.py"
+      ],
+      "note": "The progress implementation and test changes from the incoming base are absent from the 236 recorded imports and the two selected integration files. This continuation makes no new execution claim for them."
+    },
+    "historical_preservation": {
+      "all_prior_evidence_fields": "Unchanged",
+      "historical_task_handoff_blob": "3e6a5d201118dca32ad8bc35cffbb8e42c2e6c20",
+      "historical_route_and_fixture_failure_evidence": "Preserved; not relabeled as current execution",
+      "original_pr_hosted_scan": "Historical 14 successful checks and one failed Secret Scan remain historical; fresh exact-head gates are required."
+    },
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "exit_code": 0,
+        "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.ci.check_repository"
+        ],
+        "exit_code": 0,
+        "log_sha256": "42c15493067b4a025e5b42a63ba6098509181c72f417f33622eb33cd560bf085"
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "python -B -m tools.verification.commit_provenance --commit 78e4e95282e08756d77c5a93e8f386b56de956e2 --strict",
+        "exit_code": 0,
+        "result": "PASS: no source-code changes in this commit",
+        "explicit_required_trailer_check": "PASS"
+      }
+    ],
+    "identity_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-route-fixtures\\.tmp\\route-fixture-validation\\refresh-98affaa1\\identity-receipt.json",
+      "sha256": "0036996e8604f0d61896575060c78866e14793eff1f0d333058f3b541e4b9bf2"
+    },
+    "acceptance_scope": "No acceptance decision or authored canonical change. Incoming canonical records are identical to the pending approved PR1064 base; MJ-REQ-292 remains PARTIAL.",
+    "remaining_gates": [
+      "Root review and binding to the actual protected PR1064 merge/base.",
+      "Fresh ownership and publication admission before any existing PR1029 update.",
+      "Required exact-head hosted checks, including Secret Scan, followed by separately authorized protected integration."
+    ],
+    "limits": [
+      "The 50-test result was executed on 2f2df001, not on this descendant. It is reused only through the recorded source/config identity proof.",
+      "No external provider traffic, global dependency installation, new test execution, PR mutation, protected merge, production action or original worktree modification occurred during this refresh."
+    ]
   }
 }
