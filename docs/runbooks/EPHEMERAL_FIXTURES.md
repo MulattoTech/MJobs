@@ -29,7 +29,7 @@ Read-only overview of *all* fixture projects, including old/unmanaged ones:
 Run a synthetic E2E check in a temporary project (choose --build when the
 source image needs rebuilding):
 
-    python -m tools.dev_fixture_guard run --build --ttl-minutes 60 -- python -m cli.mock_e2e --evidence outputs/mock-ephemeral.json
+    python -m tools.dev_fixture_guard run --build --ttl-minutes 60 --port 18741 -- python -m cli.mock_e2e --api http://127.0.0.1:18741 --evidence outputs/mock-ephemeral.json
 
 The runner chooses a free loopback port, passes it as MJOBS_PORT, and starts
 the fixture with Docker Compose up --wait. To drive browser validation, use
