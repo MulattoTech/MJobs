@@ -114,6 +114,10 @@ def _mapped_check_paths(root: Path, paths: list[str]) -> tuple[list[dict], list[
                 "tests/unit/test_agent_context.py",
                 "tests/unit/test_agent_context_child_ids.py",
             })
+        elif normalized == "tools/ownership_index.py":
+            python_targets.add("tests/unit/test_ownership_index.py")
+        elif normalized == "tools/ci/check_repository.py":
+            python_targets.add("tests/unit/test_public_ci_tools.py")
         elif normalized.endswith(".py"):
             if normalized.startswith("tests/"):
                 python_targets.add(normalized)
@@ -205,6 +209,8 @@ def build_verification_plan(root: Path, paths: list[str], base: str = "origin/ma
             or (path.startswith("apps/web/src/") and path.endswith((".ts", ".tsx", ".js", ".jsx")))
             or path.startswith(("apps/web/package", "apps/web/scripts/"))
             or (path.startswith("docs/") and path.endswith(".md"))
+            or path == "docs/OWNERSHIP_INDEX.json"
+            or path == "tools/ownership_index.py"
             or (path.startswith(".github/") and path.endswith((".yml", ".yaml")))
         )
     ]
