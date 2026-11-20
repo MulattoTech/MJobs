@@ -352,3 +352,29 @@ def test_disposable_restarted_process_reads_exact_restored_source(fixtures):
     assert consumer.read_bytes() == original
     assert source.read_bytes() == original
     assert not stage.exists()
+
+
+def test_valid_but_modified_manifest_during_switch_fails_postflight(fixtures, monkeypatch):
+    """Even semantically accepted manifest edits invalidate the pinned archive."""
+    source, snapshot, review, digest, original, _ = fixtures
+    switch = cutover._InMemoryConsumer.switch_to
+    count = [0]
+    manifest_path = snapshot / "manifest.json"
+    before = manifest_path.read_bytes()
+
+    def rewrite_manifest_after_first_switch(self, payload):
+        switch(self, payload)
+        count[0] += 1
+        if count[0] == 1:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            payload["mode"] = "UNREVIEWED_EXTERNAL_MANIFEST_UPDATE"
+            manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(
+        cutover._InMemoryConsumer, "switch_to", rewrite_manifest_after_first_switch
+    )
+    with pytest.raises(ValueError, match="Archive manifest changed during rehearsal"):
+        cutover.rehearsal(source, snapshot, review, digest)
+    assert count[0] == 2
+    assert manifest_path.read_bytes() != before
+    assert source.read_bytes() == original

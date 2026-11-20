@@ -61,7 +61,17 @@ def rehearsal(
     original = source.read_bytes()
     if _digest(original) != expected_source_sha256:
         raise ValueError("Source does not match explicit pre-migration pin")
+    snapshot = Path(snapshot)
+    if snapshot.is_symlink() or not snapshot.is_dir():
+        raise ValueError("Snapshot directory missing or symbolic")
+    manifest_path = snapshot / "manifest.json"
+    try:
+        manifest_before = manifest_path.read_bytes()
+    except OSError as exc:
+        raise ValueError("Archive manifest missing or unreadable") from exc
     reconstructed, manifest = _verify_archive(snapshot)
+    if manifest_path.read_bytes() != manifest_before:
+        raise ValueError("Archive manifest changed during initial verification")
     if reconstructed != original:
         raise ValueError("Immutable archive differs from original source")
     if manifest["source_sha256"] != expected_source_sha256:
@@ -91,6 +101,8 @@ def rehearsal(
     if _digest(reviewer_file.read_bytes()) != _digest(reviewed_json):
         raise ValueError("Reviewed selection changed during rehearsal")
     stored_after, manifest_after = _verify_archive(snapshot)
+    if manifest_path.read_bytes() != manifest_before:
+        raise ValueError("Archive manifest changed during rehearsal")
     if (stored_after != original or
             manifest_after["source_sha256"] != expected_source_sha256):
         raise ValueError("Archive changed during rehearsal")

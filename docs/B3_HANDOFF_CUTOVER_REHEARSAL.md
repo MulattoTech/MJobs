@@ -80,10 +80,12 @@ Run with the existing B3 tools:
 
     python -m pytest -q tests/unit/test_handoff_cutover_rehearsal.py tests/unit/test_handoff_current_summary.py tests/unit/test_handoff_archive.py tests/unit/test_handoff_checkpoints.py tests/unit/test_document_archive_history_window.py
 
-The expanded local execution passed 78 primary tests and 16 subtests,
+The expanded local execution passed 79 primary tests and 16 subtests,
 with 3 Windows symlink capability skips, 9 pre-existing SQLAlchemy
 warnings, and no failures. Postflight negative controls reject concurrent
 source, review-selection, and immutable-archive mutations during rehearsal.
+An additional control rejects byte changes to an otherwise parseable manifest,
+while missing snapshots fail with an explicit recovery error.
 The symlink skips require fresh Linux-hosted verification at the published
 commit, and the exact-head repository policy gates remain mandatory.
 
