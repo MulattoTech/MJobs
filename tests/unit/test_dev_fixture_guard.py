@@ -89,7 +89,7 @@ class FixtureGuardTests(TestCase):
         self.assertEqual(env["MJOBS_COMPOSE_MOCK"], "1")
 
     def test_quota_rejects_existing_live_fixture_including_unmanaged(self):
-        args = argparse.Namespace(max_fixtures=1)
+        args = argparse.Namespace(max_fixtures=1, command=["--", "python", "-c", "pass"])
         with patch.object(guard, "sweep"), \
              patch.object(guard, "containers", return_value=[
                  {guard.PROJECT_LABEL: self.PROJECT}]), \
