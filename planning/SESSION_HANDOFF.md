@@ -1,3 +1,22 @@
+# MJobs engineering checkpoint - 2026-11-20 UTC
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
+
+- Main incorporated: db9cdc54f9b0fe060ffb58ad5afd9fa24ec59216.
+- PR1045 comparison improvements published at e1f9204892ede52e3ea6ad6518da9cc954c46c8c; hosted gates in progress at this checkpoint. Source 6c5db928 passed 30 Python/browser tests plus 28 subtests and 20 frontend tests.
+- PR1034 rehearsal field-key fix refreshed without changing original product source. Tested tree f028c28f7f90258c4039035e1d44b884987b3fc7 committed identically as 2d3c097255f8a35e96eba40ef526435241b60b95.
+- PR1034 checks: 39 frontend tests, 11 Python/browser tests (zero skips), typecheck/build, scoped ESLint, catalogue/progress/dashboard, ownership/public-policy and whitespace PASS. Independent AI review found no blocking findings.
+- PR1034 local branch: web/20261120-d9b89794/rehearsal-fields. Publication target: web/ef1809b6/rehearsal-field-keys.
+- Evidence: docs/evidence/2026-11-20-rehearsal-field-keys-continuation.md. Task checkpoint: planning/agent_handoffs/MJ-REQ-136.json.
+- Next: bounded nonforce PR1034 update and exact-head hosted verification. Request explicit authorization for serial protected integration of PR1045 then PR1034, refreshing current base and required checks between them. No auto-merge enabled.
+- Acceptance unchanged: original 188/366 PASS and reference 19/59 PASS. MJ-REQ-136 stays PARTIAL; MJ-REF-039 stays NOT_RUN.
+- Production remains on 6a47f562 with a healthy local endpoint/tunnel. One additive profile_job_views migration blocks automatic rollout. Isolated PostgreSQL 17 guarded-upgrade/backup-restore rehearsal is the next deployment prerequisite; no production changes made.
+- Primary and original PR checkouts, active production/fixture stacks and unrelated work were preserved. Private .tmp receipts are not published.
+
+Earlier checkpoints follow; use current GitHub state on resume.
+
+---
+
 # MJ-REQ-292 current execution — 2026-11-15
 
 Reviewed candidate: ebb55ba9677444d11d8c9fc7c97a56ebf123e4db. The latest change models a disposable Windows runtime in the isolated-host unit fixture; production validation and assertions are unchanged. Author and independent review passed the module on Windows and offline Linux (11tests each;15Windows subtests); root affected scope passed39tests/61subtests. App source remains byte-identical to1b03ac22, whose combined application/containment/browser run passed167tests/96subtests with3skips. These are separate exact-source results.
