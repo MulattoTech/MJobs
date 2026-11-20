@@ -234,3 +234,13 @@ def test_cli_subprocess_default_path_no_reviewer_text(scenario):
     output = json.loads(proc.stdout)
     assert output["reviewed_handoff_preflight"]["disk_writes"] == 0
     assert "reviewed_handoff_preview" not in output
+
+
+@pytest.mark.parametrize("command", [
+    "verify", "checkpoint", "transfer", "normalize", "freshness", "recover",
+])
+def test_reviewed_preview_flags_rejected_before_other_command_dispatch(scenario, command):
+    repo, _, snapshot, *_ = scenario
+    with pytest.raises(SystemExit) as exc:
+        main(["--root", str(repo), command, "--handoff-snapshot", str(snapshot)])
+    assert exc.value.code == 2

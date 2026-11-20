@@ -602,6 +602,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     try:
+        if args.command != "bootstrap" and any((
+            args.handoff_snapshot is not None, args.handoff_review_file is not None,
+            args.handoff_source_sha256 is not None, args.show_reviewed_handoff,
+        )):
+            parser.error("Reviewed handoff preview options apply only to bootstrap")
         if args.command == "verify":
             from tools.verification.changed_file_verification import (
                 build_verification_plan,
@@ -651,11 +656,6 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(recover_session(args.root, args.task), indent=2))
             return 0
 
-        if args.command != "bootstrap" and any((
-            args.handoff_snapshot is not None, args.handoff_review_file is not None,
-            args.handoff_source_sha256 is not None, args.show_reviewed_handoff,
-        )):
-            parser.error("Reviewed handoff preview options apply only to bootstrap")
         output = bootstrap(
             args.root, args.task, args.github,
             reviewed_snapshot=args.handoff_snapshot,
