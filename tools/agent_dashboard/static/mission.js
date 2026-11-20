@@ -652,7 +652,7 @@
         ${safe(data.git?.note || "")}
       </div>
       <div class="release-details">
-        <div><h3>Feature areas · lowest acceptance first</h3>${areaHtml}</div>
+        <div><h3>Feature areas · highest acceptance first</h3>${areaHtml}</div>
         <div><h3>Acceptance by priority</h3>${priorityHtml}</div>
       </div>
       <div class="progress-disclaimer">${safe(data.caveat)} The page reads original canonical requirements and

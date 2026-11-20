@@ -345,8 +345,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, default=ROOT)
     root = parser.parse_args().root.resolve()
+    from tools.ownership_index import check_index
+    ownership_current, ownership_message = check_index(root)
     errors = (check_markdown(root, DOCS) + check_workflows(root)
-              + check_required_ci(root) + check_private_paths(root))
+              + check_required_ci(root) + check_private_paths(root)
+              + ([] if ownership_current else [ownership_message]))
     for error in errors:
         print(error)
     print(f'Public repository policy: {"FAIL" if errors else "PASS"} ({len(errors)} errors)')

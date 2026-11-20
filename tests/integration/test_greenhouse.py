@@ -21,6 +21,7 @@ from services.discovery.sources.contract import (
     SourceCompany, SourceItem,
 )
 from services.discovery.sources.greenhouse import Greenhouse
+from services.discovery.sources.lever import Lever
 from services.discovery.sources.errors import SourceError
 from services.discovery.sources.collect import configure_source, collect_source, persist_posting
 from services.discovery.sources.registry import source_adapter
@@ -118,11 +119,16 @@ class GreenhouseTests(unittest.TestCase):
                 time.sleep(0.05)
                 yield b"{}"
 
-        budgets = iter((10, 0.01))
+        response_started = threading.Event()
         check = lambda: None
-        check.remaining_seconds = lambda: next(budgets)
-        transport = httpx.MockTransport(lambda _: httpx.Response(
-            200, headers={"content-type": "application/json"}, stream=SlowBody()))
+        check.remaining_seconds = lambda: 0.01 if response_started.is_set() else 10
+
+        def handler(_request):
+            response_started.set()
+            return httpx.Response(
+                200, headers={"content-type": "application/json"}, stream=SlowBody())
+
+        transport = httpx.MockTransport(handler)
         adapter = Greenhouse("example", transport=transport, check=check, request_timeout=10)
 
         with self.assertRaisesRegex(ValueError, "SOURCE_TIME_LIMIT"):
@@ -807,10 +813,14 @@ class GreenhouseTests(unittest.TestCase):
         def sleep(seconds):
             clock[0] += seconds
 
-        with patch("services.discovery.sources.greenhouse.time.monotonic", side_effect=lambda: clock[0]), \
-                patch("services.discovery.sources.greenhouse.time.sleep", side_effect=sleep), \
-                patch("services.discovery.sources.greenhouse.httpx.Client",
-                      side_effect=lambda *args, **kwargs: network_requests.append((args, kwargs))), \
+        def handler(request):
+            network_requests.append(request)
+            return httpx.Response(200, json={"jobs": []})
+
+        module_clock = SimpleNamespace(monotonic=lambda: clock[0], sleep=sleep)
+        with patch("services.discovery.sources.greenhouse.time", module_clock), \
+                patch("services.discovery.sources.greenhouse.SourceTransport",
+                      return_value=httpx.MockTransport(handler)), \
                 self.assertRaisesRegex(RuntimeError, "CANCEL_REQUESTED"):
             adapter._request("/jobs")
 
@@ -849,3 +859,69 @@ class GreenhouseTests(unittest.TestCase):
 
     def test_timed_out_collection_preserves_provider_health_and_failure_history(self):
         self._assert_local_stop_preserves_provider_health_and_failure_history(OperationTimedOut)
+
+    def _collect_lever_transport_timeout(self, worker_budget):
+        source_id = configure_source(
+            self.store, "global:synthetic", provider="lever",
+            request_timeout=2, rate_limit=600, jitter_seconds=0)
+        clock = [0.0]
+        dispatched = []
+
+        def check():
+            return None
+
+        check.remaining_seconds = lambda: worker_budget - clock[0]
+
+        def handler(request):
+            dispatched.append(request)
+            clock[0] += request.extensions["timeout"]["connect"]
+            raise httpx.ConnectTimeout("Synthetic selected timeout", request=request)
+
+        class PendingWatcher:
+            def __init__(self, **kwargs):
+                pass
+
+            def start(self):
+                pass
+
+            def is_alive(self):
+                return False
+
+        adapter = Lever(
+            "global:synthetic", transport=httpx.MockTransport(handler),
+            check=check, request_timeout=2, rate_limit=600)
+        expected = OperationTimedOut if worker_budget < 2 else SourceError
+        with patch("services.discovery.sources.collect.source_adapter", return_value=adapter), \
+                patch("services.discovery.sources.greenhouse.time",
+                      SimpleNamespace(monotonic=lambda: clock[0], sleep=Mock())), \
+                patch("services.discovery.sources.greenhouse.threading",
+                      SimpleNamespace(Event=threading.Event, Thread=PendingWatcher)), \
+                self.assertRaises(expected) as raised:
+            collect_source(self.store, source_id, "fixture", check=check)
+
+        self.assertEqual(len(dispatched), 1)
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one())
+            observations = list(connection.execute(select(m.source_quality_observations).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).mappings())
+        return source, observations, raised.exception
+
+    def test_lever_worker_budget_timeout_restores_persisted_source_health(self):
+        source, observations, failure = self._collect_lever_transport_timeout(0.04)
+        self.assertEqual(str(failure), "OPERATION_TIMEOUT")
+        self.assertEqual(source["health_status"], "NOT_CHECKED")
+        self.assertEqual(source["consecutive_failures"], 0)
+        self.assertIsNone(source["last_error"])
+        self.assertIsNone(source["backoff_until"])
+        self.assertEqual(observations, [])
+
+    def test_lever_provider_timeout_retains_persisted_failure_history(self):
+        source, observations, failure = self._collect_lever_transport_timeout(10.0)
+        self.assertEqual(failure.code, "SOURCE_NETWORK_ERROR")
+        self.assertEqual(source["health_status"], "FAILED")
+        self.assertEqual(source["consecutive_failures"], 1)
+        self.assertEqual(source["last_error"], "NETWORK_ERROR")
+        self.assertIsNotNone(source["backoff_until"])
+        self.assertEqual(len(observations), 1)
+        self.assertFalse(observations[0]["succeeded"])

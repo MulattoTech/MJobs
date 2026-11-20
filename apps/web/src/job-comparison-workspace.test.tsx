@@ -9,6 +9,7 @@ import {
   type JobComparisonResponse,
   type JobComparisonWorkspaceViewProps,
 } from './job-comparison-workspace';
+import { JobComparisonClientError } from './job-comparison-client';
 
 const jobs = [
   { job_id: 'job-a', title: 'Cloud Engineer', company: 'Example One' },
@@ -222,6 +223,49 @@ describe('job comparison workspace', () => {
     const staleTree = JobComparisonWorkspaceView(viewProps({ state: 'stale', response: null }));
     const compareButton = findElement(staleTree, element => element.props['aria-label'] === 'Compare selected jobs');
     expect(compareButton?.props.disabled).toBe(true);
+  });
+
+  it('classifies typed client scope and stale failures and lets users change selection safely', async () => {
+    const scenarios = [
+      { kind: 'SCOPE_MISMATCH' as const, recovery: 'NONE' as const,
+        expected: 'scope-mismatch', explanation: 'does not match the selected profile' },
+      { kind: 'STALE_CONTEXT' as const, recovery: 'REFRESH' as const,
+        expected: 'stale', explanation: 'Saved job or profile context changed' },
+    ];
+    for (const scenario of scenarios) {
+      const failure = new JobComparisonClientError(
+        scenario.kind, 409, scenario.recovery, false, 'private remote context details',
+      );
+      const loaded = await loadJobComparison(vi.fn(async () => { throw failure; }), {
+        profile_id: 'profile-a', search_profile_id: 'search-a', job_ids: ['job-a', 'job-b'],
+      });
+      expect(loaded.state).toBe(scenario.expected);
+      expect(loaded.response).toBeNull();
+      const props = viewProps({
+        state: loaded.state, response: loaded.response, error: loaded.error,
+      });
+      const html = renderToStaticMarkup(<JobComparisonWorkspaceView {...props} />);
+      expect(html).toContain(scenario.explanation);
+      expect(html).not.toContain('private remote context details');
+      expect(html).not.toContain('82/100');
+      const changeSelection = findElement(
+        JobComparisonWorkspaceView(props),
+        element => element.type === 'button' && element.props.children === 'Change job selection',
+      );
+      expect(changeSelection).not.toBeNull();
+      changeSelection?.props.onClick();
+      expect(props.onSelectionChange).toHaveBeenCalledExactlyOnceWith([]);
+    }
+
+    const conflict = new JobComparisonClientError(
+      'CONFLICT', 409, 'NONE', false, 'private conflict details',
+    );
+    const loaded = await loadJobComparison(vi.fn(async () => { throw conflict; }), {
+      profile_id: 'profile-a', search_profile_id: 'search-a', job_ids: ['job-a', 'job-b'],
+    });
+    expect(loaded.state).toBe('error');
+    expect(loaded.error).toContain('could not be loaded');
+    expect(loaded.error).not.toContain('private conflict details');
   });
 
   it('fails closed on malformed data and hides private transport details', async () => {

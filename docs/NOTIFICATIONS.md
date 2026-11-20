@@ -1,4 +1,4 @@
-# Optional ntfy activity notifications
+# Optional activity notifications
 
 Requirement: **MJ-REQ-204.N02** ([issue 363](https://github.com/MulattoTech/MJobs/issues/363)),
 under [MJ-REQ-204](https://github.com/MulattoTech/MJobs/issues/205).
@@ -34,6 +34,138 @@ and employer-discovery notifications are not implemented by this slice.
 
 The API acknowledgement confirms that the ntfy server accepted the generic
 message. It does **not** prove a phone/browser displayed it.
+
+## Discord webhook provider
+
+Discord uses the same opt-in server worker and durable delivery journal. Select
+`"provider": "discord"`, set the numeric `webhook_id`, and supply its token
+through `token_env` or an absolute private `token_file` path. Do not put the
+token into the configuration URL or repository. For example:
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "discord",
+  "profile_id": "your-existing-profile-id",
+  "webhook_id": "12345678901234567",
+  "token_env": "MJOBS_DISCORD_WEBHOOK_TOKEN",
+  "state_path": "C:/private/mjobs/discord-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+The provider sends only fixed generic text, disables all mentions, uses the
+fixed `discord.com` HTTPS endpoint, disables proxies and redirects, and limits
+request time. HTTPX request logs redact the webhook token. A 429 preserves its
+retry delay for explicit operator retry; uncertain delivery is never replayed
+automatically. `DELIVERED` means Discord returned an accepted response, not that
+a person saw the message. Attachments, embeds, mention delivery, thread routing,
+device receipts, exactly-once delivery, email, and direct application submission
+are unsupported. Contract tests use synthetic tokens and a mock transport; they
+do not contact Discord.
+
+## Slack incoming-webhook provider
+
+Slack uses the same opt-in worker and durable delivery journal. Select
+`"provider": "slack"`, set the `slack_team_id` and `slack_service_id` from the
+operator-created webhook URL, and provide its secret token using `token_env`
+or an absolute private `token_file` path. The provider constructs only the
+standard `hooks.slack.com/services/...` endpoint; GovSlack and arbitrary hosts
+are unsupported. Slack binds an incoming webhook to the channel chosen during
+setup, and this provider does not override that destination.
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "slack",
+  "profile_id": "your-existing-profile-id",
+  "slack_team_id": "T0123456789",
+  "slack_service_id": "B0123456789",
+  "token_env": "MJOBS_SLACK_WEBHOOK_TOKEN",
+  "state_path": "C:/private/mjobs/slack-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+Only fixed generic text is sent. The request sets `mrkdwn` to false and omits
+`link_names`, disabling formatting and automatic mention parsing. HTTPX request
+logs redact the URL token. A valid HTTP 200 `ok` response means Slack accepted
+the message; it does not prove a person read it. A 429 preserves `Retry-After`
+for explicit retry; uncertain sends are never automatically replayed. Slack
+documents a general one-message-per-second-per-channel recommendation, but
+separate journals/webhooks do not establish a global channel limiter. Blocks,
+attachments, threading, channel overrides, message readback/edit/delete, and
+exactly-once delivery are unsupported. See Slack's [incoming-webhook
+guide](https://api.slack.com/messaging/webhooks) and [rate-limit documentation](https://api.slack.com/docs/rate-limits).
+
+The issue's bounded live-validation criterion is **not applicable** to this
+outbound-only provider under a no-external-send scope: the webhook method is a
+POST that publishes a message, and no read-only validation operation is
+available through this interface. No live Slack request was made; local tests
+use synthetic credentials and `MockTransport`. This child acceptance candidate
+records the criterion as not applicable; it does not claim live delivery,
+readback, or parent requirement acceptance. Issue #365 remains open pending
+protected integration and issue-owner follow-up.
+
+## SMTP email provider
+
+Email is opt-in through the same server-side worker and durable journal. Select
+`"provider": "email"` and configure one SMTP host, sender, exact recipient, and
+username. SMTP password comes from either a named environment variable or an
+absolute private file path; it is never part of the JSON configuration. The
+provider uses implicit TLS with certificate and hostname verification on port
+465, and Python's SMTP AUTH login. It does not downgrade to plaintext or
+STARTTLS. For example:
+
+The implementation follows Python's [`SMTP_SSL`](https://docs.python.org/3.12/library/smtplib.html#smtplib.SMTP_SSL)
+implicit-TLS client and [`ssl.create_default_context`](https://docs.python.org/3.12/library/ssl.html#ssl.create_default_context)
+certificate and hostname verification guidance.
+
+```json
+{
+  "version": 1,
+  "enabled": true,
+  "provider": "email",
+  "profile_id": "your-existing-profile-id",
+  "smtp_host": "smtp.example.com",
+  "smtp_sender": "mjobs@example.com",
+  "smtp_recipient": "operator@example.com",
+  "smtp_username": "mjobs@example.com",
+  "smtp_password_env": "MJOBS_SMTP_PASSWORD",
+  "state_path": "C:/private/mjobs/email-deliveries.sqlite3",
+  "poll_seconds": 10,
+  "batch_size": 50,
+  "request_timeout": 10
+}
+```
+
+The message is plain text with a fixed subject and generic allowlisted activity
+description. Exactly one configured recipient is used; message content cannot
+set headers or recipients. One deadline covers TCP connection attempts across
+all resolved addresses, the TLS handshake, and the complete SMTP protocol
+exchange, including each byte in a multiline reply. TCP connect and TLS
+handshake waits poll the remaining budget and cancellation; SMTP writes use
+only the remaining budget. Name resolution is delegated to the operating
+system and is not independently cancellable by this provider. Cancellation
+before message submission is safe;
+interruption during or after submission is `UNKNOWN` and is not replayed
+automatically. A successful SMTP response means the server accepted the message,
+not that it reached an inbox or was read. SMTP has no read-only receipt query in
+this integration, and no live message was sent for validation.
+
+Supported capabilities are implicit TLS on port 465, verified server
+certificates/hostnames, SMTP AUTH username/password, one exact recipient, and
+generic plain-text activity messages. Other ports, plaintext, STARTTLS,
+multiple recipients, attachments, HTML, delivery/read receipts, inbox
+verification, exactly-once delivery, and arbitrary event streams are
+unsupported. Contract tests use an injected synthetic SMTP transport and do not
+contact an external mail server.
 
 ## Private configuration
 
@@ -97,10 +229,10 @@ file. Scheduling after reservation can bunch actual socket writes; exact network
 request spacing is not guaranteed.
 MJobs CLI status reports event hashes, attempts and fixed diagnostic codes; its
 output omits topic, server URL, tokens, provider response bodies and operation contents.
-Publishing uses ntfy's JSON POST at the server root, so ordinary HTTPX INFO request
-logs also omit the topic and token. Separately enabled third-party HTTP tracing
-can expose the server origin or message body; do not enable payload tracing for
-private destinations.
+ntfy publishes JSON to its server root. Discord and Slack use fixed provider
+hosts and redact their webhook tokens from ordinary HTTPX request logs.
+Separately enabled third-party HTTP tracing can expose destinations or message
+bodies; do not enable payload tracing for private destinations.
 
 The first enabled run persists an activation timestamp. Older completed operations
 are excluded. Stable-ID sweeps revisit current terminal records without unbounded
@@ -117,9 +249,9 @@ to defeat deduplication.
 | --- | --- |
 | PENDING | Queued, not sent yet |
 | SENDING | A reserved request may be active |
-| DELIVERED | Matching ntfy server acknowledgement observed |
-| REJECTED | Credential problem, explicit 401/403/429 rejection, or failed connection before HTTP request bytes |
-| UNKNOWN | Timeout, uncertain transport, invalid/missing acknowledgement, non-200 uncertain result, or interrupted attempt |
+| DELIVERED | ntfy matching acknowledgement, Discord accepted HTTP response, or Slack `200 ok` acknowledgement observed |
+| REJECTED | Credential/destination problem, explicit provider rejection or rate limit, or failed connection before HTTP request bytes |
+| UNKNOWN | Timeout, uncertain transport, invalid/missing acknowledgement, uncertain HTTP result, or interrupted attempt |
 | FAILED | Invalid local event; no send |
 
 A stale SENDING attempt is displayed as UNKNOWN. It is never automatically

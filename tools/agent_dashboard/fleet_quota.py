@@ -42,7 +42,7 @@ def normalize_fleet_quota(sample, now=None):
 def read_fleet_quota():
     try:
         with httpx.Client(trust_env=False, timeout=.6, follow_redirects=False) as client:
-            response = client.get("http://127.0.0.1:8787/api/quota")
+            response = client.get("http://127.0.0.1:4320/fleet/api/quota")
             response.raise_for_status()
             return normalize_fleet_quota(response.json())
     except (httpx.HTTPError, ValueError):

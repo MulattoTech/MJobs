@@ -1,3 +1,82 @@
+# MJobs approved integration checkpoint - 2026-11-20T07:05:29Z
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web remains the sole integration/acceptance writer.
+
+- The user explicitly approved serial protected integration of PR1045 then PR1034, including necessary base refreshes and required checks, followed by acceptance review and deployment preparation. Production deployment remains separately reserved.
+- PR1045 merged at 2026-11-20T06:53:35Z as d9e3bf11aa135a58bc1aa786edddae8cec478f66. Its tree exactly equals approved abe15feb; all 15 pre-merge checks and all five required gates passed.
+- PR1034 refreshed without conflicts onto that main. The exact tested combined tree 4437b70a9b9c577e327d1de44211152172f25fa2 is committed as 94b1502b5052869411bdacbe1c52da9df91e4998.
+- Combined validation: 63 frontend tests; 41 Python/API/browser tests plus28subtests, zero failures/skips; TypeScript and fresh production build PASS. The final checkpoint/evidence commit leaves tested feature sources unchanged.
+- PR1034 needs one normal existing-branch publication and fresh required hosted checks, then its already authorized protected merge. Do not request the same merge approval again. Read current GitHub head/main before acting.
+- Comparison acceptance validation also passed on actual merged d9e3bf11: 30 Python/API/browser tests plus28subtests and20frontend tests, fresh build/typecheck, zero failures/skips. AC4 canonical/report recording and AC5 feature-specific provenance recording remain pending owner review.
+- Canonical acceptance remains original188PASS/82PARTIAL/96NOT_RUN of366 and reference19PASS/4PARTIAL/36NOT_RUN of59. MJ-REF-039 stays NOT_RUN and MJ-REQ-136 stays PARTIAL in this checkpoint. No acceptance promotion is performed here.
+- The full synthetic guarded native backup, upgrade20261025di01->20261104rv01 and fresh-project restore to the old head PASS. It preserved13baseline table snapshots/document bytes, recovered1synthetic encrypted credential, and confirmed zero applications/attempts/submissions. Owned fixture containers/volumes/networks were removed and independently confirmed absent.
+- Durable sanitized recovery report: docs/evidence/2026-11-20-guarded-recovery-d9b89794.json. Its actual executed candidate is ed78ee3d, separate from this later integration validation; the retained image is a rehearsal artifact.
+- Production remains healthy on6a47f562. No production backup, migration, rollout, shared-service restart, updater change, Cloudflare change or credential change was performed. A read-only production preparation pass found that the current configuration file's ancestry fails the private-file guard; classify and prepare a verified recovery-key/configuration path before proposing maintenance.
+- Guarded production execution must compare actual release-checkout/image bytes and use a new genuine production receipt. Never reuse a synthetic receipt or assume an old-image restart reverses the schema.
+- Primary/original worktrees, unrelated active agents and existing production/fixture stacks were preserved. Private test receipts, archive and image remain retained; no secrets are published.
+
+Next: finish the approved PR1034 integration after its current-head gates; then complete a separately reviewable acceptance-record change and concrete production proposal. Existing user authorization covers ordinary preparation; newly scoped protected merges or production operations retain their stated approval boundaries.
+
+Earlier checkpoint history follows and may describe gates now completed.
+
+---
+
+# MJobs engineering checkpoint - 2026-11-20 UTC
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
+
+## Reviewed candidates and latest-base refresh
+
+- Incorporated main: 35fd28d41d32cbf33e843e93cbb79580d05082d6 (PR1062). Compared with db9cdc54, this adds only apps/web/src/main.characterization.test.ts: four tests and no product-source change.
+- PR1045 prior published head e1f9204892ede52e3ea6ad6518da9cc954c46c8c passed all 15 hosted checks, including all five required gates. PR1034 prior published head b13caa69b63015a9e9014472b15ae742ea5f3bac also passed all 15 checks. Root independently read both results at 2026-11-20T06:09Z; main had advanced, so those successes do not satisfy the new-head gate.
+- Both candidates now incorporate the new main. Fresh local runs include its four tests: comparison 24 frontend tests PASS, rehearsal 43 frontend tests PASS; both TypeScript checks PASS. Previously tested product-source and feature-test blobs are unchanged.
+- Fresh hosted checks for this refresh are pending publication/execution at this checkpoint. Read the live PR heads, main, and all five required gates before integration; do not transfer old-head checks to a new commit.
+- This identical checkpoint is shared by both continuation branches. Historical text below is retained.
+
+## Feature work and evidence
+
+- PR1045 / MJ-REF-039 / issue415: saved salary period and KNOWN_ONLY/ALLOW_UNKNOWN membership repaired; optional provenance references sort deterministically; typed scope/stale UI recovery retained.
+- Comparison exact functional source 6c5db928b316ee751453fe25d71f288b36d872a8 passed 30 Python/API/browser tests plus 28 subtests (zero failures/skips), 20 frontend tests, scoped Ruff, lint/typecheck/build, catalogue/progress/dashboard and provenance checks. Two connected Chromium tests passed.
+- PR1034 / MJ-REQ-136 / issue137: original field-key parser fix retained. Tested tree f028c28f7f90258c4039035e1d44b884987b3fc7 was committed identically as 2d3c097255f8a35e96eba40ef526435241b60b95; 39 frontend and 11 Python/browser tests passed, zero skips, with typecheck/build, scoped ESLint and repository verification.
+- Independent AI functional reviews found no blocking findings; no human review or approval is claimed.
+- Durable evidence: docs/evidence/2026-11-20-comparison-salary-provenance.md and docs/evidence/2026-11-20-rehearsal-field-keys-continuation.md. Per-task checkpoints: planning/agent_handoffs/MJ-REF-039.json and planning/agent_handoffs/MJ-REQ-136.json, present on their respective branches.
+- Local continuation worktrees: C:\Tools\Dev\MJobs-Web\eng-20261120-d9b89794-comparison and C:\Tools\Dev\MJobs-Web\eng-20261120-d9b89794-rehearsal.
+- Existing publication branches: web/mjobs-priority-20261116-67704a68/mjref039-client-recovery and web/ef1809b6/rehearsal-field-keys. No new PR is needed. Queue remains above the 32-PR soft warning; use current live existing-PR preflight.
+
+## Acceptance and deployment preparation
+
+- Acceptance unchanged: original 188 PASS / 82 PARTIAL / 96 NOT_RUN of 366; reference 19 PASS / 4 PARTIAL / 36 NOT_RUN of 59. MJ-REF-039 remains NOT_RUN; MJ-REQ-136 remains PARTIAL. No acceptance credit is claimed from publication or green CI.
+- Five-criterion comparison worksheet prepared at comparison worktree .tmp/acceptance-review/MJ-REF-039-candidate.json, draft=true and acceptance_decision=NOT_EVALUATED. Its e1f9204 evidence binding is historical; rebind to the integrated revision before a decision. Saved-score browser fixtures do not prove upstream matching accuracy.
+- Full application-preview acceptance still needs an explicit decision about its truthful UNKNOWN automation-confidence field; the field-key repair does not resolve that criterion.
+- Production last read at 2026-11-20T06:00Z: ready on 6a47f56204462da1aea5ba59ff8a5f88346d05cd. The existing updater guard blocks the new profile_job_views migration; no guard bypass, restart, Cloudflare change or rollout performed.
+- Preliminary synthetic PostgreSQL 17.11 schema rehearsal PASS at 2026-11-20T05:53Z on source b13caa69: 20261025di01 -> 20261104rv01 preserved six existing rows, verified visit-write/dedup and constraints, passed empty downgrade/reupgrade, and refused populated downgrade without data loss. Owned capped tmpfs fixture removal independently confirmed.
+- Sanitized schema evidence, log and driver: rehearsal worktree .tmp/migration-rehearsal/. Migration SHA256: 70ee0c0d414306836abc20240c60ac86ddedb02fa5917b7ac60d7addd3f0f0bd.
+- Full guarded Compose backup/upgrade/fresh-project restore remains NOT_RUN. First prepare an application image matching final reviewed source/migration code, then use isolated synthetic source/recovery projects, fresh private archive, genuine one-use guard authorization and existing CLI/runbook contracts. Old-image restart is not a schema rollback.
+- Authenticated public workflow validation and production upgrade remain NOT_RUN. Primary dirty handoff/prep, original PR worktrees, existing production/fixture stacks and unrelated agents were preserved; private .tmp receipts remain untracked.
+
+## Next integration boundary
+
+1. Publish these ordinary nonforce updates after live existing-PR preflight and verify the exact refreshed heads.
+2. Ask for the explicit protected-merge authorization reserved in the user's engineering brief. No merge or auto-merge has been enabled.
+3. Once approved, integrate PR1045 then refresh PR1034 against actual new main and require all current-head gates before its serial merge.
+4. Continue bounded whole-feature acceptance review and the isolated guarded recovery rehearsal. Production rollout requires a separately prepared, verified approval decision.
+
+Earlier checkpoints follow; use current GitHub state on resume.
+
+---
+
+# MJ-REQ-292 current execution — 2026-11-15
+
+Reviewed candidate: ebb55ba9677444d11d8c9fc7c97a56ebf123e4db. The latest change models a disposable Windows runtime in the isolated-host unit fixture; production validation and assertions are unchanged. Author and independent review passed the module on Windows and offline Linux (11tests each;15Windows subtests); root affected scope passed39tests/61subtests. App source remains byte-identical to1b03ac22, whose combined application/containment/browser run passed167tests/96subtests with3skips. These are separate exact-source results.
+
+Draft PR973 still publishesd3faf4ccd2eed7ee410bcf671bff579a85d1f2e1. Its run finished13SUCCESS, including PostgreSQL/Redis and Compose, with unit/requiredFAIL solely on six fixture portability cases. The corrected candidate's hosted checks are NOT_RUN until publication. Original local/hosted failures are preserved; no unchanged rerun or gate bypass.
+
+Canonical acceptance remains0VERIFIED/53PARTIAL/7NOT_RUN. Earlier controlled d53 recovery produced56PASS/4PARTIAL and actual restart/natural resumption; it is not public same-employer or merged-source acceptance. Official Coalition origin403 remains the public-chain blocker. No challenge retries, external applications, protected merge or deployment occurred. Full stacks/data are preserved; disposable test containers exited.
+
+Next: one normal existing-PR update after live preflight, then exact-head checks. Root is sole integration owner; writers released scoped claims. Overnight continuation and task-relevant handoffs are user-authorized, without a new supervisor. Exact commands, receipts, reviews, ownership and rollback are in planning/agent_handoffs/MJ-REQ-292.json (execution_01a1dcec) and docs/evidence/2026-11-15-mj292-verifier-01a1dcec.json.
+
+---
+
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
 ## Mission Control freshness repair — 2026-11-06
@@ -528,6 +607,67 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
 
 
+## 2026-11-06T13:21:14.905103+00:00 - MJ-REQ-292 campaign checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 33 PARTIAL, 27 NOT_RUN. Canonical requirement stays PARTIAL and issue293 remains open. Durable authority: `planning/acceptance/MJ-REQ-292.json`; resumable detail/roster/candidate refs: `planning/agent_handoffs/MJ-REQ-292.json`.
+
+Root branch `codex/mj-req292-full-journey-20261106` in the journey worktree; source before this checkpoint `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Protected dependencies967/933 merged; main last verified `f7b7a2f621036f828e83e2cb9293e30eb82bac5f`. PR973 remains draft. Preserve all prior CI failures, exact-head receipts and owned fixture volumes. No integration lock is held.
+
+Reviewed salary rendering, native canonical/apply proof and strict paused-run submit checks are integrated. Root latest domain suite43tests50subtests and UI suite44tests passed. Full connected acceptance is incomplete. Fresh f7d runtime18738 has valid startup evidence but the coordinator stopped beforeUI on a build-receipt timestamp key; the separately normalized receipt preserves the actual recorded timestamp and original failure. The f7d runner also has a known later UI assertion repaired in `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Build/run current reviewed source on continuation.
+
+Source-setup schema2 lane is preserved separately, not accepted or integrated; see per-agent exact refs in JSON. Next: reconcile live PR973 checks and ownership, build exact latest reviewed source, execute the connected public/native/restart/monitoring journey, independently review and verify protected merged-source evidence. Four-hour boundary is13:21:34Z; extension request is unanswered at this checkpoint. No automatic unattended continuation is created.
+
+
+## MJ-REQ-292 user pause — 2026-11-06T18:53:13.600752+00:00
+
+MJ-REQ-292: **0/60 VERIFIED PASS — 39 PARTIAL,21 NOT_RUN**. Durable ledger/checkpoint preserved. Root source HEAD `70595258e4cac188d641629298a5ee4e8131a45c`; PR973 published `c2bbf9e039d7b2f2556bf55a0b5704695706717c`, draft, last aggregate integration result unobserved. Latest source includes reviewed stale-fact reload and strict v4 inventory evidence. Root420tests42subtestsPASS; no new connected PASS.
+
+705 exact-source build failed post-build byte-manifest verification; no PASS receipt and no Compose startup. All eight older owned stacks are stopped with data/resources preserved. Ahsoka session35671 was already running at pause and was left untouched; no new work, tests, polling, provider requests or merges will start. Detailed isolated branches, dirty ownership, receipts and next actions are in `planning/agent_handoffs/MJ-REQ-292.json`. Await explicit resume; do not restart completed slices.
+
+## MJ-REQ-292 explicit resume — 2026-11-06T19:05:39.349365+00:00
+
+Resumed checkpoint `1598b7f9`; deadline remains 2026-11-06T21:22:28Z. **0/60 VERIFIED PASS; 39 PARTIAL; 21 NOT_RUN.** Existing assignments and all preserved runtime data retained. Published PR973 c2bb checks now all PASS; later local source remains unpublished and unqualified by hosted checks. Reviewed campaign launcher integrated as `464f7bcf`. The 705 image manifest mismatch is isolated to Git export line endings; canonical byte verification and fresh startup are in progress. Bootstrap joined tests pass and exact independent review is pending. Dashboard fork retains tools/agent_dashboard ownership.
+
+## MJ-REQ-292 connected checkpoint — 2026-11-06T19:28:40.975394+00:00
+
+**0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** Exact705 diagnostic advanced through controlled mock confirmation/history, then failed tracking because the browser safety interceptor omitted its valid PUT route. New39–43 and46–51 are diagnostic PARTIAL only; original false UI checks remain preserved. The corrected Git-export image manifest is independently verified. Bootstrap consumer, parent cancellation/lease guards, real dispatcher7bb04e21 and production child route6d95a686 are integrated locally. Root323tests22subtestsPASS with2Windows skips; realPG31tests20subtestsPASS0skip; realRQ child1PASS pending scoped review. Published PR973 remains c2bb with all observed checksPASS; later source is unpublished. Pending: reviewed UI observer corrections, bounded child-source cleanup, final launcher substitution, fresh frozen full journey and protected integration. Separate dashboard ownership preserved; deadline21:22:28Z.
+
+## Reviewed campaign batch — 2026-11-06T19:49:34.425541+00:00
+
+**MJ-REQ-292: 0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN.** The bootstrap, child tracking/cleanup, UI observer repairs and committed launcher are integrated. Source candidate before this checkpoint: `455eb652f59983e684c5715a37b992378360d03c`. Independent reviews are recorded in the task checkpoint. The old705 run remains failed diagnostic evidence; no observations have been promoted to PASS. The d2 image is also preserved as diagnostic-only because it predates the final cleanup fix.
+
+Next: publish the reviewed PR973 batch, build the exact frozen checkpoint revision, run the connected journey, then qualify protected integration and repeat against the exact merged commit. The session deadline remains21:22:28Z. Dashboard PR974 retains its separate ownership. No real employer submission is enabled.
+
+## c1 diagnostic and CI repair checkpoint — 2026-11-06T20:06:09.464096+00:00
+
+PR973 is published at `c1b349810cefa260cbb5e064d0812a13cebe8c45`; main remains unchanged. **0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** The new exact stack passed startup and all emitted native form/submission observations through51, but tracker history did not update visibly after successful server readback. Rey is repairing product state handling, without a navigation workaround.
+
+CI unit failures traced to test environment leakage; independently reviewed test-only fix is integrated as `388a8884` with49 ordered tests passing. Full Windows unit collection was blocked by existing Linux-only fcntl; not a suite PASS. Hosted integration shard2 also exposed33 legacy discovery failures, now assigned to Ahsoka/Obiwan for reproduction and repair. No required check is waived. Compose E2E passed on c1; further CI results are tracked by Leia.
+
+
+## 2026-11-06T20:21:42.506480+00:00 - MJ-REQ-292 repair checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `6e254c54d6e61adccbd6159aa0b7337c11cb6fa7`; published PR973 head remains `c1b349810cefa260cbb5e064d0812a13cebe8c45`. Preserve failed c1 runtime and hosted results. Dashboard PR974 merged as971ba931 and was normally incorporated asb2cd8a31 with exact dashboard files retained.
+
+Tracker state/readback and retry-idempotency fixes71735a3a/36db9ac9 independently reviewed; three composed frontend tests and typecheck passed. Queued bootstrap versus explicit review fix6e254c54 independently reviewed, with remaining regression results recorded in the task checkpoint. Environment leak fixed388a8884. Remaining clock/capacity failures require causal repair and fresh CI. No public source/restart/monitoring or merged-source full journey has completed. Deadline remains21:22:28UTC.
+
+
+## 2026-11-06T20:33:32.079038+00:00 - MJ-REQ-292 candidate qualification
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `29509754248aff32803b90491d82f807e5eaa725`. Reviewed tracker, bootstrap-review compatibility, environment isolation and simulated-clock repairs are integrated. Root37 review/identity tests16subtests and18 clock tests17subtests passed; frontend3 tests/typecheck passed. Linux ordered subset39 passed,10 skipped,24subtests; full unit environment lacks test tools and is NOT_RUN. Initial PG supersession adapter accidentally ran nested SQLite tests; preserve that limitation and require corrected explicit dialect proof.
+
+Fresh current-head CI, candidate runtime, protected merge, and exact merged-source60-step verification remain separate gates. Preserve c1 failed runtime/CI and all historical source/evidence. Main971 dashboard source retained. Continue only within authorized window ending21:22:28UTC.
+
+Corrected PG adapter c1c993ab now explicitly binds the nested fixture and asserts PostgreSQL. Its exact mixed batch passed42 tests/10subtests with0skips; prior invalid adapter receipts remain preserved. Root Greenhouse priority-order suite12PASS. Unpublished trailer formatting was repaired with identical source trees, authorship and merge ancestry; original12-commit chain retained, mapping committed.
+
+
+## 2026-11-06T20:46:56.937091+00:00 - MJ-REQ-292 discovery identity repair
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 53 PARTIAL,7 NOT_RUN. New diagnostic rows3/52/53 bind sanitized ea58 evidence. The actual browser producer completed52 observations, including tracker and audit; the wrapper failed because UI discovery steps8/10/11 were compared to final application operation IDs. Yoda reviewed narrow runner repair edbb823c, integrated `f183afdc5921710123f1f7df029fe9b7bcc9a59e`; root313 runner/UI tests passed. R2 owns synthetic ledger fixture alignment. Preserve failed ea58 checkpoint and all resources; do not resume it.
+
+Next: fresh candidate publication/build/run, complete UI then same-run public-source/recovery/monitoring, protected merge and exact merged-source verification. Current deadline21:22:28UTC remains unchanged.
+
+
 ## Astra current-main SQLite preparation — 2026-11-12 / 13b3
 
 - Owner: `GPT6-ASTRA-PRO-20261112T165932Z-FLEET-WATCHDOG-13b3-MJOBS-PREP`; preparation only, not the protected MJobs integration owner.
@@ -589,3 +729,55 @@ Historical92-test verification remains attributed to40eec0a5e73ed5ed64f4c90446a1
 Only MJ-REQ-204.N02 is proposed for PASS under its five literal criteria. Parent MJ-REQ-204 remains NOT_RUN; queue MJ-PR-055 remains QUEUED. Original requirements remain366 and reference requirements remain59, with reference counts19 PASS/4 PARTIAL/36 NOT_RUN. Preserve every prior history and failure. The bound aa base has 184 PASS/82 PARTIAL/100 NOT_RUN; this N02-only candidate proposes 185 PASS/82 PARTIAL/99 NOT_RUN. P6 changes only from 1 PASS/11 NOT_RUN to 2 PASS/10 NOT_RUN. These are candidate counts, not a new protected acceptance or view result.
 
 Root must complete actual canonical execution, exact-head protected acceptance publication, primary refresh and the approved real Mission Control API comparison of every area/priority and both separate denominators. Those results remain pending. Production deployment, external recipients, authenticated public TLS delivery and device display are not claimed.
+
+
+## 2026-11-14 Codex GUI mission — capture recovery integrated
+
+- Protected PR #1036 merged at ca8cc90760e5dd4436d08838a2766107a48e5c55 after all 15 checks on head 50fb48807fede7fd11d62ea2de345e861ed23dbe passed, including all five required gates. Local main fast-forwarded to that exact revision. MJ-REF-031/#401 capture validation now refuses oversized retained source metadata before POST and supports fresh-extraction recovery while preserving reviewed removals and provenance. Whole #401/#293 acceptance remains PARTIAL.
+- Merged-main verification: locked project dependencies restored offline after initial missing-module build failure; frontend typecheck/build passed; focused API/Chromium suite passed 7 tests and 8 subtests in 19.21s. Earlier 14 client tests, local Luna task/final reviews and source provenance checks passed. Three baseline Ruff findings and the baseline bundle-size advisory remain; neither is hidden by a passing claim.
+- User explicitly authorized recovering unresolved locks from timed-out ChatGPT sessions. Old 2d4f integration lock referred to already-merged PR #1019. Private snapshot and unchanged-record verification preceded recovery at 2026-11-14T13:08:55Z. Current integration owner: codex:integration-01a1da02-20261114. Only integration role and this SESSION_HANDOFF path transferred; 477 unrelated claims and other canonical paths preserved. Recovery receipt is local under .git/mjobs-coordination/recovery-01a1da02-20261114/receipt.json; never publish private claim snapshots or owner tokens.
+- Original acceptance unchanged: 185 PASS / 82 PARTIAL / 99 NOT_RUN of 366; supplemental 19 PASS / 4 PARTIAL / 36 NOT_RUN of 59. Campaign MJ-REQ-292/#293 has 60 steps; historical ledger 0 VERIFIED PASS / 53 PARTIAL / 7 NOT_RUN is not a new run. Release readiness UNKNOWN.
+- Denison benchmark A is PARTIAL: isolated synthetic-profile manual import of a brief public-posting summary, exact source URL, replay/conflict handling and database reopen/readback passed with egress blocked. Real browser import, staleness handling, matching, drafting and submission NOT_RUN. Reproduction and receipt are in the capture worktree's ignored .superpowers/sdd/capture-bounds-20261114/denison-benchmark directory.
+- Operator read-only checks passed for Mission Control 18726 and Fleet Hub 4320; preflight remains AO_OFFLINE/RUNTIME_NOT_READY, quota 100% with 7% reserve. No production fleet/startup, Cloudflare or runtime changes; no real application submission.
+- Next: reconcile native coordination claims and latest #973/f9e candidate, preserve existing implementation, and execute/repair fixture ledger alignment and same-journey monitoring/restart steps 54–60. Capture worktree remains C:/Users/Dylan/.codex/worktrees/mjobs-p0-acceptance/MJobs at published 50fb4880; this canonical checkpoint is a local integration-owner update, not an additional published commit.
+
+
+Salary PR1037 subsequently merged at dc400b80a10a886b602fc89f9208d0b407fc6156 after all15 exact-head checks on eb173bf7 passed. Merged-main build and salary browser1 passed13.13s. Candidate36450632 PostgreSQL qualification passed58tests+36subtests in333.23s with exit0; original duplicate-run artifacts remain inconclusive. Full campaign remains PARTIAL. New P1 opt-in/legacy-bootstrap finding was reproduced with controlled HTTP and must be fixed before campaign publication.
+
+
+## 2026-11-14 campaign reconciliation, consent and containment
+
+- Owner: codex:integration-01a1da02-20261114, current interactive session ending no later than2026-11-14T16:22:43Z. Root C:/Tools/Dev/MJobs; qualification worktree C:/Users/Dylan/.codex/worktrees/mjobs-campaign-qualification/MJobs, branch codex/p0-campaign-reconcile-20261114. Protected main dc400b80a10a886b602fc89f9208d0b407fc6156 includes capture PR1036 and salary PR1037; each earned all15 exact-head hosted checks before merge.
+- Recovered only the matching stale campaign claims under the user's explicit authorization, preserving private snapshots and unrelated claims. Existing draftPR973 oldhead96f12223152d9d73e292a8ea608c45a1e78d7ec9 is the bounded publication destination; original history and protected main were merged without force or resetting original worktrees.
+- Consent repair a343ece6183e63517d5fb49a02d6fac1f35d9e62 prevents absent/disabled employer-verification policy from selecting legacyV1 bootstrap or generic fallback. Active V2/current-grant and parent fences remain. Focused SQLite248passed,42PG-onlyskips,65subtests. c0ba9b7ae4c4a659c823297410d521db710db26a adds the missing inherited Postgres fixture alias: actual disposable PostgreSQL16.15 qualification87passed58subtests0skips245.22s; consent browser2passed12.68s. Local scoped review approved. Original fixture-alias failure preserved. DisposablePG removed; private credentials deleted.
+- Reconciled frontend1256tests and build/typecheck passed; salary/desktop browser4passed150.50s on0877c3be7d89180f13bee492783c4dcccd60356b. Full Windows units NOT_PASS: Linux fcntl collection prerequisite, demonstrated baseline protected-config NTFS ancestor-ACL rejection, and reproduced baseline remote-provider cancellation timeouts. Isolated cancellation recheck:3failedsubtests,1passedtest,1passedsubtest,5.26s; same source blobs as protected main, cause unresolved. No host ACL/security changes or test weakening.
+- Frozen c0ba runtime attempts are retained under ignored outputs/p0-connected-*. First startup hit Docker address-pool exhaustion. A project-only nonoverlapping IPAM override permitted isolated startup without global network changes. Second attempt exposed missing image OCI provenance labels; operator build helper now verifies actual immutable-image labels. Third full-stack/UI run reached43 producer PASS/10PARTIAL/7NOT_RUN but failed public containment before collection because callback readbacks consumed lease headroom. These producer observations do not promote the canonical ledger.
+- Failed project mjobs-fixture-3ee917c4cf65 was explicitly reconciled: original claim/token digest, exact containers/images/source labels, both unchanged source fingerprints and17inactive operations verified; both owned source policies disabled/read back, then exact11containers and project networks/volumes removed. Original expired claim and failure artifacts preserved privately; this is operator recovery, not an automated-release PASS. Remotive initial absence is inferred from successful setup code, not a persisted transient artifact. No public collection operation or real application submission occurred.
+- Lease fix475bb7b432e1da6294d9670868949851db9c027c rechecks ownership/expiry/headroom after readbacks immediately before active proof return. Initial/admitted slow-read, actual expiry and token-drift regressions failed first then passed; release semantics retained. Affected suite145passed299subtests2skips39.26s, import smoke/diff/provenance passed. Independent Sol fixed-commit review approved475bb7b4:14 owner/release/identity tests+9subtests and3 public continuity tests+31subtests passed; no actionable findings.
+- Next owned fixture mjobs-fixture-8d208fb2fa25/loopback18742 will use a fresh immutable image and explicit native-greenhouse mock scenario. Baseline mock route cannot prove native ATS acceptance; read-only identity/native-route prerequisites must pass before expensive UI. This fresh campaign is NOT_RUN at checkpoint authoring. Existing unrelated19973stack preserved.
+- Original acceptance185PASS/82PARTIAL/99NOT_RUN of366 and reference19PASS/4PARTIAL/36NOT_RUN of59 unchanged. MJ-REQ-292/#293 remainsPARTIAL; historical canonical60-step ledger0VERIFIEDPASS/53PARTIAL/7NOT_RUN. Exact-head hosted checks, protected integration, full connected acceptance and restart/monitoring remain separate gates.
+
+
+### 2026-11-14 final combined candidate qualification
+
+- The frozen published99b1ea3a run reached49 producer PASS /4PARTIAL /7NOT_RUN. Native ATS steps39–43/50 passed with two durable API attempt proofs; real WWR collection saw100 jobs and public.json passed with RESTORED_DISABLED. The journey then failed PUBLIC_BROWSER_SOURCE_FIELDS_MISMATCH because the observer compared native slugs with company-namespaced persisted IDs. Exact owned sources were disabled and20operations inactive before verified project teardown; private failure/collection/claim artifacts remain under outputs/p0-connected-8d208fb2fa25. Canonical acceptance unchanged.
+- Public-contract fixe595c93752676e6725316222d61cdf87e1490ed6 joins the adapter-normalized native ID through exact company/source hashes, retaining source-origin/snapshot checks. Fresh owned primaries use fixed5requests/min instead of an impossible1/min listing-first window; concurrency1, request timeout10s, bootstrap30s/4documents/10HTTP/20MiB, robots/origin/pacing guards and additional-source1/min are unchanged. Real collection->Store->API->browser join red/green and swapped-ID controls passed. Affected suites287passed307subtests2Windows skips47.28s; independent scoped review passed5tests8subtests. The real child containment fixture was updated to the V2 contract and passed7tests15.88s.
+- Console data minimization preserves private artifacts, opt-in forwarding and returned reports. Exact CodeQL alerts traced to booleans/synthetic witness digests, not established credential leakage; no alert dismissal or scan suppression. Review found a real journal-count reporting error, corrected at1babdf478be51d52af334f81dfb812192553c034 with real journal payload and persisted-count regression. Affected195tests45subtests passed; independent review approved.
+- Hosted99b1ea3a integration failures exposed overbroad no-consent intake suppression. Reviewed repair5d832623 (cherry-picked2d5f329000798ea9256052c548964900b89ede75) restores clean PERSONAL NEEDS_ORIGIN_REVIEW records while returning before every automatic queue path. Existing authority and explicit USER_CANDIDATE/USER_CONFIRMED_DOMAIN approval remain distinct. SQLite61passed64subtests30PGskips; independent review2passed. Automatic-only legacy fixtures now use real V2 grants/claimed parent attempts; shared-payload mutation caught in review was fixed with deep-copy/preservation assertion at4073db33. Manual review fixtures remain opted out.
+- Actual PostgreSQL16.15 at2d5f3290:111passed68subtests7skips203.65s. The seven skips needed a separate reviewed-identity environment variable; a second actual run at4073db33 enabled both variables and passed15tests7subtests0skips27.58s, including the new Greenhouse PG identity join and reviewed Greenhouse/identity contracts. Exact heads remained clean/unchanged. Owned PG removed and private connection/env files deleted. Local real RQ remains NOT_RUN on Windows because production worker forking requires Linux; hosted gates remain required.
+- Original99b1ea3a hosted unit/build/policy/security/dependency/disposable checks passed; integration and CodeQL failed before these fixes. One hosted Lever finite-connect-deadline assertion also failed before entering TCP; cause unresolved, not waived as environmental. Baseline local Windows socket-cancellation/ACL/fcntl limits remain. Fresh combined-head checks and connected run pending at this checkpoint; no merge or60/60 claim.
+- Sole next fixture: mjobs-fixture-44220090e592, loopback18742, native-greenhouse with project-only IPAM and exact source/image provenance prerequisites. Respect interactive stop16:22:43Z; reconcile any owned containment before teardown and release temporary native claims. Existing unrelated19973stack and all original worktrees preserved.
+
+
+## MJ-REQ-292 verifier-first continuation — 2026-11-15 / 01a1dcec
+
+Owned integration branch `codex/mj292-integration-01a1dcec`; tested composition `a544104cd0fc436f17704fb79c310b1919a85a97` preserves reviewed verifier commit `ed046f939c2f1e51370d1a0d5291e2265b8c9ed5` and current main `80eec0bad2d4d56ad6256820101f61b5301bafda`. Both original regressions reproduced before repair and independently reproduced/reviewed. Composed targeted suite: 690 passed, 102 subtests; catalogue/progress/dashboard/skills/diff checks exit0. Exact commands/hashes: `docs/evidence/2026-11-15-mj292-verifier-01a1dcec.json`. Evidence bookkeeping is not runtime-tested source.
+
+PR973 remains draft/PARTIAL. No numbered promotion:0 VERIFIED PASS/53PARTIAL/7NOT_RUN. Public prerequisite: bounded WWR/Remotive first-two cohorts unchanged, no positive admissible same-employer native chain. Recovery components passed controlled SQLite/mock tests, not actual restart/public resumption. Foreign project `mjobs-fixture-0068d92da7c0` has10 running services and is preserved. No external submissions or Fleet changes.
+
+Next: finish composition review, run live existing-PR preflight and one ordinary nonforce update, inspect exact-head hosted checks. Merge/connected acceptance remain gated. Preserve primary checkout preexisting dirty SESSION_HANDOFF and all foreign claims/worktrees. Root sole integration owner; temporary source/evidence claims released at stop. Recovery: normal revert PR only, retain baseline3605e2c9 and frozen reviewed source/receipts; no destructive resets.
+
+
+### Hosted follow-up — rate-clock isolation
+
+Published `4e548e79fa995d6c2375805c4d8b9b4c6c7ea28a` failed one hosted unit: rate7 bootstrap proofNone (5334passed/55skipped/5203subtests). Synthetic Compose passed. A synchronized offline experiment reproduced a matching cause: the test helper patched the process-wide clock, allowing a real monitor thread to consume its fake deadline. The exact historical hosted interleaving is untraced. Test-only repair `c65ca5183ac2719dc981ea7777eab13192a05616` isolates module clock bindings and adds a failing-first negative regression; production budgets/assertions unchanged. Independent review APPROVE;174tests26subtests passed. Combined candidate `4b7a0b19de9fad7a134328d44f4a27d20da2b7a7`:864tests128subtests passed, no reported skips. Exact receipts/hashes appended to the evidence JSON. No numbered acceptance promotion. Wait for previous hosted jobs to finish before admitting corrected candidate; normal nonforce draft update only.

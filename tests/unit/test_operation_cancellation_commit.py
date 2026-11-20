@@ -1,6 +1,6 @@
 """Commit-authoritative local cancellation must not starve its SQLite writer."""
 from collections import deque
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 import gc
@@ -29,6 +29,39 @@ SOURCE_WATCHERS = (
 SOURCE_KINDS = ("DISCOVER", "COMPANY_DISCOVER", "COMPANY_SOURCE_REFRESH")
 
 
+@contextmanager
+def _defer_automatic_gc():
+    """Measure the owned request, not cyclic garbage accumulated by other tests."""
+    enabled = gc.isenabled()
+    gc.disable()
+    try:
+        yield
+    finally:
+        # Restore the caller's state even when a request raises BaseException.
+        # Explicit collections remain possible; no production GC policy changes.
+        (gc.enable if enabled else gc.disable)()
+
+
+class CancellationTimingFixtureTests(unittest.TestCase):
+    def test_automatic_gc_state_is_restored_after_success_and_abort(self):
+        previous = gc.isenabled()
+        try:
+            for enabled in (True, False):
+                for aborted in (False, True):
+                    with self.subTest(enabled=enabled, aborted=aborted):
+                        (gc.enable if enabled else gc.disable)()
+                        try:
+                            with _defer_automatic_gc():
+                                self.assertFalse(gc.isenabled())
+                                if aborted:
+                                    raise KeyboardInterrupt("fixture abort")
+                        except KeyboardInterrupt:
+                            self.assertTrue(aborted)
+                        self.assertEqual(gc.isenabled(), enabled)
+        finally:
+            (gc.enable if previous else gc.disable)()
+
+
 class OperationCancellationCommitTests(unittest.TestCase):
     def setUp(self):
         root = tempfile.TemporaryDirectory(prefix="mjobs-cancel-commit-")
@@ -54,6 +87,9 @@ class OperationCancellationCommitTests(unittest.TestCase):
         identifier = self.seed(kind)
         local = operations.register_operation_cancellation(identifier)
         poll_entered = threading.Event()
+        watcher_ready = threading.Event()
+        release_watcher = threading.Event()
+        abort_watcher = threading.Event()
         writer_finished = threading.Event()
         actual_commit_entered = threading.Event()
         commit_or_writer_finished = threading.Event()
@@ -189,6 +225,12 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     record_phase("premature_read_released")
 
         def check():
+            watcher_ready.set()
+            if not release_watcher.wait(2):
+                watcher_errors.append("WATCHER_ADMISSION_TIMEOUT")
+                return
+            if abort_watcher.is_set():
+                return
             record_phase("watcher_check_enter")
             try:
                 operations.check_cancelled(self.store, identifier, 1, local)
@@ -208,9 +250,8 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 record_phase("audit_enter")
             try:
                 if cancellation_audit:
-                    record_phase("watcher_start_enter")
-                    watcher.start()
-                    record_phase("watcher_start_exit")
+                    record_phase("watcher_release")
+                    release_watcher.set()
                     if not poll_entered.wait(2):
                         raise AssertionError(f"Owned watcher never entered its control check; errors={watcher_errors}")
                     record_phase("poll_acknowledged")
@@ -272,26 +313,35 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     patch.object(local, "stage", side_effect=observe_stage), \
                     patch.object(self.store, "_audit", side_effect=gated_audit):
                 record_phase("patches_ready")
-                # Keep setup/GC in the trace, but exclude mock construction
-                # from the cancellation request and outcome-check budget.
-                request_started = time.monotonic()
-                if rollback:
-                    with self.assertRaisesRegex(
-                            rollback_error, "^SYNTHETIC_AUDIT_FAILURE$") as raised:
+                # A polling watcher already exists when a real cancellation
+                # arrives. Admit this owned thread before timing the request.
+                record_phase("watcher_start_enter")
+                watcher.start()
+                record_phase("watcher_start_exit")
+                self.assertTrue(watcher_ready.wait(2), "Owned watcher was not ready")
+                # Keep real wall time and the unchanged 350ms assertion. Only
+                # unrelated automatic cyclic GC is deferred for this interval.
+                with _defer_automatic_gc():
+                    request_started = time.monotonic()
+                    if rollback:
+                        with self.assertRaisesRegex(
+                                rollback_error, "^SYNTHETIC_AUDIT_FAILURE$") as raised:
+                            request_with_phases()
+                        self.assertIs(raised.exception, rollback_failure)
+                    else:
                         request_with_phases()
-                    self.assertIs(raised.exception, rollback_failure)
-                else:
-                    request_with_phases()
-                self.assertTrue(
-                    active_attempts[-1].resolved.is_set(),
-                    "Local cancellation outcome was not resolved after transaction exit",
-                )
-                self.assertEqual(active_attempts[-1].committed, not rollback)
-                elapsed = time.monotonic() - request_started
-                record_phase("measurement_exit")
-                writer_finished.set()
+                    self.assertTrue(
+                        active_attempts[-1].resolved.is_set(),
+                        "Local cancellation outcome was not resolved after transaction exit",
+                    )
+                    self.assertEqual(active_attempts[-1].committed, not rollback)
+                    elapsed = time.monotonic() - request_started
+                    record_phase("measurement_exit")
+                    writer_finished.set()
                 watcher.join(2)
         finally:
+            abort_watcher.set()
+            release_watcher.set()
             writer_finished.set()
             if wait_for_commit_entry:
                 commit_or_writer_finished.set()
@@ -349,6 +399,18 @@ class OperationCancellationCommitTests(unittest.TestCase):
             for watcher in SOURCE_WATCHERS:
                 with self.subTest(kind=kind, watcher=watcher):
                     self.exercise_pending_commit(kind, watcher)
+
+    def test_timing_guard_still_rejects_a_slow_real_commit(self):
+        original_commit = self.store.engine.dialect.do_commit
+
+        def slow_commit(connection):
+            time.sleep(.4)
+            return original_commit(connection)
+
+        with patch.object(self.store.engine.dialect, "do_commit", new=slow_commit):
+            with self.assertRaisesRegex(AssertionError, "Local polling delayed durable cancellation"):
+                self.exercise_pending_commit("DISCOVER", "mjobs-remoteok-cancellation")
+        self.assertEqual(self.store.engine.pool.checkedout(), 0)
 
     def assert_execution_thread_negative_control(self, *, precommit_delay=0):
         # A non-watcher name takes the real SQL path and must trip the read-lock

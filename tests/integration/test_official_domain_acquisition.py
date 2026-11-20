@@ -197,7 +197,11 @@ class OfficialDomainAcquisitionTests(unittest.TestCase):
         with patch('httpx.HTTPTransport.handle_request',
                    lambda transport, req: self._native_boundary(transport, req)), patch(
                        'services.discovery.sources.collect.datetime', CollectionClock), patch(
-                           'services.discovery.sources.collect.now', return_value=due.isoformat()):
+                           'services.discovery.sources.collect.now', return_value=due.isoformat()), patch(
+                               'packages.persistence.store.datetime', CollectionClock), patch(
+                                   'workers.operations.datetime', CollectionClock):
+            # Claim, lease, persisted receipts and collection share the same
+            # future instant; advancing polling alone would expire a real-time lease.
             refreshed = execute_operation(scheduled['scheduled'][0]['operation_id'])
         self.assertEqual(refreshed['status'], 'COMPLETED', refreshed)
         with self.store.engine.connect() as connection:

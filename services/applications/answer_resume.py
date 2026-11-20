@@ -105,6 +105,8 @@ def _binding(store, profile_id, application_id, value):
             or application["profile_version"] != value["expected_profile_version"]):
         raise AttemptConflict("APPLICATION_ANSWER_REVIEW_STALE")
     preflight = latest_preflight(store, application_id)
+    if not preflight or preflight.get("is_current") is not True:
+        raise AttemptConflict("APPLICATION_ANSWER_REVIEW_STALE")
     form_fingerprint = preflight.get("metadata_fingerprint") if preflight else None
     question = _question(preflight, value["question_id"])
     if (form_fingerprint != value["form_fingerprint"]
