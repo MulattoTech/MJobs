@@ -1,33 +1,37 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-039",
-  "objective": "Complete already-approved comparison acceptance integration and verify final candidate",
+  "objective": "Comparison acceptance and protected integration are complete",
   "owner": "ChatGPT-Web d9b89794",
   "branch": "web/20261120-d9b89794/comparison-acceptance",
-  "head_sha": "d399c84808571d3de9a0142fd4136b8ae587538c",
-  "routing_state": "INTEGRATE",
-  "next_action": "Complete the already-approved1064 protected merge after final checkpoint descendant has freshcurrent-main requiredgates; thenverifyactualintegratedacceptance/source and automatic Deployment/candidate. Approved1065/1066 and prior1045/1034 merges are complete. Production/liveACL/keyactions remain separatelyreserved.",
-  "created_at": "2026-11-20T10:44:29.754854+00:00",
+  "head_sha": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+  "routing_state": "COMPLETE",
+  "next_action": "Comparison acceptance is complete on main6916. Diagnose and prepare a focused repair for its failed control-read timing assertion, preserve the failed main/candidate record, and obtain fresh hosted gates plus a separately scoped protected-merge approval. Hold PR1029/navigation publication while main repair takes priority; production/key/ACL actions remain separately reserved.",
+  "created_at": "2026-11-20T11:34:34.317576+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Approved1065 edc andrefreshed1066 5f:all15 checks/five requiredgatesPASS; actualmerges4d/4fa fulltrees matchreviewed69a/D957; reviewthreads clear. Originalbot1020/1031auto-mergedsame4fa.",
+      "command": "Approved1065/1066/1064 each passed all15 exact-head checks and five required gates. Actual merges4d/4fa/6916 match reviewed trees; final6916 parents4fa+98 and tree521d were verified. Review/thread checks clear; integration lock released.",
       "result": "PASS"
     },
     {
-      "command": "Acceptance435 all15checks/five requiredgatesPASS; refreshsourced399 has identicalcomplete7cf tree. Combined25925:168tests+189subtests PASS;427backend identities retained. Prior304fee progress45tests+37subtests with7platformskips retained via106unchangedinputs; no new localexecution claimed.",
+      "command": "Actual6916 progress journal PASS and dashboard CURRENT. Original188/366 unchanged; reference20/59 with onlyMJREF039 promoted. All41 journal entries and currentmilestone preserved.",
       "result": "PASS"
     },
     {
-      "command": "Actualcomparisonmerged9:30Python/API/browser+28subtests,20frontend/typebuildPASS; fivecriteria/prerequisites/nativeprovenance verified. OnlyMJREF039 proposed;alloriginal366statuses and41journalentries/currentmilestone preserved.",
+      "command": "All five comparison criteria/prerequisites/native provenance verified. Prior actual comparison30Python/API/browser+28subtests and20frontend/typebuild PASS; combined168tests+189subtests and progress45tests+37subtests (7 expected POSIX-specific Windows skips) remain attributed to their executed revisions and exact unchanged inputs.",
       "result": "PASS"
     },
     {
-      "command": "Standard435candidatebuild:fresh1294frontend tests/typecheck/VitePASS; 3,476 host source files matched canonical Git bytes; actual soupsieve4.0/API1.45.2;three shippedfilehashes,guard62file/model/migrationmetadataPASS;ownedresourcescleaned. Intermediate4d automaticmaincandidatePASS;finalmainverification stillrequired.",
+      "command": "Built435 candidate retained fresh1294frontend tests/typecheck/Vite PASS, 3476 host canonical files and three shipped-file hashes. Actual6916 differs only in two checkpoint docs; runtime/dependencies/Dockerfile/model and62 guard inputs unchanged. Source identity is not a new runtime execution.",
       "result": "PASS"
     },
     {
-      "command": "Freshhostedgates onfinalcheckpointdescendant; actual1064protectedmerge/finalmaincandidate; productionoriginal-key retention/backup/recovery/rollout. Fourdefaultbranchalerts stillOPEN at10:42readback.",
+      "command": "Actual main6916 Python job136255159784 failed one control-read timing assertion (1.3132076179999785s vs<1);5747passes,55skips,5238passedsubtests. CI / required failed. Candidate44726503972 failed at its gate wait; build/record/upload skipped, zero artifacts. Hosted cause remains unclassified; no rerun or waiver.",
+      "result": "FAIL"
+    },
+    {
+      "command": "New final-main image validation, production original-key retention/backup/recovery/rollout, and final dependency-alert disposition remain unverified. Prepared fixture repair and later PR1029/navigation protected merges require their own fresh gates and scoped approval.",
       "result": "NOT_RUN"
     }
   ],
