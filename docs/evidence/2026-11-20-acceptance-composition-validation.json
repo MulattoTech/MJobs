@@ -1,18 +1,29 @@
 {
   "schema_version": 1,
-  "recorded_utc": "2026-11-20T08:36:08.553666+00:00",
-  "task": "PR1064 acceptance composition validation",
-  "outcome": "SCOPED_COMPOSITION_VALIDATED",
-  "prior_published_head": "06b676f5b4f6e07e89d66efcb4823cd3185f458f",
-  "prior_hosted_result": {
-    "result": "FAIL",
-    "job": "https://github.com/MulattoTech/MJobs/actions/runs/44696645736/job/136154874454",
-    "test": "GreenhouseTests.test_per_source_concurrency_bounds_parallel_read_requests",
-    "observed_gap_seconds": 0.000119337,
-    "required_minimum_seconds": 0.075,
-    "repair": "PR1065; unchanged threshold, deterministic regressions and independently reviewed product repair."
+  "recorded_utc": "2026-11-20T09:34:03.533745+00:00",
+  "task": "PR1064 deadline-corrected acceptance composition",
+  "outcome": "SCOPED_SOURCE_IDENTITY_VERIFIED_FRESH_HOSTED_GATES_REQUIRED",
+  "current_main": "68c8ac18454be004bdc9b6f3f51ba1755781c0d9",
+  "composition_revision": "797449837437ad56048cf8bc8e2a1c35d165dac7",
+  "composition_tree": "80a3db31136434f6d1e08ffad178da169a363421",
+  "prior_published_head": "278e74877842536717af78a913a83dbe1f8ecd09",
+  "prior_hosted_result": "All15 checks/all5 required gates PASS at278, then main advanced. The separate1066 failure is not waived.",
+  "backend_tested_revision": "25925cd8e4a5a023d3ce6998ce68195471cdbdf1",
+  "backend_counts": {
+    "passed": 168,
+    "subtests_passed": 189,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0
   },
-  "progress_verification": {
+  "backend_identity_proof": {
+    "result": "PASS",
+    "unchanged_files": 427,
+    "manifest_sha256": "a7c7992617821645a857229400271615355d237df88af73f5859d63de61d6c8f",
+    "dependency_receipt_sha256": "d370ea29d07fbd34d0d6f9f01adc820782a113cab3cbaebff49eab018a4228c9"
+  },
+  "backend_verification_reference": "docs/evidence/2026-11-20-dependency-remediation-integration.json",
+  "progress_execution": {
     "source_revision": "304fee31aa700811b9f022e9da37c38b2ff567c5",
     "source_tree": "5354f5afed1aba9fc3268ca7ec780da72eae2ef6",
     "started_utc": "2026-11-20T08:30:57.870177+00:00",
@@ -46,100 +57,197 @@
     "pytest_log_sha256": "7266cd881404340dd6de180f9488a077c445e3d3b5973f0c774828ede116b9d2",
     "junit_sha256": "1e883e253a6d3f5dcc47fcd5db08e528a4ae224af61fc8b0db6437fa02839c2e"
   },
-  "skips": [
-    {
-      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests::test_symlink_coordination_file_is_refused_without_touching_target",
-      "reason": "POSIX symlink creation without Windows elevation"
+  "progress_identity": {
+    "result": "UNCHANGED",
+    "baseline": "304fee31aa700811b9f022e9da37c38b2ff567c5",
+    "current": "797449837437ad56048cf8bc8e2a1c35d165dac7",
+    "blobs": {
+      "tools/verification/progress.py": "4429600a8a8efb3aa046397d88468b9dd4346643",
+      "tests/unit/test_progress_journal.py": "04f27e3d04e4a9a71b36709b81441819381be4b9",
+      "tests/unit/test_progress_journal_concurrency.py": "9e18574ebafdbabdc9e9bbd814ac313f3bcd17c8",
+      "tests/unit/test_progress_journal_durability.py": "93a776be3f6a8c3d641ab722cb291af9a02876b9",
+      "tests/unit/test_progress_journal_recovery.py": "419604f08ddc4c20551be13da1d83f667ff86a00",
+      "tests/unit/test_progress_journal_readers.py": "443c3890b84c2aadab90c27ae6b94a7491cdc506",
+      "tests/unit/test_progress_dashboard.py": "e045c207e0e2d9aa9b648bc34a1ec881234916a2",
+      "tests/unit/test_progress_card.py": "6171b614624b205d896cf3aaf6fa68c074121a3b",
+      "planning/CAPABILITY_MATRIX.json": "bc86e8250b9b5101c8ef7713a1e3c0b38628af4c",
+      "planning/REFERENCE_GAP_MATRIX.json": "afe9d9c6308dd09a0f41c7f1273c065cb0d3d1db",
+      "planning/REQUIREMENT_INDEX.json": "77f6e7357ad0b5865c72fcb771272f478ffc0525"
     },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor",
-      "reason": "POSIX directory descriptors required"
-    },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_success_flushes_contents_then_replacement_directory",
-      "reason": "POSIX directory descriptors required"
-    },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_unavailable_directory_flush_is_not_silently_downgraded",
-      "reason": "POSIX directory descriptors required"
-    },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_failed_canonical_directory_flush_recovers_without_duplicate_milestone",
-      "reason": "POSIX directory descriptors required"
-    },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_sync_cannot_report_success_while_canonical_directory_flush_fails",
-      "reason": "POSIX directory descriptors required"
-    },
-    {
-      "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_sync_reflushes_canonical_directory_before_repairing_derived_copy",
-      "reason": "POSIX directory descriptors required"
-    }
-  ],
-  "progress_source_blob": "4429600a8a8efb3aa046397d88468b9dd4346643",
-  "backend_verification_reference": "docs/evidence/2026-11-20-dependency-remediation-integration.json",
-  "backend_tested_revision": "22ffebd66b805d87d91ab38799f5cc851c25e2eb",
-  "backend_counts": {
-    "passed": 146,
-    "subtests_passed": 162,
-    "failed": 0,
-    "skipped": 0,
-    "errors": 0
+    "interpretation": "Prior45tests+37subtests with7POSIX-specific Windows skips retained as exact unchanged-source evidence, not a fresh rerun."
   },
-  "source_identity": {
-    "file_count": 427,
-    "manifest_sha256": "f4f7dc89f54d35ac5310750ab5769b7174a5e258728ad769e06e48955f10f88a",
-    "greenhouse_blobs": {
-      "services/discovery/sources/greenhouse.py": "d7e01142f31187df696be65a6f3741a42b554708",
-      "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
-      "tests/unit/test_greenhouse_rate_admission.py": "9e562e061363e899d02c0394bb978250152b537b"
-    },
-    "dependency_blobs": {
-      "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
-      "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8"
-    },
-    "scope": "Recorded apps/api, cli, fixtures, packages, services, workers, dependency manifests and selected backend test files; this is scoped source identity, not whole-tree equivalence."
-  },
-  "identity_result": "All 427 recorded backend/dependency/selected-test blobs exactly match the tested dependency revision. Only the progress package was rerun on this later composition.",
   "acceptance": {
-    "criterion_record": "docs/evidence/2026-11-20-job-comparison-acceptance.json",
-    "only_proposed_promotion": "MJ-REF-039 NOT_RUN to PASS",
-    "main_original": {
-      "PASS": 188,
-      "PARTIAL": 82,
-      "NOT_RUN": 96,
-      "total": 366
-    },
-    "main_reference": {
-      "PASS": 19,
-      "PARTIAL": 4,
-      "NOT_RUN": 36,
-      "total": 59
-    },
-    "candidate_original": {
-      "PASS": 188,
-      "PARTIAL": 82,
-      "NOT_RUN": 96,
-      "total": 366
-    },
-    "candidate_reference": {
-      "PASS": 20,
-      "PARTIAL": 4,
-      "NOT_RUN": 35,
-      "total": 59
-    },
-    "new_change_from_original_candidate": false,
+    "main_original_pass": 188,
+    "main_original_total": 366,
+    "main_reference_pass": 19,
+    "main_reference_total": 59,
+    "candidate_reference_pass": 20,
+    "only_proposed_status_change": "MJ-REF-039 NOT_RUN -> PASS",
+    "new_status_changes_in_this_refresh": 0,
     "release_readiness": "UNKNOWN"
   },
-  "next_gates": [
-    "Finish documentation-only evidence/checkpoint commits and verify source identity.",
-    "Publish one normal PR1064 branch update after the focused repair and dependency candidates are reviewable; retain the failed-head evidence.",
-    "Require fresh hosted checks on the final published head and current main.",
-    "Obtain newly scoped protected-merge approval; production remains separately reserved."
-  ],
+  "preserved_history": {
+    "schema_version": 1,
+    "recorded_utc": "2026-11-20T08:36:08.553666+00:00",
+    "task": "PR1064 acceptance composition validation",
+    "outcome": "SCOPED_COMPOSITION_VALIDATED",
+    "prior_published_head": "06b676f5b4f6e07e89d66efcb4823cd3185f458f",
+    "prior_hosted_result": {
+      "result": "FAIL",
+      "job": "https://github.com/MulattoTech/MJobs/actions/runs/44696645736/job/136154874454",
+      "test": "GreenhouseTests.test_per_source_concurrency_bounds_parallel_read_requests",
+      "observed_gap_seconds": 0.000119337,
+      "required_minimum_seconds": 0.075,
+      "repair": "PR1065; unchanged threshold, deterministic regressions and independently reviewed product repair."
+    },
+    "progress_verification": {
+      "source_revision": "304fee31aa700811b9f022e9da37c38b2ff567c5",
+      "source_tree": "5354f5afed1aba9fc3268ca7ec780da72eae2ef6",
+      "started_utc": "2026-11-20T08:30:57.870177+00:00",
+      "finished_utc": "2026-11-20T08:31:10.082392+00:00",
+      "invocation": "pytest.main with the selectors below, -q -ra --color=no -p no:cacheprovider, and owned JUnit/basetemp paths",
+      "test_selectors": [
+        "tests/unit/test_progress_journal.py",
+        "tests/unit/test_progress_journal_concurrency.py",
+        "tests/unit/test_progress_journal_durability.py",
+        "tests/unit/test_progress_journal_recovery.py",
+        "tests/unit/test_progress_journal_readers.py",
+        "tests/unit/test_progress_dashboard.py",
+        "tests/unit/test_progress_card.py"
+      ],
+      "result": "PASS",
+      "counts": {
+        "passed": 45,
+        "subtests_passed": 37,
+        "failed": 0,
+        "skipped": 7,
+        "errors": 0
+      },
+      "pytest_summary": "45 passed, 7 skipped, 1 warning, 37 subtests passed in 11.06s",
+      "runner_seconds": 11.204,
+      "owned_product_imports": 41,
+      "foreign_product_imports": 0,
+      "tracked_source_unchanged": true,
+      "warning": "One retained PytestAssertRewriteWarning: anyio was imported during the identity preflight before pytest initialized rewriting; zero test errors.",
+      "receipt_sha256": "b5f622acf3ff9d5edc543b8f53833b5847e9696f93b11ee333017135b49f9521",
+      "runner_sha256": "3c4d79221ca6cbfa1dd8d85f1964f8f952e74faa54ee6c24de65ad9120cd2ca6",
+      "pytest_log_sha256": "7266cd881404340dd6de180f9488a077c445e3d3b5973f0c774828ede116b9d2",
+      "junit_sha256": "1e883e253a6d3f5dcc47fcd5db08e528a4ae224af61fc8b0db6437fa02839c2e"
+    },
+    "skips": [
+      {
+        "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests::test_symlink_coordination_file_is_refused_without_touching_target",
+        "reason": "POSIX symlink creation without Windows elevation"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor",
+        "reason": "POSIX directory descriptors required"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_success_flushes_contents_then_replacement_directory",
+        "reason": "POSIX directory descriptors required"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests::test_unavailable_directory_flush_is_not_silently_downgraded",
+        "reason": "POSIX directory descriptors required"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_failed_canonical_directory_flush_recovers_without_duplicate_milestone",
+        "reason": "POSIX directory descriptors required"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_sync_cannot_report_success_while_canonical_directory_flush_fails",
+        "reason": "POSIX directory descriptors required"
+      },
+      {
+        "test": "tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests::test_sync_reflushes_canonical_directory_before_repairing_derived_copy",
+        "reason": "POSIX directory descriptors required"
+      }
+    ],
+    "progress_source_blob": "4429600a8a8efb3aa046397d88468b9dd4346643",
+    "backend_verification_reference": "docs/evidence/2026-11-20-dependency-remediation-integration.json",
+    "backend_tested_revision": "22ffebd66b805d87d91ab38799f5cc851c25e2eb",
+    "backend_counts": {
+      "passed": 146,
+      "subtests_passed": 162,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0
+    },
+    "source_identity": {
+      "file_count": 427,
+      "manifest_sha256": "f4f7dc89f54d35ac5310750ab5769b7174a5e258728ad769e06e48955f10f88a",
+      "greenhouse_blobs": {
+        "services/discovery/sources/greenhouse.py": "d7e01142f31187df696be65a6f3741a42b554708",
+        "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+        "tests/unit/test_greenhouse_rate_admission.py": "9e562e061363e899d02c0394bb978250152b537b"
+      },
+      "dependency_blobs": {
+        "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+        "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8"
+      },
+      "scope": "Recorded apps/api, cli, fixtures, packages, services, workers, dependency manifests and selected backend test files; this is scoped source identity, not whole-tree equivalence."
+    },
+    "identity_result": "All 427 recorded backend/dependency/selected-test blobs exactly match the tested dependency revision. Only the progress package was rerun on this later composition.",
+    "acceptance": {
+      "criterion_record": "docs/evidence/2026-11-20-job-comparison-acceptance.json",
+      "only_proposed_promotion": "MJ-REF-039 NOT_RUN to PASS",
+      "main_original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "main_reference": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "candidate_original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "candidate_reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59
+      },
+      "new_change_from_original_candidate": false,
+      "release_readiness": "UNKNOWN"
+    },
+    "next_gates": [
+      "Finish documentation-only evidence/checkpoint commits and verify source identity.",
+      "Publish one normal PR1064 branch update after the focused repair and dependency candidates are reviewable; retain the failed-head evidence.",
+      "Require fresh hosted checks on the final published head and current main.",
+      "Obtain newly scoped protected-merge approval; production remains separately reserved."
+    ],
+    "limits": [
+      "The two local test packages are attributed to their respective exact revisions; no full-suite or whole-tree equivalence claim is made.",
+      "Seven platform-specific tests remain skipped locally; hosted Linux checks remain required.",
+      "No further acceptance promotion, issue closure, bot-branch update, policy weakening or production operation was performed."
+    ]
+  },
   "limits": [
-    "The two local test packages are attributed to their respective exact revisions; no full-suite or whole-tree equivalence claim is made.",
-    "Seven platform-specific tests remain skipped locally; hosted Linux checks remain required.",
-    "No further acceptance promotion, issue closure, bot-branch update, policy weakening or production operation was performed."
-  ]
+    "Acceptance remains proposed until separately authorized protected integration.",
+    "Final evidence/checkpoint descendants must preserve these source identities.",
+    "Fresh exact-head hosted gates required",
+    "No production or live provider validation"
+  ],
+  "independent_composition_review": {
+    "verdict": "CLEAR_FOR_SCOPED_EVIDENCE_COMPOSITION",
+    "reviewer": "Independent acceptance_backlog agent",
+    "receipt_sha256": "55c2f243767e8f58d02537480e56c50426c18bd6f51cd3818b52f233ce4628d1",
+    "dependency_source": "25925cd8e4a5a023d3ce6998ce68195471cdbdf1",
+    "acceptance_source": "797449837437ad56048cf8bc8e2a1c35d165dac7",
+    "backend_files": 427,
+    "unchanged_progress_scope_paths": 106,
+    "unchanged_progress_manifest_sha256": "40856862562b6e7cd5fa8befa2e2e4424a49f3591ffc23fea5070184ed7743b1",
+    "checks": "Raw receipt/log/JUnit/runner hashes, private package identities, exact427backend blobs, reviewed3product/test blobs, currentmain ancestry, and unchanged progress/config/matrix evidence verified.",
+    "tests_reexecuted_by_reviewer": false,
+    "limits": "Scoped source/evidence review; final docs-only identities and exact published-head hosted gates remain separate."
+  }
 }

@@ -1,38 +1,38 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-039",
-  "objective": "Integrate the verified bounded comparison acceptance record after reviewed pacing and dependency prerequisites",
+  "objective": "Integrate verified comparison acceptance after corrected source/dependency prerequisites",
   "owner": "ChatGPT-Web d9b89794",
   "branch": "web/20261120-d9b89794/comparison-acceptance",
-  "head_sha": "304fee31aa700811b9f022e9da37c38b2ff567c5",
+  "head_sha": "84c08f1bb61e7a37d37ba584e02b6d496abd2130",
   "routing_state": "INTEGRATE",
-  "next_action": "Obtain new scoped approval for serial protected integration1065 then1066 then1064, with normal current-main refreshes and fresh exact-head required checks. Prior approved1045/1034 merges are complete. Read live PR heads; production remains separately reserved.",
-  "created_at": "2026-11-20T08:49:19.750543+00:00",
+  "next_action": "Obtain new scoped approval for serial protected integration1065 then1066 then1064, with current-main refreshes and fresh exact-head required gates. Approved1045/1034 merges are complete. Preserve current68c main and reviewed source identities; production is separately reserved.",
+  "created_at": "2026-11-20T09:41:32.771707+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Actual comparison merged d9:30 Python/API/browser tests+28subtests and20frontend tests; fresh build/typecheck; all five criteria/prerequisites/native provenance reviewed in durable evidence.",
+      "command": "Actual comparison merge d9:30 Python/API/browser tests+28subtests and20frontend tests, fresh typecheck/build; five criteria/prerequisites/native provenance verified.",
       "result": "PASS"
     },
     {
-      "command": "Combined dependency source22ffebd6:146tests+162subtests PASS,0failure/skip, private Soup4.0 and API1.45.2 imports; finala8fa adds evidence only. Independent review verified all artifact hashes and427source blobs.",
+      "command": "Corrected source1366:64focused tests+87subtests and24full affected adapter-connect/TCP/TLS cleanup tests+18subtests; deterministic local-budget versus provider-failure health controls and independent review PASS.",
       "result": "PASS"
     },
     {
-      "command": "Acceptance composition304fee31:45progress tests+37subtests PASS;7POSIX-specific skips recorded on Windows. All427backend/dependency/test blobs equal tested22ff; no foreign product imports.",
+      "command": "Combined dependency25925:168tests+189subtests,0fail/skip; private Soup4/API1.45.2,267owned imports; all427backend blobs match acceptance797. Raw receipts and source ancestry independently verified.",
       "result": "PASS"
     },
     {
-      "command": "PR1065 head5ac4ea6c:all15hosted records/all5required gates PASS. Canonical original366 statuses preserved; candidate reference20/59 remains proposed until integration.",
+      "command": "Prior progress304fee:45tests+37subtests PASS with7POSIX-specific Windows skips.106progress/config/matrix paths unchanged to797; carried evidence only, no fresh rerun. Canonical original366 statuses and single reference promotion scope preserved.",
       "result": "PASS"
     },
     {
-      "command": "Final refreshed PR1064 published-head hosted gates; actual integrated repaired-release image; production rollout/authenticated public recovery; verified original-key retention.",
+      "command": "Completed hosted gates on final refreshed1065/1066/1064 heads; actual integrated repaired release identity; production rollout/authenticated public recovery; verified original-key retention.",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "New protected merges1065/1066/1064 need the next scoped user approval;1066 and refreshed1064 require their own current-head gates. Production original-key retention is blocked by the unchanged private-source guard and no verified protected original-key copy."
+    "New protected merges1065/1066/1064 require scoped approval and their fresh current-base gates. Production original-key retention remains blocked by unchanged private-file ancestry checks; no protected original-key copy is verified."
   ],
   "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
   "transfer_history": [
