@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-039",
+  "objective": "Finish PR1045 comparison recovery with saved salary-filter parity and deterministic optional provenance",
+  "owner": "ChatGPT-Web d9b89794",
+  "branch": "web/20261120-d9b89794/comparison-saved-filters",
+  "head_sha": "6c5db928b316ee751453fe25d71f288b36d872a8",
+  "routing_state": "INTEGRATE",
+  "next_action": "Update existing PR1045 non-force; verify exact published-head required checks; obtain user authorization before protected merge. No deployment or acceptance promotion.",
+  "created_at": "2026-11-20T05:27:31.337045+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "6c5db928: 30 comparison Python/browser tests plus 28 subtests; 20 frontend tests; scoped Ruff; catalogue/progress/dashboard; provenance and whitespace",
+      "result": "PASS"
+    },
+    {
+      "command": "Identical frontend blobs: lint313files, typecheck/build PASS. Failing-first API3/service2 regressions corrected. Independent AI functional-diff review: no blocking findings.",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted published-head checks; PostgreSQL/Redis locally; authenticated public functionality; protected merge; production deployment; full MJ-REF-039 acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Protected merge requires user approval explicitly reserved by engineering assignment; production updater separately blocked by migration review."
+  ]
+}

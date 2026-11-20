@@ -1,9 +1,9 @@
 """Read-only, saved-match scoped API contract for multi-job comparison."""
 
-from copy import deepcopy
-from pathlib import Path
 import tempfile
 import unittest
+from copy import deepcopy
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -249,6 +249,99 @@ class JobComparisonApiTests(unittest.TestCase):
                     }}))
                 before = self._snapshot()
                 response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+                self.assertEqual(response.status_code, expected, response.text)
+                if expected == 409:
+                    self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+                    self.assertEqual(self.service_calls, [])
+                self.assertEqual(self._snapshot(), before)
+
+    def _prepare_salary_comparison(self, first_salary, second_salary, filters):
+        with self.store.engine.begin() as connection:
+            for job_id, salary in (("job-one", first_salary), ("job-two", second_salary)):
+                original = connection.execute(select(m.jobs.c.attributes).where(
+                    m.jobs.c.id == job_id,
+                )).scalar_one()
+                attributes = {key: value for key, value in original.items()
+                              if not key.startswith("salary_")}
+                attributes.update(salary)
+                connection.execute(m.jobs.update().where(m.jobs.c.id == job_id).values(
+                    attributes=attributes,
+                ))
+                route_id = f"route-{job_id}"
+                if connection.execute(select(m.routes.c.id).where(
+                    m.routes.c.id == route_id,
+                )).scalar_one_or_none() is None:
+                    connection.execute(m.routes.insert().values(
+                        id=route_id, job_id=job_id, company_id="company",
+                        provider="fixture", tenant="comparison-fixture", requisition=job_id,
+                        url=f"https://jobs.example.test/{job_id}",
+                    ))
+            connection.execute(m.search_profiles.update().where(
+                m.search_profiles.c.id == "selected-search",
+            ).values(criteria={"job_filters": {
+                "q": "", "remote_type": "", "provider": "", "sort": "score", **filters,
+            }}))
+
+    def test_saved_hourly_salary_bounds_allow_matching_jobs_without_writes(self):
+        salary = {"salary_min": 25, "salary_max": 45, "salary_currency": "USD",
+                  "salary_period": "HOUR", "salary_source": "EMPLOYER_PROVIDED"}
+        self._prepare_salary_comparison(salary, salary, {
+            "salary_min": "20", "salary_max": "50", "salary_period": "HOUR",
+        })
+        before = self._snapshot()
+        response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["job_ids"], ["job-one", "job-two"])
+        self.assertEqual(len(self.service_calls), 1)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_saved_known_salary_policy_rejects_missing_pay_without_writes(self):
+        salary = {"salary_min": 80000, "salary_max": 100000, "salary_currency": "USD",
+                  "salary_period": "YEAR", "salary_source": "EMPLOYER_PROVIDED"}
+        self._prepare_salary_comparison(salary, {}, {"salary_policy": "KNOWN_ONLY"})
+        before = self._snapshot()
+        response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+        self.assertEqual(self.service_calls, [])
+        self.assertEqual(self._snapshot(), before)
+
+    def test_saved_unknown_salary_policy_allows_missing_pay_without_writes(self):
+        salary = {"salary_min": 80000, "salary_max": 100000, "salary_currency": "USD",
+                  "salary_period": "YEAR", "salary_source": "EMPLOYER_PROVIDED"}
+        self._prepare_salary_comparison(salary, {}, {
+            "salary_min": "70000", "salary_max": "110000", "salary_policy": "ALLOW_UNKNOWN",
+        })
+        before = self._snapshot()
+        response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["job_ids"], ["job-one", "job-two"])
+        self.assertEqual(len(self.service_calls), 1)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_saved_salary_policies_preserve_legacy_defaults_and_exclusions(self):
+        salary = {"salary_min": 80000, "salary_max": 100000, "salary_currency": "USD",
+                  "salary_period": "YEAR", "salary_source": "EMPLOYER_PROVIDED"}
+        bounds = {"salary_min": "70000", "salary_max": "110000"}
+        allow_unknown = {**bounds, "salary_policy": "ALLOW_UNKNOWN"}
+        cases = (
+            ("legacy no salary filter", {}, {}, 200),
+            ("legacy annual bounds", salary, bounds, 200),
+            ("legacy bounded missing pay", {}, bounds, 409),
+            ("other currency", {**salary, "salary_currency": "EUR"}, allow_unknown, 409),
+            ("other period", {**salary, "salary_period": "HOUR"}, allow_unknown, 409),
+            ("estimated pay", {**salary, "salary_source": "ESTIMATED"}, allow_unknown, 409),
+            ("outside bounds", {**salary, "salary_min": 50000, "salary_max": 60000},
+             allow_unknown, 409),
+        )
+        for label, second_salary, filters, expected in cases:
+            with self.subTest(case=label):
+                self._prepare_salary_comparison(salary, second_salary, filters)
+                self.service_calls.clear()
+                before = self._snapshot()
+                response = self.client.post(
+                    self._url(), json={"job_ids": ["job-one", "job-two"]},
+                )
                 self.assertEqual(response.status_code, expected, response.text)
                 if expected == 409:
                     self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")

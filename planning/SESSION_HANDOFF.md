@@ -1,3 +1,70 @@
+# MJobs approved integration checkpoint - 2026-11-20T07:05:29Z
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web remains the sole integration/acceptance writer.
+
+- The user explicitly approved serial protected integration of PR1045 then PR1034, including necessary base refreshes and required checks, followed by acceptance review and deployment preparation. Production deployment remains separately reserved.
+- PR1045 merged at 2026-11-20T06:53:35Z as d9e3bf11aa135a58bc1aa786edddae8cec478f66. Its tree exactly equals approved abe15feb; all 15 pre-merge checks and all five required gates passed.
+- PR1034 refreshed without conflicts onto that main. The exact tested combined tree 4437b70a9b9c577e327d1de44211152172f25fa2 is committed as 94b1502b5052869411bdacbe1c52da9df91e4998.
+- Combined validation: 63 frontend tests; 41 Python/API/browser tests plus28subtests, zero failures/skips; TypeScript and fresh production build PASS. The final checkpoint/evidence commit leaves tested feature sources unchanged.
+- PR1034 needs one normal existing-branch publication and fresh required hosted checks, then its already authorized protected merge. Do not request the same merge approval again. Read current GitHub head/main before acting.
+- Comparison acceptance validation also passed on actual merged d9e3bf11: 30 Python/API/browser tests plus28subtests and20frontend tests, fresh build/typecheck, zero failures/skips. AC4 canonical/report recording and AC5 feature-specific provenance recording remain pending owner review.
+- Canonical acceptance remains original188PASS/82PARTIAL/96NOT_RUN of366 and reference19PASS/4PARTIAL/36NOT_RUN of59. MJ-REF-039 stays NOT_RUN and MJ-REQ-136 stays PARTIAL in this checkpoint. No acceptance promotion is performed here.
+- The full synthetic guarded native backup, upgrade20261025di01->20261104rv01 and fresh-project restore to the old head PASS. It preserved13baseline table snapshots/document bytes, recovered1synthetic encrypted credential, and confirmed zero applications/attempts/submissions. Owned fixture containers/volumes/networks were removed and independently confirmed absent.
+- Durable sanitized recovery report: docs/evidence/2026-11-20-guarded-recovery-d9b89794.json. Its actual executed candidate is ed78ee3d, separate from this later integration validation; the retained image is a rehearsal artifact.
+- Production remains healthy on6a47f562. No production backup, migration, rollout, shared-service restart, updater change, Cloudflare change or credential change was performed. A read-only production preparation pass found that the current configuration file's ancestry fails the private-file guard; classify and prepare a verified recovery-key/configuration path before proposing maintenance.
+- Guarded production execution must compare actual release-checkout/image bytes and use a new genuine production receipt. Never reuse a synthetic receipt or assume an old-image restart reverses the schema.
+- Primary/original worktrees, unrelated active agents and existing production/fixture stacks were preserved. Private test receipts, archive and image remain retained; no secrets are published.
+
+Next: finish the approved PR1034 integration after its current-head gates; then complete a separately reviewable acceptance-record change and concrete production proposal. Existing user authorization covers ordinary preparation; newly scoped protected merges or production operations retain their stated approval boundaries.
+
+Earlier checkpoint history follows and may describe gates now completed.
+
+---
+
+# MJobs engineering checkpoint - 2026-11-20 UTC
+
+Run: mjobs-web-20261120-d9b89794. Root ChatGPT-Web is the integration owner.
+
+## Reviewed candidates and latest-base refresh
+
+- Incorporated main: 35fd28d41d32cbf33e843e93cbb79580d05082d6 (PR1062). Compared with db9cdc54, this adds only apps/web/src/main.characterization.test.ts: four tests and no product-source change.
+- PR1045 prior published head e1f9204892ede52e3ea6ad6518da9cc954c46c8c passed all 15 hosted checks, including all five required gates. PR1034 prior published head b13caa69b63015a9e9014472b15ae742ea5f3bac also passed all 15 checks. Root independently read both results at 2026-11-20T06:09Z; main had advanced, so those successes do not satisfy the new-head gate.
+- Both candidates now incorporate the new main. Fresh local runs include its four tests: comparison 24 frontend tests PASS, rehearsal 43 frontend tests PASS; both TypeScript checks PASS. Previously tested product-source and feature-test blobs are unchanged.
+- Fresh hosted checks for this refresh are pending publication/execution at this checkpoint. Read the live PR heads, main, and all five required gates before integration; do not transfer old-head checks to a new commit.
+- This identical checkpoint is shared by both continuation branches. Historical text below is retained.
+
+## Feature work and evidence
+
+- PR1045 / MJ-REF-039 / issue415: saved salary period and KNOWN_ONLY/ALLOW_UNKNOWN membership repaired; optional provenance references sort deterministically; typed scope/stale UI recovery retained.
+- Comparison exact functional source 6c5db928b316ee751453fe25d71f288b36d872a8 passed 30 Python/API/browser tests plus 28 subtests (zero failures/skips), 20 frontend tests, scoped Ruff, lint/typecheck/build, catalogue/progress/dashboard and provenance checks. Two connected Chromium tests passed.
+- PR1034 / MJ-REQ-136 / issue137: original field-key parser fix retained. Tested tree f028c28f7f90258c4039035e1d44b884987b3fc7 was committed identically as 2d3c097255f8a35e96eba40ef526435241b60b95; 39 frontend and 11 Python/browser tests passed, zero skips, with typecheck/build, scoped ESLint and repository verification.
+- Independent AI functional reviews found no blocking findings; no human review or approval is claimed.
+- Durable evidence: docs/evidence/2026-11-20-comparison-salary-provenance.md and docs/evidence/2026-11-20-rehearsal-field-keys-continuation.md. Per-task checkpoints: planning/agent_handoffs/MJ-REF-039.json and planning/agent_handoffs/MJ-REQ-136.json, present on their respective branches.
+- Local continuation worktrees: C:\Tools\Dev\MJobs-Web\eng-20261120-d9b89794-comparison and C:\Tools\Dev\MJobs-Web\eng-20261120-d9b89794-rehearsal.
+- Existing publication branches: web/mjobs-priority-20261116-67704a68/mjref039-client-recovery and web/ef1809b6/rehearsal-field-keys. No new PR is needed. Queue remains above the 32-PR soft warning; use current live existing-PR preflight.
+
+## Acceptance and deployment preparation
+
+- Acceptance unchanged: original 188 PASS / 82 PARTIAL / 96 NOT_RUN of 366; reference 19 PASS / 4 PARTIAL / 36 NOT_RUN of 59. MJ-REF-039 remains NOT_RUN; MJ-REQ-136 remains PARTIAL. No acceptance credit is claimed from publication or green CI.
+- Five-criterion comparison worksheet prepared at comparison worktree .tmp/acceptance-review/MJ-REF-039-candidate.json, draft=true and acceptance_decision=NOT_EVALUATED. Its e1f9204 evidence binding is historical; rebind to the integrated revision before a decision. Saved-score browser fixtures do not prove upstream matching accuracy.
+- Full application-preview acceptance still needs an explicit decision about its truthful UNKNOWN automation-confidence field; the field-key repair does not resolve that criterion.
+- Production last read at 2026-11-20T06:00Z: ready on 6a47f56204462da1aea5ba59ff8a5f88346d05cd. The existing updater guard blocks the new profile_job_views migration; no guard bypass, restart, Cloudflare change or rollout performed.
+- Preliminary synthetic PostgreSQL 17.11 schema rehearsal PASS at 2026-11-20T05:53Z on source b13caa69: 20261025di01 -> 20261104rv01 preserved six existing rows, verified visit-write/dedup and constraints, passed empty downgrade/reupgrade, and refused populated downgrade without data loss. Owned capped tmpfs fixture removal independently confirmed.
+- Sanitized schema evidence, log and driver: rehearsal worktree .tmp/migration-rehearsal/. Migration SHA256: 70ee0c0d414306836abc20240c60ac86ddedb02fa5917b7ac60d7addd3f0f0bd.
+- Full guarded Compose backup/upgrade/fresh-project restore remains NOT_RUN. First prepare an application image matching final reviewed source/migration code, then use isolated synthetic source/recovery projects, fresh private archive, genuine one-use guard authorization and existing CLI/runbook contracts. Old-image restart is not a schema rollback.
+- Authenticated public workflow validation and production upgrade remain NOT_RUN. Primary dirty handoff/prep, original PR worktrees, existing production/fixture stacks and unrelated agents were preserved; private .tmp receipts remain untracked.
+
+## Next integration boundary
+
+1. Publish these ordinary nonforce updates after live existing-PR preflight and verify the exact refreshed heads.
+2. Ask for the explicit protected-merge authorization reserved in the user's engineering brief. No merge or auto-merge has been enabled.
+3. Once approved, integrate PR1045 then refresh PR1034 against actual new main and require all current-head gates before its serial merge.
+4. Continue bounded whole-feature acceptance review and the isolated guarded recovery rehearsal. Production rollout requires a separately prepared, verified approval decision.
+
+Earlier checkpoints follow; use current GitHub state on resume.
+
+---
+
 # MJ-REQ-292 current execution — 2026-11-15
 
 Reviewed candidate: ebb55ba9677444d11d8c9fc7c97a56ebf123e4db. The latest change models a disposable Windows runtime in the isolated-host unit fixture; production validation and assertions are unchanged. Author and independent review passed the module on Windows and offline Linux (11tests each;15Windows subtests); root affected scope passed39tests/61subtests. App source remains byte-identical to1b03ac22, whose combined application/containment/browser run passed167tests/96subtests with3skips. These are separate exact-source results.
