@@ -53,6 +53,7 @@ def test_single_clean_checkout_no_other_clones_declared_still_not_cutover(sample
     assert report["registered_checkout_count"] == 1
     assert report["independent_checkout_count"] == 0
     assert report["classification_counts"] == {"IDENTICAL_MAIN_BYTES": 1}
+    assert report["head_relationship_counts"] == {"EXACT_MAIN": 1}
     assert report["checkouts"][0]["classification"] == "IDENTICAL_MAIN_BYTES"
     assert report["checkouts"][0]["checkout_ref"] == "registered-01"
     assert report["blockers"] == []
@@ -82,6 +83,8 @@ def test_registered_other_committed_branch_is_historical_version(sample):
     }
     rows = result["checkouts"]
     assert rows[1]["classification"] == "HISTORICAL_COMMITTED_VARIANT"
+    assert rows[1]["head_relationship"] == "DESCENDANT_OF_MAIN"
+    assert "UNMERGED_OR_UNVERIFIABLE_HEADS_REQUIRE_OWNER_REVIEW" in result["blockers"]
     assert rows[1]["git_status"] == "CLEAN"
     assert "CHECKOUT_VERSIONS_REQUIRE_OWNER_RECONCILIATION" in result["blockers"]
     assert str(different) not in json.dumps(result)
@@ -105,6 +108,7 @@ def test_independent_clean_clone_with_same_bytes(sample):
     assert result["checkouts"][1]["committed_blob"] == (
         result["checkouts"][0]["committed_blob"]
     )
+    assert result["head_relationship_counts"] == {"EXACT_MAIN": 2}
     assert result["checkouts"][1]["checkout_ref"] == "independent-01"
     assert result["checkouts"][1]["kind"] == "independent"
     expected_blockers = set() if main_bytes == clone_bytes else {
@@ -224,3 +228,56 @@ def test_source_absent_or_symbolic_checkout_is_unverifiable(sample):
     report = inventory.reconcile_checkouts(sample["repo"], [clone])
     assert report["classification_counts"]["UNVERIFIABLE"] == 1
     assert report["can_cutover"] is False
+
+
+
+def test_old_registered_branch_is_ancestor_of_new_main_commit(sample):
+    repo = sample["repo"]
+    prior = sample["root"] / "synthetic-ancestor"
+    git(repo, "worktree", "add", "-q", "-b", "synthetic-ancestor-branch", str(prior))
+    source = sample["source"]
+    source.write_bytes(source.read_bytes() + b"MAIN_ONLY_SYNTHETIC_UPDATE\n")
+    git(repo, "add", "planning/SESSION_HANDOFF.md")
+    git(repo, "commit", "-qm", "advance main synthetic handoff")
+
+    report = inventory.reconcile_checkouts(repo, [])
+    assert report["head_relationship_counts"] == {
+        "ANCESTOR_OF_MAIN": 1,
+        "EXACT_MAIN": 1,
+    }
+    assert report["checkouts"][1]["head_relationship"] == "ANCESTOR_OF_MAIN"
+    assert report["checkouts"][1]["classification"] == "HISTORICAL_COMMITTED_VARIANT"
+    assert report["can_cutover"] is False
+    assert str(prior) not in json.dumps(report)
+
+
+def test_diverged_registered_branch_is_not_misreported_as_ancestor(sample):
+    branch = other_branch(sample, suffix=b"UNMERGED_SYNTHETIC_WORK")
+    main_source = sample["source"]
+    main_source.write_bytes(main_source.read_bytes() + b"DIFFERENT_MAIN_SYNTHETIC_WORK\n")
+    git(sample["repo"], "add", "planning/SESSION_HANDOFF.md")
+    git(sample["repo"], "commit", "-qm", "different main synthetic commit")
+    report = inventory.reconcile_checkouts(sample["repo"], [])
+    assert report["head_relationship_counts"] == {
+        "DIVERGED_FROM_MAIN": 1,
+        "EXACT_MAIN": 1,
+    }
+    assert report["checkouts"][1]["head_relationship"] == "DIVERGED_FROM_MAIN"
+    assert "UNMERGED_OR_UNVERIFIABLE_HEADS_REQUIRE_OWNER_REVIEW" in report["blockers"]
+    assert report["can_cutover"] is False
+    assert str(branch) not in json.dumps(report)
+
+
+def test_independent_clone_without_new_main_object_fails_ancestry_closed(sample):
+    clone = sample["root"] / "synthetic-old-independent-clone"
+    git(sample["repo"], "clone", "-q", str(sample["repo"]), str(clone))
+    main = sample["source"]
+    main.write_bytes(main.read_bytes() + b"NEW_MAIN_OBJECT_NOT_IN_OLD_CLONE\n")
+    git(sample["repo"], "add", "planning/SESSION_HANDOFF.md")
+    git(sample["repo"], "commit", "-qm", "new main after clone")
+    report = inventory.reconcile_checkouts(sample["repo"], [clone])
+    assert report["checkouts"][1]["head_relationship"] == "UNVERIFIABLE"
+    assert report["head_relationship_counts"]["UNVERIFIABLE"] == 1
+    assert "UNMERGED_OR_UNVERIFIABLE_HEADS_REQUIRE_OWNER_REVIEW" in report["blockers"]
+    assert report["can_cutover"] is False
+    assert str(clone) not in json.dumps(report)

@@ -54,6 +54,24 @@ and the current main handoff's exact raw bytes:
 | HANDOFF_STATUS_CHANGED | Git reports a handoff-related change despite matching raw bytes and blob |
 | UNVERIFIABLE | Checkout missing, symbolic, untracked or unverifiable |
 
+## Local Git head ancestry
+
+Each checkout also has a `head_relationship` classification, and the
+report aggregates `head_relationship_counts`:
+
+| Relationship | Meaning |
+| --- | --- |
+| EXACT_MAIN | Checkout HEAD is the pinned current-main commit |
+| ANCESTOR_OF_MAIN | The checkout is at an older commit already reachable from main |
+| DESCENDANT_OF_MAIN | Checkout contains commits not yet in current main |
+| DIVERGED_FROM_MAIN | Neither branch HEAD is an ancestor of the other |
+| UNVERIFIABLE | The required objects or local Git ancestry cannot be verified |
+
+This is a **local, read-only Git object-graph check**, not evidence about who
+owns a checkout or whether its historical handoff is semantically relevant.
+Missing objects in independent clones remain UNVERIFIABLE; the tool never
+fetches, rewrites, merges, or assumes another checkout is safe to discard.
+
 The scan separately detects a dirty or changed canonical main handoff,
 unverifiable independent checkouts, and declared coverage gaps. It rescans
 the checkout inventory and content fingerprints before returning. If a

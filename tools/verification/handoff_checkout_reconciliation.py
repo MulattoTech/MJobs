@@ -10,6 +10,7 @@ from collections import Counter
 import json
 from pathlib import Path
 import re
+import subprocess
 from collections.abc import Sequence
 
 from tools.verification.handoff_cutover_readiness import (
@@ -27,15 +28,45 @@ def _git_oid(value: str) -> str:
     return value
 
 
+def _head_relationship(checkout: Path, checkout_head: str, main_head: str) -> str:
+    """Read-only local ancestry check; missing commits are not fetched."""
+    if checkout_head == main_head:
+        return "EXACT_MAIN"
+
+    def is_ancestor(older: str, newer: str) -> int | None:
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(checkout), "merge-base", "--is-ancestor",
+                 older, newer],
+                capture_output=True, text=True, check=False, timeout=15,
+            )
+            return result.returncode
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+
+    earlier = is_ancestor(checkout_head, main_head)
+    if earlier == 0:
+        return "ANCESTOR_OF_MAIN"
+    if earlier != 1:
+        return "UNVERIFIABLE"
+    later = is_ancestor(main_head, checkout_head)
+    if later == 0:
+        return "DESCENDANT_OF_MAIN"
+    if later == 1:
+        return "DIVERGED_FROM_MAIN"
+    return "UNVERIFIABLE"
+
+
 def _inspect(
     checkout: Path, kind: str, ordinal: int,
-    main_sha: str, main_blob: str,
+    main_sha: str, main_blob: str, main_head: str,
 ) -> dict:
     """Inspect tracked source evidence without returning path or raw text."""
     item = {
         "checkout_ref": f"{kind}-{ordinal:02d}",
         "kind": kind,
         "git_head": None,
+        "head_relationship": "UNVERIFIABLE",
         "committed_blob": None,
         "working_sha256": None,
         "git_status": "UNVERIFIABLE",
@@ -49,6 +80,9 @@ def _inspect(
         if top != checkout:
             raise ValueError("Checkout path is not a Git root")
         item["git_head"] = _git_oid(_git(checkout, "rev-parse", "HEAD"))
+        item["head_relationship"] = _head_relationship(
+            checkout, item["git_head"], main_head
+        )
         if _git(checkout, "ls-files", "--error-unmatch", "--", _HANDOFF) != _HANDOFF:
             raise ValueError("Handoff is not a tracked file")
         committed = _git_oid(_git(checkout, "rev-parse", f"HEAD:{_HANDOFF}"))
@@ -127,8 +161,9 @@ def reconcile_checkouts(
         raise ValueError("Cannot verify pinned main source identity")
 
     main_blob = _git_oid(_git(root, "rev-parse", f"HEAD:{_HANDOFF}"))
+    main_head = _git_oid(pre["git_head"])
     first = [
-        _inspect(p, kind, number, main_sha, main_blob)
+        _inspect(p, kind, number, main_sha, main_blob, main_head)
         for p, kind, number in chosen
     ]
     # Rescan both the ownership summary and exact per-checkout fingerprints.
@@ -136,10 +171,11 @@ def reconcile_checkouts(
     # still invalidate the report's apparently stable inventory.
     post = scan_handoff_worktrees(root, independent)
     second = [
-        _inspect(p, kind, number, main_sha, main_blob)
+        _inspect(p, kind, number, main_sha, main_blob, main_head)
         for p, kind, number in chosen
     ]
     categories = Counter(item["classification"] for item in first)
+    relationships = Counter(item["head_relationship"] for item in first)
     observed = set(pre["observations"])
     if pre != post or first != second:
         observed.add("CHECKOUT_STATE_CHANGED_DURING_RECONCILIATION")
@@ -147,6 +183,10 @@ def reconcile_checkouts(
         observed.add("CHECKOUT_VERSIONS_REQUIRE_OWNER_RECONCILIATION")
     if any(item["classification"] == "UNVERIFIABLE" for item in first):
         observed.add("CHECKOUT_PROVENANCE_UNVERIFIABLE")
+    if any(item["head_relationship"] in {
+        "DESCENDANT_OF_MAIN", "DIVERGED_FROM_MAIN", "UNVERIFIABLE"
+    } for item in first):
+        observed.add("UNMERGED_OR_UNVERIFIABLE_HEADS_REQUIRE_OWNER_REVIEW")
 
     return {
         "result": "B3_CHECKOUT_RECONCILIATION_ONLY",
@@ -158,6 +198,7 @@ def reconcile_checkouts(
         ),
         "independent_coverage": pre["independent_checkout_coverage"],
         "classification_counts": dict(sorted(categories.items())),
+        "head_relationship_counts": dict(sorted(relationships.items())),
         "checkouts": first,
         "blockers": sorted(observed),
         "owner_decisions_verified": False,
