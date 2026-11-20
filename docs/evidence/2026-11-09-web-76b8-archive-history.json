@@ -238,5 +238,217 @@
     "product_source_and_test_blobs": "UNCHANGED",
     "scanner_dependency": "Identical correction is now included in protected main; .gitleaksignore bytes unchanged by synchronization and absent from candidate diff against main.",
     "user_publication_approval": "Explicit approval received in this conversation; normal owned branch publication only."
+  },
+  "private_current_main_refresh_20261120": {
+    "recorded_utc": "2026-11-20T15:56:11.836128+00:00",
+    "state": "PRIVATE_CURRENT_MAIN_SCOPED_VALIDATION_PASS_NOT_PUBLISHED",
+    "existing_pr": 1004,
+    "preserved_original_head": "bfd0a21e522098a204e017363bd4c694391eca69",
+    "actual_main": "87ca270f44ada37fa4c0155f725301f170c93eac",
+    "tested_source_commit": "b7c800add7539a27418d0f3e5e4c69ce6e64f190",
+    "tested_source_tree": "83630289a451fa3dbb41af7857bef41cc11b0772",
+    "source_merge_parents": [
+      "bfd0a21e522098a204e017363bd4c694391eca69",
+      "87ca270f44ada37fa4c0155f725301f170c93eac"
+    ],
+    "scope": "Preserve the existing archive-history implementation and original branch history in a separate private worktree; only current validation evidence is appended.",
+    "source_paths_and_blobs": {
+      "docs/evidence/2026-11-09-web-76b8-archive-history.json": "f7f9be42ada8ba57e71d50492b31a54c059c0e74",
+      "planning/agent_handoffs/MJ-REQ-198-archive-history-76b8.json": "1e5ef8bfe5b008711a557b43b83701196db14786",
+      "services/applications/supporting_documents.py": "b8e160f5c588c8da06d498b0d5edd1fc4f36f7a7",
+      "services/documents/archive.py": "10887bd615f740d58759dc6ab3b0cbd24607bfe6",
+      "services/documents/archive_store.py": "54aaadb70cf3840bc4a1508ea90982596c674c74",
+      "tests/unit/test_document_archive_history_window.py": "c0d948102a922bf96624c0ddcd0df4b6d05b1630"
+    },
+    "all_six_original_pr_blobs_preserved_at_tested_source": true,
+    "historical_task_handoff_preserved": "planning/agent_handoffs/MJ-REQ-198-archive-history-76b8.json",
+    "fresh_validation": {
+      "result": "PASS",
+      "selectors": [
+        "tests/unit/test_document_archive.py",
+        "tests/unit/test_document_archive_history_window.py"
+      ],
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validate_archive.py"
+      ],
+      "pytest_arguments": [
+        "-q",
+        "-ra",
+        "--color=no",
+        "-p",
+        "no:cacheprovider",
+        "--junitxml=C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\pytest.xml",
+        "--basetemp=C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\pytest-temp",
+        "tests/unit/test_document_archive.py",
+        "tests/unit/test_document_archive_history_window.py"
+      ],
+      "pytest_exit_code": 0,
+      "test_methods": 13,
+      "passed_subtests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "warnings": 10,
+      "pytest_seconds": 7.25,
+      "runner_seconds": 7.5,
+      "junit": {
+        "tests": "29",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "7.252"
+      },
+      "count_qualification": "JUnit tests=29 includes 13 test methods and 16 subtests; historical 23-method executions are preserved separately and are not added to this count.",
+      "warning_details": [
+        {
+          "count": 1,
+          "category": "PytestAssertRewriteWarning",
+          "scope": "Private pytest harness; anyio was already imported."
+        },
+        {
+          "count": 9,
+          "category": "SADeprecationWarning",
+          "scope": "Existing named in-memory SQLite fixture under SQLAlchemy2.1.1; future default pool selection will change. No warning filter or source change was applied."
+        }
+      ],
+      "runtime": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.26300-SP0"
+      },
+      "dependency_versions": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "SQLAlchemy": "2.1.1",
+        "httpx": "0.28.1",
+        "pytest": "9.1.1",
+        "fastapi": "0.142.1"
+      },
+      "private_dependency_origins": {
+        "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+      },
+      "dependency_changes": "None installed or changed globally; existing private SoupSieve4.0 and OpenTelemetryAPI1.45.2 overlays were verified.",
+      "source_binding": {
+        "imported_files": 98,
+        "tracked_read_files": 99,
+        "key_inputs": 14,
+        "distinct_input_paths": 102,
+        "import_manifest_sha256": "47951ef24def0f4eb76c57eab80b0f906d97d1123196fed9054d1a7e7482dcf5",
+        "tracked_read_manifest_sha256": "7ae4619b47de1b28c4a5c7951008a08a0ac2a98ee8e6873793749e99f67a4b02",
+        "all_recorded_git_blobs_and_working_hashes_verified": true,
+        "foreign_product_imports": 0,
+        "tracked_read_scope": "Actual owned repository reads were UTF-8 source/configuration files; raw byte hashes and Git blob identities are both retained."
+      },
+      "network": {
+        "policy": "ONLY_OWNED_LOOPBACK_FIXTURES_ALLOWED",
+        "bind": 9,
+        "connect": 13,
+        "getaddrinfo": 0,
+        "blocked_attempts": []
+      },
+      "environment_file_access_attempts": 0,
+      "temporary_remaining_files": [],
+      "resource_claim_released": true,
+      "qualification": "Fresh local Windows SQLite and in-process API/owned loopback evidence on the exact source above. No PostgreSQL, browser, hosted-suite, deployed or external-provider execution is claimed."
+    },
+    "verified_behaviors": [
+      "Bulk archive state retains older uploaded and generated revisions after more than1000 later sibling events.",
+      "Old archive/restore replays return current state without rewriting immutable metadata or audit history.",
+      "Reusing an old immutable operation identity with conflicting document data is rejected even when the requested state is already satisfied.",
+      "Profile/application isolation, timestamp/id tie order and uploaded/generated entity collisions remain correct.",
+      "The in-process archive router returns unchanged current state on an old replay.",
+      "Archived supporting uploads remain unavailable for selection; generated and uploaded document bytes remain unchanged."
+    ],
+    "independent_review": {
+      "reviewer": "ci_prs",
+      "verdict": "CLEAR",
+      "mode": "Read-only source, harness and raw-evidence review; no independent runtime rerun.",
+      "reviewed_source_commit": "b7c800add7539a27418d0f3e5e4c69ce6e64f190",
+      "reviewed_runner_sha256": "cf0df10c7246fc654692a2e5a0ffd214c617d8103cfafcfe0b188bfc1ec59472",
+      "reviewed_receipt_sha256": "fa328a82d5f3b834cf708fa104c3164fbbce5d466cdbac7e5662218e71cc5484",
+      "scope": "Verified source/working identities, actual98 imports/99 tracked reads/14 keys, both manifest digests, raw log/XML counts, warnings, loopback and cleanup limits."
+    },
+    "historical_secret_scan": {
+      "run": 42654569440,
+      "job": 129289497804,
+      "result": "FAILURE_RETAINED",
+      "finding_classification": "UNKNOWN",
+      "redacted_artifact_availability": "UNAVAILABLE",
+      "existing_prior_fingerprint_coverage_of_failed_run": "NOT_ESTABLISHED",
+      "scanner_rerun": false,
+      "allowlist_or_policy_edits": false,
+      "qualification": "The preserved prior disposition does not establish the cause of this later failed run. Fresh exact-head hosted Secret Scan remains required after any separately authorized publication."
+    },
+    "setup_incident": {
+      "result": "HELPER_FAILURE_BEFORE_CLAIM_WORKTREE_OR_TEST",
+      "cause": "The initial public-PR JSON subprocess used Windows cp1252 decoding for UTF-8 output.",
+      "correction": "An isolated helper descendant set explicit UTF-8 decoding; the failed helper and incident receipt remain preserved. No runtime test or product-code retry occurred."
+    },
+    "acceptance": {
+      "statuses": {
+        "MJ-REQ-134": "PARTIAL",
+        "MJ-REQ-135": "PARTIAL",
+        "MJ-REQ-198": "PARTIAL"
+      },
+      "changes": 0,
+      "qualification": "This scoped archive reliability proof does not complete the documents screen, provider upload or broad pre-submit-validation requirements."
+    },
+    "limits": [
+      "The authoritative reader can still scan/sort history; application-side result memory is bounded by distinct documents plus a fetch batch.",
+      "PostgreSQL behavior and stronger cross-scope concurrency were not exercised in this refresh.",
+      "The full historical 23-method package, browser paths, hosted suite, web build and production journeys were not rerun.",
+      "No admission, push, PR update, protected merge, external employer action or acceptance promotion was performed."
+    ],
+    "prior_top_level_fields_preserved": 23,
+    "artifacts": {
+      "source-refresh-receipt.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\source-refresh-receipt.json",
+        "sha256": "86d53a648990dcfbc8a59a8e558b3615723965e874ec2e2cac5f52c8885849a1",
+        "bytes": 3643
+      },
+      "preflight-attempt01.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\preflight-attempt01.json",
+        "sha256": "150d704d33c17c0d2967e1fe33f4be16450fd5fb6e55a22259d1233e786b723d",
+        "bytes": 624
+      },
+      "validate_archive.py": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validate_archive.py",
+        "sha256": "cf0df10c7246fc654692a2e5a0ffd214c617d8103cfafcfe0b188bfc1ec59472",
+        "bytes": 12748
+      },
+      "validation/receipt.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\receipt.json",
+        "sha256": "fa328a82d5f3b834cf708fa104c3164fbbce5d466cdbac7e5662218e71cc5484",
+        "bytes": 62040
+      },
+      "validation/receipt-before-cleanup.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\receipt-before-cleanup.json",
+        "sha256": "04d7268a003580d37569127637ccbfea037e7c59f0cd2edb8a01ac6d6f98a187",
+        "bytes": 61955
+      },
+      "validation/pytest.log": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\pytest.log",
+        "sha256": "05c47d7dd1b5c7164ca90ca36c57a1ad1f3a683b14a49bc7efb7161d926f1c10",
+        "bytes": 2439
+      },
+      "validation/pytest.xml": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\validation\\pytest.xml",
+        "sha256": "d91acf5cdbf9da0036b96c702eab7615e5b334836dffe6409f2ef27ba124c12e",
+        "bytes": 2627
+      },
+      "archive1004-readonly-triage.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\archive1004-readonly-triage.json",
+        "sha256": "182e51ba1891dc23b091050b9d65ee9f4f06b0b1efb0e4eb63126ec0a32a9c36",
+        "bytes": 18005
+      },
+      "archive1004-secret-scan-readonly.json": {
+        "path": "C:\\MJobsBuilds-d9b89794\\archive1004-main87-refresh\\archive1004-secret-scan-readonly.json",
+        "sha256": "fe16f9ec884441927423d19030bc0caafde306a59ab45d44fba9ac58fafbb403",
+        "bytes": 7454
+      }
+    }
   }
 }
