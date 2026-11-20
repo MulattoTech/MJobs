@@ -128,6 +128,7 @@ def test_private_candidate_survives_source_deletion_and_fresh_python_process(sce
         sys.executable, "-m", "tools.verification.handoff_private_preview",
         "--verify", "--candidate", str(target),
         "--expected-source-sha256", digest,
+        "--expected-review-sha256", created["review_sha256"],
         "--expected-preview-sha256", created["preview_sha256"],
     ]
     cwd = Path(__file__).resolve().parents[2]
@@ -366,3 +367,40 @@ def test_fake_active_cutover_claim_in_receipt_is_rejected(scenario):
     receipt.write_text(json.dumps(document), encoding="utf-8")
     with pytest.raises(ValueError, match="may not claim"):
         private.verify_candidate(target, expected_preview_sha256=result["preview_sha256"])
+
+
+def test_standalone_verifier_requires_all_three_pinned_digests(scenario):
+    source, archive, reviewer, destination, digest, _, _ = scenario
+    result = private.create_candidate(source, archive, reviewer, digest, destination)
+    target = candidate(scenario, result["preview_sha256"])
+    incomplete = [
+        "--verify", "--candidate", str(target),
+        "--expected-preview-sha256", result["preview_sha256"],
+        "--expected-source-sha256", digest,
+    ]
+    with pytest.raises(SystemExit) as exc:
+        private.main(incomplete)
+    assert exc.value.code == 2
+    with pytest.raises(SystemExit):
+        private.main([
+            "--verify", "--candidate", str(target),
+            "--expected-preview-sha256", result["preview_sha256"],
+            "--expected-review-sha256", result["review_sha256"],
+        ])
+    assert target.is_dir()
+
+
+def test_modified_receipt_review_digest_rejected_against_explicit_pin(scenario):
+    source, archive, reviewer, destination, digest, _, _ = scenario
+    result = private.create_candidate(source, archive, reviewer, digest, destination)
+    target = candidate(scenario, result["preview_sha256"])
+    receipt = target / "receipt.json"
+    record = json.loads(receipt.read_text(encoding="utf-8"))
+    record["review_sha256"] = "0" * 64
+    receipt.write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(ValueError, match="expected review SHA-256"):
+        private.verify_candidate(
+            target, expected_preview_sha256=result["preview_sha256"],
+            expected_source_sha256=digest,
+            expected_review_sha256=result["review_sha256"],
+        )

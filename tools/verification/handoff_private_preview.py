@@ -73,11 +73,14 @@ def _content_free_plan(
 def verify_candidate(
     directory: Path, *, expected_preview_sha256: str,
     expected_source_sha256: str | None = None,
+    expected_review_sha256: str | None = None,
 ) -> dict:
     """Verify independently reloaded private bytes; never print review content."""
     digest = _sha(expected_preview_sha256, "expected preview SHA-256")
     if expected_source_sha256 is not None:
         _sha(expected_source_sha256, "expected source SHA-256")
+    if expected_review_sha256 is not None:
+        _sha(expected_review_sha256, "expected review SHA-256")
     directory = Path(directory)
     if directory.is_symlink() or not directory.is_dir():
         raise ValueError("Candidate directory missing or symbolic")
@@ -106,6 +109,8 @@ def verify_candidate(
         raise ValueError("Preview receipt does not match pinned digest")
     if expected_source_sha256 is not None and receipt["source_sha256"] != expected_source_sha256:
         raise ValueError("Candidate does not match expected source SHA-256")
+    if expected_review_sha256 is not None and receipt["review_sha256"] != expected_review_sha256:
+        raise ValueError("Candidate does not match expected review SHA-256")
     if type(receipt["selected_count"]) is not int or not 1 <= receipt["selected_count"] <= 128:
         raise ValueError("Invalid reviewed selection count")
     if type(receipt["preview_length"]) is not int or receipt["preview_length"] < 1:
@@ -149,6 +154,7 @@ def create_candidate(
         verified = verify_candidate(
             final, expected_preview_sha256=receipt["preview_sha256"],
             expected_source_sha256=receipt["source_sha256"],
+            expected_review_sha256=receipt["review_sha256"],
         )
         if verified["review_sha256"] != receipt["review_sha256"]:
             raise ValueError("Existing candidate binds a different reviewer selection")
@@ -200,6 +206,7 @@ def create_candidate(
         verified = verify_candidate(
             final, expected_preview_sha256=receipt["preview_sha256"],
             expected_source_sha256=receipt["source_sha256"],
+            expected_review_sha256=receipt["review_sha256"],
         )
         if verified["review_sha256"] != receipt["review_sha256"]:
             raise ValueError("Published candidate review digest mismatch")
@@ -224,6 +231,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--destination", type=Path)
     parser.add_argument("--candidate", type=Path)
     parser.add_argument("--expected-preview-sha256")
+    parser.add_argument("--expected-review-sha256")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--write", action="store_true")
     group.add_argument("--verify", action="store_true")
@@ -233,14 +241,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.source, args.snapshot, args.review_file, args.destination
         )):
             parser.error("--verify cannot accept source, snapshot, review or destination flags")
-        if args.candidate is None or args.expected_preview_sha256 is None:
-            parser.error("--verify requires --candidate and --expected-preview-sha256")
+        if any(x is None for x in (
+            args.candidate, args.expected_preview_sha256,
+            args.expected_source_sha256, args.expected_review_sha256,
+        )):
+            parser.error("--verify requires candidate and preview, source and review SHA-256 pins")
         result = verify_candidate(
             args.candidate, expected_preview_sha256=args.expected_preview_sha256,
             expected_source_sha256=args.expected_source_sha256,
+            expected_review_sha256=args.expected_review_sha256,
         )
     else:
-        if args.candidate is not None or args.expected_preview_sha256 is not None:
+        if any(x is not None for x in (
+            args.candidate, args.expected_preview_sha256, args.expected_review_sha256
+        )):
             parser.error("Candidate verification flags require --verify")
         if args.destination is not None and not args.write:
             parser.error("--destination requires explicit --write")

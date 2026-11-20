@@ -51,7 +51,12 @@ After recording the 64-character preview digest from that report, verify a
 complete existing candidate in a new process, without the source or review
 file being present:
 
-    python -m tools.verification.handoff_private_preview --verify --candidate COMPLETE_PRIVATE_CANDIDATE_DIRECTORY --expected-preview-sha256 FULL_PREVIEW_SHA256 --expected-source-sha256 PINNED_64_CHAR_SHA256
+    python -m tools.verification.handoff_private_preview --verify --candidate COMPLETE_PRIVATE_CANDIDATE_DIRECTORY --expected-preview-sha256 FULL_PREVIEW_SHA256 --expected-source-sha256 PINNED_64_CHAR_SHA256 --expected-review-sha256 PINNED_64_CHAR_REVIEW_SHA256
+
+Standalone verification requires all three trusted pins: original source
+digest, reviewer-selection digest, and preview digest. A receipt that changes
+the claimed reviewer selection while retaining the same preview bytes must
+not pass against those independent pins.
 
 The default output contains only result code, lengths, digests, selection
 count, and the explicit NOT_AUTHORIZED_OR_PERFORMED cutover status. None
