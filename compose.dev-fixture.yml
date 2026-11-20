@@ -1,0 +1,41 @@
+# Applied only by tools.dev_fixture_guard to fresh, disposable fixtures.
+# 11 services remain separate for queues/security; total CPU ceilings = 3.65 CPUs.
+x-guard: &guard
+  restart: "no"
+  labels:
+    com.mjobs.dev.guard: "${MJOBS_DEV_GUARD_TOKEN:?Managed fixtures only}"
+    com.mjobs.dev.expires: "${MJOBS_DEV_GUARD_EXPIRES:?Managed fixtures only}"
+services:
+  postgres:
+    <<: *guard
+    cpus: 0.35
+  redis:
+    <<: *guard
+    cpus: 0.15
+  migrate:
+    <<: *guard
+    cpus: 0.30
+  api:
+    <<: *guard
+    cpus: 0.55
+  mock:
+    <<: *guard
+    cpus: 0.20
+  worker:
+    <<: *guard
+    cpus: 0.35
+  scheduler:
+    <<: *guard
+    cpus: 0.20
+  source-worker:
+    <<: *guard
+    cpus: 0.40
+  company-discovery-worker:
+    <<: *guard
+    cpus: 0.40
+  ai-worker:
+    <<: *guard
+    cpus: 0.35
+  document-worker:
+    <<: *guard
+    cpus: 0.40
