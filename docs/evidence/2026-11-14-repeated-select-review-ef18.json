@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "draft_only": false,
+  "status": "LOCAL_WORKFLOW_VALIDATION_PASS",
+  "evidence_captured_at_utc": "2026-11-14T08:15:47.836453+00:00",
+  "requirement": "MJ-REQ-133",
+  "issue": 134,
+  "scope": "Supported local dynamic-form review across the five literal workflow behaviors.",
+  "problem": "Repeated select rows rendered as text inputs and could retain reviewed values outside the current allowed choices.",
+  "change": "Render repeated select rows with current dropdown options and require current-option membership before Continue. Extend the existing root-flow regression through actual metadata staleness, reload and a new fingerprint-scoped save.",
+  "source_identity": {
+    "runtime_source_identity_kind": "FROZEN_UNCOMMITTED_SOURCE_TREE",
+    "base_head": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "fixed_web": {
+      "tree_sha": "524edf07509fc2c33e6bd4f91cab3b5420c40dd8",
+      "candidate_commit": null,
+      "source_manifest": {
+        "path": "mj133-fixed-verification-preparation-02/applied-source-capsule.json",
+        "sha256": "18e01f9a3fe8e07bf78a9255c4a52d57fa3dc7c8eaeced724cdc8afae3b90856"
+      }
+    },
+    "fixed_browser": {
+      "tree_sha": "c38b14fd1c0d71f2bb2cc4342b89d59f56d62b13",
+      "candidate_commit": null,
+      "source_manifest": {
+        "path": "mj133-fixed-verification-preparation-05/applied-source-capsule.json",
+        "sha256": "fd98a221163657d0487d95fe5cee6d376ad028f59f4e8c02ae30be9455a641bf"
+      }
+    },
+    "builder_source_equivalence": {
+      "artifact": {
+        "path": "mj133-fixed-verification-preparation-05/builder-source-equivalence.json",
+        "sha256": "226b94130a58d8e0ab72d8a470443e4823683e78701fc936365adfab4ee41d7c"
+      },
+      "full_source_records": 3308,
+      "identical_records": 3307,
+      "changed_paths": [
+        "tests/browser/test_dynamic_application_fields_root_flow.py"
+      ]
+    },
+    "later_source_commit": {
+      "head_sha": "a8db88be9d3d7d4aca5ad2b81af3dc7219f6a492",
+      "tree_sha": "c38b14fd1c0d71f2bb2cc4342b89d59f56d62b13",
+      "receipt": {
+        "path": "mj133-source-commit-01.json",
+        "sha256": "fd35ae5698b94cd664eb662b45724b54bb900aafe0914e30b36b88adaf5d6d81"
+      },
+      "full_tree_equivalent_to_browser_capsule": true,
+      "three_source_blobs_equivalent": true,
+      "source_blobs": {
+        "apps/web/src/dynamic-application-form.test.tsx": "6515a61923e66d00db7ddfeaea4e7153d55b9fa1",
+        "apps/web/src/dynamic-application-form.tsx": "1bee3ea5526ad6acf030a303f9dbf0fce4e33e83",
+        "tests/browser/test_dynamic_application_fields_root_flow.py": "3cde793ea988eb8f247a33996963e051fe1a1b22"
+      },
+      "commit_attempts": 1,
+      "provenance_exit_code": 0,
+      "runtime_predates_commit": true
+    },
+    "metadata_publication_commit": {
+      "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+      "binding": "The containing Git commit and PR head bind these metadata bytes externally."
+    },
+    "interpretation": "Web and browser runs used distinct frozen uncommitted sources. The later source commit matches the browser capsule tree and all three source blobs; no earlier run is attributed to that later commit."
+  },
+  "changed_source_paths": [
+    "apps/web/src/dynamic-application-form.test.tsx",
+    "apps/web/src/dynamic-application-form.tsx",
+    "tests/browser/test_dynamic_application_fields_root_flow.py"
+  ],
+  "validation": {
+    "baseline": {
+      "result": "EXPECTED_FOUR_BEHAVIORAL_FAILURES_CONFIRMED",
+      "unit_counts": {
+        "primary": 16,
+        "selected": 4,
+        "passed": 0,
+        "failed": 4,
+        "filtered": 12
+      },
+      "global_errors": 0,
+      "receipt": {
+        "path": "mj133-baseline-unit-01/receipt.json",
+        "sha256": "8d53e45be46b8b03ad9f05c95d6bff1c7b6b8bf7122909cbbf80857b10eb4b3b"
+      },
+      "independent_review": {
+        "path": "mj133-baseline-runtime-review-01.json",
+        "sha256": "40bff87159c7be33ea25a02684613593398cf1eb857590bc999827ad58e1cb70"
+      }
+    },
+    "fixed_web": {
+      "result": "PASS",
+      "runs": 1,
+      "unit_counts": {
+        "primary": 16,
+        "selected": 16,
+        "passed": 16,
+        "failed": 0,
+        "filtered": 0
+      },
+      "global_errors": 0,
+      "stage_exit_codes": {
+        "vitest": 0,
+        "typecheck": 0,
+        "build": 0
+      },
+      "source_postcheck": "PASS",
+      "job_accounting": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "natural_closure": true,
+      "compute_released": true,
+      "receipt": {
+        "path": "mj133-fixed-web-02/receipt.json",
+        "sha256": "13c293da3d004e28e9928be6df298706d54ef22de0a79587e588bbe0b2173371"
+      },
+      "independent_review": {
+        "path": "mj133-fixed-web-runtime-review-01.json",
+        "sha256": "e84c90acaadb2142c7aa445410997abc875a28309e23d613401b81081e9b16cd"
+      }
+    },
+    "fixed_browser": {
+      "result": "PASS",
+      "runs": 1,
+      "junit_counts": {
+        "primary": 2,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "pytest_phases_passed": 6,
+      "source_postcheck": "PASS",
+      "cases": [
+        "test_prepared_mock_application_supports_local_dynamic_review_and_reload",
+        "test_repeatable_selects_require_current_choices_and_fresh_reviews"
+      ],
+      "job_accounting": {
+        "total": 19,
+        "active": 0,
+        "terminated": 0
+      },
+      "natural_closure": true,
+      "compute_released": true,
+      "fixture_cleanup_complete": true,
+      "receipt": {
+        "path": "mj133-fixed-browser-04/receipt.json",
+        "sha256": "bd8adc2b56c5f430841b13aef0c05edcda25c5838f231454cd14f005685a046e"
+      },
+      "independent_review": {
+        "path": "mj133-fixed-browser-runtime-review-04.json",
+        "sha256": "43fdb3059215b8f967a2a8bf98ea9f907dbb38c2afa6627bea77647de2d4aa53"
+      },
+      "raw_properties": {
+        "path": "mj133-fixed-browser-04/pytest-properties.json",
+        "sha256": "a49c0a4efbc727aa041c42d90ec655af65f187c2b652e03ec3f8b3e930d60e7f"
+      },
+      "junit": {
+        "path": "mj133-fixed-browser-04/result.xml",
+        "sha256": "f24d9573ba22b934411e376508024268ca2bbabcbe698a390124ad3a7e82eccb"
+      }
+    }
+  },
+  "metadata_refresh_observations": {
+    "fixture_revision": {
+      "admitted": true,
+      "new_required_field": "followup",
+      "new_field_type": "select",
+      "application_and_attempt_comparison_baseline": "After the intentional preflight fixture revision."
+    },
+    "stale_browser_response": {
+      "method": "GET",
+      "status": 409,
+      "stale_ui_observed": true,
+      "old_saved_draft_preserved": true
+    },
+    "server_emitted_stale_response": {
+      "status": 409,
+      "code": "DYNAMIC_FIELDS_STALE",
+      "matching_response_count": 1,
+      "complete": true,
+      "body_within_4096_byte_limit": true,
+      "observation": "Original ASGI send, forwarded unchanged and correlated to the browser method/origin/path/old-fingerprint query/status. This is not a claim that the browser consumed the canceled body."
+    },
+    "reload": {
+      "new_field_visible": true,
+      "previous_answers_cleared": true,
+      "fresh_reviews_required": true,
+      "unanswered_or_unreviewed_new_required_field_blocks_continue": true
+    },
+    "fresh_save": {
+      "browser_status": 200,
+      "new_fingerprint_draft_saved": true,
+      "account_site_application_scope_preserved": true,
+      "old_saved_draft_preserved": true,
+      "review_flags_not_persisted": true
+    },
+    "application_unchanged_after_fixture": true,
+    "attempts_unchanged_after_fixture": true,
+    "final_attempt_count": 0
+  },
+  "literal_criteria": [
+    {
+      "criterion": "conditional questions",
+      "local_workflow_result": "PASS",
+      "browser_case": "original_root_flow",
+      "observed": "Answering the parent reveals the conditional region question and requires its review."
+    },
+    {
+      "criterion": "dependent dropdowns",
+      "local_workflow_result": "PASS",
+      "browser_case": "repeated_select_and_refresh",
+      "observed": "Team rows are native selects with current Department options. Invalid restored choices are blocked; parent changes clear rows and reviews."
+    },
+    {
+      "criterion": "new fields appearing after answers",
+      "local_workflow_result": "PASS",
+      "browser_case": "repeated_select_and_refresh",
+      "observed": "After an answer changed, an intentional fixture-definition revision added a required select. Old-fingerprint Continue returned 409; Reload exposed the new field, required fresh reviews, and current-fingerprint Continue returned 200 before a new scoped draft save."
+    },
+    {
+      "criterion": "optional sections",
+      "local_workflow_result": "PASS",
+      "browser_case": "original_root_flow",
+      "observed": "The optional details section is explicitly enabled, reviewed and retained through scoped draft recovery."
+    },
+    {
+      "criterion": "repeatable experience rows",
+      "local_workflow_result": "PASS",
+      "browser_case": "original_root_flow_and_repeated_select",
+      "observed": "Work history text rows support review and draft recovery. Repeated select rows cover add, edit, remove, remaining-row review preservation and parent reset."
+    }
+  ],
+  "failed_attempt_history": [
+    {
+      "attempt": "browser02",
+      "result": "FAIL",
+      "source_tree": "524edf07509fc2c33e6bd4f91cab3b5420c40dd8",
+      "cause": "The browser observed HTTP 409, then response.json() could not retrieve its response body. The client rejects stale status before consuming and cancels the unread body.",
+      "correction": "A test-only ASGI send observer captures the original server-emitted code while forwarding the response unchanged and correlating it with the browser response.",
+      "receipt": {
+        "path": "mj133-fixed-browser-02/receipt.json",
+        "sha256": "6306ee265e74ccf5c21a5719302e98df946349d342135b5379c033abc564adf9"
+      },
+      "independent_review": {
+        "path": "mj133-fixed-browser-failure-review-01.json",
+        "sha256": "cec546ce007381911e111701617e7cf3ed361b6d119d447e208e907ffcfb598f"
+      },
+      "closed_and_released": true,
+      "reclassified_as_success": false
+    },
+    {
+      "attempt": "browser03",
+      "result": "FAIL",
+      "source_tree": "cf71d7a20abc444422d3de162f11e051499a3bba",
+      "cause": "The remember() observation helper used a broad Additional preference label; both fieldset and select matched, so input_value() raised a strict-mode violation.",
+      "correction": "Only that observation locator changed to the exact combobox role. The real 409/code and old-draft preservation had already passed; the fresh-save sequence was not yet proved by browser03.",
+      "receipt": {
+        "path": "mj133-fixed-browser-03/receipt.json",
+        "sha256": "31c9ff795c7cd4010502eab1d73ae7326d2a7688ba3ddb2316678ceaaedf85b4"
+      },
+      "independent_review": {
+        "path": "mj133-fixed-browser-failure-review-03.json",
+        "sha256": "92ebe92b6d02fb39a56622eb8a9b92f3f4bcb3b841650b62b405785387bd4349"
+      },
+      "closed_and_released": true,
+      "reclassified_as_success": false
+    }
+  ],
+  "dist": {
+    "files": 3,
+    "bytes": 1017385,
+    "source_tree": "524edf07509fc2c33e6bd4f91cab3b5420c40dd8",
+    "source_manifest_sha256": "18e01f9a3fe8e07bf78a9255c4a52d57fa3dc7c8eaeced724cdc8afae3b90856",
+    "manifest": {
+      "path": "mj133-fixed-web-02/dist-manifest.json",
+      "sha256": "04bd7ba7118b43ed2620935dec847c54fe8b06c5f8eedc6162cb97d9041ad84c"
+    }
+  },
+  "build_warning": {
+    "kind": "VITE_LARGE_CHUNK",
+    "fatal": false,
+    "message": "A minified chunk exceeded 500 kB; Vite exited 0.",
+    "warning_limit_changed": false,
+    "log": {
+      "path": "mj133-fixed-web-02/build.log",
+      "sha256": "552960d664cde46ca8e439cc154bccaee00958e4510c5d5aed99036c492c7d01"
+    }
+  },
+  "runtime_limit": {
+    "local_node": "v27.0.0-alpha.0.0.0",
+    "ci_node_major": "24",
+    "same_as_ci_runtime": false,
+    "hosted_checks": "NOT_RUN_AT_EVIDENCE_CAPTURE"
+  },
+  "artifacts": {
+    "reference_base": "run-relative",
+    "working_source_freeze": {
+      "path": "mj133-candidate-source-03/manifest.json",
+      "sha256": "32352128f8435d8c1ea9cfc40586916fdb443fe2d3c3d2b05d849707eb1a701a"
+    }
+  },
+  "acceptance_delta": {
+    "original": 0,
+    "reference": 0
+  },
+  "canonical_promotion": "NONE",
+  "provider_or_apply_mock_proof": "NOT_PROVED_BY_THIS_VALIDATION",
+  "limits": [
+    "Two controlled native Chromium cases with SQLite/loopback fixtures establish the supported local review workflow.",
+    "Single-field repeated groups are supported; other layouts retain manual review.",
+    "No provider submission, universal ATS support, PostgreSQL/Redis qualification, hosted CI success, merge or deployment is claimed."
+  ],
+  "remaining_root_bindings": [],
+  "publication": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "binding": "The containing Git commit and PR head bind these metadata bytes externally."
+  }
+}
