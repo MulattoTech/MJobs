@@ -6,6 +6,22 @@ does not own the API's durable state or authorization decisions. The backup
 interface is `python -m cli.local_backup {backup,verify,restore}`; restore only
 creates a fresh Compose project and never overwrites existing volumes.
 
+## Read-only maintenance entry point (MJ-REQ-207, partial)
+
+`python -m cli health` reads the existing `/health` liveness contract.
+`python -m cli source list` reads the existing `/sources` contract and prints
+only source ID, name, provider, enabled flag, and health status. Override the
+default API port with `--base-url http://127.0.0.1:4321` **before** the command.
+
+Only literal numeric HTTP loopback origins (`127.0.0.1` or `[::1]`) are
+allowed. The CLI never follows redirects or proxies, sends writes, executes
+source adapters, submits applications, or prints API source URLs, credentials,
+or arbitrary response fields. Request and response budgets are bounded and
+errors print stable codes rather than private server payloads. This is a useful
+initial, read-only slice of issue #208, not acceptance of the full maintenance
+CLI requirement; other conceptual actions remain unimplemented. Deterministic
+regressions are in `tests/unit/test_cli_main.py`.
+
 `python -m cli.init_env` only creates a missing project `.env`. It stages the
 private secret in the same directory, flushes it, and publishes with atomic
 create-if-absent semantics; concurrent or repeated initialization preserves
