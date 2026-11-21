@@ -1,5 +1,6 @@
 """Unit tests for services/matching/queue_priority.py (MJ-REQ-119)."""
 from datetime import datetime, timedelta, timezone
+from itertools import permutations
 import pytest
 
 from services.matching.queue_priority import (
@@ -179,6 +180,29 @@ def test_order_queue_deterministic_stability():
 
     assert [j["id"] for j in ordered1] == ["job-a", "job-b"]
     assert [j["id"] for j in ordered2] == ["job-a", "job-b"]
+
+
+@pytest.mark.parametrize("identifier_form", ["id", "job_id", "both"])
+def test_order_queue_identifier_ties_are_permutation_invariant(identifier_form):
+    jobs = []
+    for identifier, alias in (("job-a", "job-z"), ("job-b", "job-y"), ("job-c", "job-x")):
+        job = {
+            "title": "Engineer",
+            "posted_at": (NOW - timedelta(hours=8)).isoformat(),
+            "match_score": 88.0,
+        }
+        if identifier_form in ("id", "both"):
+            job["id"] = identifier
+        if identifier_form in ("job_id", "both"):
+            job["job_id"] = alias if identifier_form == "both" else identifier
+        jobs.append(job)
+
+    identifier_key = "job_id" if identifier_form == "job_id" else "id"
+    orders = {
+        tuple(row[identifier_key] for row in order_queue_by_fresh_priority(list(order), now=NOW))
+        for order in permutations(jobs)
+    }
+    assert orders == {("job-a", "job-b", "job-c")}
 
 
 def test_to_operation_dispatch_params():

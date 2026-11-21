@@ -308,7 +308,7 @@ def order_queue_by_fresh_priority(
         age = p["age_hours"]
         pos_age = age if age is not None else 9999999.0
         title = str(row.get("title") or "").casefold()
-        job_id = str(row.get("id") or "")
+        job_id = str(row.get("id") or row.get("job_id") or "")
         return (tier, neg_score, pos_age, title, job_id)
 
     evaluated.sort(key=sort_key)
