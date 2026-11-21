@@ -1,0 +1,58 @@
+{
+  "base_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+  "branch": "web/ef1809b6/browser-profile-metadata",
+  "deployment": "NOT_RUN",
+  "evidence": "docs/evidence/2026-11-14-browser-profile-metadata-ef18.json",
+  "formal_acceptance": "UNCHANGED",
+  "hosted_checks": "NOT_RUN",
+  "implementation": "Bounded nonsecret lifecycle sidecar on the exact existing selected persistent profile; launch and AUTH_REQUIRED hooks; manual-auth root forwarding.",
+  "integration": "NOT_RUN",
+  "integration_steward": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "limitations": [
+    "This proves the controlled local fixture and in-process manual-auth path, not the Windows isolated production host or headed desktop interaction.",
+    "No external-provider authentication, real application submission, production deployment or full MJ-REQ-126 acceptance is claimed.",
+    "likely_authenticated remains a non-authorizing hint: false after observed AUTH_REQUIRED and null when authentication is unknown; affirmative true is not qualified.",
+    "Three native platform skips remain unexecuted coverage: file symlink creation unavailable, POSIX FIFO, and POSIX private file mode.",
+    "Short fixture paths avoid the observed Windows storage-directory failure; arbitrary-length browser profile paths are not qualified.",
+    "Metadata safety checks are not a cross-process lock, a hard filesystem deadline, or a guarantee against hostile ancestor replacement.",
+    "The helper propagates directly tested control exceptions; existing outer manual-auth safe-status behavior is unchanged.",
+    "Required hosted checks and protected integration remain pending for the eventual metadata commit."
+  ],
+  "literal_requirement_coverage": [
+    {
+      "criterion": "Support persistent Playwright browser contexts.",
+      "proof": "Controlled real browser launch/reopen retains the exact selected profile and metadata identity.",
+      "scope": "LOCAL_FIXTURE_PASS"
+    },
+    {
+      "criterion": "The user may manually sign into services when required.",
+      "proof": "Synthetic local sign-in, page close and browser restart; later explicit dry run succeeds with no submission.",
+      "scope": "IN_PROCESS_LOCAL_FIXTURE_PASS"
+    },
+    {
+      "criterion": "Store profile_id, provider/site, status, last_used, likely_authenticated, created_at.",
+      "proof": "Exact schema and timestamp/identity semantics tested and observed in actual profile sidecars.",
+      "scope": "LOCAL_PASS_WITH_RECORDED_PLATFORM_SKIPS"
+    },
+    {
+      "criterion": "Do not log cookies.",
+      "proof": "Metadata paths do not read cookie/storage APIs; strict output schema and secret canaries are tested.",
+      "scope": "SCOPED_SOURCE_AND_LOCAL_PROOF"
+    }
+  ],
+  "local_verification": "59 primary PASS, 3 recorded platform SKIP, 54 subtest PASS; all 3 real-browser fixture cases PASS; no failure or error.",
+  "next_actions": [
+    "Publish the reviewed metadata descendant through fresh live policy admission.",
+    "Observe every required hosted gate on the exact published head; diagnose any failure before another run.",
+    "Hand the immutable candidate and qualification to the sole integration steward for overlap reconciliation and protected integration.",
+    "Qualify remaining Windows isolated/headed and applicable integrated behavior before any full requirement acceptance."
+  ],
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "ownership": "Source claim retained for publication and exact-head checks; no local compute retained.",
+  "requirement_id": "MJ-REQ-126",
+  "schema_version": 1,
+  "source_commit": "bcd5d82af2110f5510686aeae2b2fbcdfa9b4398",
+  "source_tree": "e59131918b4239d6d4de26f16c9b1c8601ae10e7",
+  "state": "VERIFY",
+  "updated_at_utc": "2026-11-14T05:02:20.919548+00:00"
+}

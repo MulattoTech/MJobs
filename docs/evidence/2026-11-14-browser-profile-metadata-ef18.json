@@ -1,0 +1,304 @@
+{
+  "behavior": {
+    "authorization": "Authentication hints never authorize submission or automatically retry an application.",
+    "failures": "Malformed, oversized, duplicate-key, unknown-field, unsafe-link and mismatched metadata is refused without repair; ordinary I/O/data errors use a fixed sanitized event.",
+    "fields": [
+      "schema_version",
+      "profile_id",
+      "application_id",
+      "profile_name",
+      "provider",
+      "site",
+      "status",
+      "last_used",
+      "likely_authenticated",
+      "created_at"
+    ],
+    "identity": "Stable SHA256 identifier from a domain label, application identity and selected profile name.",
+    "privacy": "No cookie or browser storage APIs are read or logged. No credentials are added to metadata.",
+    "profile_selection": "Use the existing pinned browser_profile_path(application_root, initialize=False); refuse aliases and mismatches. Never infer the application root from a profile path.",
+    "site": "Origin only; no userinfo, paths, query strings or fragments.",
+    "storage": "Bounded mjobs-profile-metadata.json within the selected profile, with exact schema and atomic replacement after scope/prior-record checks.",
+    "timestamps": "created_at is first metadata registration; last_used advances on successful persistent context launch, not merely AUTH_REQUIRED observation."
+  },
+  "canonical_acceptance_changed": false,
+  "integration_notes": [
+    "PR938 overlaps manual-auth source and host/deadline fixtures; preserve its independent validated-path and private-mode protections when composing.",
+    "PR973 overlaps mock_adapter; preserve the separate owned-ATS early return and campaign behavior.",
+    "The fresh publication transaction must recheck all PR identities and actual changed paths; this evidence is not publication admission."
+  ],
+  "issue": "https://github.com/MulattoTech/MJobs/issues/127",
+  "limitations": [
+    "This proves the controlled local fixture and in-process manual-auth path, not the Windows isolated production host or headed desktop interaction.",
+    "No external-provider authentication, real application submission, production deployment or full MJ-REQ-126 acceptance is claimed.",
+    "likely_authenticated remains a non-authorizing hint: false after observed AUTH_REQUIRED and null when authentication is unknown; affirmative true is not qualified.",
+    "Three native platform skips remain unexecuted coverage: file symlink creation unavailable, POSIX FIFO, and POSIX private file mode.",
+    "Short fixture paths avoid the observed Windows storage-directory failure; arbitrary-length browser profile paths are not qualified.",
+    "Metadata safety checks are not a cross-process lock, a hard filesystem deadline, or a guarantee against hostile ancestor replacement.",
+    "The helper propagates directly tested control exceptions; existing outer manual-auth safe-status behavior is unchanged.",
+    "Required hosted checks and protected integration remain pending for the eventual metadata commit."
+  ],
+  "preserved_prior_results": [
+    {
+      "attempt": "baseline01",
+      "failure": "Real successful initial browser launch did not create the required profile metadata.",
+      "raw_pytest": "1 failure, 0 errors, 0 skips in 6.76s",
+      "receipt": {
+        "artifact": "mj126-baseline-light-01/receipt.json",
+        "sha256": "f4d9d62829e66b79cdc467dceec3802c5415127eabf82c77c93dad820d0205d3"
+      },
+      "result": "EXPECTED_METADATA_DEFECT_REPRODUCED"
+    },
+    {
+      "attempt": "candidate01",
+      "causal_limit": "The shorter-path run succeeds and has no Chromium diagnostic content. This supports the storage-path diagnosis without claiming a separate isolated proof of sole causation.",
+      "failures": [
+        "The new control-exception test supplied an argument to a no-argument exception constructor.",
+        "The explicit restart remained AUTH_REQUIRED; Chromium reported Network storage directory creation failed with Windows error 0xCE on the long fixture path."
+      ],
+      "raw_pytest": "57 passed, 2 failed, 3 skipped, 54 subtests passed in 37.94s",
+      "receipt": {
+        "artifact": "mj126-candidate-light-01/receipt.json",
+        "sha256": "b474406ad97ef9ce12a6902ad0c135edf8cca3870108ffa15e6b876c4c58210c"
+      },
+      "repair": "Corrected only the test constructor. Used a fresh short claimed temporary root and separate runtime CWD; production code and browser assertions remained unchanged.",
+      "result": "FAILED_PRESERVED",
+      "source_postcheck": "An extra debug.log was retained; all 3310 original files remained byte-identical."
+    }
+  ],
+  "real_browser_observation": {
+    "actual_launch_path_matches_pinned_profile": true,
+    "cookie_or_storage_api_reads": false,
+    "final_explicit_dry_run_state": "DRY_RUN_COMPLETE",
+    "final_request_counts": {
+      "review": 1,
+      "submit": 0
+    },
+    "initial_state": "AUTH_REQUIRED",
+    "manual_application_state": "AUTH_REQUIRED",
+    "manual_attempt_count_unchanged": true,
+    "manual_events": [
+      "fixture_signed_in",
+      "user_closed_page",
+      "context_cleanup_complete",
+      "driver_exit"
+    ],
+    "manual_owner_status": "EXITED",
+    "manual_request_counts": {
+      "review": 0,
+      "submit": 0
+    },
+    "profile_identity_and_creation_preserved": true,
+    "profile_name": "browser-profile",
+    "scope": "controlled-local-fixture-in-process-manual-auth",
+    "selection_manifest_unchanged": true,
+    "windows_isolated_runtime_qualified": false
+  },
+  "recorded_at_utc": "2026-11-14T05:02:20.919548+00:00",
+  "requirement_id": "MJ-REQ-126",
+  "result": "LOCAL_VERIFIED_PARTIAL_REQUIREMENT",
+  "reviews": {
+    "launcher": {
+      "artifact": "mj126-verification-preparation-02/independent-launcher-review.json",
+      "sha256": "bce70e150927ec5edf9ee984c2851189f350680d2b60598c61f417e0b5d4bf67"
+    },
+    "one_line_repair": {
+      "artifact": "mj126-source-repair-independent-review-02.json",
+      "sha256": "6e6ba436618b30933aef8f3f978088dbcb5eb13de6c21b8efd52cafd72cf6232"
+    },
+    "runtime": {
+      "artifact": "mj126-candidate-light-02/independent-runtime-review.json",
+      "sha256": "772fbb38b2af4dd8d9ddfddf7d05e66674366472f494321b840534919ed18dc9"
+    },
+    "source": {
+      "artifact": "mj126-source-independent-review-01.json",
+      "sha256": "90b4a3ae13f1beb220a8539494c1df142045c4fd9aaa969b8a023aa2ac6642c5"
+    }
+  },
+  "schema_version": 1,
+  "scope": "Persistent browser-profile lifecycle metadata and controlled manual sign-in",
+  "source": {
+    "all_files_before_admission_and_after_match": true,
+    "base_commit": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+    "branch": "web/ef1809b6/browser-profile-metadata",
+    "candidate_manifest": {
+      "artifact": "mj126-candidate-02/source-manifest.json",
+      "sha256": "65df286232ff146731da6c306d1199152d8dacd4a791f49d75d8c2342df303e5"
+    },
+    "commit_equivalence": "Source commit has exactly the executed private tree; these are distinct identities.",
+    "executed_candidate_commit": null,
+    "executed_candidate_tree": "e59131918b4239d6d4de26f16c9b1c8601ae10e7",
+    "executed_identity": "Private immutable base plus nine frozen source overlays; materialized before the source commit.",
+    "qualified_source_blobs": {
+      "services/applications/browser_profile_metadata.py": "d926e4eddc28d043b1baa1e3542f1af0a4c7c918",
+      "services/applications/manual_auth.py": "c6726a1d1414f671b6239e9574b9def323b8685d",
+      "services/applications/manual_auth_host.py": "1a8f4722ba432f0c23d7c1307abfa910b6839105",
+      "services/applications/mock_adapter.py": "044b86f9d73f84d547873607ac083efc8569c458",
+      "tests/browser/test_manual_auth_close_lifecycle.py": "2a37d8392bd583ca1d67c8a295e7fa94be773040",
+      "tests/integration/test_named_browser_profile.py": "a000279cada29203119f860a3854ace01584f7ef",
+      "tests/unit/test_browser_profile_metadata.py": "1444c2340a7106d6260b73a3d1d553d39cfd6f7a",
+      "tests/unit/test_manual_auth_deadline.py": "f5b7ddf5439e123fe8c31816efa8aab7e9ac6019",
+      "tests/unit/test_manual_auth_host.py": "5461805bf90094affda88b0d0b847861e056607f"
+    },
+    "repository": "MulattoTech/MJobs",
+    "source_commit": "bcd5d82af2110f5510686aeae2b2fbcdfa9b4398",
+    "source_tree": "e59131918b4239d6d4de26f16c9b1c8601ae10e7",
+    "tracked_file_count": 3310
+  },
+  "verification": {
+    "actual_wrapper_command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-I",
+      "-B",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-verification-preparation-02\\run-mj126-verification.py",
+      "candidate"
+    ],
+    "artifacts": [
+      {
+        "artifact": "mj126-candidate-light-02/receipt.json",
+        "sha256": "4df605ef965224bb6a98a1b8e2196b08cf1bedb240044f2598ce5d07255c40a8"
+      },
+      {
+        "artifact": "mj126-candidate-light-02/child-outcome.json",
+        "sha256": "a62e6b1f028aee1a7a4023b551b2f95458af7e092c8c7cade5a3f1c9ccece800"
+      },
+      {
+        "artifact": "mj126-candidate-light-02/pytest.log",
+        "sha256": "1a9bdc21549a6da0870aa6712bd84d526fe8e7854f78ba9fac876bc58728552c"
+      },
+      {
+        "artifact": "mj126-candidate-light-02/result.xml",
+        "sha256": "c583f86f94e1c5a88a3d6ef865b1913238f34575eb986d1e80f85bc4a6a6a550"
+      },
+      {
+        "artifact": "mj126-candidate-light-02/chromium.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "browser_counts": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "SKIP": 0,
+      "total": 3
+    },
+    "compute_claim_released": true,
+    "environment": {
+      "chromium_revision": "1243",
+      "database": "Private SQLite fixtures",
+      "os": "Windows",
+      "parallelism": "One serial pytest child",
+      "playwright": "1.63.0",
+      "pytest": "9.1.1",
+      "python": "3.12.10",
+      "servers": "Three controlled loopback fixture servers"
+    },
+    "finished_at_utc": "2026-11-14T04:56:59.338954+00:00",
+    "fixture_cleanup_complete": true,
+    "fixture_observations": [
+      {
+        "entered": true,
+        "host": "127.0.0.1",
+        "index": 0,
+        "port": 4941,
+        "socket_closed": true,
+        "thread_ident": 8492,
+        "thread_native_id": 8492,
+        "thread_stopped": true
+      },
+      {
+        "entered": true,
+        "host": "127.0.0.1",
+        "index": 1,
+        "port": 64590,
+        "socket_closed": true,
+        "thread_ident": 35112,
+        "thread_native_id": 35112,
+        "thread_stopped": true
+      },
+      {
+        "entered": true,
+        "host": "127.0.0.1",
+        "index": 2,
+        "port": 11259,
+        "socket_closed": true,
+        "thread_ident": 23228,
+        "thread_native_id": 23228,
+        "thread_stopped": true
+      }
+    ],
+    "original_host_exit_code": 0,
+    "owned_job_accounting_at_release": {
+      "active": 0,
+      "terminated": 0,
+      "total": 42
+    },
+    "primary_counts": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 59,
+      "SKIP": 3,
+      "total": 62
+    },
+    "pytest_arguments": [
+      "-q",
+      "-s",
+      "-p",
+      "no:cacheprovider",
+      "-c",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\pyproject.toml",
+      "--rootdir",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src",
+      "--confcutdir",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src",
+      "--basetemp",
+      "C:\\Tools\\Dev\\MJobs-Web\\_tmp_ef18_mj126_02\\pytest-temp",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\unit\\test_browser_profile_metadata.py",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\unit\\test_manual_auth_host.py",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\unit\\test_manual_auth_deadline.py",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\unit\\test_manual_auth_path_security.py",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\integration\\test_named_browser_profile.py::test_actual_mock_browser_and_auth_reopen_keep_configured_selection",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\browser\\test_manual_auth_close_lifecycle.py::ManualAuthCloseLifecycleTests::test_user_close_during_wait_releases_only_owned_capacity_before_driver_exit",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-02\\src\\tests\\browser\\test_manual_auth_close_lifecycle.py::test_real_manual_sign_in_preserves_profile_metadata_and_requires_explicit_rerun",
+      "--junitxml",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520\\mj126-candidate-light-02\\result.xml"
+    ],
+    "pytest_seconds": 17.01,
+    "selected_paths_and_cases": [
+      "tests/unit/test_browser_profile_metadata.py",
+      "tests/unit/test_manual_auth_host.py",
+      "tests/unit/test_manual_auth_deadline.py",
+      "tests/unit/test_manual_auth_path_security.py",
+      "tests/integration/test_named_browser_profile.py::test_actual_mock_browser_and_auth_reopen_keep_configured_selection",
+      "tests/browser/test_manual_auth_close_lifecycle.py::ManualAuthCloseLifecycleTests::test_user_close_during_wait_releases_only_owned_capacity_before_driver_exit",
+      "tests/browser/test_manual_auth_close_lifecycle.py::test_real_manual_sign_in_preserves_profile_metadata_and_requires_explicit_rerun"
+    ],
+    "skipped_cases": [
+      {
+        "nodeid": "tests/unit/test_browser_profile_metadata.py::test_symlink_metadata_is_never_followed",
+        "reason": "Creating a file symlink is unavailable on this host"
+      },
+      {
+        "nodeid": "tests/unit/test_browser_profile_metadata.py::test_special_metadata_file_is_refused_without_blocking",
+        "reason": "POSIX FIFO fixture"
+      },
+      {
+        "nodeid": "tests/unit/test_browser_profile_metadata.py::test_permissive_metadata_is_preserved_without_permission_repair",
+        "reason": "POSIX metadata file mode"
+      }
+    ],
+    "started_at_utc": "2026-11-14T04:56:38.334983+00:00",
+    "subtest_counts": {
+      "PASS": 54,
+      "not_added_to_primary_total": true
+    },
+    "unit_counts": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 56,
+      "SKIP": 3,
+      "total": 59
+    },
+    "warning": "One pytest xunit2 record_property compatibility warning; the expected property was present in the actual retained XML."
+  }
+}
