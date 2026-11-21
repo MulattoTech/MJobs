@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "CANONICAL_ORIGINAL_REQUIREMENT_ACCEPTANCE_PROPOSAL",
-  "publication": "UNPUBLISHED_STAGING_AWAITING_UPSTREAM_AND_EXACT_MAIN_CHECKS",
+  "publication": "PRIVATE_STAGING_UPDATED_TO_EXACT_MERGED_MAIN_POSTMERGE_GATES_PENDING",
   "prepared_at_utc": "2026-11-21T00:18:06.242419+00:00",
   "repository": "MulattoTech/MJobs",
   "staging_base": "4967e233b050d066b354900d28f30ea60cc7da37",
@@ -10,7 +10,9 @@
     "source_head": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
     "url": "https://github.com/MulattoTech/MJobs/pull/1006",
     "status_at_preflight": "OPEN; 4/5 required workflow groups green, Integration running",
-    "merge_sha": "NOT_YET_VERIFIED"
+    "merge_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "verified_status": "MERGED",
+    "verified_merged_at_utc": "2026-11-21T00:25:12Z"
   },
   "issues": [
     {
@@ -66,7 +68,7 @@
     "receipt_sha256": "43bb4af8994a0412fcea1790082775285079b7d6ed499cac06cc426ef4b7dcfe",
     "independent_narrow_suite": "23 primary + 7 subtests passed on prior PR source",
     "receipt_sha256_prior": "13295e2913016043c4f60d0edac5b919f1c6f86544174e43c155608416eb75d6",
-    "further_proof": "GitHub hosted exact-merged-main CI NOT_RUN until upstream protected merge"
+    "further_proof": "Actual protected squash SHA eafd2cfbf8d371a77200afad66f25649a74e7b7b verified in current main with 11/11 reviewed PR blobs identical. New main CI/deployment candidate pending; not eligible for acceptance PR publication until exact-SHA gates finish."
   },
   "conditions_before_publication": [
     "PR #1006 protected GitHub merge confirmed",
@@ -77,5 +79,17 @@
     "Keep the overlapping MJ-REF and MJ-REQ scopes separate; never assert live billing verified"
   ],
   "real_application_submission": "OFF",
-  "production_deployment": "NOT_PERFORMED"
+  "production_deployment": "NOT_PERFORMED",
+  "exact_merged_main": {
+    "sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "parent_sha": "4967e233b050d066b354900d28f30ea60cc7da37",
+    "pr_head_sha": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "reviewed_pr_file_blobs_preserved": 11,
+    "all_five_required_pr_workflow_groups": "SUCCESS",
+    "postmerge_fast_ci": "IN_PROGRESS_AT_PREPARATION",
+    "postmerge_integration": "IN_PROGRESS_AT_PREPARATION",
+    "postmerge_secret_scan": "SUCCESS",
+    "postmerge_deployment_candidate": "IN_PROGRESS_NOT_DEPLOYED",
+    "ci_readback": "Recheck exact current main CI before publication; statuses not final"
+  }
 }
