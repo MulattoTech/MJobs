@@ -42,7 +42,25 @@ retains all existing bootstrap output fields, including the legacy handoff
 tail. Do not pipe bootstrap output into a public issue or PR without reviewing
 it for potentially private history.
 
-The new flags are restricted to the `bootstrap` command.
+**Opt-in privacy suppression:** To omit the unreviewed legacy handoff tail
+from the bootstrap result, add `--omit-legacy-handoff-tail`:
+
+    python -m tools.agent_context bootstrap --task MJ-REQ-004 --handoff-snapshot PRIVATE_ARCHIVE_SNAPSHOT --handoff-review-file PRIVATE_REVIEW_JSON --handoff-source-sha256 EXACT_64_CHAR_SOURCE_SHA256 --omit-legacy-handoff-tail
+
+This flag excludes `previous_handoff_tail` and reports
+`legacy_handoff_tail_omitted=true`. It does not decode the raw historical
+tail for output. The source may still be read **in memory** by the existing
+reviewed-source integrity checks; the flag does not bypass source validation
+or authenticate the reviewer. If `--show-reviewed-handoff` is also given,
+reviewer-authored summary text is still explicitly printed. The suppression
+flag can be used without a review selection, but **does not** confer current
+handoff authority or perform a cutover.
+
+Other bootstrap fields (task checkpoints, path previews and requirement
+metadata) may contain sensitive information; this is **not** a complete JSON
+redaction mechanism. Never publish unchecked bootstrap output.
+
+The reviewed and privacy-suppression flags are restricted to `bootstrap`.
 `status`, `resume`, `validate`, checkpoint creation and ownership
 transfer preserve their existing behavior.
 
