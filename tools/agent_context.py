@@ -423,7 +423,8 @@ def bootstrap(root: Path, task: str | None = None, include_github: bool = False,
               *, reviewed_snapshot: Path | None = None,
               reviewed_review_file: Path | None = None,
               reviewed_source_sha256: str | None = None,
-              show_reviewed_text: bool = False) -> dict:
+              show_reviewed_text: bool = False,
+              omit_legacy_handoff_tail: bool = False) -> dict:
     root = root.resolve()
     head, branch = git(root, "rev-parse", "HEAD"), git(root, "branch", "--show-current")
     status = git(root, "status", "--porcelain=v1")
@@ -469,7 +470,12 @@ def bootstrap(root: Path, task: str | None = None, include_github: bool = False,
             "next_action", "Read the affected requirement and select the first unfinished, authorized action",
         )
     handoff = root / "planning" / "SESSION_HANDOFF.md"
-    if handoff.is_file():
+    if omit_legacy_handoff_tail:
+        # Explicit privacy opt-in: do not read the historical tail into the
+        # bootstrap result. Source-bound reviewed preflight below can still
+        # verify source bytes in memory without returning historical text.
+        result["legacy_handoff_tail_omitted"] = True
+    elif handoff.is_file():
         try:
             result["previous_handoff_tail"] = handoff.read_text(encoding="utf-8")[-1600:]
         except (OSError, UnicodeError):
@@ -599,6 +605,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Full SHA-256 of the tracked canonical handoff source")
     parser.add_argument("--show-reviewed-handoff", action="store_true",
                         help="Explicitly include reviewer-authored summary text in bootstrap output")
+    parser.add_argument("--omit-legacy-handoff-tail", action="store_true",
+                        help="Explicitly exclude the unreviewed historical handoff tail from bootstrap JSON")
     parser.add_argument("--base", default="origin/main", help="Git base ref for changed-file verification")
     parser.add_argument("--path", action="append", default=[], help="Explicit changed path for verification planning")
     parser.add_argument("--execute", action="store_true",
@@ -609,6 +617,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command != "bootstrap" and any((
             args.handoff_snapshot is not None, args.handoff_review_file is not None,
             args.handoff_source_sha256 is not None, args.show_reviewed_handoff,
+            args.omit_legacy_handoff_tail,
         )):
             parser.error("Reviewed handoff preview options apply only to bootstrap")
         if args.command == "verify":
@@ -666,6 +675,7 @@ def main(argv: list[str] | None = None) -> int:
             reviewed_review_file=args.handoff_review_file,
             reviewed_source_sha256=args.handoff_source_sha256,
             show_reviewed_text=args.show_reviewed_handoff,
+            omit_legacy_handoff_tail=args.omit_legacy_handoff_tail,
         )
         if args.command in ("resume", "validate"):
             if not args.task:
