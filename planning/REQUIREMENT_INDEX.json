@@ -1450,7 +1450,7 @@
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-079",
@@ -1754,7 +1754,7 @@
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-111",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 86,
-    "PASS": 208,
+    "PARTIAL": 84,
+    "PASS": 210,
     "NOT_RUN": 131
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
