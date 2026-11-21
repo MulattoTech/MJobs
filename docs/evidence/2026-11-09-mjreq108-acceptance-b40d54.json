@@ -1,0 +1,673 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-108",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/109",
+  "run_id": "web-20261109T154515Z-b40d54070a01",
+  "author": "ChatGPT-Web /root/acceptance_core_audit",
+  "started_utc": "2026-11-09T15:47:56.383593+00:00",
+  "completed_utc": "2026-11-09T15:48:13.069717+00:00",
+  "status": "FULL_CRITERION_PASS_PROPOSED_PENDING_PROTECTED_DELIVERY",
+  "canonical_acceptance_changed": false,
+  "implementation_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "implementation_tree": "35447039890f0d5785bdc48a967cd7fb13a9c8cd",
+  "runtime_changes": [],
+  "test_revision": {
+    "base_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "added_test_path": "tests/integration/test_acceptance_108_b40d54.py",
+    "added_test_sha256": "30553dbb3e74b1c0ccda22478888e09e1153887a27baba7ec39a1456f27a8085",
+    "note": "Execution used this exact protected-main runtime plus this new uncommitted acceptance test. Publication/acceptance owner must pin the final commit and verify source/test equality before promoting."
+  },
+  "authoritative_contract": {
+    "source": "Live GitHub issue #109 read 2026-11-09; identical to docs/spec/areas/matching_ai.md section108 and ISSUE_SEED original lines3704-3726.",
+    "interpretation": "The original contract requires provider/model abstraction and lists possible implementations. This proof exercises every named implementation. Real provider availability, paid inference quality, seven production task consumers, and browser settings usability are separate contracts and are not asserted by this promotion."
+  },
+  "criteria": [
+    {
+      "criterion_id": "108-1",
+      "criterion": "Do not couple the application to one model; provide an AIProvider abstraction.",
+      "result": "PASS",
+      "proof": [
+        "AIProvider Protocol exposes one generate contract with explicit model/task, capabilities, timeout, schema and cancellation inputs.",
+        "One production consume_ai_candidates invocation path succeeds through the real default AITaskRouter/provider factory for every enabled provider with fixture-model-a and fixture-model-b, after each saved configuration is reopened.",
+        "The same typed advisory result and zero document/application creation are asserted for all ten transport requests."
+      ]
+    },
+    {
+      "criterion_id": "108-2",
+      "criterion": "Support the OpenAI-compatible provider implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: two persisted model choices -> real loopback /v1/chat/completions requests, model and JSON format asserted; typed advisory response accepted."
+      ]
+    },
+    {
+      "criterion_id": "108-3",
+      "criterion": "Support the OpenAI provider implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: actual OpenAIProvider from default factory, two persisted model choices -> real loopback /v1/chat/completions requests; typed advisory response accepted."
+      ]
+    },
+    {
+      "criterion_id": "108-4",
+      "criterion": "Support the Azure OpenAI provider implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: actual AzureOpenAIProvider from default factory, two persisted model choices -> deployment-specific /v1/openai/deployments/<model>/chat/completions with explicit API version and JSON format; typed advisory response accepted."
+      ]
+    },
+    {
+      "criterion_id": "108-5",
+      "criterion": "Support the Ollama provider implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: actual OllamaProvider, two persisted model choices -> /api/generate with model and strict schema; typed advisory response accepted."
+      ]
+    },
+    {
+      "criterion_id": "108-6",
+      "criterion": "Support the local endpoint provider implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: actual LocalEndpointProvider, two persisted model choices -> loopback /v1/chat/completions; typed advisory response accepted. Existing real-loopback resume CLI test also exercises selected-fact draft generation through the local provider."
+      ]
+    },
+    {
+      "criterion_id": "108-7",
+      "criterion": "Support the explicitly disabled implementation.",
+      "result": "PASS",
+      "proof": [
+        "Owned acceptance test: disabled selection survives reopen and raises AI_PROVIDER_DISABLED through the same consumer without an eleventh request.",
+        "Existing disabled-provider tests assert no socket connection, zero capabilities and sanitized refusal; API settings tests preserve default-disabled and profile-isolated configuration."
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "command": "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python -m pytest -q -p no:cacheprovider --junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/mjreq108-acceptance.xml tests/integration/test_acceptance_108_b40d54.py tests/unit/test_ai_providers.py tests/unit/test_ai_provider_transport.py tests/unit/test_azure_openai_provider.py tests/unit/test_ollama_provider.py tests/unit/test_disabled_ai_provider.py tests/unit/test_ai_task_configuration.py tests/unit/test_ai_response_deadline.py tests/unit/test_ai_header_deadline.py tests/unit/test_ai_tls_handshake.py tests/unit/test_ai_cost_consumer.py tests/unit/test_ai_structured_output.py tests/integration/test_ai_task_settings_api.py tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_real_loopback_provider_and_cli_contract",
+      "environment": {
+        "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "database": "Disposable file-backed SQLite, current migrations; configuration persistence verified with Store disposal/reopen.",
+        "network": "Synthetic real loopback HTTP plus existing loopback TLS/deadline fixtures and MockTransport negatives. No real API credentials or paid provider calls."
+      },
+      "started_utc": "2026-11-09T15:47:56.383593+00:00",
+      "finished_utc": "2026-11-09T15:48:13.069717+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "test_methods_passed": 85,
+      "subtests_passed": 179,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 12.99,
+      "raw_log": {
+        "run_directory_relative_path": "mjreq108-acceptance.log",
+        "sha256": "9a7efff635f39374605da58724836178e58bb430c6fc913758d90fcd739e7906"
+      },
+      "junit": {
+        "run_directory_relative_path": "mjreq108-acceptance.xml",
+        "sha256": "039a88e3e6800b7c5b9a80fb9ef8919df5054bb225ee07e1ced9c87438c2574a"
+      }
+    }
+  ],
+  "safety_and_regression_evidence": [
+    "All loopback fixture API key environment variables are explicitly empty; fixture HTTP logs are suppressed.",
+    "Only supplied public synthetic job data reaches the scoring provider; applicant email is absent in each request.",
+    "Remote plaintext transport, redirects, malformed responses, unsupported providers, cancellation and deadlines are covered by the executed existing provider tests.",
+    "Provider outputs remain typed advisory results; this acceptance test creates no documents or applications.",
+    "Local endpoint/Ollama loopback boundaries and sanitized errors remain tested."
+  ],
+  "source_and_test_hashes": {
+    "packages/persistence/models.py": {
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76",
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2"
+    },
+    "packages/persistence/store.py": {
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+      "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+    },
+    "services/ai/consumer.py": {
+      "sha256": "07df2d58630502a909f334a0ee3e18e81ae19b06a114e156b38a0a6bd24f7f27",
+      "git_blob": "07f01f54edb40481ed8d1a72914fbf5238a6cb59"
+    },
+    "services/ai/cost_controls.py": {
+      "sha256": "6e725bac052c39934bad71aaf410327955bc4dbd25837884b9ffdcd55df5e910",
+      "git_blob": "6a0e318ef4d17bb4ff870b8c0f5f90aed870f508"
+    },
+    "services/ai/providers/__init__.py": {
+      "sha256": "54f9b56ec76f523485c6c6d3f23625debf02e992c34e3652b9b63e2c3da1718e",
+      "git_blob": "462a2a3440b9034bd9878f3fd21d2f4dc9a7eeaa"
+    },
+    "services/ai/providers/azure_openai.py": {
+      "sha256": "32129dac55486c72b9ee57bc8856b777a6ae28274c218e6fed25723546c1e562",
+      "git_blob": "be81d427b58ff12f5ab8f6d33d142080f4a6a640"
+    },
+    "services/ai/providers/endpoint_security.py": {
+      "sha256": "d59e2cd737526c750180255807c4b0b8e589d00c1af8c94b2d2445c704bce15e",
+      "git_blob": "6682e57d80206ef60b19c40ee33523a4788e9306"
+    },
+    "services/ai/providers/local_endpoint.py": {
+      "sha256": "0a9adab7481cd4bacac3e82b36bff5cd6bdc38e4e22c57e1b60e7a3ca2e5b127",
+      "git_blob": "a7d2ec9d726b84106f7f7fd2a43e69fe7f137596"
+    },
+    "services/ai/providers/ollama.py": {
+      "sha256": "f7ee36bee6e074d988ab9c214a676526df946f1919047eaf128566023e19ac71",
+      "git_blob": "d0d15c85659d33475ba142ca760b6b1e59e3715b"
+    },
+    "services/ai/providers/openai.py": {
+      "sha256": "fb93ad3608e3b4fce7bed262807a979547bc08b49d206246ecdc92f73d7a6ea2",
+      "git_blob": "bd8deb46fb3714366b6e0276ae1c1d87e07ede10"
+    },
+    "services/ai/providers/openai_compatible.py": {
+      "sha256": "de89ca53ffb2a58717ece73f931b4ab5d9647102c5e078d2129d9c7d49915f25",
+      "git_blob": "6c1f50e66588e0ec4fb74804feafd982296ca615"
+    },
+    "services/ai/providers/transport.py": {
+      "sha256": "aa16abd6908136f6d098e243e0d85c4b7a9d9586800c17964da8c105ecf4a807",
+      "git_blob": "6641aee6845b50007b940044eeb6ae2bd8e40768"
+    },
+    "services/ai/structured_output.py": {
+      "sha256": "df363fbd66ef752c3be75ab727d64a550cd7745f98a346796654527e437af1bf",
+      "git_blob": "c3fd0b4b7aa0575eba34a024ec53d108ecdfabef"
+    },
+    "services/ai/tasks.py": {
+      "sha256": "7f9c99fc4351a11d733876c8d6b49e49fcbbf5cebb91164f945b7356cb7d4069",
+      "git_blob": "1db14b09746e1fe552ba008b4a3b18d2b237eb3e"
+    },
+    "tests/integration/test_acceptance_108_b40d54.py": {
+      "sha256": "30553dbb3e74b1c0ccda22478888e09e1153887a27baba7ec39a1456f27a8085",
+      "git_blob": null
+    },
+    "tests/integration/test_ai_resume_fact_trace.py": {
+      "sha256": "0b5ff7ad697e6d3e9bd97dffc8ba84a5d8d1b5c0a6748de2daedc9e09178746c",
+      "git_blob": "450f90fecfe7b132f4a4f949777e2e5b51af7a27"
+    },
+    "tests/integration/test_ai_task_settings_api.py": {
+      "sha256": "0cf833b5e246586b5e34896df55828e8c948d26d2fb29d78948e4a833fd5d4ca",
+      "git_blob": "8fd88fd0c31fef8f7146c4b3326b5972e247616c"
+    },
+    "tests/unit/test_ai_cost_consumer.py": {
+      "sha256": "ee5abb2276a51921485bfae23beef7ce595510d297dc390084d7634b5a53474c",
+      "git_blob": "1f7329064ee46d4eeecaa5832621b6af1adc39e7"
+    },
+    "tests/unit/test_ai_header_deadline.py": {
+      "sha256": "5684bd33b0de58be5e4675e7ad654dd739107a3c9bb1d886c1d81d6bb0e5378b",
+      "git_blob": "cd539a1cefeae1de9aa9266a53e5bf67d9512ae4"
+    },
+    "tests/unit/test_ai_provider_transport.py": {
+      "sha256": "205f264aae5a54f63d1d6021374f8ab2ee66f54891530d1753c53af177209054",
+      "git_blob": "47434e5e8357051dd3f583114d14175465e845a6"
+    },
+    "tests/unit/test_ai_providers.py": {
+      "sha256": "692fb363f67d80a534665ae1d870f10df5e3f336371355a8613262cfd6b3cb3c",
+      "git_blob": "94be7f1cd7b6f47cef2a45aa5f9b9a6dd39abf14"
+    },
+    "tests/unit/test_ai_response_deadline.py": {
+      "sha256": "7ee05effcdd2f43aa043a72aad2fdedb1fa9bb51e611e270382221d3c579db9b",
+      "git_blob": "6549988514942b221b0bc2df5ae5ac259da525fe"
+    },
+    "tests/unit/test_ai_structured_output.py": {
+      "sha256": "5918f665faaf969d337fc2cb65ea68c91d6c3b96d1c0db2a76364a73ccde4e6a",
+      "git_blob": "38f38822825f28d84ceca2605c6754508c9b60ae"
+    },
+    "tests/unit/test_ai_task_configuration.py": {
+      "sha256": "a4f8a0058f4e8e125fd3bc7e77ddf58df0448ed070c5338979a0d49607deb729",
+      "git_blob": "9ca7022a7f35f0643498793ed6509325752081b6"
+    },
+    "tests/unit/test_ai_tls_handshake.py": {
+      "sha256": "12c675a29def74045c5a799ac8d3eedfb9d288094cb7e905849651cea4bd6405",
+      "git_blob": "0c6dfe5022ecf42c3be910fb4c129f9f3f20b26a"
+    },
+    "tests/unit/test_azure_openai_provider.py": {
+      "sha256": "8ce19c6f9d46fca06ee54c2e1c24a4f89bb818f2036f7919fb3a8ee2d200f43d",
+      "git_blob": "0a8d005fcf127324819e68e17382a6f2fd1973e2"
+    },
+    "tests/unit/test_disabled_ai_provider.py": {
+      "sha256": "825784ed4263382d33a480a41adb902d4e8c8530adc45131268234e9a2813efa",
+      "git_blob": "0526f253e3da700437ed274b4d0a4d4dc7cde89b"
+    },
+    "tests/unit/test_ollama_provider.py": {
+      "sha256": "45cecedd178d2f2029407994d14e4ce38f13a20dc227640104c8d2a7cdbe1038",
+      "git_blob": "f180e794afa3eb800b4010e0f23bab6c43a69280"
+    }
+  },
+  "independent_review": {
+    "schema_version": 1,
+    "requirement_id": "MJ-REQ-108",
+    "reviewer": "ChatGPT-Web /root/acceptance_web_audit",
+    "reviewed_utc": "2026-11-09T15:57:57.108569+00:00",
+    "independent_of_implementation_and_test_author": true,
+    "independence_note": "Reviewer authored the separate MJ-REQ-205 acceptance tests, not MJ-REQ-108 source or test. No MJ-REQ-108 source, test or evidence edits were made during this review.",
+    "authority": "User-authorized independent acceptance review; does not itself modify canonical acceptance or authorize bypassing integration gates.",
+    "verdict": "ACCEPT_FULL_REQUIREMENT_PASS_PROPOSAL",
+    "blocking_findings": [],
+    "reviewed_source_commit": "2276cd3ef1eb62a52658217f5e2728b2d40b3047",
+    "reviewed_source_tree": "ac6ad6b09db03919207df182c2504bfd4a4b856a",
+    "live_requirement": {
+      "url": "https://github.com/MulattoTech/MJobs/issues/109",
+      "issue_updated_at": "2026-10-11T03:56:03Z",
+      "normative_text": "Do not couple the application to one model. Support an abstraction such as AIProvider.",
+      "possible_implementations": [
+        "OpenAI-compatible",
+        "OpenAI",
+        "Azure OpenAI",
+        "Ollama",
+        "local endpoint",
+        "disabled"
+      ],
+      "interpretation": "The seven proof rows reflect the abstraction/model-independence contract plus all six named possible implementations. The requirement does not demand production availability, paid inference quality, authenticated browser configuration, or every downstream AI-task workflow."
+    },
+    "criterion_review": [
+      {
+        "criterion": "108-1",
+        "verdict": "ACCEPT",
+        "reason": "AIProvider Protocol declares shared generation/capability/model/timeout/schema/cancellation contract. AITaskRouter uses the supported factory and the same consume_ai_candidates path. The new test persists and reopens each provider/model selection before calling that unchanged consumer."
+      },
+      {
+        "criterion": "108-2",
+        "verdict": "ACCEPT",
+        "reason": "Default factory constructs OpenAICompatibleProvider. Two stored model selections reach actual loopback /v1/chat/completions requests and return validated typed results without provider/router mocking."
+      },
+      {
+        "criterion": "108-3",
+        "verdict": "ACCEPT",
+        "reason": "Factory constructs OpenAIProvider, a concrete OpenAI-compatible subclass with independent defaults/configuration. Existing factory tests distinguish class identity; new test executes its actual transport for two stored models."
+      },
+      {
+        "criterion": "108-4",
+        "verdict": "ACCEPT",
+        "reason": "Concrete Azure provider emits the expected deployment-specific path and API-version query; two distinct saved deployment/model choices are asserted at the TCP HTTP receiver. Synthetic success does not imply current live Azure availability."
+      },
+      {
+        "criterion": "108-5",
+        "verdict": "ACCEPT",
+        "reason": "Concrete Ollama provider uses /api/generate, its own request envelope, both model IDs, strict schema, and response parsing. This proves protocol adapter interchangeability with fixture replies, not an installed model."
+      },
+      {
+        "criterion": "108-6",
+        "verdict": "ACCEPT",
+        "reason": "Concrete local endpoint provider enforces loopback scope and reuses the shared compatible generation contract. Both model choices reach the receiver; selected existing local resume CLI and transport tests corroborate actual consumers/boundaries."
+      },
+      {
+        "criterion": "108-7",
+        "verdict": "ACCEPT",
+        "reason": "Persisted disabled selection survives reopen and rejects through the same consumer with no eleventh request. Separate DisabledAIProvider test verifies zero capabilities, sanitized exception and socket refusal."
+      }
+    ],
+    "evidence_quality": {
+      "provider_factory_router_generation_mocked_in_new_test": false,
+      "network": "Actual bounded loopback HTTP socket exchanges; remote provider responses are controlled synthetic envelopes.",
+      "persistence": "File-backed SQLite migrated once and Store disposed/reopened for every saved provider/model choice and disabled mode.",
+      "model_independence": "Two model identifiers per enabled implementation; ten requests in total; selected model appears in provider-specific payload or Azure deployment URL.",
+      "consumer_outcome": "Same typed advisory result for all enabled providers; no documents/applications created; supplied synthetic public job data present and fixture applicant email absent from prompts.",
+      "resource_cleanup": "Owned HTTP server shutdown/server_close and bounded thread join with not-alive assertion.",
+      "negative_contracts": "Reviewed executed existing tests cover unsupported providers, disabled operation, profile-isolated settings, request/result validation, bounded transport/cancellation and schema checks."
+    },
+    "validation_review": {
+      "reviewer_ran_additional_tests": false,
+      "reason": "Existing exact-commit cohort and final-journey executions cover the inspected contract; the independent review verified commands, successful JUnit records, logs, blob equality and import-only delta instead of duplicating the same tests.",
+      "initial_requirement_run": "85 passed and179subtests passed;0failures/errors/skips, recorded in mjreq108 artifacts.",
+      "cohort_run": {
+        "tested_sha": "6847163ecf87ab606f7be40b7dbee269f34ee6db",
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/integration/test_acceptance_108_b40d54.py",
+          "tests/unit/test_ai_providers.py",
+          "tests/unit/test_ai_provider_transport.py",
+          "tests/unit/test_azure_openai_provider.py",
+          "tests/unit/test_ollama_provider.py",
+          "tests/unit/test_disabled_ai_provider.py",
+          "tests/unit/test_ai_task_configuration.py",
+          "tests/unit/test_ai_response_deadline.py",
+          "tests/unit/test_ai_header_deadline.py",
+          "tests/unit/test_ai_tls_handshake.py",
+          "tests/unit/test_ai_cost_consumer.py",
+          "tests/unit/test_ai_structured_output.py",
+          "tests/integration/test_ai_task_settings_api.py",
+          "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_real_loopback_provider_and_cli_contract",
+          "tests/unit/test_application_priority.py",
+          "tests/unit/test_matching_application_priority.py",
+          "tests/integration/test_application_priority_api.py",
+          "tests/integration/test_application_priority_app_mount.py",
+          "tests/integration/test_job_sorting.py",
+          "tests/integration/test_match_components_integration.py",
+          "tests/integration/test_job_tracking.py",
+          "tests/integration/test_company_source_view.py::CompanySourceViewTests",
+          "tests/integration/test_company_sources.py",
+          "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests",
+          "tests/integration/test_application_answer_resume_api.py",
+          "tests/integration/test_dead_letter_queue.py",
+          "tests/integration/test_source_enrollment_api.py",
+          "tests/integration/test_api_queue.py::ApiQueueTests::test_api_saves_explicit_facts_and_reports_durable_queueing",
+          "tests/integration/test_api_queue.py::ApiQueueTests::test_personal_mode_rejects_fixture_actions_and_keeps_public_collection",
+          "tests/integration/test_api_queue.py::ApiQueueTests::test_preparation_is_durable_background_work_and_cancel_is_visible",
+          "tests/integration/test_api_queue.py::ApiQueueTests::test_selected_career_story_survives_durable_preparation_and_document_readback",
+          "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_api_admission_lookup_and_profile_scope_are_durable",
+          "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery",
+          "tests/integration/test_acceptance_205_b40d54.py",
+          "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/cohort-exact-source.xml"
+        ],
+        "started_utc": "2026-11-09T15:53:17.232775+00:00",
+        "finished_utc": "2026-11-09T15:54:23.540123+00:00",
+        "wall_seconds": 66.307,
+        "exit_code": 0,
+        "junit": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "0",
+            "tests": "403",
+            "time": "59.694",
+            "timestamp": "2026-11-09T09:53:17.453976-06:00",
+            "hostname": "3500872d9821"
+          }
+        ]
+      },
+      "cohort_log_summary": "197 passed, 206 subtests passed in 59.69s",
+      "final_journey_run": "cohort-final-journeys.xml records4successful cases, including the current108test;0failures/errors/skips. Parent reports command executed at2276cd3ef1eb62a52658217f5e2728b2d40b3047; current tracked tree clean.",
+      "artifacts": {
+        "mjreq108-acceptance.xml": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq108-acceptance.xml",
+          "sha256": "039a88e3e6800b7c5b9a80fb9ef8919df5054bb225ee07e1ced9c87438c2574a",
+          "suites": [
+            {
+              "name": "pytest",
+              "errors": "0",
+              "failures": "0",
+              "skipped": "0",
+              "tests": "264",
+              "time": "12.988",
+              "timestamp": "2026-11-09T09:47:56.607333-06:00",
+              "hostname": "3500872d9821"
+            }
+          ],
+          "acceptance108_case": [
+            {
+              "classname": "tests.integration.test_acceptance_108_b40d54",
+              "name": "test_saved_provider_switches_reach_one_consumer_without_model_coupling",
+              "time": "0.295"
+            }
+          ]
+        },
+        "mjreq108-acceptance.log": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq108-acceptance.log",
+          "sha256": "9a7efff635f39374605da58724836178e58bb430c6fc913758d90fcd739e7906"
+        },
+        "cohort-exact-source-run.json": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/cohort-exact-source-run.json",
+          "sha256": "fb90cc72d61ce48f465e113a1676b2978aaf4424967c2cdf408495fae6a78942"
+        },
+        "cohort-exact-source.xml": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/cohort-exact-source.xml",
+          "sha256": "f81c6edbad34fc4eaf49034275b6b9f89379ebb04019d2b07cf68fc9531e26f0",
+          "suites": [
+            {
+              "name": "pytest",
+              "errors": "0",
+              "failures": "0",
+              "skipped": "0",
+              "tests": "403",
+              "time": "59.694",
+              "timestamp": "2026-11-09T09:53:17.453976-06:00",
+              "hostname": "3500872d9821"
+            }
+          ],
+          "acceptance108_case": [
+            {
+              "classname": "tests.integration.test_acceptance_108_b40d54",
+              "name": "test_saved_provider_switches_reach_one_consumer_without_model_coupling",
+              "time": "0.404"
+            }
+          ]
+        },
+        "cohort-exact-source.log": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/cohort-exact-source.log",
+          "sha256": "2fc83cc08686b29f38dc6b1faeb55050b1eff4adb1826ede6a64afc2d0909f3f"
+        },
+        "cohort-final-journeys.xml": {
+          "path": "/workspace/scratch/11cf817acfbe/run-b40d54/cohort-final-journeys.xml",
+          "sha256": "794446f4db96985b3aa9406e4460746b9f893005af679c72fe9ee5847fa292be",
+          "suites": [
+            {
+              "name": "pytest",
+              "errors": "0",
+              "failures": "0",
+              "skipped": "0",
+              "tests": "4",
+              "time": "5.189",
+              "timestamp": "2026-11-09T09:55:07.042100-06:00",
+              "hostname": "3500872d9821"
+            }
+          ],
+          "acceptance108_case": [
+            {
+              "classname": "tests.integration.test_acceptance_108_b40d54",
+              "name": "test_saved_provider_switches_reach_one_consumer_without_model_coupling",
+              "time": "0.271"
+            }
+          ]
+        }
+      }
+    },
+    "final_receipt_update_required": {
+      "status": "METADATA_REFRESH_BEFORE_PROMOTION",
+      "note": "The draft evidence still pins its original f3db88aa execution and pre-sort108test hash. Preserve that historical run, add final2276cd3e cohort/targeted receipts and current test blob/hash. This is not a new implementation gap.",
+      "draft_evidence_sha256_at_review": "f8aa2b5d55579fcdef1c1e781e419abdf95b37eaf9283686da54b5b465a7c38b",
+      "only_draft_hash_mismatch": "tests/integration/test_acceptance_108_b40d54.py",
+      "difference": "Only standard-library import ordering changed in108test between6847163e and2276cd3e; all draft-recorded runtime/test dependency hashes still match.",
+      "current_acceptance_test": {
+        "git_blob": "ec191537f643b4431134d540e5aa018619d2a5e8",
+        "sha256": "0c87ad8b1d89e36e97d5b55f9dc1a7977e036b659204bb84112920adcd957a98"
+      }
+    },
+    "limitations_preserved": [
+      "No live OpenAI/Azure/Ollama/local inference or service availability claim.",
+      "No paid provider call or real credentials used.",
+      "No authenticated browser, PostgreSQL or deployment acceptance claimed.",
+      "No promotion of MJ-REQ-109,110or111 inferred.",
+      "Canonical promotion and protected delivery remain with the single authorized integration owner."
+    ],
+    "exact_reviewed_files": {
+      "packages/persistence/models.py": {
+        "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+        "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+      },
+      "services/ai/consumer.py": {
+        "git_blob": "07f01f54edb40481ed8d1a72914fbf5238a6cb59",
+        "sha256": "07df2d58630502a909f334a0ee3e18e81ae19b06a114e156b38a0a6bd24f7f27"
+      },
+      "services/ai/cost_controls.py": {
+        "git_blob": "6a0e318ef4d17bb4ff870b8c0f5f90aed870f508",
+        "sha256": "6e725bac052c39934bad71aaf410327955bc4dbd25837884b9ffdcd55df5e910"
+      },
+      "services/ai/providers/__init__.py": {
+        "git_blob": "462a2a3440b9034bd9878f3fd21d2f4dc9a7eeaa",
+        "sha256": "54f9b56ec76f523485c6c6d3f23625debf02e992c34e3652b9b63e2c3da1718e"
+      },
+      "services/ai/providers/azure_openai.py": {
+        "git_blob": "be81d427b58ff12f5ab8f6d33d142080f4a6a640",
+        "sha256": "32129dac55486c72b9ee57bc8856b777a6ae28274c218e6fed25723546c1e562"
+      },
+      "services/ai/providers/endpoint_security.py": {
+        "git_blob": "6682e57d80206ef60b19c40ee33523a4788e9306",
+        "sha256": "d59e2cd737526c750180255807c4b0b8e589d00c1af8c94b2d2445c704bce15e"
+      },
+      "services/ai/providers/local_endpoint.py": {
+        "git_blob": "a7d2ec9d726b84106f7f7fd2a43e69fe7f137596",
+        "sha256": "0a9adab7481cd4bacac3e82b36bff5cd6bdc38e4e22c57e1b60e7a3ca2e5b127"
+      },
+      "services/ai/providers/ollama.py": {
+        "git_blob": "d0d15c85659d33475ba142ca760b6b1e59e3715b",
+        "sha256": "f7ee36bee6e074d988ab9c214a676526df946f1919047eaf128566023e19ac71"
+      },
+      "services/ai/providers/openai.py": {
+        "git_blob": "bd8deb46fb3714366b6e0276ae1c1d87e07ede10",
+        "sha256": "fb93ad3608e3b4fce7bed262807a979547bc08b49d206246ecdc92f73d7a6ea2"
+      },
+      "services/ai/providers/openai_compatible.py": {
+        "git_blob": "6c1f50e66588e0ec4fb74804feafd982296ca615",
+        "sha256": "de89ca53ffb2a58717ece73f931b4ab5d9647102c5e078d2129d9c7d49915f25"
+      },
+      "services/ai/providers/transport.py": {
+        "git_blob": "6641aee6845b50007b940044eeb6ae2bd8e40768",
+        "sha256": "aa16abd6908136f6d098e243e0d85c4b7a9d9586800c17964da8c105ecf4a807"
+      },
+      "services/ai/structured_output.py": {
+        "git_blob": "c3fd0b4b7aa0575eba34a024ec53d108ecdfabef",
+        "sha256": "df363fbd66ef752c3be75ab727d64a550cd7745f98a346796654527e437af1bf"
+      },
+      "services/ai/tasks.py": {
+        "git_blob": "1db14b09746e1fe552ba008b4a3b18d2b237eb3e",
+        "sha256": "7f9c99fc4351a11d733876c8d6b49e49fcbbf5cebb91164f945b7356cb7d4069"
+      },
+      "tests/integration/test_acceptance_108_b40d54.py": {
+        "git_blob": "ec191537f643b4431134d540e5aa018619d2a5e8",
+        "sha256": "0c87ad8b1d89e36e97d5b55f9dc1a7977e036b659204bb84112920adcd957a98"
+      },
+      "tests/integration/test_ai_resume_fact_trace.py": {
+        "git_blob": "450f90fecfe7b132f4a4f949777e2e5b51af7a27",
+        "sha256": "0b5ff7ad697e6d3e9bd97dffc8ba84a5d8d1b5c0a6748de2daedc9e09178746c"
+      },
+      "tests/integration/test_ai_task_settings_api.py": {
+        "git_blob": "8fd88fd0c31fef8f7146c4b3326b5972e247616c",
+        "sha256": "0cf833b5e246586b5e34896df55828e8c948d26d2fb29d78948e4a833fd5d4ca"
+      },
+      "tests/unit/test_ai_cost_consumer.py": {
+        "git_blob": "1f7329064ee46d4eeecaa5832621b6af1adc39e7",
+        "sha256": "ee5abb2276a51921485bfae23beef7ce595510d297dc390084d7634b5a53474c"
+      },
+      "tests/unit/test_ai_header_deadline.py": {
+        "git_blob": "cd539a1cefeae1de9aa9266a53e5bf67d9512ae4",
+        "sha256": "5684bd33b0de58be5e4675e7ad654dd739107a3c9bb1d886c1d81d6bb0e5378b"
+      },
+      "tests/unit/test_ai_provider_transport.py": {
+        "git_blob": "47434e5e8357051dd3f583114d14175465e845a6",
+        "sha256": "205f264aae5a54f63d1d6021374f8ab2ee66f54891530d1753c53af177209054"
+      },
+      "tests/unit/test_ai_providers.py": {
+        "git_blob": "94be7f1cd7b6f47cef2a45aa5f9b9a6dd39abf14",
+        "sha256": "692fb363f67d80a534665ae1d870f10df5e3f336371355a8613262cfd6b3cb3c"
+      },
+      "tests/unit/test_ai_response_deadline.py": {
+        "git_blob": "6549988514942b221b0bc2df5ae5ac259da525fe",
+        "sha256": "7ee05effcdd2f43aa043a72aad2fdedb1fa9bb51e611e270382221d3c579db9b"
+      },
+      "tests/unit/test_ai_structured_output.py": {
+        "git_blob": "38f38822825f28d84ceca2605c6754508c9b60ae",
+        "sha256": "5918f665faaf969d337fc2cb65ea68c91d6c3b96d1c0db2a76364a73ccde4e6a"
+      },
+      "tests/unit/test_ai_task_configuration.py": {
+        "git_blob": "9ca7022a7f35f0643498793ed6509325752081b6",
+        "sha256": "a4f8a0058f4e8e125fd3bc7e77ddf58df0448ed070c5338979a0d49607deb729"
+      },
+      "tests/unit/test_ai_tls_handshake.py": {
+        "git_blob": "0c6dfe5022ecf42c3be910fb4c129f9f3f20b26a",
+        "sha256": "12c675a29def74045c5a799ac8d3eedfb9d288094cb7e905849651cea4bd6405"
+      },
+      "tests/unit/test_azure_openai_provider.py": {
+        "git_blob": "0a8d005fcf127324819e68e17382a6f2fd1973e2",
+        "sha256": "8ce19c6f9d46fca06ee54c2e1c24a4f89bb818f2036f7919fb3a8ee2d200f43d"
+      },
+      "tests/unit/test_disabled_ai_provider.py": {
+        "git_blob": "0526f253e3da700437ed274b4d0a4d4dc7cde89b",
+        "sha256": "825784ed4263382d33a480a41adb902d4e8c8530adc45131268234e9a2813efa"
+      },
+      "tests/unit/test_ollama_provider.py": {
+        "git_blob": "f180e794afa3eb800b4010e0f23bab6c43a69280",
+        "sha256": "45cecedd178d2f2029407994d14e4ce38f13a20dc227640104c8d2a7cdbe1038"
+      }
+    }
+  },
+  "limitations": [
+    "No real OpenAI/Azure/Ollama/local model inference; no claim of provider service availability or output quality.",
+    "No authenticated browser acceptance, PostgreSQL or production deployment in this requirement-specific run.",
+    "No MJ-REQ-109/MJ-REQ-110/MJ-REQ-111 promotion is implied; their owners retain separate authority.",
+    "Hosted CI on the final acceptance commit is pending; original canonical count remains unchanged until authorized serialized integration."
+  ],
+  "final_candidate_verification": {
+    "source_commit": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+    "source_tree": "749c9162ee0d099de0b371e8a55e6a75feb09781",
+    "result": "PASS",
+    "tests_passed": 150,
+    "subtests_passed": 195,
+    "skipped": 0,
+    "command": [
+      "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/integration/test_acceptance_108_b40d54.py",
+      "tests/unit/test_ai_providers.py",
+      "tests/unit/test_ai_provider_transport.py",
+      "tests/unit/test_azure_openai_provider.py",
+      "tests/unit/test_ollama_provider.py",
+      "tests/unit/test_disabled_ai_provider.py",
+      "tests/unit/test_ai_task_configuration.py",
+      "tests/unit/test_ai_response_deadline.py",
+      "tests/unit/test_ai_header_deadline.py",
+      "tests/unit/test_ai_tls_handshake.py",
+      "tests/unit/test_ai_cost_consumer.py",
+      "tests/unit/test_ai_structured_output.py",
+      "tests/integration/test_ai_task_settings_api.py",
+      "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_real_loopback_provider_and_cli_contract",
+      "tests/integration/test_job_tracking.py",
+      "tests/integration/test_company_source_view.py::CompanySourceViewTests",
+      "tests/integration/test_company_sources.py",
+      "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests",
+      "tests/integration/test_application_answer_resume_api.py",
+      "tests/integration/test_dead_letter_queue.py",
+      "tests/integration/test_source_enrollment_api.py",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_api_saves_explicit_facts_and_reports_durable_queueing",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_personal_mode_rejects_fixture_actions_and_keeps_public_collection",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_preparation_is_durable_background_work_and_cancel_is_visible",
+      "tests/integration/test_api_queue.py::ApiQueueTests::test_selected_career_story_survives_durable_preparation_and_document_readback",
+      "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_api_admission_lookup_and_profile_scope_are_durable",
+      "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery",
+      "tests/integration/test_acceptance_205_b40d54.py",
+      "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/proof-exact-source.xml"
+    ],
+    "started_utc": "2026-11-09T16:00:44.101208+00:00",
+    "finished_utc": "2026-11-09T16:01:39.128207+00:00",
+    "exit_code": 0,
+    "source_change_scope": "Two new acceptance tests; no runtime changes. The independent priority repair is reused through existing PR992.",
+    "artifacts": {
+      "proof-exact-source-run.json": {
+        "sha256": "1a903f7d7d8a6bb96debd94d0391d5f133aadcaa71e2a1e1dc393dea189f0c07"
+      },
+      "proof-exact-source.log": {
+        "sha256": "3a332418e3afcf71678de17cb30b37ddd8c0e5d2de7df358e231be953e425045"
+      },
+      "proof-exact-source.xml": {
+        "sha256": "f4ba368c850564d8c6bf4d5b98a702001f442a8bd7245075071bc4aa804dbe26"
+      }
+    }
+  },
+  "review_reconciliation": {
+    "final_source_commit": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+    "reviewed_test_blobs_unchanged": true,
+    "runtime_delta_from_protected_main": [],
+    "note": "Independent review was on the same acceptance-test blobs. After removing the duplicated private priority repair, the complete108/205set was rerun successfully on this clean-main-based exact source commit."
+  },
+  "publication_gate": {
+    "required_checks": "PENDING",
+    "integration_owner": "web-20261109T132018Z-0d9f5a0511ab",
+    "canonical_promotion": "NOT_APPLIED"
+  },
+  "final_test_identity": {
+    "path": "tests/integration/test_acceptance_108_b40d54.py",
+    "git_blob": "ec191537f643b4431134d540e5aa018619d2a5e8",
+    "sha256": "0c87ad8b1d89e36e97d5b55f9dc1a7977e036b659204bb84112920adcd957a98"
+  }
+}
