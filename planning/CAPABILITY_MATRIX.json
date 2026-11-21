@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-14T19:58:30.913144+00:00",
+  "timestamp": "2026-11-21T00:18:06.243466+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1024,11 +1024,12 @@
     },
     {
       "requirement_id": "MJ-REQ-078",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json",
+        "docs/evidence/2026-11-21-req078-110-literal-acceptance.json"
       ],
-      "note": "PARTIAL: source confidence and <0.75 review status are exposed and tested; full confidence calibration and review resolution remain open.",
+      "note": "Original criterion satisfied: sourced company discovery confidence scores and COMPANY_SOURCE_REVIEW_REQUIRED for low confidence are implemented and verified. Numeric tiers were examples. Statistical score calibration and full operator review workflow are separate from this literal criterion (MJ-REQ-081, MJ-REQ-196). This matrix update is staged in an unmerged acceptance proposal; source/CI identity and acceptance evidence are in docs/evidence/2026-11-21-req078-110-literal-acceptance.json.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"
@@ -1466,16 +1467,17 @@
     },
     {
       "requirement_id": "MJ-REQ-110",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-06-ai-cost-controls.json",
         "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
         "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
         "docs/evidence/2026-10-13-ai-job-input-freshness.json",
         "docs/evidence/2026-10-13-grounded-ai-candidates.json",
-        "docs/evidence/2026-10-13-profile-ai-credentials.json"
+        "docs/evidence/2026-10-13-profile-ai-credentials.json",
+        "docs/evidence/2026-11-21-req078-110-literal-acceptance.json"
       ],
-      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL. Job-input freshness now fences durable evaluation, publication, review and actual document generation at 57798a83650d35d98bfa8f4f360d3c46f30b57fd; legacy provenance stays UNKNOWN. Local SQLite/PostgreSQL, migration/recovery and connected browser proof passes. Hosted checks pending; parent remains PARTIAL. Current grounded profile-wide AI candidate selection and frozen per-skill explanations verified at 3fc521236daf622f3c6b776f4abc8e5de513633f; unknown coverage excluded even at zero threshold, no private evidence added to provider prompts. SQLite/PostgreSQL/Redis/browser and full units/frontend/build pass. Whole requirement remains PARTIAL; new hosted gates pending. Profile-bound durable OpenAI scoring now connects saved encrypted credentials, fixed destination, credential-rotation fences and truthful UI history; synthetic SQLite/PostgreSQL/process/browser and restored Compose evidence PASS. Live inference and complete umbrella acceptance remain PARTIAL.",
+      "note": "Original criterion satisfied: configurable deterministic candidate funnel dedupes/filters/scores before bounded paid-AI admission, with separately capped reviewed documents, persisted profile policy and currentness fences. Funnel sizes were examples. Live paid-provider billing provenance and global spend budgets remain out of scope and unverified under MJ-REF-015. This matrix update is staged in an unmerged acceptance proposal; source/CI identity in docs/evidence/2026-11-21-req078-110-literal-acceptance.json.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
