@@ -21,7 +21,7 @@ _SAFE_TYPES = {
 _SAFE_REASON = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 _ASCII_ROUTE_PROVIDERS = frozenset({
     "smartrecruiters", "workable", "teamtailor", "bamboohr",
-    "greenhouse", "lever", "ashby", "breezy",
+    "greenhouse", "lever", "ashby", "breezy", "icims",
 })
 _RAW_ROUTE_IDENTITY = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://([^/?#]*)([^?#]*)")
 
@@ -266,6 +266,8 @@ def analyze_application_form(provider, html, *, route_url, registry=None) -> dic
                 normalized_provider, html, route_url=route["url"],
             )
         if normalized_provider == "ashby":
+            return adapter.analyze_form(html, route_url=route["url"])
+        if normalized_provider == "icims":
             return adapter.analyze_form(html, route_url=route["url"])
         if normalized_provider == "workday":
             return _workday_report(analyze_workday_form_html(html))

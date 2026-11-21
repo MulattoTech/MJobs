@@ -30,6 +30,7 @@ CANONICAL_ROUTES = {
     ),
     "generic_html": "https://careers.example/jobs/42?source=fixture",
     "greenhouse": "https://boards.greenhouse.io/example/jobs/1234",
+    "icims": "https://careers-example.icims.com/jobs/6534/hr-it--project-manager/job",
     "lever": (
         "https://jobs.lever.co/example/"
         "123e4567-e89b-12d3-a456-426614174000"
