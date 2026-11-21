@@ -270,6 +270,8 @@ class Remotive:
                 domain="https://remotive.com",
             )
             items.append(SourceItem(raw, company))
+            if limit is not None and len(items) >= limit:
+                break
 
         return SearchBatch(
             endpoint=API_URL,
@@ -290,9 +292,21 @@ class Remotive:
         raise SourceError("SOURCE_JOB_NOT_FOUND")
 
     def normalize(self, raw):
-        if not isinstance(raw, dict) or type(raw.get("id")) not in (int, str) or not str(raw.get("id")).strip():
+        if not isinstance(raw, dict) or type(raw.get("id")) not in (int, str):
             raise SourceError("SOURCE_INVALID_JOB")
-        native_id = int(raw["id"]) if isinstance(raw["id"], int) or (isinstance(raw["id"], str) and raw["id"].isdigit()) else raw["id"]
+        try:
+            raw_id = str(raw["id"])
+            native_id = (
+                int(raw["id"])
+                if isinstance(raw["id"], int) or raw_id.isdigit()
+                else raw["id"]
+            )
+        except ValueError:
+            # isdigit() includes characters int() cannot parse; Python also
+            # limits integer conversions. Reject the posting, not its batch.
+            raise SourceError("SOURCE_INVALID_JOB") from None
+        if not raw_id.strip():
+            raise SourceError("SOURCE_INVALID_JOB")
         if not isinstance(raw.get("title"), str) or not raw["title"].strip():
             raise SourceError("SOURCE_INVALID_JOB")
 

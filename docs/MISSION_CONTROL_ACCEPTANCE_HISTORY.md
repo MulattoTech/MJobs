@@ -34,6 +34,33 @@ the authoritative original MJ-REQ and supplemental MJ-REF acceptance matrices.
 Negative deltas are preserved and shown in red. Zero deltas do not prove no
 code was written: acceptance counts move only when evidence is accepted.
 
+## Progress inside a requirement
+
+Keep the overall acceptance totals as the starting point. Under **Acceptance
+by priority**, expand **P0**, then **MJ-REQ-292: Complete connected user journey**.
+The requirement contains six expandable phases and the original 60 steps.
+Step details separate recorded observations, remaining evidence gaps, tested
+source, and review/merge status. Open disclosures remain open during refresh.
+
+The campaign's verified, partial, and not-run counts are a separate scale from
+the 366 original requirements. A partial step is not fractional acceptance, and
+MJ-REQ-292 remains one requirement in the P0 total. A working checkpoint is not
+proof of merged-source acceptance or evidence that an agent is currently running.
+
+`GET /api/progress/campaigns` reads the designated ledger without changing it.
+The server uses `MJOBS_CAMPAIGN_ROOT`, or a trusted local configuration at
+`%LOCALAPPDATA%/MJobs/MissionControl/campaign-source.json`, or its own checkout.
+The configuration contains `schema_version: 1` and `root`, an absolute path to
+the selected campaign checkout. There is no browser endpoint for selecting a
+filesystem path. Keep this machine-specific configuration outside Git.
+
+The response identifies the checkpoint time, observed source revision, handoff
+revision, and ledger digest separately. Missing or inconsistent campaign data
+is unavailable, never zero progress. Canonical requirement totals remain
+independent of campaign availability. The protected web view consumes an
+allowlisted projection through the existing read-only Fleet publisher; it does
+not expose local commands, paths, or application data.
+
 ## Storage and persistence
 
 Data is saved to a local per-MJobs-checkout SQLite database:

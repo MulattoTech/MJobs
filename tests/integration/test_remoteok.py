@@ -296,6 +296,33 @@ class RemoteOKTests(unittest.TestCase):
             self.assertEqual(source_row["strategy"], "PUBLIC_JSON")
             self.assertEqual(source_row["jobs_seen"], 2)
 
+    def test_malformed_optional_salary_does_not_abort_collection(self):
+        payload = [RAW_REMOTEOK_PAYLOAD[0],
+                   {**RAW_REMOTEOK_PAYLOAD[1], "salary_min": "Infinity", "salary_max": 180000},
+                   {**RAW_REMOTEOK_PAYLOAD[2], "salary_min": True, "salary_max": 10 ** 400}]
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, json=payload))
+
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        with self.store.engine.connect() as connection:
+            jobs = connection.execute(select(m.jobs)).mappings().all()
+            self.assertEqual(len(jobs), 2)
+            by_title = {job["title"]: job["attributes"] for job in jobs}
+            senior = by_title["Senior Backend Engineer"]
+            self.assertIsNone(senior["salary_min"])
+            self.assertEqual(senior["salary_max"], 180000.0)
+            frontend = by_title["Frontend Developer"]
+            self.assertIsNone(frontend["salary_min"])
+            self.assertIsNone(frontend["salary_max"])
+            self.assertEqual(frontend["salary_source"], "UNKNOWN")
+            self.assertEqual(len(connection.execute(select(m.postings)).all()), 2)
+            self.assertEqual(len(connection.execute(select(m.posting_snapshots)).all()), 2)
+            source = connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one()
+            self.assertEqual(source["health_status"], "HEALTHY")
+            self.assertEqual(source["jobs_seen"], 2)
+
     def test_live_bounded_search_read_only(self):
         """Bounded live read-only verification against Remote OK public API when enabled."""
         import os

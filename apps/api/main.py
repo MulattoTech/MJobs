@@ -78,7 +78,7 @@ from services.documents.tailor import target_fingerprint
 from services.audit_history import list_audit_history
 from workers.dispatch import enqueue_operation
 from workers.operations import (
-    QUEUES, OperationActionError, request_cancel, retry_dead_letter, discard_dead_letter, limit,
+    QUEUES, OperationActionError, request_cancel, retry_dead_letter, discard_dead_letter,
 )
 
 
@@ -821,6 +821,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         CREDENTIAL_PROBE_MAX_IN_FLIGHT)
     from apps.api.search_history import create_search_history_router
     app.include_router(create_search_history_router(store))
+    from apps.api.job_inventory import create_job_inventory_router
+    app.include_router(create_job_inventory_router(store))
+    from apps.api.collection_children import create_collection_children_router
+    app.include_router(create_collection_children_router(store))
+    from apps.api.fact_rejections import create_fact_rejections_router
+    app.include_router(create_fact_rejections_router(store))
+    from apps.api.recently_viewed import create_recently_viewed_router
+    app.include_router(create_recently_viewed_router(store))
     from apps.api.resume_workspace_editor import create_resume_workspace_editor_router
     app.include_router(create_resume_workspace_editor_router(store))
     from apps.api.job_risk_signals import create_job_risk_signals_router
@@ -851,6 +859,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_document_archive_router(store))
     from apps.api.manual_auth import create_manual_auth_router
     app.include_router(create_manual_auth_router(store, mock_origin, output_dir, operation_mode))
+    from apps.api.fixture_company_monitoring import create_fixture_company_monitoring_router
+    app.include_router(create_fixture_company_monitoring_router(store, mock_origin, operation_mode))
     from apps.api.company_discovery_activity import create_company_discovery_activity_router
     app.include_router(create_company_discovery_activity_router(store))
     from apps.api.company_discovery_queue import create_company_discovery_queue_router
@@ -983,65 +993,19 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     async def missing(_, error):
         return JSONResponse({"detail": "Entity not found"}, status_code=404)
 
-    @app.get("/health")
-    def health():
-        with store.engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-        return {"status": "ok", "check": "liveness", "mode": "LOCAL_FIRST", "operation_mode": operation_mode, "external_submission_enabled": False}
-
-    expected_schema_heads = None
-
-    @app.get("/ready")
-    @app.get("/readiness")
-    def readiness():
-        nonlocal expected_schema_heads
-        from services.runtime_health import read_runtime_health, REQUIRED_QUEUES
-        checks = {"configuration": False, "database": False, "queue": False,
-                  "worker": False, "scheduler": False,
-                  "workers": {queue: False for queue in REQUIRED_QUEUES}}
-        if store.engine.dialect.name == "postgresql":
-            checks["schema"] = False
-        if operation_mode == "FIXTURE":
-            checks["mock"] = False
-        try:
-            store.assert_workspace_mode(operation_mode)
-            checks["configuration"] = True
-            with store.engine.connect() as connection:
-                connection.execute(text("SELECT 1"))
-                checks["database"] = True
-                if store.engine.dialect.name == "postgresql":
-                    from alembic.config import Config
-                    from alembic.script import ScriptDirectory
-                    from alembic.runtime.migration import MigrationContext
-                    if expected_schema_heads is None:
-                        config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
-                        expected_schema_heads = set(ScriptDirectory.from_config(config).get_heads())
-                    checks["schema"] = set(MigrationContext.configure(connection).get_current_heads()) == expected_schema_heads
-        except Exception:
-            pass
-        redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
-        try:
-            checks["queue"] = bool(redis.ping())
-            runtime = read_runtime_health(redis)
-            checks["workers"] = runtime["workers"]
-            checks["worker"] = all(runtime["workers"].values())
-            checks["scheduler"] = runtime["scheduler"]
-        except Exception:
-            pass
-        finally:
-            redis.close()
-        if operation_mode == "FIXTURE":
-            client = MockClient(mock_origin)
-            try:
-                client.client.timeout = 2
-                checks["mock"] = client.get(mock_origin + "/health").json().get("status") == "ok"
-            except Exception:
-                pass
-            finally:
-                client.close()
-        ready = all(value for key, value in checks.items() if key != "workers")
-        return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks,
-                             "db_backend": store.engine.dialect.name}, status_code=200 if ready else 503)
+    from apps.api.runtime_routes import create_runtime_router
+    runtime_router = create_runtime_router(
+        store=store,
+        mock_origin=mock_origin,
+        redis_url=redis_url,
+        operation_mode=operation_mode,
+        deploy_sha=deploy_sha,
+        submission_policy=submission_policy,
+        browser_profile=browser_profile,
+        notifications_enabled=notifications_enabled,
+        redis_client=Redis,
+    )
+    app.router.routes.extend(runtime_router.routes)
 
     def queued(kind, entity_id, params, *, connection=None, preparation_priority=None):
         try:
@@ -1061,24 +1025,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             state = connection.execute(select(m.operations.c.state).where(
                 m.operations.c.id == operation_id)).scalar_one()
         return {"operation_id": operation_id, "state": state}
-
-    @app.get("/__deployment")
-    def deployment():
-        version = (Path(__file__).resolve().parents[2] / "VERSION").read_text(encoding="utf-8").strip()
-        return {"commit": deploy_sha or None, "version": version, "operation_mode": operation_mode}
-
-    @app.get("/settings")
-    def settings():
-        return {"mode": "LOCAL_FIRST", "operation_mode": operation_mode,
-                "external_submission_enabled": False,
-                "submission_limits": {"hourly": submission_policy.hourly_limit,
-                                      "daily": submission_policy.daily_limit,
-                                      "company": submission_policy.company_limit},
-                "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0,
-                "worker_limits": {kind: limit(kind) for kind in QUEUES},
-                "notifications": {"enabled": notifications_enabled, "delivery": "IN_APP"},
-                "browser_profile": {"name": browser_profile, "scope": "PER_APPLICATION",
-                                    "existing_sessions": "PINNED"}}
 
     @app.get("/profiles")
     def profiles():
@@ -1600,6 +1546,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
         from services.company_discovery.company_context import list_company_contexts
         rows = list_company_source_view(store, profile_id)
+        if operation_mode == "FIXTURE" and profile_id:
+            from apps.api.fixture_company_monitoring_view import fixture_company_monitoring_view
+            for row in rows:
+                overlay = fixture_company_monitoring_view(store, mock_origin, profile_id, row)
+                if overlay is not None:
+                    row.update(overlay)
         for row in rows:
             row["company_contexts"] = list_company_contexts(store, row["id"])
         return {"company_sources": rows}
@@ -1862,6 +1814,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                            "application_priority"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
+             salary_period: Literal["HOUR", "YEAR"] = "YEAR",
+             salary_known_only: bool = False,
+             salary_unknown_allowed: bool | None = None,
              min_match_score: int | None = Query(default=None, ge=0, le=100),
              experience_level: Literal["INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
                                        "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"] | None = None,
@@ -1885,7 +1840,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              include_blacklisted: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
-            raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
+            raise HTTPException(422, "Minimum USD salary cannot exceed maximum for the selected pay period")
+        if salary_known_only and salary_unknown_allowed:
+            raise HTTPException(422, "Known-only salary and unknown-allowed salary are mutually exclusive")
         if posted_within_days is not None and posted_within_days not in {1, 3, 7, 14, 30}:
             raise HTTPException(422, "Posted-within window must be 1, 3, 7, 14, or 30 days")
         explicit_date_window = date_window is not None or date_start is not None or date_end is not None
@@ -2038,6 +1995,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
+                          salary_period=salary_period, salary_known_only=salary_known_only,
+                          salary_unknown_allowed=salary_unknown_allowed,
                           min_match_score=effective_match_score, experience_level=experience_level,
                           employment_type=employment_type,
                           skill_id=skill_id,

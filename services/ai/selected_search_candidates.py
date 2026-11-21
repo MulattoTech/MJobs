@@ -41,6 +41,10 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
         for name in ('salary_min', 'salary_max'):
             if filters.get(name):
                 options[name] = float(filters[name])
+        options['salary_period'] = filters.get('salary_period', 'YEAR')
+        salary_policy = filters.get('salary_policy', 'DEFAULT')
+        options['salary_known_only'] = salary_policy == 'KNOWN_ONLY'
+        options['salary_unknown_allowed'] = True if salary_policy == 'ALLOW_UNKNOWN' else None
         if filters.get('skill'):
             options['skill_id'] = filters['skill']
         minimum = int(filters.get('min_match_score') or 0)

@@ -5,6 +5,11 @@ export type CompanyDiscoveryPolicyValue = {
   minimum_match_for_discovery?: number;
   priority_match_for_discovery?: number;
   max_new_company_discoveries_per_hour?: number;
+  employer_verification?: {
+    version: 1;
+    mode: 'DISABLED' | 'GREENHOUSE_RECIPROCAL_V1';
+    activation_id: string | null;
+  };
 };
 
 export type CompanyDiscoveryPolicyProps = {
@@ -22,8 +27,19 @@ const DEFAULTS = {
 
 export function CompanyDiscoveryPolicy({ value, onValueChange, disabled = false }:CompanyDiscoveryPolicyProps) {
   const policy = { ...DEFAULTS, ...value };
+  const verificationEnabled = policy.company_discovery_enabled
+    && value.employer_verification?.version === 1
+    && value.employer_verification.mode === 'GREENHOUSE_RECIPROCAL_V1';
   const update = (key:keyof typeof DEFAULTS, next:boolean|number) => {
-    onValueChange({ ...value, [key]:next });
+    onValueChange({ ...value, [key]:next,
+      ...(key === 'company_discovery_enabled' && next === false
+        ? { employer_verification:{ version:1, mode:'DISABLED', activation_id:null } as const } : {}),
+    });
+  };
+  const updateVerification = (enabled:boolean) => {
+    onValueChange({ ...value, employer_verification:{
+      version:1, mode:enabled ? 'GREENHOUSE_RECIPROCAL_V1' : 'DISABLED', activation_id:null,
+    } });
   };
 
   return <section className="panel" aria-labelledby="company-discovery-policy-heading">
@@ -34,6 +50,13 @@ export function CompanyDiscoveryPolicy({ value, onValueChange, disabled = false 
         onChange={event => update('company_discovery_enabled', event.currentTarget.checked)}/>
       Enable company discovery
     </label>
+    <label>
+      <input type="checkbox" aria-label="Verify employer links from imported jobs"
+        checked={verificationEnabled} disabled={disabled || !policy.company_discovery_enabled}
+        onChange={event => updateVerification(event.currentTarget.checked)}/>
+      Verify employer links from imported jobs
+    </label>
+    <p className="muted">Allow bounded public checks of Greenhouse links against the employer site after saving this profile. Site rules and existing collection limits still apply.</p>
     <div className="two-col">
       <label>Minimum match score for discovery
         <input aria-label="Minimum match score for discovery" type="number" min="0" max={policy.priority_match_for_discovery}

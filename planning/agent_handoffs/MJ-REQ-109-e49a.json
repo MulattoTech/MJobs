@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-109-e49a",
+  "objective": "Repair restored AI task settings natural-key saves while preserving opaque IDs",
+  "owner": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "branch": "web/e49a1cba/ai-settings-restored-identity",
+  "head_sha": "f133780b7ec030de93914edb1122060192b7278b",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish reviewed current-main backend fix under admission lock; observe exact-head hosted checks; integration requires exact November9 steward role release/transfer",
+  "created_at": "2026-11-13T03:04:48.267967+00:00",
+  "requirements": [
+    "MJ-REQ-109"
+  ],
+  "tests": [
+    {
+      "command": "6cd0a78d742de95df6ef71c96b1c80b793c481fc: 42 primary tests and 11 subtests, no failures/errors/skips; real SQLite and PostgreSQL17; independent static review approved; provenance and diff-check PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted gates, protected main integration, production migration/release, complete MJ-REQ-109 acceptance",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Final committed f133780b SQLite regression:4 tests4subtests; raw new-testRuff PASS; Store8baselinewarnings unchanged0new",
+      "result": "PASS",
+      "tested_commit": "f133780b7ec030de93914edb1122060192b7278b"
+    },
+    {
+      "command": "Final-test PostgreSQL on f133780b: native heavy slot held by peer; exact-head hosted integration required",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Active steward claim web:web-20261109T132018Z-0d9f5a0511ab:resume-20261109T153054Z:steward has no verified exact-generation release; preserve it"
+  ],
+  "evidence_path": "docs/evidence/2026-11-13-web-e49a-ai-settings-restored-identity.json",
+  "updated_at": "2026-11-13T03:08:09.753089+00:00"
+}

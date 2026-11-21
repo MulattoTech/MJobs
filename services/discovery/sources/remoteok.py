@@ -5,6 +5,7 @@ Requirement: MJ-REQ-017.S07
 from datetime import datetime, timezone
 from html import unescape
 import json
+import math
 import re
 import threading
 import time
@@ -50,6 +51,17 @@ def plain_text(value):
 def company_slug(name):
     slug = re.sub(r"[^a-z0-9]+", "-", str(name or "").casefold()).strip("-")[:80] or "unknown"
     return slug
+
+
+def _positive_salary_amount(value):
+    """Ignore malformed optional pay amounts without losing the job itself."""
+    if isinstance(value, bool):
+        return None
+    try:
+        amount = float(value)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    return amount if math.isfinite(amount) and amount > 0 else None
 
 
 class RemoteOK:
@@ -346,20 +358,8 @@ class RemoteOK:
             url = ""
 
         # Parse salary
-        salary_min_val = None
-        salary_max_val = None
-        try:
-            raw_smin = raw.get("salary_min")
-            if raw_smin is not None and float(raw_smin) > 0:
-                salary_min_val = float(raw_smin)
-        except (ValueError, TypeError):
-            pass
-        try:
-            raw_smax = raw.get("salary_max")
-            if raw_smax is not None and float(raw_smax) > 0:
-                salary_max_val = float(raw_smax)
-        except (ValueError, TypeError):
-            pass
+        salary_min_val = _positive_salary_amount(raw.get("salary_min"))
+        salary_max_val = _positive_salary_amount(raw.get("salary_max"))
 
         if salary_min_val and salary_max_val and salary_min_val <= salary_max_val:
             salary_text = f"${int(salary_min_val)} - ${int(salary_max_val)}"

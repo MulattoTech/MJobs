@@ -1,0 +1,148 @@
+{
+  "run": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "utc": "2026-11-05T03:07:15.222036+00:00",
+  "old_head": "990efacab9f22d783c9127be79146142155dd8ff",
+  "base": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+  "previous_base": "d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+  "tested_index_tree": "0beff1b1809f2ac315d7bae7d78f0e3c86760c29",
+  "incoming_blobs": {
+    "services/applications/form_analysis.py": "06eef95725f150a59cb86a8976189958bf819903",
+    "planning/agent_handoffs/MJ-REQ-004.json": "dcfc111b68bb605b51b36354cf338d0171e20710",
+    "services/applications/adapters/breezy.py": "76697b935b919ced2cdbf5876f99da4aa700c11a",
+    "docs/evidence/2026-11-05-web-2735b1ba-extraction-control.md": "6d62720881c63adbe9cfd72fda20d881c88ede63",
+    "services/applications/adapters/smartrecruiters.py": "36bf9108be6ce561823b5ee4a214aee8c9f87f1a",
+    "services/applications/adapters/teamtailor.py": "3bca8e6044450760aefc36a1c8c05ce66d1deb63",
+    "tests/unit/test_resume_extraction_control_failures.py": "1bf6074a57ce45e8ff2dc1a69ff3ce815f5685da",
+    "docs/evidence/2026-11-05-web-8db314b4-control-integration.json": "36c4ba79bfd74f5b222b5ac378d930b6e0170abc",
+    "docs/evidence/2026-11-05-web-9fafaf63-adapter-control.md": "dfa8cd614e9cc6e3151469adab561aad0461b6d3",
+    "services/career_profile/extraction.py": "807cc391302bc8efe79d5188c10940e9337cbb11",
+    "tests/unit/test_adapter_operation_control.py": "afeadf6cff407d2fe570b7901e9b541aa6076b5c",
+    "tests/integration/test_resume_extraction_control_failures.py": "d8a49ad09ad44f97469a90d4caaa08b314143dd7",
+    "services/career_profile/AREA.md": "314346ea79c43fe6978eb2c9fa73e48a37135f65",
+    "services/applications/adapters/workable.py": "e4409aad5cecec035d334085114615790261385b"
+  },
+  "unchanged_component_blobs": {
+    "apps/api/main.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "79eb2a0267305c6f35a2a9b5faf874628e50a786"
+    },
+    "apps/web/src/main.tsx": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "2383cc98d36ffd302a3440fefbb1013bd481f8b1"
+    },
+    "apps/web/src/salary-search-controls.test.tsx": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "ef2c128a6a299f221635f7a74d415b9dc3c9c908"
+    },
+    "apps/web/src/salary-search-controls.tsx": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "4753460f1408702b9ce22473d025b44b828fcde9"
+    },
+    "packages/persistence/store.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+    },
+    "services/discovery/search_profiles.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "261ac342ca0e93e67b7d4a413a2d8522662057d3"
+    },
+    "tests/browser/test_saved_search_filters.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "34ff880652f021b704196bab977e190a497d0969"
+    },
+    "tests/integration/test_job_sorting.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "70dcce2321603e3b7f1e121fcbcbc181e00ea71f"
+    },
+    "tests/integration/test_salary_query_safety.py": {
+      "component": 934,
+      "head": "dda83d43dc2b593749a48aa89adf8925aefc521b",
+      "blob": "313bec305f4b33e3a7932a7c4e5dfeb018912fe4"
+    },
+    "services/ats_detection/detector.py": {
+      "component": 935,
+      "head": "c583e54adee7c0f0c8271a18cd02f64c80e90cf0",
+      "blob": "608cf124b1d5c8acbb3ad8499c138a0896f24e25"
+    },
+    "tests/unit/test_ats_detection.py": {
+      "component": 935,
+      "head": "c583e54adee7c0f0c8271a18cd02f64c80e90cf0",
+      "blob": "aba484ce0eea571f2974ae37649212bb54b451dd"
+    },
+    "services/discovery/sources/greenhouse.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "433a773097509b2a97ed1a2e26a48fd6e94fe3a0"
+    },
+    "services/discovery/sources/remoteok.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "96d4899945dbc06cf3c9645e257a5f9d4d625c25"
+    },
+    "tests/integration/test_greenhouse.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "b06ae88f5959498c4b8c9c51a7998452ae4fad1e"
+    },
+    "tests/integration/test_remoteok.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "838a2fe56bd724e7ceb3d1313f06966cc7bd1013"
+    },
+    "tests/unit/test_greenhouse_salary.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "cc6b5dfe7faa1e4088a470438c69ea373afb7094"
+    },
+    "tests/unit/test_remoteok_salary.py": {
+      "component": 951,
+      "head": "c02ea3807373b45ff0df368c3a824f1a3be04a81",
+      "blob": "1ead9cdc0c98cdecb6bb2a40409de2f520caa9dc"
+    }
+  },
+  "command": [
+    "C:\\Tools\\Dev\\MJobs-Web\\web-58c1462f-934\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "-u",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "C:\\Tools\\Dev\\MJobs-Web\\logs-web-58c1462f-934-range\\pytest-refresh-c6",
+    "tests/unit/test_adapter_operation_control.py",
+    "tests/unit/test_application_form_analysis.py",
+    "tests/unit/test_breezy_application_adapter.py",
+    "tests/unit/test_smartrecruiters_application_adapter.py",
+    "tests/unit/test_teamtailor_application_adapter.py",
+    "tests/unit/test_workable_application_adapter.py",
+    "tests/unit/test_resume_extraction_control_failures.py",
+    "tests/unit/test_resume_extraction.py",
+    "tests/unit/test_resume_ocr.py",
+    "tests/integration/test_resume_extraction_control_failures.py",
+    "tests/unit/test_ats_detection.py",
+    "tests/integration/test_application_capability_filter.py",
+    "tests/unit/test_browser_debug_capture.py",
+    "tests/unit/test_fleet_t12_debug_capture_budget.py",
+    "--tb=short",
+    "-W",
+    "error::RuntimeWarning",
+    "-W",
+    "error::pytest.PytestUnraisableExceptionWarning"
+  ],
+  "exit": 0,
+  "seconds": 24.766,
+  "summary": [
+    "287 passed, 284 subtests passed in 23.33s"
+  ]
+}

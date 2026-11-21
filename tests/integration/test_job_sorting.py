@@ -115,6 +115,103 @@ class JobSortingApiTests(unittest.TestCase):
             self.assertEqual([row["id"] for row in limited.json()["jobs"]], [range_id])
             self.assertEqual(client.get("/jobs", params={"sort": "salary"}).status_code, 422)
 
+    def test_salary_unit_availability_and_bounds_are_explicit_before_limit(self):
+        ids = self._salary_rows()
+        by_name = {name: f"salary-job-{name}" for name in (
+            "range", "low_endpoint", "high_endpoint", "missing", "invalid", "inverted",
+            "hourly", "currency", "negative_low", "negative_high", "negative_only",
+        )}
+        self.assertEqual(set(ids), set(by_name.values()))
+        params = {"title": "Salary", "sort": "title"}
+        with TestClient(self.app) as client:
+            # No salary filters still returns every posting, including unknowns.
+            self.assertEqual(len(client.get("/jobs", params=params).json()["jobs"]), len(ids))
+            annual = client.get("/jobs", params={**params, "salary_min": 90000})
+            self.assertEqual(annual.status_code, 200, annual.text)
+            self.assertEqual({item["id"] for item in annual.json()["jobs"]},
+                             {by_name["range"], by_name["high_endpoint"]})
+            hourly = client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_min": 85, "limit": 1,
+            })
+            self.assertEqual(hourly.status_code, 200, hourly.text)
+            self.assertEqual([item["id"] for item in hourly.json()["jobs"]], [by_name["hourly"]])
+            # Undisclosed salary is opt-in and does not smuggle annual/CAD/invalid data
+            # into a requested hourly range, or turn an estimate into a verified offer.
+            allowed = client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_min": 85,
+                "salary_unknown_allowed": "true",
+            })
+            self.assertEqual({item["id"] for item in allowed.json()["jobs"]},
+                             {by_name["hourly"], by_name["missing"]})
+            known = client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_known_only": "true",
+            })
+            self.assertEqual([item["id"] for item in known.json()["jobs"]], [by_name["hourly"]])
+            self.assertEqual(client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_min": 105,
+            }).json()["jobs"], [])
+            self.assertEqual(client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_min": 85,
+                "sort": "salary_high",
+            }).json()["jobs"][0]["id"], by_name["hourly"])
+            for bad in (
+                {"salary_period": "MONTH"}, {"salary_min": -1},
+                {"salary_min": 100, "salary_max": 99},
+                {"salary_known_only": "true", "salary_unknown_allowed": "true"},
+            ):
+                with self.subTest(bad=bad):
+                    self.assertEqual(client.get("/jobs", params={**params, **bad}).status_code, 422)
+            # A source-derived estimate is not employer-reported compensation.
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == by_name["hourly"])
+                                   .values(attributes={
+                                       "salary_min": 80, "salary_max": 100,
+                                       "salary_period": "HOUR", "salary_currency": "USD",
+                                       "salary_source": "ESTIMATED",
+                                   }))
+            after_estimate = client.get("/jobs", params={
+                **params, "salary_period": "HOUR", "salary_min": 85,
+                "salary_unknown_allowed": "true",
+            })
+            self.assertEqual([item["id"] for item in after_estimate.json()["jobs"]],
+                             [by_name["missing"]])
+
+    def test_saved_salary_unit_and_unknown_policy_reopen_with_validated_types(self):
+        payload = {
+            "id": "hourly-saved", "profile_id": "fixture", "name": "Hourly roles",
+            "enabled": False, "include_titles": [], "remote": "ANY",
+            "employment_types": [], "source_ids": [],
+            "job_filters": {
+                "q": "", "remote_type": "", "provider": "", "sort": "salary_high",
+                "salary_min": "85", "salary_max": "", "salary_period": "HOUR",
+                "salary_policy": "ALLOW_UNKNOWN",
+            },
+        }
+        with TestClient(self.app) as client:
+            self.assertEqual(client.put("/search-profiles", json=payload).status_code, 200)
+            for bad_key, bad_value in (
+                ("salary_period", "MONTH"), ("salary_period", []),
+                ("salary_policy", "ESTIMATE_AS_OFFER"), ("salary_policy", []),
+            ):
+                with self.subTest(bad_key=bad_key, bad_value=bad_value):
+                    bad = {**payload, "id": "invalid-salary",
+                           "job_filters": {**payload["job_filters"], bad_key: bad_value}}
+                    self.assertEqual(client.put("/search-profiles", json=bad).status_code, 422)
+        reopened = Store(f"sqlite:///{(self.root / 'jobs.db').as_posix()}")
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
+                rows = client.get("/search-profiles", params={"profile_id": "fixture"}).json()["search_profiles"]
+                saved = next(row["criteria"]["job_filters"] for row in rows
+                             if row["id"] == "hourly-saved")
+                self.assertEqual((saved["salary_period"], saved["salary_policy"], saved["salary_min"]),
+                                 ("HOUR", "ALLOW_UNKNOWN", "85"))
+                self.assertEqual(client.get("/jobs", params={
+                    "profile_id": "other", "search_profile_id": "hourly-saved",
+                }).status_code, 409)
+        finally:
+            reopened.engine.dispose()
+
     def test_salary_sort_is_saved_profile_scoped_and_restored_after_store_reopen(self):
         payload = {"id": "salary-sort", "profile_id": "fixture", "name": "Salary order",
                    "enabled": False, "include_titles": [], "remote": "ANY", "employment_types": [],

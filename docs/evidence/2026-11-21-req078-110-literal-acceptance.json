@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "kind": "CANONICAL_ORIGINAL_REQUIREMENT_ACCEPTANCE_PROPOSAL",
+  "publication": "PRIVATE_FINAL_CI_VERIFIED_PENDING_SEPARATE_PROTECTED_ACCEPTANCE_PR",
+  "prepared_at_utc": "2026-11-21T00:18:06.242419+00:00",
+  "repository": "MulattoTech/MJobs",
+  "staging_base": "4967e233b050d066b354900d28f30ea60cc7da37",
+  "dependency_pr": {
+    "number": 1006,
+    "source_head": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "url": "https://github.com/MulattoTech/MJobs/pull/1006",
+    "status_at_preflight": "OPEN; 4/5 required workflow groups green, Integration running",
+    "merge_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "verified_status": "MERGED",
+    "verified_merged_at_utc": "2026-11-21T00:25:12Z"
+  },
+  "issues": [
+    {
+      "id": "MJ-REQ-078",
+      "issue": 79,
+      "url": "https://github.com/MulattoTech/MJobs/issues/79",
+      "original_requirement": "Use company discovery confidence scores; low-confidence sources require COMPANY_SOURCE_REVIEW_REQUIRED",
+      "example_tiers": "EXAMPLES_NOT_MANDATORY_NUMERIC_CALIBRATION",
+      "proposed_acceptance": "PASS_ON_NARROW_LITERAL_SCOPE",
+      "basis": [
+        "services/company_discovery/domains.py verified domain evidence",
+        "services/company_discovery/sources.py finite/confidence thresholds and review-required status",
+        "services/company_discovery/flywheel.py provenance-safe unverified enrollment",
+        "tests/integration/test_company_source_view.py and public discovery/identity tests"
+      ],
+      "excluded_and_unverified": [
+        "statistical probability calibration",
+        "full operator review-resolution workflows"
+      ],
+      "related_existing_work": [
+        "MJ-REQ-081 / issue #82",
+        "MJ-REQ-196 / issue #197"
+      ]
+    },
+    {
+      "id": "MJ-REQ-110",
+      "issue": 111,
+      "url": "https://github.com/MulattoTech/MJobs/issues/111",
+      "original_requirement": "Use a configurable narrowing/deduping/filtering funnel to avoid costly AI on every job immediately",
+      "example_volumes": "EXAMPLES_NOT_MANDATORY_ABSOLUTE_NUMBERS",
+      "proposed_acceptance": "PASS_ON_NARROW_LITERAL_SCOPE",
+      "basis": [
+        "services/ai/cost_controls.py bounded deterministic policy",
+        "services/ai/selected_search_candidates.py profile/search snapshot",
+        "services/ai/durable_evaluation.py candidate-limited durable execution",
+        "packages/persistence/store.py profile-scoped policy and review gates",
+        "services/documents/generate.py review/current-input guard",
+        "tests/integration/test_ai_cost_policy_api.py; tests/unit/test_ai_cost_controls.py"
+      ],
+      "excluded_and_unverified": [
+        "live paid provider inference and billing provenance",
+        "global/per-provider spend budgets"
+      ],
+      "related_existing_work": [
+        "MJ-REF-015 / issue #385"
+      ]
+    }
+  ],
+  "independent_review": "https://github.com/MulattoTech/MJobs/pull/1006#issuecomment-7053606409",
+  "local_verification": {
+    "pr1006_current_head": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "focused_checkout_tests": "32 primary + 7 subtests passed, zero failures/errors/skips",
+    "receipt_sha256": "43bb4af8994a0412fcea1790082775285079b7d6ed499cac06cc426ef4b7dcfe",
+    "independent_narrow_suite": "23 primary + 7 subtests passed on prior PR source",
+    "receipt_sha256_prior": "13295e2913016043c4f60d0edac5b919f1c6f86544174e43c155608416eb75d6",
+    "further_proof": "Protected PR #1006 merged into main eafd2cfbf8d371a77200afad66f25649a74e7b7b; all 11 reviewed file blobs verified. Authenticated exact-main postmerge CI and image candidate passed; manifest SHA-256 ec1a6a735be27fff4c5a355fc6be98b00234d3ee8aab7df712441b57219aa3d2. Separate protected acceptance review and merge remain pending."
+  },
+  "conditions_before_publication": [
+    "PR #1006 protected GitHub merge confirmed",
+    "Actual merge SHA is in current main and matches reviewed browser test blobs",
+    "New main exact-SHA required CI and not-deployed image candidate successful",
+    "Rewrite dependency state in this evidence file with verified final SHA and results",
+    "Review and approve acceptance ledger as a distinct protected PR",
+    "Keep the overlapping MJ-REF and MJ-REQ scopes separate; never assert live billing verified"
+  ],
+  "real_application_submission": "OFF",
+  "production_deployment": "NOT_PERFORMED",
+  "exact_merged_main": {
+    "sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "parent_sha": "4967e233b050d066b354900d28f30ea60cc7da37",
+    "pr_head_sha": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "reviewed_pr_file_blobs_preserved": 11,
+    "all_five_required_pr_workflow_groups": "SUCCESS",
+    "postmerge_fast_ci": "SUCCESS",
+    "postmerge_integration": "SUCCESS_ALL_SHARDS_AND_AGGREGATE",
+    "postmerge_secret_scan": "SUCCESS",
+    "postmerge_deployment_candidate": "CANDIDATE_VALIDATED_NOT_DEPLOYED",
+    "ci_readback": "Exact main SHA and required workflow identities rechecked through authenticated GitHub REST"
+  },
+  "verified_postmerge_gates": {
+    "verified_at_utc": "2026-11-21T00:48:07.348530+00:00",
+    "main_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "workflow_runs": {
+      "security": {
+        "id": 44843692733,
+        "name": "Secret scan - reviewed history",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "fast": {
+        "id": 44843692795,
+        "name": "CI - fast",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "integration": {
+        "id": 44843692712,
+        "name": "Integration - PostgreSQL and Redis",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "candidate": {
+        "id": 44843692782,
+        "name": "MJobs deployment candidate",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      }
+    },
+    "integration_jobs": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 0",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 1",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 2",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "deployment_candidate_manifest": {
+      "artifact_id": 14682963016,
+      "sha256": "ec1a6a735be27fff4c5a355fc6be98b00234d3ee8aab7df712441b57219aa3d2",
+      "source_commit": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+      "result": "CANDIDATE_VALIDATED_NOT_DEPLOYED"
+    },
+    "note": "GitHub Actions candidate validation only; no deploy, push or image publication"
+  }
+}

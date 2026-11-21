@@ -61,6 +61,8 @@ def test_fleet_proxy_routing_and_write_boundary():
         assert 'src="/fleet/app.js"' in html
         assert 'href="/fleet/"' in html
         assert client.get("/fleet/api/preflight").status_code == 200
+        assert client.get("/fleet/run-ui.js").status_code == 200
+        assert client.get("/fleet/api/run").status_code == 200
         baseline = len(calls)
         assert client.post("/fleet/api/nudge", json={}).status_code == 403
         assert client.post("/fleet/api/nudge", json={}, headers={
@@ -72,7 +74,11 @@ def test_fleet_proxy_routing_and_write_boundary():
                            headers={"X-AO-Fleet": "1",
                                     "Origin": "http://127.0.0.1:18729"}).status_code == 200
         assert calls[-1][1] == "api/agent-plan"
-        assert calls[-1][3]["Origin"] == "http://127.0.0.1:8787"
+        assert calls[-1][3]["Origin"] == "http://127.0.0.1:4320"
+        assert calls[-1][3]["Host"] == "127.0.0.1:4320"
+        assert client.post("/fleet/api/run/start", json={"requestId": "fixture"}, headers={
+            "X-AO-Fleet": "1", "Origin": "http://127.0.0.1:18729"}).status_code == 200
+        assert calls[-1][1] == "api/run/start"
 
     with TestClient(app, base_url="http://127.0.0.1:18729",
                     client=("192.0.2.1", 50000)) as client:
@@ -105,7 +111,7 @@ def test_concurrent_assets_share_one_lifespan_client(monkeypatch):
             nonlocal active, peak
             active += 1
             peak = max(peak, active)
-            if len(client.calls) == 9:
+            if len(client.calls) == 10:
                 arrived.set()
             await asyncio.wait_for(arrived.wait(), timeout=2)
             active -= 1
@@ -116,7 +122,7 @@ def test_concurrent_assets_share_one_lifespan_client(monkeypatch):
         app = FastAPI()
         install_fleet_proxy(app)
         assert created == []
-        assets = ["app.js", "turbo-ui.js", "sustain-ui.js", "master-ui.js",
+        assets = ["app.js", "run-ui.js", "turbo-ui.js", "sustain-ui.js", "master-ui.js",
                   "restore-ui.js", "quota-ui.js", "find-work-ui.js",
                   "startup-ui.js", "style.css"]
         async with app.router.lifespan_context(app):
@@ -131,11 +137,11 @@ def test_concurrent_assets_share_one_lifespan_client(monkeypatch):
                                          base_url="http://127.0.0.1:18729") as browser:
                 responses = await asyncio.gather(*(
                     browser.get("/fleet/" + asset) for asset in assets))
-            assert [response.status_code for response in responses] == [200] * 9
+            assert [response.status_code for response in responses] == [200] * 10
             assert len(created) == 1
-            assert peak == 9
+            assert peak == 10
             assert {call[1] for call in created[0].calls} == {
-                "http://127.0.0.1:8787/" + asset for asset in assets}
+                "http://127.0.0.1:4320/fleet/" + asset for asset in assets}
             assert not created[0].closed
         assert created[0].closed
 
@@ -204,7 +210,9 @@ def test_shared_client_failed_post_is_attempted_once(monkeypatch):
     assert len(created) == 1
     assert len(created[0].calls) == 1
     assert created[0].calls[0][0] == "POST"
-    assert created[0].calls[0][1] == "http://127.0.0.1:8787/api/turbo/toggle"
+    assert created[0].calls[0][1] == "http://127.0.0.1:4320/fleet/api/turbo/toggle"
+    assert created[0].calls[0][2]["headers"]["Host"] == "127.0.0.1:4320"
+    assert created[0].calls[0][2]["headers"]["Origin"] == "http://127.0.0.1:4320"
 
 
 def test_shared_client_preserves_host_origin_and_loopback_guards(monkeypatch):

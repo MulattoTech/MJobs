@@ -1,6 +1,14 @@
 import {useEffect, useState} from 'react';
 import {requestWithDeadline} from './api';
 
+export type NativeFixtureProof = {
+  provider:'greenhouse'|'lever'; request_id:string; job_id:string;
+  review_sha256:string; server_contract_sha256:string; metadata_fingerprint:string;
+  profile_sha256:string; route_sha256:string; template_sha256:string; analysis_sha256:string;
+  reviewed_fields:{field_key:'country'|'remote'|'fixture_question';field_sha256:string;
+    answer_id:string;answer_sha256:string}[];
+};
+
 export type ApplicationAttempt = {
   attempt_id: string; application_id: string; state: string;
   started_at: string; finished_at: string | null; adapter: string | null;
@@ -10,11 +18,46 @@ export type ApplicationAttempt = {
   confirmation: {reference_number: string; timestamp: string | null} | null;
   steps: string[]; legacy_metadata: boolean;
   verified_uploads?: {kind: string; document_id: string; size_bytes: number; sha256: string}[];
+  native_fixture?: NativeFixtureProof | null;
 };
 export type AttemptHistory = {
   profile_id: string; application_id: string; attempts: ApplicationAttempt[];
   has_more: boolean; external_submission_enabled: false;
 };
+
+const objectRecord = (value:unknown):value is Record<string,unknown> =>
+  value!==null&&typeof value==='object'&&!Array.isArray(value);
+const digest = (value:unknown):value is string => typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
+function isNativeFixtureProof(value:unknown):value is NativeFixtureProof {
+  if(!objectRecord(value)||(value.provider!=='greenhouse'&&value.provider!=='lever')
+    ||typeof value.request_id!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value.request_id)
+    ||typeof value.job_id!=='string'||!value.job_id.trim()||value.job_id.length>128||/[\x00-\x1f]/.test(value.job_id))return false;
+  const hashes=['review_sha256','server_contract_sha256','metadata_fingerprint','profile_sha256',
+    'route_sha256','template_sha256','analysis_sha256'];
+  if(!hashes.every(key=>digest(value[key])))return false;
+  // Mirror the bounded, value-free read_native_reviews API projection. A
+  // provider name or a partial contract alone cannot identify this fixture.
+  const fields=value.reviewed_fields;
+  const keys=['country','remote','fixture_question'];
+  return Array.isArray(fields)&&fields.length===keys.length&&fields.every(row=>objectRecord(row)
+    &&Object.keys(row).sort().join(',')==='answer_id,answer_sha256,field_key,field_sha256'
+    &&typeof row.field_key==='string'&&keys.includes(row.field_key)
+    &&typeof row.answer_id==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(row.answer_id)
+    &&digest(row.field_sha256)&&digest(row.answer_sha256))
+    &&new Set(fields.map(row=>row.field_key)).size===keys.length;
+}
+
+function NativeFixtureReview({attempt,externalSubmissionEnabled}:{attempt:ApplicationAttempt;externalSubmissionEnabled:boolean}) {
+  const proof=attempt.native_fixture;
+  if(externalSubmissionEnabled!==false||attempt.adapter!=='mock-ats'||attempt.legacy_metadata!==false
+    ||!['DRY_RUN','MOCK_SUBMISSION'].includes(attempt.mode||'')||!isNativeFixtureProof(proof))return null;
+  return <section aria-label="Controlled local fixture adapter">
+    <h4>Adapter: {proof.provider==='greenhouse'?'Greenhouse':'Lever'} — controlled local fixture</h4>
+    <p>Owned local fixture review. No live provider submission is represented.</p>
+    <p>Exact reviewed fields: {proof.reviewed_fields.length}</p>
+    <p>This review does not establish form validation, file uploads, or submission.</p>
+  </section>;
+}
 
 export function AttemptHistoryView({history}: {history: AttemptHistory}) {
   return <>
@@ -25,6 +68,7 @@ export function AttemptHistoryView({history}: {history: AttemptHistory}) {
           <summary>{attempt.state} ? {attempt.adapter || 'Legacy adapter not recorded'} ? {attempt.started_at}</summary>
           <p>Attempt <code>{attempt.attempt_id}</code></p>
           <p>{attempt.mode || 'Mode not recorded'} ? Current step: {attempt.current_step || 'Not recorded'}</p>
+          <NativeFixtureReview attempt={attempt} externalSubmissionEnabled={history.external_submission_enabled}/>
           <p>Started: <time>{attempt.started_at}</time><br/>Finished: {attempt.finished_at ? <time>{attempt.finished_at}</time> : 'Not recorded'}</p>
           {attempt.legacy_metadata && <p>Legacy record: missing metadata has not been inferred or backfilled.</p>}
           {attempt.state === 'RUNNING' && <p role="status">A run is reserved. A missing completion record does not prove the worker stopped. Do not start a competing browser session.</p>}

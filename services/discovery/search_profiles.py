@@ -51,7 +51,7 @@ def _clean_job_filters(value):
     if value is None:
         return None
     required = {"q", "remote_type", "provider", "sort"}
-    optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
+    optional = {"title", "company", "location", "salary_min", "salary_max", "salary_period", "salary_policy", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
                 "clearance_level", "ats_provider", "job_source_id", "application_link_status", "application_pipeline_status",
                 "application_capability"}
@@ -70,21 +70,32 @@ def _clean_job_filters(value):
     for key in ("salary_min", "salary_max"):
         item = value.get(key, "")
         if not isinstance(item, str) or len(item) > 32:
-            raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount")
+            raise ValueError(f"Saved Jobs {key} must be a non-negative USD amount")
         item = item.strip()
         if item:
             try:
                 amount = Decimal(item)
             except InvalidOperation:
-                raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount") from None
+                raise ValueError(f"Saved Jobs {key} must be a non-negative USD amount") from None
             if not amount.is_finite() or amount < 0 or amount > 100000000:
-                raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount")
+                raise ValueError(f"Saved Jobs {key} must be a non-negative USD amount")
             salary_values[key] = amount
         else:
             salary_values[key] = None
         cleaned[key] = item
     if salary_values["salary_min"] is not None and salary_values["salary_max"] is not None and salary_values["salary_min"] > salary_values["salary_max"]:
         raise ValueError("Saved Jobs minimum salary cannot exceed maximum salary")
+    salary_period = value.get("salary_period", "YEAR")
+    if not isinstance(salary_period, str) or salary_period not in {"HOUR", "YEAR"}:
+        raise ValueError("Saved Jobs salary period must be HOUR or YEAR")
+    salary_policy = value.get("salary_policy", "DEFAULT")
+    if not isinstance(salary_policy, str) or salary_policy not in {"DEFAULT", "KNOWN_ONLY", "ALLOW_UNKNOWN"}:
+        raise ValueError("Saved Jobs salary policy is invalid")
+    # Legacy saved filters retain their exact readback shape; new controls opt in.
+    if "salary_period" in value:
+        cleaned["salary_period"] = salary_period
+    if "salary_policy" in value:
+        cleaned["salary_policy"] = salary_policy
     if "min_match_score" in value:
         item = value["min_match_score"]
         if not isinstance(item, str) or len(item) > 3:

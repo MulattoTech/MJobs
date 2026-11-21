@@ -73,6 +73,42 @@ class ATSDetectionTests(unittest.TestCase):
         self.assertEqual(result.evidence, ("BOARD_LINK",))
         self.assertFalse(result.application_supported)
 
+    def test_untrusted_form_actions_cannot_forge_vendor_api_evidence(self):
+        for action in (
+            "https://attacker.example/next?target=api.smartrecruiters.com",
+            "https://attacker.example/redirect/api.lever.co/v0/postings",
+            "https://api.lever.co@attacker.example/v0/postings",
+            "https://attacker.example/go?u=workable.com/api/jobs",
+            "/apply?next=api.smartrecruiters.com",
+        ):
+            with self.subTest(action=action):
+                result = detect_ats("https://careers.example/jobs",
+                                    f'<form action="{action}"></form>')
+                self.assertEqual(result.status, "NO_MATCH")
+                self.assertIsNone(result.provider)
+                self.assertFalse(result.application_supported)
+
+        # A valid independent provider signal must not become ambiguous merely
+        # because an unrelated form smuggles another provider name in its URL.
+        result = detect_ats("https://careers.example/jobs",
+                            '<script src="https://jobs.lever.co/acme/widget.js"></script>'
+                            '<form action="https://attacker.example/?next=api.smartrecruiters.com"></form>')
+        self.assertEqual(result.status, "MATCH")
+        self.assertEqual(result.provider, "lever")
+
+    def test_vendor_hosted_form_actions_remain_valid_detector_evidence(self):
+        for provider, action in (
+            ("smartrecruiters", "https://api.smartrecruiters.com/v1/companies/acme"),
+            ("lever", "https://api.lever.co/v0/postings/acme"),
+        ):
+            with self.subTest(provider=provider):
+                result = detect_ats("https://careers.example/jobs",
+                                    f'<form action="{action}"></form>')
+                self.assertEqual(result.status, "MATCH")
+                self.assertEqual(result.provider, provider)
+                self.assertIn("FORM_ACTION", result.evidence)
+                self.assertFalse(result.application_supported)
+
     def test_deceptive_script_urls_do_not_establish_provider_evidence(self):
         for url in (
             "https://jobs.lever.co.attacker.example/widget.js",

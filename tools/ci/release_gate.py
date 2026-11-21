@@ -1,9 +1,10 @@
 """Read-only, fail-closed release/AFK completion gate. Reports never change acceptance."""
 from __future__ import annotations
+
 import argparse
 import json
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REPO = 'MulattoTech/MJobs'
@@ -19,8 +20,50 @@ def unmet(rows: list[dict], scope: str) -> list[str]:
     return [str(row.get('id', 'missing-id')) for row in selected if row.get('status') != 'PASS']
 
 
+def acceptance_authority_errors(index: dict, capability: dict, reference: dict) -> list[str]:
+    """Reject a derived index that could hide or promote canonical acceptance rows."""
+    canonical: dict[str, dict] = {}
+    capability_rows = capability.get('requirements', [])
+    reference_ids = reference.get('canonical_ids', [])
+    reference_results = reference.get('result_by_id', {})
+    if len(capability_rows) != 366 or len(reference_ids) != 59:
+        return ['Canonical acceptance matrix coverage is incomplete']
+    for row in capability_rows:
+        identifier = row.get('requirement_id')
+        if not isinstance(identifier, str) or identifier in canonical:
+            return ['Canonical acceptance matrix identifiers are missing or duplicated']
+        canonical[identifier] = {'status': row.get('result'), 'priority': row.get('priority')}
+    for identifier in reference_ids:
+        if not isinstance(identifier, str) or identifier in canonical or identifier not in reference_results:
+            return ['Canonical acceptance matrix identifiers are missing or duplicated']
+        entry = reference_results[identifier]
+        feature = reference.get('commercial_features', {}).get(identifier, {})
+        canonical[identifier] = {
+            'status': entry.get('result'),
+            'priority': feature.get('priority', 'P3'),
+        }
+    index_rows = index.get('requirements', [])
+    indexed: dict[str, dict] = {}
+    for row in index_rows:
+        identifier = row.get('id')
+        if not isinstance(identifier, str) or identifier in indexed:
+            return ['Requirement index identifiers are missing or duplicated']
+        indexed[identifier] = row
+    if set(indexed) != set(canonical):
+        return ['Requirement index coverage differs from canonical acceptance matrices']
+    errors = []
+    for identifier, authority in canonical.items():
+        row = indexed[identifier]
+        if row.get('priority') != authority['priority']:
+            errors.append(f'{identifier}: requirement index priority differs from canonical catalogue')
+        if row.get('status') != authority['status']:
+            errors.append(f'{identifier}: requirement index status differs from canonical acceptance matrix')
+    return errors
+
+
 def command(*args: str) -> str:
-    result = subprocess.run(list(args), cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=90)
+    result = subprocess.run(list(args), check=False, cwd=ROOT, capture_output=True, text=True,
+                            encoding='utf-8', timeout=90)
     if result.returncode:
         raise RuntimeError(result.stderr[-500:])
     return result.stdout.strip()
@@ -32,11 +75,14 @@ def api(path: str) -> dict | list:
 
 def evaluate(scope: str, online: bool) -> dict:
     index = json.loads((ROOT / 'planning/REQUIREMENT_INDEX.json').read_text('utf-8'))
+    capability = json.loads((ROOT / 'planning/CAPABILITY_MATRIX.json').read_text('utf-8'))
+    reference_matrix = json.loads((ROOT / 'planning/REFERENCE_GAP_MATRIX.json').read_text('utf-8'))
     rows = index['requirements']
     original = [row for row in rows if row.get('id', '').startswith('MJ-REQ-')]
-    reference = [row for row in rows if row.get('id', '').startswith('MJ-REF-')]
+    reference_rows = [row for row in rows if row.get('id', '').startswith('MJ-REF-')]
     errors = []
-    if len(original) != 366 or len(reference) != 59 or len({row['id'] for row in rows}) != 425:
+    errors.extend(acceptance_authority_errors(index, capability, reference_matrix))
+    if len(original) != 366 or len(reference_rows) != 59 or len({row['id'] for row in rows}) != 425:
         errors.append('Canonical 366 + 59 coverage is incomplete or duplicated')
     missing = unmet(rows, scope)
     if missing:

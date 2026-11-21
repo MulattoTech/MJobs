@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-960-INTEGRATION",
+  "objective": "Preserve source TCP cancellation, deadline and winning-connection outcomes through expected discarded-socket close errors; MJ-REQ-004 remains PARTIAL",
+  "owner": "web-20261105T024405Z-5fb5f0e00ed3",
+  "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr960-continuation",
+  "head_sha": "db2d800253fef1c1e069150fe068cb9a944f9c31",
+  "routing_state": "VERIFY",
+  "next_action": "Refresh current main under exact integration ownership, verify complete candidate and publish existing PR960; obtain independent TCP-extension review and fresh required checks including CodeQL",
+  "created_at": "2026-11-05T04:16:25.230452+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "TCP source 3b411bcf1be8f2a63c513c214abdecc53a707749: 55 tests +37 subtests PASS across six native modules, zero failures/skips;113.92 s pytest",
+      "result": "PASS"
+    },
+    {
+      "command": "TLS fixture db2d800253fef1c1e069150fe068cb9a944f9c31: 8 tests +8 subtests PASS; explicit TLSv1_2 minimum, certificate/hostname assertions retained; Ruff and provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Original CodeQL SARIF2100406415 retrieved: source is test-owned default SSL context; native default context TLSv1_2/CERT_REQUIRED/hostname validation observed",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent TCP-extension review, complete updated current-main candidate gates and CodeQL, protected merge and deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Original failed CodeQL check retained; explicit fixture minimum supplied from actual source trace, fresh hosted analysis still required"
+  ]
+}

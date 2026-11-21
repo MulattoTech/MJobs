@@ -48,6 +48,55 @@ class SelectedSearchAIHarness(unittest.TestCase):
             'request_id':request,'search_profile_id':search,'preview_fingerprint':preview['fingerprint']})
 
 class SelectedSearchAITests(SelectedSearchAIHarness):
+    def assert_salary_candidates(self, filters, salaries, expected):
+        with self.store.engine.begin() as connection:
+            for job_id, salary in salaries.items():
+                row = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one()
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                    attributes={**row['attributes'], **salary}))
+        self.store.save_ai_cost_policy('fixture', {'minimum_score': 0, 'max_input_candidates': 50,
+            'max_ai_candidates': 2, 'max_document_candidates': 0})
+        save_search_profile(self.store, {'id': 'systems', 'profile_id': 'fixture', 'name': 'systems focus',
+            'job_filters': {'q': '', 'remote_type': '', 'provider': '', 'sort': 'score', **filters}})
+        preview = self.preview('systems')
+        self.assertEqual({row['job_id'] for row in preview['candidates']}, expected)
+        self.assertEqual(preview['plan']['scanned_job_count'], len(expected))
+        admitted = self.admit('systems', preview)
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        operation = admitted.json()['operation_id']
+        with self.store.engine.connect() as connection:
+            snapshot = connection.execute(select(m.ai_evaluation_batches.c.snapshot).where(
+                m.ai_evaluation_batches.c.id == operation)).scalar_one()
+        self.assertEqual({row['job_id'] for row in snapshot['candidates']}, expected)
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        result = self.new_client().get('/profiles/fixture/ai-cost-plan/operations/' + operation).json()['result']
+        self.assertEqual({row['job_id'] for row in result['evaluations']}, expected)
+        self.assertEqual(len(self.calls), len(expected))
+
+    def test_salary_hourly_bounds_reach_preview_and_evaluation(self):
+        salary = {'salary_min': 40, 'salary_max': 60, 'salary_currency': 'USD'}
+        self.assert_salary_candidates({'salary_min': '40', 'salary_max': '60', 'salary_period': 'HOUR'},
+            {self.systems: {**salary, 'salary_period': 'HOUR'},
+             self.cloud: {**salary, 'salary_period': 'YEAR'}}, {self.systems})
+
+    def test_salary_known_only_without_bounds_reaches_preview_and_evaluation(self):
+        self.assert_salary_candidates({'salary_policy': 'KNOWN_ONLY'},
+            {self.systems: {'salary_min': 40, 'salary_max': 60, 'salary_currency': 'USD',
+                            'salary_period': 'YEAR'}, self.cloud: {}}, {self.systems})
+
+    def test_salary_allow_unknown_with_bounds_reaches_preview_and_evaluation(self):
+        self.assert_salary_candidates({'salary_min': '40', 'salary_max': '60',
+                                      'salary_policy': 'ALLOW_UNKNOWN'},
+            {self.systems: {'salary_min': 40, 'salary_max': 60, 'salary_currency': 'USD',
+                            'salary_period': 'YEAR'}, self.cloud: {}}, {self.systems, self.cloud})
+
+    def test_salary_legacy_saved_bounds_keep_annual_default(self):
+        salary = {'salary_min': 40, 'salary_max': 60, 'salary_currency': 'USD'}
+        self.assert_salary_candidates({'salary_min': '40', 'salary_max': '60'},
+            {self.systems: {**salary, 'salary_period': 'HOUR'},
+             self.cloud: {**salary, 'salary_period': 'YEAR'}}, {self.cloud})
+
     def test_provider_outage_leaves_deterministic_search_usable_without_partial_results(self):
         from services.ai.providers import AIProviderError
         preview=self.preview('cloud')

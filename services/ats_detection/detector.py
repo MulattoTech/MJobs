@@ -242,13 +242,14 @@ def detect_ats(visible_careers_url: str, html: str = "", *,
     for tag in soup.find_all("form", action=True):
         action = str(tag.get("action") or "")
         absolute_action_host = _host(action) or _host(urljoin(current_url, action))
+        # The parsed action host is the only strong form-action signal.
+        # A vendor API name in another host's path, query or userinfo is
+        # attacker-controlled text, not evidence of that provider.
         for provider in _vendor_for_host(absolute_action_host):
             add(provider, "FORM_ACTION")
         for signature in _SIGNATURES:
             for signal, pattern in signature.patterns:
-                if signal == "PUBLIC_API" and re.search(pattern, action, re.I):
-                    add(signature.provider, "FORM_ACTION")
-                elif signal == "URL_STRUCTURE" and re.search(pattern, action, re.I):
+                if signal == "URL_STRUCTURE" and re.search(pattern, action, re.I):
                     add(signature.provider, "URL_STRUCTURE")
 
     page_text = str(html or "")[:2_000_000]

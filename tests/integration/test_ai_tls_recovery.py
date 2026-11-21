@@ -1,7 +1,11 @@
 """A stalled TLS handshake terminates durable advisory work without publication."""
-from concurrent.futures import ThreadPoolExecutor
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, wait
 from contextlib import ExitStack, contextmanager
+import gc
+from pathlib import Path
 import socket
+import sys
 import threading
 import time
 import unittest
@@ -17,6 +21,54 @@ from services.ai.providers.transport import request_guard
 from services.ai.tasks import AITaskRouter
 from tests.integration import test_durable_ai_evaluation as evaluation_tests
 from tests.unit.test_ai_tls_handshake import HTTPS_PROVIDERS, recorded_duplicates
+
+
+class GCPhaseObserver:
+    """Bounded, value-free observation; never change when collection happens."""
+
+    def __init__(self, worker_thread):
+        self.worker_thread = worker_thread
+        # Keep older-generation evidence even if generation zero is frequent.
+        self.events = {generation: deque(maxlen=4) for generation in (0, 1, 2)}
+        self.started = {generation: 0 for generation in self.events}
+        self.active = None
+
+    def __enter__(self):
+        gc.callbacks.append(self.observe)
+        return self
+
+    def __exit__(self, *_error):
+        gc.callbacks.remove(self.observe)
+
+    def observe(self, phase, info):
+        # CPython serializes collections. Store only scalar timing/classification
+        # data, never objects, locals, paths, or the callback's info dictionary.
+        observed = time.monotonic()
+        if phase == 'start':
+            generation = info['generation']
+            owned = bool(self.worker_thread and
+                         threading.get_ident() == self.worker_thread[0])
+            self.active = [observed, None, generation,
+                           'owned_worker' if owned else 'other_thread']
+            self.events[generation].append(self.active)
+            self.started[generation] += 1
+        elif phase == 'stop' and self.active is not None:
+            self.active[1] = observed
+            self.active = None
+
+    def details(self, before):
+        events = []
+        snapshot = [event for bucket in self.events.values() for event in list(bucket)]
+        for start, stop, generation, thread in sorted(snapshot, key=lambda event: event[0]):
+            events.append({
+                'generation': generation, 'thread': thread,
+                'start_ms': round((start - before) * 1000, 3),
+                'stop_ms': None if stop is None else round((stop - before) * 1000, 3),
+                'duration_ms': None if stop is None else round((stop - start) * 1000, 3),
+            })
+        dropped = {generation: max(0, self.started[generation] - len(bucket))
+                   for generation, bucket in self.events.items()}
+        return f'gc_phases={events}; gc_dropped={dropped}'
 
 
 class TimedCloseEvent(threading.Event):
@@ -208,6 +260,11 @@ class DurableTLSRecoveryTests(unittest.TestCase):
     def test_tls_cancellation_and_deadline_persist_without_uncertain_replay(self):
         for provider_type in HTTPS_PROVIDERS:
             for cancel in (False, True):
+                # Isolate prior fixture cycles before creating any operation or
+                # deadline. Automatic GC stays enabled throughout the operation.
+                gc_setup_started = time.monotonic()
+                gc_setup_collected = gc.collect()
+                gc_setup_ms = (time.monotonic() - gc_setup_started) * 1000
                 with self.subTest(provider=provider_type.name, cancel=cancel), stalled_tls_peer() as (
                         origin, started, closed), recorded_duplicates() as duplicates, ExitStack() as clients:
                     client = httpx.Client(trust_env=False, timeout=1.5)
@@ -237,9 +294,20 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                         self.assertEqual(ready.status_code, 200, ready.text)
                         self.assertEqual(ready.json()['state'], 'QUEUED')
                         cancel_client_setup_ms = (time.monotonic() - setup_started) * 1000
+                    worker_thread, worker_finished = [], []
+
+                    def run_recorded_worker(operation_id, worker_thread, worker_finished):
+                        worker_thread.append(threading.get_ident())
+                        try:
+                            return self.run_worker(operation_id)
+                        finally:
+                            worker_finished.append(time.monotonic())
+
                     try:
-                        with ThreadPoolExecutor(max_workers=2) as pool:
-                            work = pool.submit(self.run_worker, operation_id)
+                        with GCPhaseObserver(worker_thread) as gc_phases, \
+                                ThreadPoolExecutor(max_workers=2) as pool:
+                            work = pool.submit(
+                                run_recorded_worker, operation_id, worker_thread, worker_finished)
                             self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
                             before = time.monotonic()
                             acknowledged_at = None
@@ -270,7 +338,29 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                     closed_before_commit,
                                     'uncommitted cancellation interrupted TLS before commit',
                                 )
-                            result = work.result(timeout=3)
+                            # Sample only a late test-owned worker; preserve the
+                            # original result-wait budget and terminal assertion.
+                            result_deadline = time.monotonic() + 3
+                            done, _ = wait([work], timeout=max(
+                                0, before + .75 - time.monotonic()))
+                            worker_stack, probe_ms = [], None
+                            if not done:
+                                probe_ms = round((time.monotonic() - before) * 1000, 3)
+                                frame = sys._current_frames().get(worker_thread[0])
+                                try:
+                                    while frame is not None and len(worker_stack) < 12:
+                                        worker_stack.append(
+                                            f'{Path(frame.f_code.co_filename).name}:'
+                                            f'{frame.f_lineno}:{frame.f_code.co_name}')
+                                        frame = frame.f_back
+                                finally:
+                                    del frame
+                                print(f'durable-ai-tls-pending-worker provider={provider_type.name} '
+                                      f'cancel={cancel}; probe_ms={probe_ms}; '
+                                      f'pending_worker_stack={worker_stack}; '
+                                      f'{gc_phases.details(before)}')
+                            result = work.result(timeout=max(
+                                0, result_deadline - time.monotonic()))
                             terminal_at = time.monotonic()
                             self.assertFalse(any(t.name == 'mjobs-request-deadline'
                                                  for t in threading.enumerate()),
@@ -291,8 +381,13 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                            f'{(response_closed_at - before) * 1000:.1f}ms')
                             phase_details = (f'provider={provider_type.name} cancel={cancel}; '
                                              f'client_setup={setup_phase}; ack={ack_phase}; '
+                                             f'gc_setup={gc_setup_ms:.3f}ms (before operation); '
+                                             f'gc_setup_collected={gc_setup_collected}; '
                                              f'socket_close={close_phase}; '
-                                             f'worker_terminal={elapsed * 1000:.1f}ms')
+                                             f'worker_terminal={elapsed * 1000:.1f}ms; '
+                                             f'worker_exit={(worker_finished[0] - before) * 1000:.1f}ms; '
+                                             f'probe_ms={probe_ms}; pending_worker_stack={worker_stack}; '
+                                             f'{gc_phases.details(before)}')
                             print('durable-ai-tls-timing ' + phase_details)
                             self.assertLess(elapsed, .9, phase_details)
                     finally:

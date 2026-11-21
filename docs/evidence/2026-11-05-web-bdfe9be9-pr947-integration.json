@@ -1,0 +1,28 @@
+{
+  "run": "web-20261104T235930Z-bdfe9be94cd3",
+  "role": "Independent integration continuation; salary implementation authored by the previous run",
+  "pr": 947,
+  "requirement": "MJ-REQ-017.S07; parent remains PARTIAL",
+  "author_head": "6a116e969164d616e71c02aeddc7bf265bf32e31",
+  "protected_main": "cf882ef513b23429a3433ef690471bf7dff1fe21",
+  "claim_owner": "8bb63ebf5618c68469cbc688f4a7f76a3b954966",
+  "integration_owner": "7acfe1283ada5e9482e46b69c526cbdef1ad9e8f",
+  "source_test_blobs_unchanged": [
+    "services/discovery/sources/remoteok.py",
+    "tests/unit/test_remoteok_salary.py",
+    "tests/integration/test_remoteok.py"
+  ],
+  "scanner": "Inherited the reviewed exact two-fingerprint correction from protected main; no new exclusion or scanner change",
+  "previous_independent_review": "https://github.com/MulattoTech/MJobs/pull/947#pullrequestreview-5778101556",
+  "test_command": "python -m pytest -q -p no:cacheprovider --basetemp .tmp/bdfe9be9-pr947 tests/unit/test_remoteok_salary.py tests/integration/test_remoteok.py tests/unit/test_secret_scan_sustain_176.py tests/unit/test_p0_evidence_secret_fingerprints.py --tb=short",
+  "test_result": "23 passed, 1 skipped, 47 subtests passed in 8.27s",
+  "test_exit": 0,
+  "live_provider_enabled": false,
+  "utc": "2026-11-05T00:59:23.691854+00:00",
+  "limits": [
+    "Only synthetic focused Windows/SQLite execution",
+    "No production change or new full acceptance",
+    "Fresh hosted final-candidate checks remain required",
+    "Original failing scanner and source evidence are preserved"
+  ]
+}

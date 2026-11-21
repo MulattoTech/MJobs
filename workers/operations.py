@@ -56,24 +56,49 @@ MAX_ATTEMPTS = 3
 INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE", "MANUAL_AUTH")
 
 
-class _LocalCancellation:
-    """Pause local polling while a cancellation transaction resolves."""
+class _CancellationCommit:
+    """One transaction's outcome; another attempt cannot resolve this event."""
 
     def __init__(self):
-        self.staged = threading.Event()
         self.resolved = threading.Event()
         self.committed = False
-
-    def stage(self):
-        self.staged.set()
 
     def resolve(self, committed):
         self.committed = committed
         self.resolved.set()
 
+
+class _LocalCancellation:
+    """Pause local polling while the current cancellation transaction resolves."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._attempt = None
+
+    def stage(self):
+        attempt = _CancellationCommit()
+        with self._lock:
+            self._attempt = attempt
+        return attempt
+
     def wait_for_commit(self, timeout=1):
-        return (self.staged.is_set() and self.resolved.wait(timeout)
-                and self.committed)
+        deadline = time.monotonic() + timeout
+        while True:
+            with self._lock:
+                attempt = self._attempt
+            if attempt is None:
+                return False
+            if not attempt.resolved.wait(max(0, deadline - time.monotonic())):
+                return False
+            if attempt.committed:
+                return True
+            with self._lock:
+                if self._attempt is attempt:
+                    return False
+            # A failed attempt may already have a successor. Observe that
+            # transaction without restarting this call's finite wait budget.
+            if time.monotonic() >= deadline:
+                return False
 
 
 _LOCAL_CANCELLATIONS: dict[str, _LocalCancellation] = {}
@@ -124,9 +149,7 @@ def unregister_operation_cancellation(operation_id, cancellation):
 def _stage_operation_cancellation(operation_id):
     with _LOCAL_CANCELLATIONS_LOCK:
         cancellation = _LOCAL_CANCELLATIONS.get(operation_id)
-    if cancellation is not None:
-        cancellation.stage()
-    return cancellation
+    return cancellation.stage() if cancellation is not None else None
 
 
 def timeout():
@@ -466,7 +489,11 @@ def inline_cancel_requested(store, operation_id):
 def check_cancelled(store, operation_id, attempt_count=None, local_cancellation=None):
     """Stop a worker whose durable authority ended, even before recovery runs."""
     if (local_cancellation is not None
-            and threading.current_thread().name == "mjobs-request-deadline"
+            and threading.current_thread().name in {
+                "mjobs-request-deadline", "mjobs-greenhouse-cancellation",
+                "mjobs-remotive-cancellation", "mjobs-remoteok-cancellation",
+                "mjobs-wwr-cancellation",
+            }
             and local_cancellation.wait_for_commit()):
         # The staged token pauses this watcher's SQLite polling, but only a
         # committed transaction authorizes request-owned I/O interruption.
@@ -529,6 +556,14 @@ def company_refresh_saved(connection, operation):
     Callers hold the operation lock. The source/monitor pointer can change after
     a later refresh, so only the immutable, exactly bound audit is authoritative.
     """
+    if operation['kind'] == 'COMPANY_DISCOVER':
+        # Ordinary public-company work has no fixture receipt. Avoid loading
+        # that bridge on its cancellation path; present malformed markers must
+        # still reach the helper's exact receipt validation.
+        if 'fixture_monitoring' not in (operation.get('params') or {}):
+            return False
+        from services.company_discovery.fixture_monitoring import fixture_refresh_saved
+        return fixture_refresh_saved(connection, operation)
     if operation['kind'] != 'COMPANY_SOURCE_REFRESH':
         return False
     return connection.execute(select(m.audit.c.id).where(
@@ -600,13 +635,19 @@ def request_cancel(store, operation_id):
                               next_attempt_at=None,
                               recovery_metadata={"action": "NONE"})
             connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
-            if row["kind"] == "AI_EVALUATE_QUEUED" and not queued_cancel:
-                # Stop local SQLite polling while this transaction resolves;
-                # request-owned I/O remains live until commit succeeds.
+            if not queued_cancel and row["kind"] in {
+                    "AI_EVALUATE_QUEUED", "DISCOVER", "COMPANY_DISCOVER",
+                    "COMPANY_SOURCE_REFRESH"}:
+                # Pause request-watchdog reads while this transaction resolves,
+                # including source watchers that could delay the SQLite commit.
+                # Request-owned I/O remains live until commit succeeds.
                 local_cancellation = _stage_operation_cancellation(operation_id)
             store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
             result = {**row, **values}
-    except Exception:
+    except BaseException:
+        # Process-control exits must also release the local wait. Treat the
+        # outcome as uncommitted here; durable state remains authoritative
+        # and the original exception still propagates.
         if local_cancellation is not None:
             local_cancellation.resolve(False)
         raise
@@ -685,7 +726,16 @@ def recover_expired(store):
     recovery_started_at = time.monotonic()
     completed_dry_runs = []
     with store.engine.begin() as connection:
-        if connection.dialect.name == "sqlite":
+        if connection.dialect.name == "postgresql":
+            # SKIP LOCKED does not cover later application/receipt locks. Bound
+            # each lock wait to one second, preserving stricter session limits.
+            # SET LOCAL restores the setting on this transaction's commit/rollback.
+            connection.execute(text(
+                "SELECT set_config('lock_timeout', "
+                "CAST(LEAST(NULLIF(setting, '0')::integer, :budget) AS text), true) "
+                "FROM pg_settings WHERE name = 'lock_timeout'"
+            ), {"budget": 1000})
+        elif connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         # Queued workers without a lease have no execution authority. Inline
         # browser ownership retains its separate proof-of-closure policy.
