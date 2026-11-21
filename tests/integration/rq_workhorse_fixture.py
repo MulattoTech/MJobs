@@ -165,28 +165,96 @@ def freeze_process(owned):
     return until(stopped, "Owned process did not stop before tree inventory", seconds=2) == "STOPPED"
 
 
-def descendants(parent):
-    """Snapshot only a verified child's descendants, including thread forks."""
-    found = []
-    pending = [parent]
+def descendants(parent, *, proc=Path("/proc")):
+    """Admit a complete snapshot only while every captured parent stays owned."""
+    if not isinstance(parent, ProcessIdentity):
+        raise TypeError("Descendant inventory requires a captured process identity")
+
+    def live(owned):
+        try:
+            current = process_identity(owned.pid)
+        except FileNotFoundError:
+            return False
+        # A retained orphan may change PPID. The process itself must remain the
+        # exact original; every newly acquired child still needs verified PPID.
+        if ((current.pid, current.group, current.session, current.started)
+                != (owned.pid, owned.group, owned.session, owned.started)):
+            raise RuntimeError("Process identity changed during descendant inventory")
+        return current.state not in {"Z", "X"}
+
+    if not live(parent):
+        return []  # Already exited: never enumerate a replacement PID's tree.
+    found, traversed, pending = [], [], [parent]
     while pending:
-        pid = pending.pop()
+        expected = pending.pop()
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
         children = set()
-        for path in Path(f"/proc/{pid}/task").glob("*/children"):
+        for path in (proc / str(expected.pid) / "task").glob("*/children"):
             try:
                 children.update(int(value) for value in path.read_text().split())
             except FileNotFoundError:
-                continue
-        for child in children:
+                continue  # A thread may exit; its owning process is rechecked.
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
+        candidates = []
+        for pid in sorted(children):
             try:
-                owned = process_identity(child)
+                child = process_identity(pid)
             except FileNotFoundError:
                 continue
-            if owned.parent != pid:
+            if child.parent != expected.pid:
                 raise RuntimeError("Descendant ancestry changed during fixture snapshot")
-            found.append(owned)
-            pending.append(child)
+            if child.state not in {"Z", "X"}:
+                candidates.append(child)
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
+        # Nothing reaches the caller's remembered cleanup identities until all
+        # branches and all traversed parents pass the final identity fence.
+        found.extend(candidates)
+        pending.extend(candidates)
+        traversed.append(expected)
+    for expected in traversed:
+        if not live(expected):
+            raise RuntimeError("Process disappeared during descendant inventory; snapshot incomplete")
     return found
+
+
+def process_snapshot(owned):
+    """Small original-identity receipt; a reused PID is never a survivor."""
+    value = {"pid": owned.pid, "group": owned.group, "session": owned.session,
+             "started": owned.started, "alive": False, "state": "EXITED"}
+    try:
+        current = process_identity(owned.pid)
+    except FileNotFoundError:
+        return value
+    if ((current.pid, current.group, current.session, current.started)
+            != (owned.pid, owned.group, owned.session, owned.started)):
+        value["state"] = "PID_REUSED"
+    else:
+        value.update(state=current.state, alive=current.state not in {"Z", "X"})
+    return value
+
+
+def process_command(owned, *, proc=Path("/proc")):
+    """Read bounded metadata only for an unchanged, still-parented descendant."""
+    expected = (owned.pid, owned.parent, owned.group, owned.session, owned.started)
+    before = process_identity(owned.pid)
+    if (before.pid, before.parent, before.group, before.session, before.started) != expected:
+        raise RuntimeError("Descendant identity changed before browser selection")
+    if before.state in {"Z", "X"}:
+        return None
+    with (proc / str(owned.pid) / "cmdline").open("rb") as stream:
+        command = stream.read(16385)
+    executable = Path(os.readlink(proc / str(owned.pid) / "exe")).name
+    after = process_identity(owned.pid)
+    if (after.pid, after.parent, after.group, after.session, after.started) != expected:
+        raise RuntimeError("Descendant identity changed during browser selection")
+    if after.state in {"Z", "X"} or not command:
+        return None
+    if len(command) > 16384 or not command.endswith(b"\0"):
+        raise RuntimeError("Browser command metadata exceeds the fixture bound")
+    return executable, tuple(os.fsdecode(value) for value in command[:-1].split(b"\0"))
 
 
 class OwnedWorker:
@@ -200,6 +268,8 @@ class OwnedWorker:
         self.process = None
         self.identity = None
         self.horse = None
+        self.browser = None
+        self.browser_driver = None
         self.worker = None
         self.children = []
         self.owned = {}
@@ -231,7 +301,7 @@ class OwnedWorker:
             found = []
             for owned in list(self.owned.values()):
                 if running(owned):
-                    found.extend(descendants(owned.pid))
+                    found.extend(descendants(owned))
             self.remember(found)
             # Retained orphans themselves must stop too, not just the children
             # found beneath them. Rescan only after every retained identity is
@@ -280,7 +350,7 @@ class OwnedWorker:
     def registered(self):
         if self.process.poll() is not None:
             raise AssertionError("Owned production worker exited during startup")
-        self.remember(descendants(self.process.pid))
+        self.remember(descendants(self.identity))
         for worker in Worker.all(connection=self.redis):
             if worker.pid == self.process.pid:
                 if worker.queue_names() != [self.queue]:
@@ -299,10 +369,11 @@ class OwnedWorker:
         executions = job.get_executions()
         if len(executions) != 1 or executions[0].worker_name != worker.name:
             raise AssertionError("Expected one RQ execution bound to the owned worker")
-        children = Path(f"/proc/{self.process.pid}/task/{self.process.pid}/children").read_text().split()
+        children = [child for child in descendants(self.identity)
+                    if child.parent == self.identity.pid]
         if len(children) != 1:
             raise AssertionError("Expected exactly one production RQ workhorse")
-        horse = process_identity(int(children[0]))
+        horse = children[0]
         # RQ deliberately creates a new group for the horse with setpgrp().
         if ((horse.parent, horse.group, horse.session)
                 != (self.process.pid, horse.pid, self.process.pid)):
@@ -310,9 +381,95 @@ class OwnedWorker:
         self.horse = horse
         # A fixture browser may exist only beneath this verified workhorse.
         # Keep exact starttime-bound PIDs before killing their owning ancestor.
-        self.children = descendants(horse.pid)
+        self.children = descendants(horse)
         self.remember([horse, *self.children])
         return executions[0]
+
+    def capture_browser(self, profile):
+        """Select one exact detached Chromium root without signalling anything."""
+        self.browser = self.browser_driver = None
+        if (self.identity is None or self.horse is None or self.process.poll() is not None
+                or not running(self.identity) or not running(self.horse)):
+            raise RuntimeError("A live captured production workhorse is required")
+        profile = Path(profile).resolve(strict=True)
+        root = self.root.resolve(strict=True)
+        if profile == root or not profile.is_relative_to(root) or not profile.is_dir():
+            raise RuntimeError("Browser profile is outside the owned fixture directory")
+        self.children = descendants(self.horse)
+        self.remember([self.horse, *self.children])
+        matches = []
+        for child in self.children:
+            try:
+                metadata = process_command(child)
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+            if metadata is None:
+                continue
+            executable, arguments = metadata
+            profiles = [value for value in arguments if value.startswith("--user-data-dir=")]
+            if (executable in {"chrome", "chromium", "headless_shell", "chrome-headless-shell"}
+                    and profiles == [f"--user-data-dir={profile}"]
+                    and "--user-data-dir" not in arguments
+                    and [value for value in arguments if value.startswith("--remote-debugging-pipe")]
+                    == ["--remote-debugging-pipe"]
+                    and not any(value == "--type" or value.startswith("--type=")
+                                for value in arguments)):
+                matches.append(child)
+        if len(matches) != 1:
+            raise RuntimeError("Expected one exact owned Chromium root; refusing freeze")
+        browser = matches[0]
+        if (browser.group, browser.session) != (browser.pid, browser.pid):
+            raise RuntimeError("Chromium root does not own the detached session under test")
+        if not running(self.identity) or not running(self.horse):
+            raise RuntimeError("Production timeout owner exited before browser freeze")
+        self.browser = browser
+        drivers = [child for child in self.children if child.pid == browser.parent]
+        self.browser_driver = drivers[0] if len(drivers) == 1 else None
+        return browser
+
+    def freeze_browser(self, profile, *, before_freeze=None):
+        """Freeze one exact Chromium root, leaving production timeout owners live."""
+        browser = self.capture_browser(profile)
+        if before_freeze is not None:
+            before_freeze()  # Recheck the response gate immediately before the signal.
+        if not freeze_process(browser):
+            raise RuntimeError("Chromium exited before the frozen-browser fault was established")
+        if not running(self.identity) or not running(self.horse):
+            raise RuntimeError("Production timeout owner exited during browser freeze")
+        return browser
+
+    def freeze_horse(self, *, before_freeze):
+        """Inject one stopped-horse fault while its parent/driver/browser stay live."""
+        if not callable(before_freeze):
+            raise RuntimeError("A browser readiness/admission guard is required")
+        if (self.identity is None or self.horse is None or self.browser is None
+                or self.browser_driver is None or self.process.poll() is not None):
+            raise RuntimeError("Capture the production horse, browser and driver before interruption")
+
+        def companions():
+            for owned in (self.identity, self.browser_driver, self.browser):
+                if self.owned.get((owned.pid, owned.started)) != owned:
+                    raise RuntimeError("Timeout companion identity is not retained by this fixture")
+                snapshot = process_snapshot(owned)
+                if not snapshot["alive"] or snapshot["state"] in {"T", "t"}:
+                    raise RuntimeError("Timeout parent, driver and browser must remain live and unstopped")
+
+        def horse_ready():
+            if self.owned.get((self.horse.pid, self.horse.started)) != self.horse:
+                raise RuntimeError("Original workhorse identity is not retained by this fixture")
+            snapshot = process_snapshot(self.horse)
+            if not snapshot["alive"] or snapshot["state"] in {"T", "t"}:
+                raise RuntimeError("Original workhorse must be live and unstopped before interruption")
+
+        companions()
+        horse_ready()
+        before_freeze()
+        companions()  # Admission work must not hide a lost/reused companion.
+        horse_ready()
+        if not freeze_process(self.horse):
+            raise RuntimeError("Workhorse exited before the stopped-horse fault was established")
+        companions()
+        return self.horse
 
     def abandon(self):
         if self.horse is None:

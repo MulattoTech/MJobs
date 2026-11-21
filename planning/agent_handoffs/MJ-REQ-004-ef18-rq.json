@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-004-ef18-rq",
+  "objective": "Regression coverage for production RQ timeout handling of a frozen owned mock-application Chromium browser, plus ownership-safe process inventory in the test fixture.",
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "branch": "web/ef1809b6/rq-browser-timeout",
+  "head_sha": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+  "routing_state": "VERIFY",
+  "created_at": "2026-11-13T22:59:38.043007+00:00",
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-292"
+  ],
+  "next_action": "Publish one coherent regression/fixture-safety candidate, pass its exact-head required checks, and hand it to the sole protected integration/canonical steward. No production repair is justified by this passing experiment.",
+  "tests": [
+    {
+      "command": "Exact31d9afb3 local helper/admission qualification:27 primary and53 subtests;0 failures/errors/skips.",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted Integration run43520399435 exact checkout31d9afb3:2885 primary cases PASS,40 skipped,0 failures/errors; new frozen-browser target PASS32.137s.",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent source ownership/causal reviews and runtime-artifact review bound to31d9afb3.",
+      "result": "PASS"
+    },
+    {
+      "command": "New publication-head required checks, protected integration, deployment and full004/292 acceptance.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "evidence_file": "docs/evidence/2026-11-13-rq-browser-timeout-ef18.json",
+  "source_test_revision": "31d9afb3a15956ef76d83732cec7729f6f69a495",
+  "source_tree": "74d2c569f7c7a36ba4a83ce7621265a09332f40d",
+  "source_binding": "head_sha records the exact tested source. The following evidence-only commit preserves all three tested blobs but does not inherit current-head required checks.",
+  "production_changed": false,
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "limitations": [
+    "Only the immutable original captured identities are covered; later or uncaptured descendants are not exhaustively inventoried.",
+    "The observed path is JobTimeoutException handling around 30 seconds. The later RQ hard-monitor/SIGKILL fallback was not exercised.",
+    "Process exit is observed; this receipt does not identify the exact signal or cleanup component responsible for every exit.",
+    "RQ finished is not application-operation success: the SQL operation is DEAD_LETTERED with JobTimeoutException and attempt_count 1.",
+    "The SQL operation is read before fixture teardown through the fixture's existing Store. This case does not add an independent Store reopen or host-restart durability oracle.",
+    "Synthetic loopback mock ATS only; no external application submission, live ATS compatibility, manual-auth cleanup, deployment, or whole MJ-REQ-004/MJ-REQ-292 acceptance is established.",
+    "The pytest record_property/xunit2 warning is retained. The actual uploaded JUnit was inspected and contains the complete target property.",
+    "The 40 skipped primary cases in the full integration matrix are not counted as passing evidence.",
+    "New publication-head required checks, protected integration and any applicable runtime adoption remain separate from this exact-source hosted qualification."
+  ]
+}
