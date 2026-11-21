@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-109-82ee",
+  "objective": "Accept all seven independent, durable, profile-scoped AI model settings for MJ-REQ-109 / issue 110 without claiming consumer inference.",
+  "owner": "web-20261109T173838Z-82ee9dc5ccd8",
+  "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/MJ-REQ-109-task-settings",
+  "head_sha": "0eb6ecc2f6a5156340cb3aedf92b248d4f143f14",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the exact reviewed scanner dependency update to PR1009. Obtain hosted JUnit/revision proof on the resulting head; if GitHub again fails before jobs, retain NOT_RUN and report its annotation. Issue110 remains OPEN/PARTIAL.",
+  "created_at": "2026-11-09T17:55:50.780341+00:00",
+  "requirements": [
+    "MJ-REQ-109"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_seven_task_settings_acceptance.py tests/integration/test_ai_task_settings_api.py tests/unit/test_ai_task_configuration.py: 19 passed, 17 subtests passed in 6.24s",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest --collect-only -q for the five workflow-selected test modules: 22 tests collected in 1.22s; no browser launched",
+      "result": "PASS"
+    },
+    {
+      "command": "Static YAML parsing and checks: one 20-minute job, exact PR head, SHA-pinned actions, read-only permissions, no secrets, SPA prerequisite",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted run42672743071 on published417c97c5: failure before any jobs/artifacts; all22 selected cases including3 browser cases remain NOT_RUN. GitHub annotation and retry denial recorded in paired evidence.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Exact committed0eb6ecc2: focused API/unit suite19tests+17subtests in6.62s; JUnit recorded",
+      "result": "PASS"
+    }
+  ],
+  "blockers": [
+    "Connected browser acceptance is NOT_RUN: original run42672743071 stopped before jobs with GitHub internal server error (correlation3d5146bc-d290-49dd-88d5-9405dbe67b50); one targeted retry was rejected HTTP403, This workflow run cannot be retried.",
+    "No whole-requirement PASS or issue110 closure until all browser criteria execute successfully on a source-bound candidate."
+  ],
+  "environment_limits": [
+    "Local browser execution is unavailable due to previously observed OS EPERM; no retry or bypass attempted. Dedicated hosted route prepared."
+  ],
+  "updated_at": "2026-11-09T20:43:04.087693+00:00",
+  "publication_dependency": {
+    "state": "EXACT_COMMON_BLOB_REUSED_UNDER_OWN_CLAIM",
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "hosted_current_update": "NOT_RUN"
+  }
+}
