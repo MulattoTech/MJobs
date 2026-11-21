@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131741Z-76b8f732f1a7",
+  "recorded_at_utc": "2026-11-09T13:29:12.344679+00:00",
+  "requirements": [
+    "MJ-REF-007"
+  ],
+  "related_issue": 377,
+  "scope": "Canonical skill aliases retain selected approved evidence in read-only resume alignment previews.",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "5876fa5a6633d1b935047f691e5c5238eae36757",
+  "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757",
+  "source_blobs": {
+    "services/documents/alignment_preview.py": "a038a087d68129b5d8ca48f689c362af439c6757",
+    "tests/unit/test_resume_alignment_preview.py": "6127240be345ed05b31907d7cb01d0c68fc745ef",
+    "tests/integration/test_resume_alignment_preview.py": "cacf12e322241ccbe7b19c29a761ec263aa51c76"
+  },
+  "environment": {
+    "host": "isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "Application requirements.txt pins installed in isolated virtual environment; no workstation build, external provider call, or real application submission."
+  },
+  "baseline": {
+    "source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "original_unit_tests": {
+      "result": "PASS",
+      "tests": 4
+    },
+    "new_regression_tests_on_original_source": {
+      "result": "FAIL",
+      "methods_run": 8,
+      "failing_subcases": 13,
+      "reason": "Later canonical target aliases lost approved fact references."
+    }
+  },
+  "criterion_results": [
+    {
+      "criterion": "Show relevant keyword/requirement coverage as analysis, not an instruction to fabricate",
+      "slice": "Recognized target aliases share actual selected eligible fact references while preserving display labels",
+      "result": "PASS",
+      "evidence": "20 targeted unittest methods including real API/SQLite readback; 72 independent ordered taxonomy probes."
+    },
+    {
+      "criterion": "Preserve fact identity/provenance",
+      "slice": "Unapproved, unverified, low-confidence, empty-source, foreign and deselected evidence remains excluded",
+      "result": "PASS",
+      "evidence": "Unit negative cases plus API 409 rejections and unchanged input/profile/job snapshots."
+    },
+    {
+      "criterion": "Read-only preview",
+      "slice": "Preview does not create applications, documents or operations",
+      "result": "PASS",
+      "evidence": "API integration asserts before/after row counts plus profile/job equality."
+    },
+    {
+      "criterion": "All other full MJ-REF-007 acceptance criteria",
+      "result": "NOT_RUN",
+      "reason": "No fresh complete template/editor/history/export/browser/deployment verification; no canonical promotion."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python -m unittest -v tests.unit.test_resume_alignment_preview tests.unit.test_skill_taxonomy tests.unit.test_resume_tailoring_facts tests.unit.test_resume_workspace_preview tests.integration.test_resume_alignment_preview",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests": 20,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757",
+      "log_sha256": "393e2151924fa9c70931f088602a99610761fd53f5ca7bdc606cc742017594ba"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "5876fa5a6633d1b935047f691e5c5238eae36757"
+    },
+    {
+      "command": "Full Python suite, web production build, connected browser and deployed journey",
+      "result": "NOT_RUN",
+      "reason": "Focused backend correction; hosted evidence is separate and pending publication."
+    }
+  ],
+  "setup_failures_resolved": [
+    "System interpreter test import lacked SQLAlchemy.",
+    "Initial minimal virtual environment lacked BeautifulSoup.",
+    "Installed repository-pinned application dependencies in isolated environment, then executed all20 focused tests successfully."
+  ],
+  "independent_review": {
+    "reviewer": "separate ChatGPT-Web review agent independent_slice_scout",
+    "source_blob": "a038a087d68129b5d8ca48f689c362af439c6757",
+    "unit_test_blob": "6127240be345ed05b31907d7cb01d0c68fc745ef",
+    "result": "NO_SCOPED_BLOCKER",
+    "executed_unit_methods": 8,
+    "additional_taxonomy_probes": 72,
+    "notes": [
+      "All36 skill groups in normal/reversed alias order passed.",
+      "Mutating one returned alias fact_ids list does not change siblings.",
+      "Empty selection and unapproved evidence remain excluded.",
+      "Review was not independent full requirement acceptance."
+    ]
+  },
+  "integration": {
+    "authority": "PR_ONLY",
+    "canonical_acceptance_changed": false,
+    "merge_or_deployment_performed": false,
+    "full_requirement_status": "NOT_FRESHLY_VERIFIED",
+    "dependency_notes": {
+      "MJ-REQ-093": "historical PASS, full revalidation NOT_RUN",
+      "MJ-REQ-097": "historical PASS, full revalidation NOT_RUN",
+      "MJ-REQ-198": "historical PARTIAL; broader UI prerequisite unchanged"
+    },
+    "related_pr": 984,
+    "relationship": "Complements separate frontend supported/unknown display repair; no changed-file overlap."
+  },
+  "rollback": "Revert the isolated alias-mapping implementation commit using the normal protected PR process.",
+  "shared_scanner_dependency": {
+    "recorded_at_utc": "2026-11-09T13:46:08.014022+00:00",
+    "origin_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "included_commit": "42d70f61a1543c81cbeea46025221dd944fb5fbe",
+    "trigger": "PR993 exact-head secret scan run42626296954 artifact13678288320 reported one historical checksum candidate.",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "source_file": "tests/integration/test_career_story_import_api.py",
+    "source_bytes": 5844,
+    "source_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_sha256": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "verification": "Root and separate reviewer independently recomputed the committed source digest and matched the reported evidence checksum.",
+    "ignore_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "scope": "One exact immutable commit/path/rule/line; no scanner rule, workflow or broader path exception.",
+    "product_source_and_test_blobs": "UNCHANGED from the recorded tested implementation revision",
+    "hosted_scan_after_correction": "PENDING publication; no local scanner PASS claimed."
+  },
+  "approved_resumption": {
+    "recorded_at_utc": "2026-11-09T16:20:24.495200+00:00",
+    "protected_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "tested_sha": "f22d3ad6dc4ab2662d057d4867183cf4679ebbbf",
+    "focused_methods": 20,
+    "result": "PASS",
+    "skips": 0,
+    "command": "Same focused unittest command recorded above, rerun after protected-main merge.",
+    "log_sha256": "47f4adfdbb1c8f4f354ff872d2cecb221473592098f1e6f3c3591f3a75b9200f",
+    "product_source_and_test_blobs": "UNCHANGED",
+    "scanner_dependency": "Identical correction is now included in protected main; .gitleaksignore bytes unchanged by synchronization and absent from candidate diff against main.",
+    "user_publication_approval": "Explicit approval received in this conversation; normal owned branch publication only."
+  }
+}
