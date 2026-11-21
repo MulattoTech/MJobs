@@ -10,7 +10,7 @@ import unittest
 
 from tools.agent_context import (
     bootstrap, checkpoint_path, load_checkpoint,
-    normalize_intake, recover_session, relation, route_task,
+    context_manifest, normalize_intake, recover_session, relation, route_task,
     transfer_ownership, validate_checkpoint, validate_freshness,
     validate_implementation_state, write_checkpoint, ROUTING_STATES,
 )
@@ -55,6 +55,40 @@ class AgentContextTests(unittest.TestCase):
         self.assertEqual(value["requirement"]["status"], "PARTIAL")
         self.assertEqual(value["checkpoint_relation"], "NOT_FOUND")
         self.assertEqual(value["requirement_summary"]["PARTIAL"], 1)
+        self.assertGreater(value["context_manifest"]["bytes"], 0)
+        self.assertGreater(value["context_manifest"]["estimated_tokens"], 0)
+        self.assertIn(
+            {"path": "planning/REQUIREMENT_INDEX.json", "bytes": 106, "estimated_tokens": 26},
+            value["context_manifest"]["files"],
+        )
+
+    def test_context_manifest_measures_only_existing_files(self):
+        (self.root / "AGENTS.md").write_bytes(b"12345678")
+        (self.root / "docs").mkdir()
+        (self.root / "docs/REPO_MAP.md").write_bytes(b"1234")
+
+        value = context_manifest(self.root)
+
+        files = {item["path"]: item for item in value["files"]}
+        self.assertEqual(files["AGENTS.md"], {"path": "AGENTS.md", "bytes": 8, "estimated_tokens": 2})
+        self.assertEqual(files["docs/REPO_MAP.md"], {"path": "docs/REPO_MAP.md", "bytes": 4, "estimated_tokens": 1})
+        self.assertEqual(value["bytes"], sum(item["bytes"] for item in value["files"]))
+        self.assertEqual(
+            value["estimated_tokens"],
+            sum(item["estimated_tokens"] for item in value["files"]),
+        )
+
+    def test_context_manifest_aggregate_tokens_equal_file_estimate_sum(self):
+        (self.root / "AGENTS.md").write_bytes(b"123")
+        (self.root / "CLAUDE.md").write_bytes(b"123")
+        (self.root / "GEMINI.md").write_bytes(b"123")
+
+        value = context_manifest(self.root)
+
+        self.assertEqual(
+            value["estimated_tokens"],
+            sum(item["estimated_tokens"] for item in value["files"]),
+        )
 
     def test_checkpoint_roundtrip_and_resume(self):
         path = self.checkpoint()

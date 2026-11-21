@@ -240,8 +240,9 @@ function responseErrorKind(value:unknown):'scope-mismatch'|'stale'|'error' {
   if(!isRecord(value)) return 'error';
   const detail=isRecord(value.detail)?value.detail:{};
   const code=value.kind??value.code??detail.code;
-  if(code==='JOB_COMPARISON_SCOPE_MISMATCH') return 'scope-mismatch';
-  if(code==='JOB_COMPARISON_STALE_CONTEXT') return 'stale';
+  if(code==='SCOPE_MISMATCH'||code==='JOB_COMPARISON_SCOPE_MISMATCH') return 'scope-mismatch';
+  if(code==='STALE_CONTEXT'||code==='JOB_COMPARISON_STALE_CONTEXT') return 'stale';
+  if(code==='CONFLICT') return 'error';
   if(value.status===409) return 'stale';
   return 'error';
 }
@@ -424,6 +425,8 @@ export function JobComparisonWorkspaceView({
     {displayState==='loading'&&<p role="status" aria-busy="true">Comparing selected jobs…</p>}
     {displayState==='scope-mismatch'&&<p role="alert">{displayError||stateError('scope-mismatch')}</p>}
     {displayState==='stale'&&<p role="alert">{displayError||stateError('stale')}</p>}
+    {(displayState==='scope-mismatch'||displayState==='stale')&&validScope&&choicesValid&&
+      <button type="button" onClick={()=>onSelectionChange([])}>Change job selection</button>}
     {displayState==='error'&&<>
       <p role="alert">{displayError||stateError('error')}</p>
       <button type="button" onClick={onRetry}>Retry comparison</button>

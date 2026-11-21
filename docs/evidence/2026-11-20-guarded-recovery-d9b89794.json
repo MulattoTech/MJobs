@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "report_type": "synthetic_guarded_migration_and_recovery",
+  "result": "PASS",
+  "acceptance_changed": false,
+  "started_utc": "2026-11-20T06:39:43Z",
+  "finished_utc": "2026-11-20T06:45:00Z",
+  "provenance": {
+    "pre_upgrade_source_commit": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+    "executed_candidate_commit": "ed78ee3dcca57978e1ffcfba7cc583b7307928e6",
+    "source_image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+    "candidate_image": "sha256:7c82d6a077d01dea0e80b96fc714a49f24db461db2d2b3434ec75676d661fc59",
+    "candidate_kind": "rehearsal-derived artifact; not a production build",
+    "guarded_code_sha256": "f7a567728526113f8a37c62f92ee20c11a239d6b2e603a514a322fa9a57a3884",
+    "model_signature_sha256": "198760b4e202b57b056b79fcbfa5ed0f8c94d5dc27aeec08c5083a8a525e5af5",
+    "source_archive_sha256": "21f2ebe27c9b2962f742d23cc92aee586a019fe2e49050c08949fba4869e55ae",
+    "host_node": "v27.0.0-alpha.0.0.0",
+    "image_pulls": false,
+    "dependency_downloads": false
+  },
+  "workflow": {
+    "source_head": "20261025di01",
+    "upgraded_head": "20261104rv01",
+    "restored_head": "20261025di01",
+    "guarded_upgrade": "PASS",
+    "fresh_project_restore": "PASS",
+    "authorization": "Genuine CLI authorization created only after verified native PostgreSQL backup; no receipt fabrication or version stamping.",
+    "archive_manifest_version": 3,
+    "archive_manifest_file_count": 5,
+    "writers_stopped_after_guarded_command": true,
+    "candidate_readiness": "PASS",
+    "restored_readiness": "PASS",
+    "uploaded_document_bytes": "PASS",
+    "populated_synthetic_provider_credential_recovery": "PASS",
+    "verified_synthetic_credentials": 1,
+    "recently_viewed_api_write_rows": 1,
+    "applications": 0,
+    "application_attempts": 0,
+    "mock_submission_receipts": 0,
+    "provider_connection_test_endpoint_called": false
+  },
+  "baseline_table_snapshots": {
+    "workspace_identity": {
+      "count": 1,
+      "sha256": "33ab22b760d7065d6ac07e7a83dd1d8639f2a29c82c49d52d98da9598f5a5adc"
+    },
+    "career_profiles": {
+      "count": 1,
+      "sha256": "896f01548f47365c4a1f745a3480d062c13ddc7f6eaf72391f2a7b046a4982d1"
+    },
+    "profile_versions": {
+      "count": 1,
+      "sha256": "a410f98842c8453b472162db9b942ee5ccf6e2058d89be77e53eb428ef59b39e"
+    },
+    "career_facts": {
+      "count": 2,
+      "sha256": "7acc12a30e9b2af5e62d827e16007c278112306971ae4211bd6dbe2adb58e128"
+    },
+    "uploaded_resumes": {
+      "count": 1,
+      "sha256": "ad9beff4c2c90bde060eea8b0c490172ede76605e201d3bb5b82d0047494e367"
+    },
+    "resume_revisions": {
+      "count": 1,
+      "sha256": "78904f3b952d762b573dca711c44cae455f8078e743d955d0481dd42f743a672"
+    },
+    "companies": {
+      "count": 1,
+      "sha256": "b0a9c8cdaff9c87a08bfe00d4b74c1fbc2c6a3b1bf02cd7c6e30dcbe99525234"
+    },
+    "canonical_jobs": {
+      "count": 2,
+      "sha256": "a4d0b34c99b85da0b61dd100212be535326551353725935b53e27a742ab1880e"
+    },
+    "job_postings": {
+      "count": 4,
+      "sha256": "0f06d9d4a447004e325d9b5491341ec5588c6cfe788532fdef3d3b723cad2dc7"
+    },
+    "application_routes": {
+      "count": 3,
+      "sha256": "0856e9a944479c9fd705e313974c637839734cec0629d1e3c8a0f302a3881e95"
+    },
+    "posting_snapshots": {
+      "count": 4,
+      "sha256": "428231b0886698ea3d9e9e2597e0d64f23bccae25f34dafb6f16ee88664a0f43"
+    },
+    "applications": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "application_attempts": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "document_sha256": "7f474563f4a5e1c8b6c38127d107b052332b66b706679d3b77b56ff64fb2a6b7",
+  "isolation": {
+    "synthetic_data_only": true,
+    "maximum_simultaneous_full_projects": 1,
+    "aggregate_cpu_cap": 3.85,
+    "aggregate_memory_mib": 5120,
+    "api_bindings": "loopback only",
+    "private_and_source_egress_networks": "internal",
+    "ui_network": "ordinary bridge required for host readiness; loopback-bound API",
+    "existing_routes_and_docker_ipam_checked": true,
+    "images": "cached and pinned with pull_policy never",
+    "bind_or_external_volumes": false
+  },
+  "setup_findings": [
+    "The unchanged Windows privacy guard correctly rejected the initial archive location's ancestor replacement permissions. A new task-owned location passed parent and inherited child-file checks; existing ancestor ACLs were not changed.",
+    "The first fixture CPU budget caused unchanged health commands to exceed their timeout. Reallocated only owned test service caps within the final 3.85 CPU budget; all health predicates then passed.",
+    "An all-internal UI network passed in-container health but prevented host readiness. Used the base recipe's loopback-bound UI bridge while retaining internal private/source-egress networks.",
+    "Owned test helper corrections and failed attempts were retained. Application source, migration guards and health predicates were not modified."
+  ],
+  "cleanup": {
+    "owned_containers": 0,
+    "owned_volumes": 0,
+    "owned_networks": 0,
+    "identity_and_labels_verified_before_removal": true,
+    "root_independent_absence_check_utc": "2026-11-20T06:46:15Z",
+    "private_synthetic_archive_retained": true,
+    "dedicated_rehearsal_image_retained": true
+  },
+  "private_receipts": {
+    "directory": ".tmp/migration-rehearsal/feasibility-0620",
+    "sha256": {
+      "completion-summary.json": "8601087865f81c8c5168e133444b834b197f21a52c87081e4bee72a17c58b142",
+      "full-rehearsal-evidence.json": "2b218701971ddc8a76d88b81bae1d20fe2e322e00ba13c0e1f7ffa111eaa6223",
+      "candidate-image-evidence.json": "ee91090146ec2871e5a603bd1446916f62909f636f37cef24fa79a18e11118d6",
+      "effective-config-sanitized.json": "f09da5792f6b995bc47cb7a4b0df516a32dad9ef7bea47ddc9c32cd2bb65db6e"
+    }
+  },
+  "not_run": [
+    "production data recovery",
+    "populated application/attempt-history recovery",
+    "real provider connectivity",
+    "authenticated public workflow",
+    "production rollout"
+  ],
+  "production_changed": false
+}
