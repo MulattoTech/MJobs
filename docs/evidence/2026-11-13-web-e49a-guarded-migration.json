@@ -1,0 +1,2781 @@
+{
+  "schema_version": 1,
+  "kind": "guarded_migration_and_separate_restore_rehearsal",
+  "status": "PASS",
+  "recorded_at": "2026-11-13T07:06:24.428324+00:00",
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "author": {
+    "interface": "ChatGPT-Web",
+    "model": "gpt-6-astra",
+    "role": "Scoped MJobs release owner"
+  },
+  "requirement_scope": {
+    "attribution": [
+      "MJ-REQ-166",
+      "MJ-REQ-167",
+      "MJ-REQ-168"
+    ],
+    "issues": [
+      167,
+      168,
+      169
+    ],
+    "titles": [
+      "Data Migrations",
+      "Data Backup",
+      "Restore"
+    ],
+    "purpose": "Additional bounded backup/migration/restore evidence; existing canonical acceptance is unchanged. This synthetic fixture does not newly qualify uploaded-document or protected-configuration recovery."
+  },
+  "scope": {
+    "fixture_only": true,
+    "operation_mode": "FIXTURE",
+    "production_mutated": false,
+    "real_external_application_submission_enabled": false,
+    "external_traffic_measured": false,
+    "browser_profiles_included": false,
+    "in_place_downgrade_performed": false,
+    "formal_acceptance_changed": false
+  },
+  "source": {
+    "target_commit": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "target_tree": "e38e55325c6025f0b914a65b81c7058138f27057",
+    "target_file_count": 3267,
+    "target_bytes": 30433908,
+    "target_seal_sha256": "6451c72a97da256c9a5fc1dfcfa188071e4bf75eed11bfb31afd6e81edc767ef",
+    "old_commit": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+    "old_tree": "4efb7622d35a26c18958c4946f4859b8b0ae18fe",
+    "old_file_count": 3178,
+    "old_bytes": 29698439,
+    "old_seal_sha256": "180530e5b2bbc42956151a6121836b5b24d1a70689f276c945394a64c36cc7ba",
+    "raw_git_blobs_verified": true,
+    "historical_line_ending_copy_mismatches_preserved": "Initial target Git archive and old working copy had CRLF differences; only new private copies were reconstructed from raw Git blobs before execution. Original files and diagnosis receipts remain retained."
+  },
+  "images": {
+    "target": {
+      "id": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+      "tags": [
+        "mjobs-migration-proof:5b2e3061-e49a-96d2bf27"
+      ],
+      "digests": [
+        "mjobs-migration-proof@sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf"
+      ],
+      "created": "2026-11-13T06:28:17.420827813Z",
+      "user": "mjobs"
+    },
+    "target_image_fingerprint": {
+      "code_hash": "7a103ca90604813f636c38786542b7d4aed73680b1b27ed46b5e1d2a1024da06",
+      "schema_hash": "198760b4e202b57b056b79fcbfa5ed0f8c94d5dc27aeec08c5083a8a525e5af5",
+      "uid": 10001
+    },
+    "old_image_id": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+    "old_image_fingerprint": {
+      "code_hash": "8027d1d875a3a4c441e9066199619b01ba4b5dd1d10219a3a7f29a909c524835",
+      "schema_hash": "2faa7fd215686cfeba100e7f8a745f9c4d1262abaeceb7ccbe1e02590fc64b7b",
+      "uid": 10001
+    },
+    "old_code_hash_independently_recomputed": true,
+    "old_schema_hash": "OBSERVED_FROM_IMMUTABLE_IMAGE; independent source-only expectation NOT_COMPUTED",
+    "old_full_historical_build_provenance": "NOT_RECONSTRUCTED",
+    "postgres_image_id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+    "postgres_server_version_num": 170011,
+    "redis_image_id": "sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f",
+    "shared_mjobs_local_spine_tag_unchanged": true
+  },
+  "build": {
+    "method": "Complete unchanged stock Dockerfile from verified private raw-Git target source",
+    "command_chain": "build-target-attempt1",
+    "elapsed_seconds": 133.954,
+    "log_sha256": "0520789fbf61871a6a9afdd46351c1f6bdf87821470ca65b79744f2b268a35c3",
+    "web_test_files_passed": 158,
+    "web_tests_passed": 1163,
+    "typescript_and_vite_build": "PASS",
+    "python_and_playwright_locked_build_stages": "PASS",
+    "source_files_rehashed_after_build": 3267
+  },
+  "private_placement": {
+    "stock_acl_and_reparse_checks_passed": true,
+    "original_environment_preserved": true,
+    "private_copies_same_bytes": true,
+    "key_rotation": false,
+    "secrets_or_original_environment_hash_published": false,
+    "temporary_restore_snapshot_parent_private": true,
+    "note": "Earlier C:\\Tools ancestry failed stock privacy checks. Fresh owned subtree under the existing protected archive ancestor was used; no broad ACL edits."
+  },
+  "migration": {
+    "source_project": "mjobs-migration-rehearsal-c707",
+    "source_revision": "20261025di01",
+    "target_revision": "20261104rv01",
+    "stock_command_chain": "guarded-upgrade-attempt1",
+    "stock_verify_chain": "verify_guard_archive-attempt1",
+    "result": "PASS",
+    "original_postgres_container_preserved": true,
+    "application_services_left_stopped_by_guard": true,
+    "consumed_authorization": {
+      "anchor": {
+        "bound_at": "2026-11-12T19:52:19.952779+00:00",
+        "id": "workspace",
+        "operation_mode": "FIXTURE"
+      },
+      "archive_sha256": "fa939bea94f7db7aef1da5b120b5fbd5c178af8d30802b7e518b36def209259b",
+      "code_hash": "7a103ca90604813f636c38786542b7d4aed73680b1b27ed46b5e1d2a1024da06",
+      "consumed": true,
+      "database_volume": "mjobs-migration-rehearsal-c707_database",
+      "dump_sha256": "fe561a2726ffd3089a771ef4622af884f42b8b62dbac19b46eba8b7cf680f3bd",
+      "dump_size": 161329,
+      "expires_at": 1794552754,
+      "issued_at": 1794551854,
+      "pending_absent": true,
+      "postgres_container": "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+      "project": "mjobs-migration-rehearsal-c707",
+      "ready_absent": true,
+      "run_id": "d36e2c03b5dc565bb6d48c4113b6162a",
+      "schema_hash": "198760b4e202b57b056b79fcbfa5ed0f8c94d5dc27aeec08c5083a8a525e5af5",
+      "source_heads": [
+        "20261025di01"
+      ],
+      "source_identity": {
+        "database": "mjobs",
+        "database_oid": 16384,
+        "system_identifier": "7707375220501401638"
+      },
+      "staged_dump_hash_verified": true,
+      "target_head": "20261104rv01",
+      "version": 1
+    },
+    "schema_catalog": "PASS",
+    "prewriter_database_redis_gates": "PASS"
+  },
+  "backup": {
+    "manifest_sha256": "fa939bea94f7db7aef1da5b120b5fbd5c178af8d30802b7e518b36def209259b",
+    "verified_file_count": 10,
+    "file_hashes": {
+      "configuration/compose.yml": "28c45fd722fe5ce9b0652050e484a98494a22f5f9795862432e3c914f68dff11",
+      "configuration/runtime.json": "31a5160890486ce9ba57b043942bd58a1ad3a6e0edd02e0384d32d9c1eac1837",
+      "database.dump": "fe561a2726ffd3089a771ef4622af884f42b8b62dbac19b46eba8b7cf680f3bd",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.docx": "5478a2bbde8b75a6bdc32e13df66a4c5deadc2a146a5b32ce214f6e168b47874",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.pdf": "b0bbfef24281fbf504e69c263373750798a3ef3854d0c7423fb4df5c0ea29269",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.txt": "65e061adc6592e3fe582945d9a5fca5f728001a35cd27551a576565a8e18a134",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.docx": "42d4615ea4f07ba4927da3979825a36c5123437bed895b3477e4550485169017",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.pdf": "5741410408dec865c34e8fafeb70ead4ea3e1faad22c9b0f0b692dc675ed4b63",
+      "documents/d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.txt": "39f4e196e3fcfdc4cd5c782e3649fce90330ad3f31f3fd4be0d7d524b8bfa27f",
+      "mock/receipts.json": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f"
+    },
+    "all_file_hashes_rechecked_after_restore": true,
+    "private_archive_path": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\backup-parent\\guarded-5b2e-20261113T063701Z-67ad9052",
+    "original_baseline_sha256": "94ed3d667a722b5c948314a6f0ad6b207e3028e960689835d582de170ff10ccb"
+  },
+  "preservation": {
+    "baseline_tables": {
+      "applications": {
+        "count": 1,
+        "sha256": "d85de606e5dd81152c0c757f7ec08b51643459986c93853142c1434f291bac9f"
+      },
+      "canonical_jobs": {
+        "count": 2,
+        "sha256": "a80d9c3e5b57483043fff951b1c4691f80b4bb4a3bbc69fd49e3204048df79cf"
+      },
+      "career_profiles": {
+        "count": 1,
+        "sha256": "7ece70534f6077545fa1b0e52509ef5991c949d482426c03969621cad558d24c"
+      },
+      "documents": {
+        "count": 2,
+        "sha256": "a7dc6260bd053cb021febbb2a56c3ee7a72c1e5c28e703ddf97387cb04e56691"
+      },
+      "provider_credentials": {
+        "count": 1,
+        "sha256": "c92a5a6269155f5b02cc73daddaf3d2d17603e2a61af30182b794eda1f3a00d4"
+      },
+      "workspace_identity": {
+        "count": 1,
+        "sha256": "e6bb2c610a62309b638a1bfd68398e0d06885bfa5c2ea112b3195b6fd7edeb6f"
+      }
+    },
+    "baseline_documents": {
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.docx": {
+        "bytes": 36836,
+        "sha256": "5478a2bbde8b75a6bdc32e13df66a4c5deadc2a146a5b32ce214f6e168b47874"
+      },
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.pdf": {
+        "bytes": 22885,
+        "sha256": "b0bbfef24281fbf504e69c263373750798a3ef3854d0c7423fb4df5c0ea29269"
+      },
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/cover-letter.txt": {
+        "bytes": 370,
+        "sha256": "65e061adc6592e3fe582945d9a5fca5f728001a35cd27551a576565a8e18a134"
+      },
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.docx": {
+        "bytes": 36683,
+        "sha256": "42d4615ea4f07ba4927da3979825a36c5123437bed895b3477e4550485169017"
+      },
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.pdf": {
+        "bytes": 22656,
+        "sha256": "5741410408dec865c34e8fafeb70ead4ea3e1faad22c9b0f0b692dc675ed4b63"
+      },
+      "d9ff1d2839548b943fc08db51742d3f5a2f00fd4fd8435a4404fb3e591a622f9/19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08/1/resume.txt": {
+        "bytes": 49,
+        "sha256": "39f4e196e3fcfdc4cd5c782e3649fce90330ad3f31f3fd4be0d7d524b8bfa27f"
+      }
+    },
+    "document_file_count": 6,
+    "document_bytes": 119479,
+    "before_upgrade_matches_original_baseline": true,
+    "after_upgrade_matches_baseline": true,
+    "entire_upgraded_snapshot_equal_before_and_after_runtime": true,
+    "entire_restored_snapshot_equal_original_and_preupgrade": true,
+    "fake_credential_decrypts": true,
+    "workspace_anchor_preserved": true,
+    "prepared_mock_application_preserved": true,
+    "new_profile_job_views_exists_and_empty": true,
+    "database_read_only_observed": true,
+    "upgraded_snapshot_isolation": "repeatable read",
+    "prebackup_counts": {
+      "database": "mjobs",
+      "database_user": "mjobs",
+      "server_version_num": 170011,
+      "transaction_read_only": "on",
+      "revision": "20261025di01",
+      "workspace_rows": 1,
+      "fixture_anchors": 1,
+      "enabled_job_sources": 0,
+      "enabled_nonfixture_company_sources": 0,
+      "enabled_company_monitors": 0,
+      "collection_enabled_candidates": 0,
+      "queued_operations": 0,
+      "running_operations": 0,
+      "unresolved_browser_owners": 0,
+      "running_application_attempts": 0,
+      "application_rows": 1,
+      "prepared_mock_applications": 1
+    },
+    "upgraded_counts": {
+      "application_rows": 1,
+      "collection_enabled_candidates": 0,
+      "database": "mjobs",
+      "database_user": "mjobs",
+      "enabled_company_monitors": 0,
+      "enabled_job_sources": 0,
+      "enabled_nonfixture_company_sources": 0,
+      "fixture_anchors": 1,
+      "prepared_mock_applications": 1,
+      "queued_operations": 0,
+      "revision": "20261104rv01",
+      "running_application_attempts": 0,
+      "running_operations": 0,
+      "server_version_num": 170011,
+      "transaction_read_only": "on",
+      "unresolved_browser_owners": 0,
+      "workspace_rows": 1
+    },
+    "restored_counts": {
+      "application_rows": 1,
+      "collection_enabled_candidates": 0,
+      "database": "mjobs",
+      "database_user": "mjobs",
+      "enabled_company_monitors": 0,
+      "enabled_job_sources": 0,
+      "enabled_nonfixture_company_sources": 0,
+      "fixture_anchors": 1,
+      "prepared_mock_applications": 1,
+      "queued_operations": 0,
+      "revision": "20261025di01",
+      "running_application_attempts": 0,
+      "running_operations": 0,
+      "server_version_num": 170011,
+      "transaction_read_only": "on",
+      "unresolved_browser_owners": 0,
+      "workspace_rows": 1
+    },
+    "redis_pending_counts_each_stage": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "comparison_scope": "Six listed baseline tables and six document files. Does not claim equality of every database table, browser profile, permission, or mock receipt record."
+  },
+  "upgraded_runtime": {
+    "observed_at": "2026-11-13T06:47:16.609002+00:00",
+    "endpoint_payloads": {
+      "/ready": {
+        "status": "ready",
+        "checks": {
+          "configuration": true,
+          "database": true,
+          "queue": true,
+          "worker": true,
+          "scheduler": true,
+          "workers": {
+            "mjobs-ai": true,
+            "mjobs-application": true,
+            "mjobs-company-discovery": true,
+            "mjobs-discovery": true,
+            "mjobs-document": true
+          },
+          "schema": true,
+          "mock": true
+        },
+        "db_backend": "postgresql"
+      },
+      "/health": {
+        "status": "ok",
+        "check": "liveness",
+        "mode": "LOCAL_FIRST",
+        "operation_mode": "FIXTURE",
+        "external_submission_enabled": false
+      },
+      "/__deployment": {
+        "commit": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "version": "0.1.0-dev",
+        "operation_mode": "FIXTURE"
+      }
+    },
+    "app_image_id": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+    "healthy_service_count": 10,
+    "migrate_exit_code": 0,
+    "ready_worker_queue_count": 5,
+    "port": 18891,
+    "source_stopped_before_restore": true
+  },
+  "restored_runtime": {
+    "observed_at": "2026-11-13T06:56:04.097669+00:00",
+    "project": "mjobs-migration-restore-e49a",
+    "endpoint_payloads": {
+      "/__deployment": {
+        "commit": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "operation_mode": "FIXTURE",
+        "version": "0.1.0-dev"
+      },
+      "/health": {
+        "check": "liveness",
+        "external_submission_enabled": false,
+        "mode": "LOCAL_FIRST",
+        "operation_mode": "FIXTURE",
+        "status": "ok"
+      },
+      "/ready": {
+        "checks": {
+          "configuration": true,
+          "database": true,
+          "mock": true,
+          "queue": true,
+          "scheduler": true,
+          "schema": true,
+          "worker": true,
+          "workers": {
+            "mjobs-ai": true,
+            "mjobs-application": true,
+            "mjobs-company-discovery": true,
+            "mjobs-discovery": true,
+            "mjobs-document": true
+          }
+        },
+        "db_backend": "postgresql",
+        "status": "ready"
+      }
+    },
+    "http_status": {
+      "/__deployment": 200,
+      "/health": 200,
+      "/ready": 200
+    },
+    "app_image_id": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+    "healthy_service_count": 10,
+    "migrate_exit_code": 0,
+    "ready_worker_queue_count": 5,
+    "port": 18892,
+    "target_volume_set_disjoint_from_source": true,
+    "restore_command_chain": "restore-old-attempt1",
+    "stock_restore_starts_full_stack_before_returning": true
+  },
+  "cleanup": {
+    "observed_at": "2026-11-13T06:58:40.425361+00:00",
+    "all_22_exact_container_ids_stopped": true,
+    "containers": [
+      {
+        "id": "67b10938f7f4b1ef9600f0224eae6dc005bd6c5672a5a8a8ad61893be6c826f8",
+        "name": "/mjobs-migration-rehearsal-c707-worker-1",
+        "service": "worker",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "f8c14b006e6e17b5b1543a38e1acb5e90597b41f2b62f785a73e4eeeed5d7997",
+        "name": "/mjobs-migration-rehearsal-c707-document-worker-1",
+        "service": "document-worker",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "39fae1a5df279e339a68ac1c7e9be8be39f876ec9a0f2c15f4eaa72ac9603ca7",
+        "name": "/mjobs-migration-rehearsal-c707-ai-worker-1",
+        "service": "ai-worker",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "b023945c6b2f651f90f5b324eb66fe2ed708f9d216343b70614694a9d7c4110a",
+        "name": "/mjobs-migration-rehearsal-c707-source-worker-1",
+        "service": "source-worker",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "4f022a8d1e1591af20babc401e40cebfdc66d6576f024ff134037c27a5879933",
+        "name": "/mjobs-migration-rehearsal-c707-api-1",
+        "service": "api",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "e180d3741611d7c17df960ac8eac5da67fbf6bb2aed820df860cd986a9d0d9cc",
+        "name": "/mjobs-migration-rehearsal-c707-company-discovery-worker-1",
+        "service": "company-discovery-worker",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "edbef4164558ff87d5a368f533be114223ffe54ac940d863cdfd700e0f08fb50",
+        "name": "/mjobs-migration-rehearsal-c707-scheduler-1",
+        "service": "scheduler",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "a115b5c35ca4d0ebf107cd728538ab4feb5e4aa2b048e274c39d9d0356bb27b2",
+        "name": "/mjobs-migration-rehearsal-c707-mock-1",
+        "service": "mock",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_mock-receipts",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "83222f126373e849f337c937c746ae03df2769313a8fa232c0d87b6bd13dbdc3",
+        "name": "/mjobs-migration-rehearsal-c707-migrate-1",
+        "service": "migrate",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_migration-backups",
+            "destination": "/var/lib/mjobs-migration-backups",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "name": "/mjobs-migration-rehearsal-c707-postgres-1",
+        "service": "postgres",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_migration-backups",
+            "destination": "/var/lib/mjobs-migration-backups",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_database",
+            "destination": "/var/lib/postgresql/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "521be13eea669eb6018af02e13dc12a202361a3668f69c842d8dc9264cb53935",
+        "name": "/mjobs-migration-rehearsal-c707-redis-1",
+        "service": "redis",
+        "project": "mjobs-migration-rehearsal-c707",
+        "image": "sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-rehearsal-c707_queue",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "adea812e760015fe69e8988d643b0f930e34756716d57fbd3a7c1021937ddf59",
+        "name": "/mjobs-migration-restore-e49a-ai-worker-1",
+        "service": "ai-worker",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "93fd90bbae92a4a28d507b51b0390a29f7be3bd5d9c299002bbc25b32ff10d11",
+        "name": "/mjobs-migration-restore-e49a-company-discovery-worker-1",
+        "service": "company-discovery-worker",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "1194c5c42985c12e1b0f6a5516080c2bc0dff49bcb7b09282032e84ea77f8b3e",
+        "name": "/mjobs-migration-restore-e49a-document-worker-1",
+        "service": "document-worker",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "78bcfe430f25b94847a7339aad667452a7ac49eda553abf97ec11f338b93c0bb",
+        "name": "/mjobs-migration-restore-e49a-scheduler-1",
+        "service": "scheduler",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "58cd9428fbd5ba5c915f812bd2777a095bea8b6cc09fdd451ec781627e4d2a08",
+        "name": "/mjobs-migration-restore-e49a-worker-1",
+        "service": "worker",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "c3e694c3cee2e7ea66b72aa93d42409a2e722d29efaa7d36fa8ccf77acbc86be",
+        "name": "/mjobs-migration-restore-e49a-source-worker-1",
+        "service": "source-worker",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "318f6018609a9855dd6048dbcfb36034f89d33e70f80c90fc34ba95d48b53064",
+        "name": "/mjobs-migration-restore-e49a-mock-1",
+        "service": "mock",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_mock-receipts",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "2d227270c57e3a5c88db5f1bb0e80c34a09c26d8acb973d650c69332397c4c01",
+        "name": "/mjobs-migration-restore-e49a-api-1",
+        "service": "api",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 143,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_documents",
+            "destination": "/data/documents",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": false
+          }
+        ]
+      },
+      {
+        "id": "80ff3d28ad4a5471595ad6b66a53db56d54308570e495ee7db01ad402389a071",
+        "name": "/mjobs-migration-restore-e49a-redis-1",
+        "service": "redis",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_queue",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "aa5a6ad1d620d195c7fa532a6e691c9ec4fdf6e1b4aec1787bf43994fa2263b6",
+        "name": "/mjobs-migration-restore-e49a-migrate-1",
+        "service": "migrate",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_runtime-database",
+            "destination": "/run/mjobs-database",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_migration-backups",
+            "destination": "/var/lib/mjobs-migration-backups",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "id": "aec65cafe1ef20ccaafb89cd96c173777c600859fac41f2de39738b2d6222a29",
+        "name": "/mjobs-migration-restore-e49a-postgres-1",
+        "service": "postgres",
+        "project": "mjobs-migration-restore-e49a",
+        "image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "status": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "paused": false,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_migration-backups",
+            "destination": "/var/lib/mjobs-migration-backups",
+            "read_write": true
+          },
+          {
+            "type": "volume",
+            "name": "mjobs-migration-restore-e49a_database",
+            "destination": "/var/lib/postgresql/data",
+            "read_write": true
+          }
+        ]
+      }
+    ],
+    "retained_volume_names": [
+      "mjobs-migration-rehearsal-c707_database",
+      "mjobs-migration-rehearsal-c707_documents",
+      "mjobs-migration-rehearsal-c707_migration-backups",
+      "mjobs-migration-rehearsal-c707_mock-receipts",
+      "mjobs-migration-rehearsal-c707_queue",
+      "mjobs-migration-rehearsal-c707_runtime-database",
+      "mjobs-migration-restore-e49a_database",
+      "mjobs-migration-restore-e49a_documents",
+      "mjobs-migration-restore-e49a_migration-backups",
+      "mjobs-migration-restore-e49a_mock-receipts",
+      "mjobs-migration-restore-e49a_queue",
+      "mjobs-migration-restore-e49a_runtime-database"
+    ],
+    "retained_networks": [
+      {
+        "id": "9e53b510a000e319bf94cc1ffae5c94564cc115fcaa76f0513dc3265787b6567",
+        "name": "mjobs-migration-rehearsal-c707_private",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.1",
+            "Subnet": "10.254.76.0/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      },
+      {
+        "id": "8c9a3930b043922e122105b2c1aa6dcc0d273ff986b8acbc68c193f05fe90d85",
+        "name": "mjobs-migration-rehearsal-c707_source-egress",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.33",
+            "Subnet": "10.254.76.32/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      },
+      {
+        "id": "28cc6e3a2c7895bf072ed4a7ed7b1733fb09d2fc0751f29e83378538b464561f",
+        "name": "mjobs-migration-rehearsal-c707_ui",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.17",
+            "Subnet": "10.254.76.16/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      },
+      {
+        "id": "c3de3fd58d78ca3f3fdf6d21027924b5f9994d1ac0ae5ed4b080771eeaa2c9f0",
+        "name": "mjobs-migration-restore-e49a_private",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.49",
+            "Subnet": "10.254.76.48/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      },
+      {
+        "id": "728278450d3213bd7469fbd0117bd5ac4397ff00304b951a58c1145709c562bf",
+        "name": "mjobs-migration-restore-e49a_source-egress",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.81",
+            "Subnet": "10.254.76.80/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      },
+      {
+        "id": "32e6886f2904637bf32d1a930029e14905c51fba0bda8241479f2bbedf10f4b7",
+        "name": "mjobs-migration-restore-e49a_ui",
+        "ipam": [
+          {
+            "Gateway": "10.254.76.65",
+            "Subnet": "10.254.76.64/28"
+          }
+        ],
+        "active_endpoint_count": 0
+      }
+    ],
+    "archive_retained": true,
+    "one_full_stack_at_a_time": true,
+    "data_deleted": false,
+    "launched_command_chains": 29,
+    "observed_exit_chains": 27,
+    "expected_negative_control_chains": 2,
+    "all_launched_owned_jobs_finalized_zero_members": true,
+    "runtime_claim_status": "RELEASED",
+    "runtime_released_at": "2026-11-13T06:58:40.649672+00:00",
+    "runtime_claim_key": "web:WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad:guarded-migration-runtime:c5c63504c2ee406baf8b75ff0378d4ac",
+    "release_receipt_sha256": "8e931d8d3f0f34d2469b4b014fd39c58af040e20ccb7ddfffcc7531a0a01b94f",
+    "owner_token_published": false
+  },
+  "preserved_diagnostics": [
+    {
+      "receipt": "phase-c-runtime-readback-format-failure.json",
+      "sha256": "2065b03261db95c8a47cdcc202641d2a11d3f3f823d51225d62e6c621f0ba723",
+      "classification": "Read-only collector referenced absent migrate State.Health; corrected safe map lookup; no application failure."
+    },
+    {
+      "receipt": "phase-d-cleanup-id-format-failure.json",
+      "sha256": "1e6b2037a81caedf39b6d89c446dad5e3a0adb8d7390bfa08f8a42e949a737ec",
+      "classification": "Read-only collector compared abbreviated Docker IDs to full IDs; no success receipt or release occurred at failure; corrected --no-trunc reconciliation passed."
+    },
+    {
+      "receipt": "private-command-control-proof.json",
+      "sha256": "0538ff1c464c5192b0b79a502ad3b6bbd5208e21867287d9eccc58554ae5f1a2",
+      "classification": "Expected output-limit and descendant-timeout failures remain UNCERTAIN; all owned Job members finalized zero."
+    }
+  ],
+  "independent_reviews": {
+    "recorded_at": "2026-11-13T07:03:48.147823+00:00",
+    "recording_method": "Root records the scoped conclusions delivered by independent native reviewers in this session; this is not a cryptographic reviewer signature or human approval.",
+    "phase_a": {
+      "reviewer": "/root/final_ci_receipts",
+      "result": "APPROVED_FOR_RECORDED_MILESTONE",
+      "verified": [
+        "Target raw-Git source seal and all3267files/30433908bytes after full Dockerfile build",
+        "Image/build receipts and bounded process containment",
+        "Original baseline and prebackup gates"
+      ],
+      "source_file_map_sha256": "362e5bfd4bf38f254ad03f49ca1991831c28b224a3388047de0fca97afdc46fd"
+    },
+    "old_source": {
+      "reviewer": "/root/final_ci_receipts",
+      "result": "APPROVED_FOR_RECORDED_MILESTONE",
+      "file_count": 3178,
+      "bytes": 29698439,
+      "mismatches": 0,
+      "file_map_sha256": "0bc8f68dbcdd82d4ef4d69a5c475c060130022e703f4a53f3c9c50352fdd8544",
+      "observed_from": "2026-11-13T06:51:25.583996Z",
+      "observed_to": "2026-11-13T06:51:26.550538Z",
+      "code_hash_recomputed_from_61_raw_source_files": "8027d1d875a3a4c441e9066199619b01ba4b5dd1d10219a3a7f29a909c524835",
+      "independent_schema_hash": "NOT_COMPUTED"
+    },
+    "phase_b": {
+      "reviewer": "/root/coordination_inspection",
+      "result": "APPROVED_FOR_RECORDED_MILESTONE",
+      "final_receipt_sha256": "6ce540ddfb574297cc6c16679751c3ee98d89495a1979132d9322cc840848197",
+      "verified": [
+        "Nine reviewed command chains, source/stdin/job/intent/worker/launcher/log hashes and Job-zero",
+        "Independently byte-hashed manifest and all10archive files",
+        "Actual six-table/six-document preservation and fake credential/MOCK/anchor checks",
+        "Read-only upgraded revision/counts/catalog and25Redis zeros",
+        "Consumed authorization binds source PG/volume, archive/dump, exact code/schema and old/new revisions; ready/pending absent"
+      ]
+    },
+    "phase_c": {
+      "reviewer": "/root/coordination_inspection",
+      "result": "APPROVED_FOR_RECORDED_MILESTONE",
+      "final_receipt_sha256": "3523028ff0e637a2f99a88ef4d39197c529639a2990e2264e213f5491591419a",
+      "verified": [
+        "Seven command chains and all supplied receipt hashes",
+        "Actual5b2/FIXTURE/ready5queues/10healthy services+migrate0/image identity",
+        "Complete pre/post-runtime upgraded snapshot equality, unchanged counts,25Redis zeros",
+        "All11 source IDs/images/mounts/project unchanged and exited; sixvolumes retained",
+        "Preserved missing-State.Health collector error correctly classified"
+      ]
+    },
+    "phase_d": {
+      "reviewer": "/root/final_ci_receipts",
+      "result": "APPROVED_FOR_RECORDED_MILESTONE",
+      "final_receipt_sha256": "8a17215191167fe606a91fac4ebd669f8d0fe87ebcfaafe7b50917d9675df6a7",
+      "release_receipt_sha256": "8e931d8d3f0f34d2469b4b014fd39c58af040e20ccb7ddfffcc7531a0a01b94f",
+      "verified": [
+        "Actual distinct old-source stockrestore, runtimeHTTP200/version/images/port/networks and sixdisjointvolumes",
+        "Exactly9observed writerIDs stopped; unchanged oldsnapshot helper",
+        "Entire oldsnapshot type-preserving equality against originalNov12 and currentpreupgrade baselines,8SQLzeros and25Rediszeros",
+        "All29fullchains:27observed exits0 and2expectednegative controls; allJobzero",
+        "22originalIDs exited,12volumes/6networks retained/zeroactiveendpoints; exactnativeowner-safe release aftercleanup",
+        "Preserved abbreviated-ID collector error and corrected full-ID reconciliation"
+      ],
+      "archive_scope": "Verified receipt bindings/manifest identity; did not reread archive payloads in this phase-D review. Phase-B reviewer independently hashed all10files."
+    }
+  },
+  "hosted_source_gates": {
+    "recorded_at": "2026-11-13T07:03:48.147823+00:00",
+    "source": "authenticated GitHub connector read",
+    "protected_main_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "source_gates": [
+      {
+        "name": "CI / required",
+        "id": 131707373766,
+        "head_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-13T05:19:37Z",
+        "completed_at": "2026-11-13T05:19:39Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43370764679/job/131707373766"
+      },
+      {
+        "name": "Security / secret scan",
+        "id": 131705715948,
+        "head_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-13T05:14:57Z",
+        "completed_at": "2026-11-13T05:15:14Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43370764686/job/131705715948"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "id": 131712347625,
+        "head_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-13T05:33:50Z",
+        "completed_at": "2026-11-13T05:33:54Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43370764731/job/131712347625"
+      },
+      {
+        "name": "Deployment / candidate",
+        "id": 131705715772,
+        "head_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-13T05:14:56Z",
+        "completed_at": "2026-11-13T05:35:56Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43370764681/job/131705715772"
+      }
+    ],
+    "scope": "Four named main deployment gates only; unrelated workflow_run documentation-review outcomes are not presented as required gates or human review"
+  },
+  "execution_chains": [
+    {
+      "name": "authorization-consumed-attempt1",
+      "job_id": "authorization_consumed_read",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "run",
+        "--rm",
+        "-i",
+        "--name",
+        "mjobs-migration-rehearsal-c707-image-check-e49a",
+        "--network",
+        "none",
+        "--cpus",
+        "1",
+        "--memory",
+        "512m",
+        "--pids-limit",
+        "64",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--user",
+        "10001:10001",
+        "--mount",
+        "type=volume,source=mjobs-migration-rehearsal-c707_migration-backups,target=/auth,readonly",
+        "--entrypoint",
+        "python",
+        "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "-B",
+        "-"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\authorization-consumed-read.py",
+        "sha256": "3f682259034a168882855abe22bc61663d35761439666bab0b9f7034189d8d87"
+      },
+      "timeout_seconds": 60,
+      "global_timeout_seconds": 80,
+      "output_limit_bytes": 65536,
+      "job_sha256": "392162eb6e3d2b454a1f1deaa21b856668b488b7b05ff9b99cc22d6db7c885ec",
+      "intent_sha256": "353e5487c1657445a84c50361b9f1f16720351e5c7c86149bd8f3dff25d836b1",
+      "worker_receipt_sha256": "916d844dd584ab268f4a3d41975ba7b534776877ff464f4f5c45486e99963b32",
+      "launcher_receipt_sha256": "08da0f827bd8b95543ee7f04c14f243801b2648810e993f74a6c3ff764a39e48",
+      "log_sha256": "d0333b82682bdce3034000077c1630aa9abd4d2c8b4d4d38f62be4b46674ae96",
+      "log_bytes": 1044,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:42:50.798020+00:00",
+      "finished_at": "2026-11-13T06:42:51.370417+00:00",
+      "elapsed_seconds": 0.563,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "build-target-attempt1",
+      "job_id": "build_target_5b2e",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "build",
+        "--file",
+        "infra/docker/Dockerfile",
+        "--tag",
+        "mjobs-migration-proof:5b2e3061-e49a-96d2bf27",
+        "--iidfile",
+        "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\build-image-id.txt",
+        "--progress",
+        "plain",
+        "--pull=false",
+        "."
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 600,
+      "global_timeout_seconds": 620,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "6add6f8d37636b09db55200c7c4eab300f0ce759cbd9ab02cb88cf702530a7c6",
+      "intent_sha256": "f9926d2ada43f6fd80271cc3027b96f4ae0e538305eeb803c1b29c51632268f0",
+      "worker_receipt_sha256": "ee578c4657060725a4b24a539c084beb41453fc04a93f752501a0d04a5a64d1f",
+      "launcher_receipt_sha256": "4277592cce49d731eea7eed329eacc3ab84c4c783d4b72bbfea856ab71f8c6db",
+      "log_sha256": "0520789fbf61871a6a9afdd46351c1f6bdf87821470ca65b79744f2b268a35c3",
+      "log_bytes": 116493,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:26:56.616039+00:00",
+      "finished_at": "2026-11-13T06:29:10.568673+00:00",
+      "elapsed_seconds": 133.954,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "guarded-upgrade-attempt1",
+      "job_id": "guarded_upgrade_5b2e",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "cli.guarded_migration",
+        "--project",
+        "mjobs-migration-rehearsal-c707",
+        "--archive",
+        "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\backup-parent\\guarded-5b2e-20261113T063701Z-67ad9052"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 600,
+      "global_timeout_seconds": 620,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "e9b85777bd3c4e86181a7c26d1f81d1e667f6e2c2dde0a4583feaf538299a477",
+      "intent_sha256": "2d57e874eb53a752a77b4660d1cdebf5c6db7ddd86c6346b2f61fa18ce204aea",
+      "worker_receipt_sha256": "eb8b5c4976a275a91f7953d348f386856b0634318ea170db38f66faabe24161c",
+      "launcher_receipt_sha256": "d99058065a5a820169b0fd4ab2bc941d42b5b26d3893a6b3dd8746937e516b5c",
+      "log_sha256": "5239a52a9b2611d7adf2477b6c0dac290434a08562afaa1730d972f0fa2be8c9",
+      "log_bytes": 86,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:37:08.200770+00:00",
+      "finished_at": "2026-11-13T06:37:58.528781+00:00",
+      "elapsed_seconds": 50.328,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "old-baseline-attempt1",
+      "job_id": "old_baseline_snapshot",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-rehearsal-c707",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--pull",
+        "never",
+        "-T",
+        "--name",
+        "mjobs-migration-rehearsal-c707-old-snapshot-e49a",
+        "api",
+        "python",
+        "-",
+        "snapshot"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "MJOBS_IMAGE": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\old-synthetic-fixture.py",
+        "sha256": "17ea1037b1fad2f0e492e75f5caadf799b35cc1db69e97b581b5a4e42c4ad444"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 65536,
+      "job_sha256": "dcfd5ce70f05dc2b03dd51108be228671fe52196bfab1f37cf49d62769e10d7d",
+      "intent_sha256": "222c4924e176ff2ff84aee09465c0c5be84389320f628d42ec5728d45c953b3f",
+      "worker_receipt_sha256": "f9e222d8a71949a9191af96ba1188eaf66db3d1be01d4de0a387d6808e722762",
+      "launcher_receipt_sha256": "eb3cadde9152121319db3d8c56596555accf38418246b39ef12ced9d77d8a952",
+      "log_sha256": "ec09d4833487dfd791ded2c91917b103746d51c666ec3a012150e7f595175cc6",
+      "log_bytes": 2577,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:32:59.023609+00:00",
+      "finished_at": "2026-11-13T06:33:01.204853+00:00",
+      "elapsed_seconds": 2.172,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "old-image-check-attempt1",
+      "job_id": "old_image_check",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "run",
+        "--rm",
+        "--name",
+        "mjobs-migration-rehearsal-c707-image-check-e49a",
+        "--network",
+        "none",
+        "--cpus",
+        "1",
+        "--memory",
+        "512m",
+        "--pids-limit",
+        "64",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--entrypoint",
+        "python",
+        "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "-B",
+        "-c",
+        "import os,json; from cli import migration_precondition as g; print(json.dumps({'uid':os.getuid(),'code_hash':g.code_hash(),'schema_hash':g.digest(g.required_signature())},sort_keys=True))"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 60,
+      "global_timeout_seconds": 80,
+      "output_limit_bytes": 65536,
+      "job_sha256": "d6d147fc833ae88258463f8961ad4740ffd105c9d3b0a9407a14c2d11b85ded8",
+      "intent_sha256": "d665f938c53d6386092ccb60c0efc6eb8d0ad19af745ee06e67ab970513e60ae",
+      "worker_receipt_sha256": "cd4fa6d1e1366755e20f79f5c60236529ef076502cd0c675ab4aa12486335e3d",
+      "launcher_receipt_sha256": "32cf3547eb8ca343662017f018d0f00d8fb4ddcb3d725e25bfbe041eeac16ce3",
+      "log_sha256": "aac6e529baa8790dd58039a501bb6d9131463259942fcabcfaeaa1d83a83b63e",
+      "log_bytes": 179,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:52:56.938958+00:00",
+      "finished_at": "2026-11-13T06:52:58.024865+00:00",
+      "elapsed_seconds": 1.094,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "postruntime-counts-attempt1",
+      "job_id": "postruntime_counts",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "-i",
+        "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "psql",
+        "-X",
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "mjobs",
+        "-d",
+        "mjobs"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\prestart-count-gate.sql",
+        "sha256": "99a9170c76ebf23fb9f58bac25ddf81adb1dfd5684b5dee613c0af1764cfee82"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "cae2c528f6d059cd7717cd8bcaf97f4fc5262b0de356c074de2a231965ef42e9",
+      "intent_sha256": "eb5090385fbadde4cf021e027bcb007859067faafdcc0ef5530052d9e9c97a7c",
+      "worker_receipt_sha256": "290705aad9e85025a3c323d1fb25e494fc3099de161d0205ac3dfe9d7d7933b6",
+      "launcher_receipt_sha256": "db2b1601ec8d3aa9a2413dceec73bb1ef44be9f70240e12fb098d4984849d39e",
+      "log_sha256": "7368f49cf6d71c00e584f8c24c9f80bd07a81f9b62d114eae500d714c6a50e7f",
+      "log_bytes": 503,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:53:11.087907+00:00",
+      "finished_at": "2026-11-13T06:53:11.357496+00:00",
+      "elapsed_seconds": 0.265,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "postruntime-redis-attempt1",
+      "job_id": "postruntime_redis",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "521be13eea669eb6018af02e13dc12a202361a3668f69c842d8dc9264cb53935",
+        "redis-cli",
+        "--raw",
+        "-n",
+        "0",
+        "EVAL_RO",
+        "local queues = {'mjobs-application','mjobs-discovery','mjobs-company-discovery','mjobs-ai','mjobs-document'}\nlocal allowed = {}\nfor _,q in ipairs(queues) do allowed['rq:queue:'..q] = true end\nfor _,key in ipairs(redis.call('SMEMBERS','rq:queues')) do\n if not allowed[key] then return redis.error_reply('UNEXPECTED_REGISTERED_QUEUE') end\nend\nlocal counts = {}\nfor _,q in ipairs(queues) do\n table.insert(counts,redis.call('LLEN','rq:queue:'..q))\n table.insert(counts,redis.call('LLEN','rq:queue:'..q..':intermediate'))\n table.insert(counts,redis.call('ZCARD','rq:wip:'..q))\n table.insert(counts,redis.call('ZCARD','rq:scheduled:'..q))\n table.insert(counts,redis.call('ZCARD','rq:deferred:'..q))\nend\nreturn counts\n",
+        "0"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "a24904f673f13cbc259775b6a3e41b9c18ecf981e11a0ac2a4412a2da16bec3d",
+      "intent_sha256": "1d3a8f1e839c8a2f25f88d2b4bb023f31bd442ca8e78cc0290726a0a1b6df7b1",
+      "worker_receipt_sha256": "5b7218c154743fee783802ff2f192ec8d1ed7acdc054e39914182bf958bc88e0",
+      "launcher_receipt_sha256": "5a9df940ee0e6dd9a58a4ca1f3dafd96c48c63bcec5da6c76ded13e724a87139",
+      "log_sha256": "4f1395cdf9c87ed5efe4190a96e8f4bf5645587309a21ce15d051d71c6d5370a",
+      "log_bytes": 50,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:53:02.704593+00:00",
+      "finished_at": "2026-11-13T06:53:02.923215+00:00",
+      "elapsed_seconds": 0.219,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "postupgrade_catalog-attempt1",
+      "job_id": "postupgrade_catalog",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "-i",
+        "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "psql",
+        "-X",
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "mjobs",
+        "-d",
+        "mjobs"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\profile-job-views-catalog.sql",
+        "sha256": "c13ac92b56567d7215d30ae7cfdb9f23b9e5a3fcb61c70ecb195c8f1e27d142b"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "e0812cb9a053b1f7203e5f00a9abbda0d849fa2c30820bffc3acaabd57342cd6",
+      "intent_sha256": "c1137b4cdc3ad32390fdf6eda7d090bbfa8c80379b2cd9f8ed414d6168bf0187",
+      "worker_receipt_sha256": "e3eed23fbcee558fd7386f9c9419205e52f17fcd6c9353932d745850d848b2f3",
+      "launcher_receipt_sha256": "ecadfb6066cb5c3fa4ae908366c344d1df2e1dbdeb36c550eef6b646eb107f74",
+      "log_sha256": "b7700c268b7963af05455bc78f2b0cef9f9fca60b38dd8debd17d9f2d09abf0e",
+      "log_bytes": 961,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:40:10.230996+00:00",
+      "finished_at": "2026-11-13T06:40:10.501240+00:00",
+      "elapsed_seconds": 0.265,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "postupgrade_counts-attempt1",
+      "job_id": "postupgrade_counts",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "-i",
+        "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "psql",
+        "-X",
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "mjobs",
+        "-d",
+        "mjobs"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\prestart-count-gate.sql",
+        "sha256": "99a9170c76ebf23fb9f58bac25ddf81adb1dfd5684b5dee613c0af1764cfee82"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "fa48ebada930c2b90804b6d0af74efa961bae767beb902c24e36b1b161faa225",
+      "intent_sha256": "918042fb62dd4e4d357eed632033b31f3855af99cfb16fd0af57bcd71cf9528c",
+      "worker_receipt_sha256": "77d4d98b8a9dda43729087b98fc80f0466e2c508dd52e3e9a84477a870887745",
+      "launcher_receipt_sha256": "1ce7f9d9b840ab05785c442f3317cdfc5ce444a7bf8000b87d2e40ce32d573e5",
+      "log_sha256": "7368f49cf6d71c00e584f8c24c9f80bd07a81f9b62d114eae500d714c6a50e7f",
+      "log_bytes": 503,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:40:00.484899+00:00",
+      "finished_at": "2026-11-13T06:40:00.753250+00:00",
+      "elapsed_seconds": 0.265,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "postupgrade_redis-attempt1",
+      "job_id": "postupgrade_redis",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "521be13eea669eb6018af02e13dc12a202361a3668f69c842d8dc9264cb53935",
+        "redis-cli",
+        "--raw",
+        "-n",
+        "0",
+        "EVAL_RO",
+        "local queues = {'mjobs-application','mjobs-discovery','mjobs-company-discovery','mjobs-ai','mjobs-document'}\nlocal allowed = {}\nfor _,q in ipairs(queues) do allowed['rq:queue:'..q] = true end\nfor _,key in ipairs(redis.call('SMEMBERS','rq:queues')) do\n if not allowed[key] then return redis.error_reply('UNEXPECTED_REGISTERED_QUEUE') end\nend\nlocal counts = {}\nfor _,q in ipairs(queues) do\n table.insert(counts,redis.call('LLEN','rq:queue:'..q))\n table.insert(counts,redis.call('LLEN','rq:queue:'..q..':intermediate'))\n table.insert(counts,redis.call('ZCARD','rq:wip:'..q))\n table.insert(counts,redis.call('ZCARD','rq:scheduled:'..q))\n table.insert(counts,redis.call('ZCARD','rq:deferred:'..q))\nend\nreturn counts\n",
+        "0"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "cd2a75b4deec01436b1a6b57c440e2b1b957f820bc8c107ed9bf3ea112c46f0c",
+      "intent_sha256": "8cea65ce7045b7c750cb43f564f6fe371cf29ca769b9ae8ef6ab3c16642a0d1f",
+      "worker_receipt_sha256": "4f73ba60dcf94d6ae99ed919b5a2a3e4e3b7ec937c1b042a2f4914e4d350a0a3",
+      "launcher_receipt_sha256": "f5ad789cf167ed93d00d9853af525c76ced85692cb36c817203a824a3eb3756a",
+      "log_sha256": "4f1395cdf9c87ed5efe4190a96e8f4bf5645587309a21ce15d051d71c6d5370a",
+      "log_bytes": 50,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:40:07.405090+00:00",
+      "finished_at": "2026-11-13T06:40:07.673259+00:00",
+      "elapsed_seconds": 0.265,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "prebackup_counts-attempt1",
+      "job_id": "prebackup_counts",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "-i",
+        "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "psql",
+        "-X",
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "mjobs",
+        "-d",
+        "mjobs"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\prestart-count-gate.sql",
+        "sha256": "99a9170c76ebf23fb9f58bac25ddf81adb1dfd5684b5dee613c0af1764cfee82"
+      },
+      "timeout_seconds": 45,
+      "global_timeout_seconds": 65,
+      "output_limit_bytes": 65536,
+      "job_sha256": "ea024a113e3bb4e9eb4a5277b23c631cd4d2b4423b45c0cdbb331ab4a8cf6689",
+      "intent_sha256": "789da599a245f5c85e953e6a6d2966916098edf64596d70ca5f12b1652cc15a7",
+      "worker_receipt_sha256": "6c49713ea50d8830c8d6b4504ee2053bd12cf2e1c48306e24b36259ab7caa573",
+      "launcher_receipt_sha256": "1838908a2ee22c6423670b8e47d1729a33a64ef2c77d784b3e8e29fbd7b8b170",
+      "log_sha256": "0eb91536f0024c4e676168bf70cc3a38aa9cee8d55beb314878ffd87fbe3cde5",
+      "log_bytes": 503,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:29:59.562024+00:00",
+      "finished_at": "2026-11-13T06:29:59.831629+00:00",
+      "elapsed_seconds": 0.281,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "prebackup_redis-attempt1",
+      "job_id": "prebackup_redis",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "521be13eea669eb6018af02e13dc12a202361a3668f69c842d8dc9264cb53935",
+        "redis-cli",
+        "--raw",
+        "-n",
+        "0",
+        "EVAL_RO",
+        "local queues = {'mjobs-application','mjobs-discovery','mjobs-company-discovery','mjobs-ai','mjobs-document'}\nlocal allowed = {}\nfor _,q in ipairs(queues) do allowed['rq:queue:'..q] = true end\nfor _,key in ipairs(redis.call('SMEMBERS','rq:queues')) do\n if not allowed[key] then return redis.error_reply('UNEXPECTED_REGISTERED_QUEUE') end\nend\nlocal counts = {}\nfor _,q in ipairs(queues) do\n table.insert(counts,redis.call('LLEN','rq:queue:'..q))\n table.insert(counts,redis.call('LLEN','rq:queue:'..q..':intermediate'))\n table.insert(counts,redis.call('ZCARD','rq:wip:'..q))\n table.insert(counts,redis.call('ZCARD','rq:scheduled:'..q))\n table.insert(counts,redis.call('ZCARD','rq:deferred:'..q))\nend\nreturn counts\n",
+        "0"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 45,
+      "global_timeout_seconds": 65,
+      "output_limit_bytes": 65536,
+      "job_sha256": "5ac25bd2334560d87367ba240458cdc3e8682a9d526ece8c7c127f97cfdb48d7",
+      "intent_sha256": "99d2b1e21843f3bda5634b6692e6d5e55b830a6c4697f7fee19c007d8dd8ffc8",
+      "worker_receipt_sha256": "f27a157876566876abfee9202129c6c75f035c492eb8c624f73e322580f796dc",
+      "launcher_receipt_sha256": "6ea9251c3a40bdfc5aa410d92f2921404213666641e6bdba61d655a6bacb29ae",
+      "log_sha256": "4f1395cdf9c87ed5efe4190a96e8f4bf5645587309a21ce15d051d71c6d5370a",
+      "log_bytes": 50,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:30:01.920022+00:00",
+      "finished_at": "2026-11-13T06:30:02.188758+00:00",
+      "elapsed_seconds": 0.282,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "private-control-benign_python_smoke-55f8196a",
+      "job_id": "benign_python_smoke",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-c",
+        "print('owned-smoke')"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 5,
+      "global_timeout_seconds": 15,
+      "output_limit_bytes": 4096,
+      "job_sha256": "bfe82e45e2829d4276f42d26614bf0afeb5cff5b20b74e8a30af6270e7be4599",
+      "intent_sha256": "d19807516afa77c4f925272a5ba6246d24afb73c7a53265c084c959be4893619",
+      "worker_receipt_sha256": "efaa3e4b86c469cf7f73505559c8224b19a6c860cc7128d6f6ab80b2e80567f3",
+      "launcher_receipt_sha256": "b11f40d95b51c60391d2504a47a821e31b600f6c246e9cf83085d322e2ddeef3",
+      "log_sha256": "b8a5ea58621e5c0149fb41d561b983d5c8c02127c4a8146eab41bbd0c98d61bf",
+      "log_bytes": 13,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:10:32.990354+00:00",
+      "finished_at": "2026-11-13T06:10:33.213125+00:00",
+      "elapsed_seconds": 0.219,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "private-control-output_cap_smoke-a898d66d",
+      "job_id": "output_cap_smoke",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-c",
+        "import sys; sys.stdout.write('x'*8192); sys.stdout.flush()"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 5,
+      "global_timeout_seconds": 15,
+      "output_limit_bytes": 1024,
+      "job_sha256": "1a0fa2cc65cb73fba9e811d1c523308a075ca96ac9c9c3bc1106c4ee58f21f70",
+      "intent_sha256": "56cf453689ed9e3a75ee73a1b35e85c3fb2f4a7cf8118c5e45669c30f36cc2d4",
+      "worker_receipt_sha256": "8fcf057560f828bfa0bad1416548050969a489387a357e5a000435d17fc5278d",
+      "launcher_receipt_sha256": "943df6272e01807eac28e506a1926f432781bc7e8394fb87c539b3d71f8659fd",
+      "log_sha256": "49abd65bbf7f7e40c7055093ed2e3fd75f2f602f2c5fcf955c213e3135eb03f7",
+      "log_bytes": 1024,
+      "status": "UNCERTAIN",
+      "reason": "HOST_EXIT_OBSERVED",
+      "command_returncode": 1,
+      "host_returncode": 2,
+      "started_at": "2026-11-13T06:10:35.475232+00:00",
+      "finished_at": "2026-11-13T06:10:35.648249+00:00",
+      "elapsed_seconds": 0.172,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "private-control-timeout_descendant_smoke-22d466c2",
+      "job_id": "timeout_descendant_smoke",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-c",
+        "import subprocess,sys,time; subprocess.Popen([sys.executable,'-B','-c','import time; time.sleep(30)'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); print('timeout-smoke',flush=True); time.sleep(30)"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 2,
+      "global_timeout_seconds": 12,
+      "output_limit_bytes": 4096,
+      "job_sha256": "defa8c76ab41dedb4278d7067aced2de48509f593b5936ae3049ba86f67c6dc5",
+      "intent_sha256": "08a60c8045645d0a4a2e6c4aeadcb6ac9da8828c35e8597f16cd21df132f44f3",
+      "worker_receipt_sha256": "e197c19ca25adb9d2e609d7ad1c628775774d8be654826c63c3d97e58eefc0f4",
+      "launcher_receipt_sha256": "3fc0fda8ef6346a402b301b95fb26c4e9cd6e9c3354e9393b1e1d28a546b07d5",
+      "log_sha256": "f1fb9f020fbfadc4770e1b8fd1d56149948f6c367421c9c0b8f1d28b6bf68f12",
+      "log_bytes": 15,
+      "status": "UNCERTAIN",
+      "reason": "HOST_EXIT_OBSERVED",
+      "command_returncode": 1,
+      "host_returncode": 2,
+      "started_at": "2026-11-13T06:10:38.624024+00:00",
+      "finished_at": "2026-11-13T06:10:40.759789+00:00",
+      "elapsed_seconds": 2.141,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "recreate-migrate-attempt1",
+      "job_id": "recreate_stopped_migrate",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-rehearsal-c707",
+        "up",
+        "--no-start",
+        "--no-deps",
+        "--no-build",
+        "--pull",
+        "never",
+        "--force-recreate",
+        "migrate"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 65536,
+      "job_sha256": "58d688c3eeff850bef3e78b4f30ceae426caf4a9b85043ffd6a66bf938f475e8",
+      "intent_sha256": "8363da819b50304e6f1b6ee41b829856855da2c99301863dfd2afc34c696215a",
+      "worker_receipt_sha256": "d09a7bd371d12ea33a251038442c1ca74e4dc748116dbf16e0a14db47de12dcd",
+      "launcher_receipt_sha256": "7e006bca8251d9af028df5562b98cce96e03fd97b8e9f41b1a4786dd34a22a12",
+      "log_sha256": "6badbfb7e4c54f3d3ff50fef6bf56f4e7fdf0db0eabb8aea27cb499968b3070a",
+      "log_bytes": 125,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:34:45.852306+00:00",
+      "finished_at": "2026-11-13T06:34:46.377907+00:00",
+      "elapsed_seconds": 0.515,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "restore-old-attempt1",
+      "job_id": "restore_old_distinct_project",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "cli.local_backup",
+        "restore",
+        "--archive",
+        "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\backup-parent\\guarded-5b2e-20261113T063701Z-67ad9052",
+        "--target-project",
+        "mjobs-migration-restore-e49a",
+        "--port",
+        "18892"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\restore-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "MJOBS_IMAGE": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18892",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 600,
+      "global_timeout_seconds": 620,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "54598aa798f08f5fe115a652eb70677765b28881a64ccf22c03a0b7a7866897f",
+      "intent_sha256": "3495efe34b3766eeed60463959650b97f2d82e3d73c46a321009e9a54bf16292",
+      "worker_receipt_sha256": "2653787268e8104d67dfe141cfd57b696cb4e49b11beaa3defdc0e18954083ea",
+      "launcher_receipt_sha256": "e1eb2cc6693712ca47f617622b3e7dcbdaec1ec3ba98c67f98b3d51c3bc27b3f",
+      "log_sha256": "ab9e2586f358fe3cc2d30673fe73a0eeaa5b622214c2494cb2b10fe2e4b46c7e",
+      "log_bytes": 74,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:54:50.301097+00:00",
+      "finished_at": "2026-11-13T06:55:17.592370+00:00",
+      "elapsed_seconds": 27.297,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "restored-counts-attempt1",
+      "job_id": "restored_counts",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "-i",
+        "aec65cafe1ef20ccaafb89cd96c173777c600859fac41f2de39738b2d6222a29",
+        "psql",
+        "-X",
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "mjobs",
+        "-d",
+        "mjobs"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\restore-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "MJOBS_IMAGE": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18892",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\prestart-count-gate.sql",
+        "sha256": "99a9170c76ebf23fb9f58bac25ddf81adb1dfd5684b5dee613c0af1764cfee82"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "83b0fb6699861cd36d4aa74878ad1b44e776c5b81305b0a812ea8ddc16c13619",
+      "intent_sha256": "8b8a767ca058b3d32ff50b52e60781e3d7bcfcebb595d3459ad00ebb9595f727",
+      "worker_receipt_sha256": "55aaf10cab8f9ccfffe3e58193e0f56614bab98cc6e04aa4dbda9e4f9a8ed4f2",
+      "launcher_receipt_sha256": "7eeca8b7b8864560926beeb656416189617f73f3934a720c5f1ca1ec3e97e7af",
+      "log_sha256": "0eb91536f0024c4e676168bf70cc3a38aa9cee8d55beb314878ffd87fbe3cde5",
+      "log_bytes": 503,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:56:42.312832+00:00",
+      "finished_at": "2026-11-13T06:56:42.582993+00:00",
+      "elapsed_seconds": 0.266,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "restored-old-snapshot-attempt1",
+      "job_id": "restored_old_snapshot",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-restore-e49a",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--pull",
+        "never",
+        "-T",
+        "--name",
+        "mjobs-migration-restore-e49a-old-snapshot-e49a",
+        "api",
+        "python",
+        "-",
+        "snapshot"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\restore-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "MJOBS_IMAGE": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18892",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\old-synthetic-fixture.py",
+        "sha256": "17ea1037b1fad2f0e492e75f5caadf799b35cc1db69e97b581b5a4e42c4ad444"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 65536,
+      "job_sha256": "732c51e4a7685c011dd295616ee2df19e0e85477abaaecba355758196020115e",
+      "intent_sha256": "78cfe420742d3aa8aa9ab64b174971f32074ce1e6a16ec2e5a4aa00070592658",
+      "worker_receipt_sha256": "c2f7fb3361e46abd246036285e1e5bfd4ef6d0c421b860f9041e1814003d67f0",
+      "launcher_receipt_sha256": "db3dacb5ba60a0d49f63fb6db6afd0dc8547829573b4c78dd4f979abd055b512",
+      "log_sha256": "4d482634b0fa8aa2097ba127c447941d122a4eea16c0673065cee83cc910bccc",
+      "log_bytes": 2573,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:56:44.783486+00:00",
+      "finished_at": "2026-11-13T06:56:46.914995+00:00",
+      "elapsed_seconds": 2.125,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "restored-redis-attempt1",
+      "job_id": "restored_redis",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "exec",
+        "80ff3d28ad4a5471595ad6b66a53db56d54308570e495ee7db01ad402389a071",
+        "redis-cli",
+        "--raw",
+        "-n",
+        "0",
+        "EVAL_RO",
+        "local queues = {'mjobs-application','mjobs-discovery','mjobs-company-discovery','mjobs-ai','mjobs-document'}\nlocal allowed = {}\nfor _,q in ipairs(queues) do allowed['rq:queue:'..q] = true end\nfor _,key in ipairs(redis.call('SMEMBERS','rq:queues')) do\n if not allowed[key] then return redis.error_reply('UNEXPECTED_REGISTERED_QUEUE') end\nend\nlocal counts = {}\nfor _,q in ipairs(queues) do\n table.insert(counts,redis.call('LLEN','rq:queue:'..q))\n table.insert(counts,redis.call('LLEN','rq:queue:'..q..':intermediate'))\n table.insert(counts,redis.call('ZCARD','rq:wip:'..q))\n table.insert(counts,redis.call('ZCARD','rq:scheduled:'..q))\n table.insert(counts,redis.call('ZCARD','rq:deferred:'..q))\nend\nreturn counts\n",
+        "0"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\old-6a47\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\restore-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+        "MJOBS_IMAGE": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18892",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "392403a3151b90c39484482a25b6bc454c93be9259f6e6c62aa572c242f29db1",
+      "intent_sha256": "626fb1662e07dedaa240a926996f8a440a4f4dc7e7c22053283032274bdf181c",
+      "worker_receipt_sha256": "7abe11e34d4f22fa1b74eeb8b08621b4231204e6f664b9380dc20870ad8bd8a8",
+      "launcher_receipt_sha256": "2c44a5916ce8677240e6ecfebc0e1f53c25d756ced0f0edb5fe0959f53737ae0",
+      "log_sha256": "4f1395cdf9c87ed5efe4190a96e8f4bf5645587309a21ce15d051d71c6d5370a",
+      "log_bytes": 50,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:56:49.315056+00:00",
+      "finished_at": "2026-11-13T06:56:49.533972+00:00",
+      "elapsed_seconds": 0.219,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "start-upgraded-attempt1",
+      "job_id": "start_upgraded_fixture",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-rehearsal-c707",
+        "up",
+        "-d",
+        "--no-build",
+        "--pull",
+        "never",
+        "--wait",
+        "--wait-timeout",
+        "180"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 240,
+      "global_timeout_seconds": 260,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "dc898fed984f94e6e3fafc381e60dc94dacbb9c091bd5d357c5ad88700909c2b",
+      "intent_sha256": "ef1442428e26c3051c765d72f2dbfe0c28541094f6534c3fa6500b7566ce5dd7",
+      "worker_receipt_sha256": "a1af7553e407153ea91284e2aef3e272aad3ce3bd0d0c736c960cd1d7836dd0d",
+      "launcher_receipt_sha256": "240568451788dbefaef5cdbbfa2f4e11d398d7394ec7c1bdcf80e5cbfd7f02e5",
+      "log_sha256": "b71d7c6838d23eae26fa509ce19917719a4e78b0a6c82d60d318e376018c31a9",
+      "log_bytes": 4092,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:44:18.439451+00:00",
+      "finished_at": "2026-11-13T06:44:28.065409+00:00",
+      "elapsed_seconds": 9.625,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "stop-restored-storage-attempt1",
+      "job_id": "stop_restored_storage",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "stop",
+        "--time",
+        "30",
+        "80ff3d28ad4a5471595ad6b66a53db56d54308570e495ee7db01ad402389a071",
+        "aec65cafe1ef20ccaafb89cd96c173777c600859fac41f2de39738b2d6222a29"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "3ab6423a38c0a92503ae1338e81810db6b9c886da72658d407d6d8aec37f54fd",
+      "intent_sha256": "8fb5e79892d75431141ef7cf0a5d8c7a9aa485cf3c59d7acf4277ddac3533a84",
+      "worker_receipt_sha256": "615f023e77db514ab528fef61334fb593fa48f842da7c0eb9e64630e2b7c5ec0",
+      "launcher_receipt_sha256": "160e74e02f14a51074bfe76c89a1a8ebbcb97d6e89ff276d385333f55620e7d7",
+      "log_sha256": "036223961650eecebc75ec50c591fe0504cde3642b1dd1e4431b6a573685ab6a",
+      "log_bytes": 185,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:57:14.585046+00:00",
+      "finished_at": "2026-11-13T06:57:15.066515+00:00",
+      "elapsed_seconds": 0.484,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "stop-restored-writers-attempt1",
+      "job_id": "stop_restored_writers",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "stop",
+        "--time",
+        "30",
+        "adea812e760015fe69e8988d643b0f930e34756716d57fbd3a7c1021937ddf59",
+        "93fd90bbae92a4a28d507b51b0390a29f7be3bd5d9c299002bbc25b32ff10d11",
+        "1194c5c42985c12e1b0f6a5516080c2bc0dff49bcb7b09282032e84ea77f8b3e",
+        "78bcfe430f25b94847a7339aad667452a7ac49eda553abf97ec11f338b93c0bb",
+        "58cd9428fbd5ba5c915f812bd2777a095bea8b6cc09fdd451ec781627e4d2a08",
+        "c3e694c3cee2e7ea66b72aa93d42409a2e722d29efaa7d36fa8ccf77acbc86be",
+        "318f6018609a9855dd6048dbcfb36034f89d33e70f80c90fc34ba95d48b53064",
+        "2d227270c57e3a5c88db5f1bb0e80c34a09c26d8acb973d650c69332397c4c01",
+        "aa5a6ad1d620d195c7fa532a6e691c9ec4fdf6e1b4aec1787bf43994fa2263b6"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "cb13fafcbd2fd3347b0bce45335fcae9d4c35cb1a1c1e62a4985b36e21dc90d3",
+      "intent_sha256": "76d18fb12c4b17f81a0b95e064a632549295a16e13728b57090eb6ae41d6a376",
+      "worker_receipt_sha256": "7b6ca4898a0892ef3c3e943a740c0b49ccbf9fb650e136851ea6f82cf31b09e3",
+      "launcher_receipt_sha256": "f99c82013fe76c33449cbbd2546bdfc5433f7bff76f2ab69bee1c13143882112",
+      "log_sha256": "7a05d45339dd51a68cbac4106a2b6010c5b33d4a2164e9a137c355a967f546c1",
+      "log_bytes": 640,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:56:10.753677+00:00",
+      "finished_at": "2026-11-13T06:56:12.432396+00:00",
+      "elapsed_seconds": 1.687,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "stop-upgraded-storage-attempt1",
+      "job_id": "stop_upgraded_storage",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "stop",
+        "--time",
+        "30",
+        "3540342b828c0ab2a16aaebe01ac5d5c232ee0c792d76620336ba792f020c051",
+        "521be13eea669eb6018af02e13dc12a202361a3668f69c842d8dc9264cb53935"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "5f603dbe44afe8e4864926e47d23cd4315fca8d034e4c2a27d92604dc2f95b5b",
+      "intent_sha256": "043f81984c71b86f4f35313bed503a10a5f0b16b66cbf5dc04290edb5247a9ed",
+      "worker_receipt_sha256": "946187fcc0a31e109eb23719314e95dbd0102cdb702f2f7e19a8333aa798cbe5",
+      "launcher_receipt_sha256": "6ab387ee0ba0b7d7c1e497ddc6c736b4bfc3fa2240bb87f3da15184951b0ac7c",
+      "log_sha256": "5d679bd41b03a4d16d826b5df604a5fe7f1395e1fa008e16650c546812f5c83f",
+      "log_bytes": 185,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:53:55.457582+00:00",
+      "finished_at": "2026-11-13T06:53:55.927755+00:00",
+      "elapsed_seconds": 0.469,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "stop-upgraded-writers-attempt1",
+      "job_id": "stop_upgraded_writers",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "stop",
+        "--time",
+        "30",
+        "67b10938f7f4b1ef9600f0224eae6dc005bd6c5672a5a8a8ad61893be6c826f8",
+        "f8c14b006e6e17b5b1543a38e1acb5e90597b41f2b62f785a73e4eeeed5d7997",
+        "39fae1a5df279e339a68ac1c7e9be8be39f876ec9a0f2c15f4eaa72ac9603ca7",
+        "b023945c6b2f651f90f5b324eb66fe2ed708f9d216343b70614694a9d7c4110a",
+        "4f022a8d1e1591af20babc401e40cebfdc66d6576f024ff134037c27a5879933",
+        "e180d3741611d7c17df960ac8eac5da67fbf6bb2aed820df860cd986a9d0d9cc",
+        "edbef4164558ff87d5a368f533be114223ffe54ac940d863cdfd700e0f08fb50",
+        "a115b5c35ca4d0ebf107cd728538ab4feb5e4aa2b048e274c39d9d0356bb27b2",
+        "83222f126373e849f337c937c746ae03df2769313a8fa232c0d87b6bd13dbdc3"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 2097152,
+      "job_sha256": "fa1bd6b9a940c34299130efab59d7ab7e08a063d68d7d19a581afb995f5fcae3",
+      "intent_sha256": "3ecdf6a46f1d737ce77f63b63b1e8a3ffedab696c6f9f50518b4274bce293a41",
+      "worker_receipt_sha256": "32f97d4a5c19a0d5aeeb575458422dcd5c4f0fe9a8f9a383fa76e5ff864b1498",
+      "launcher_receipt_sha256": "ee5ef08bb3f47f90f07f88e6f60bf49f8838dde48dc9cf1e5c029fe9d4df4696",
+      "log_sha256": "0c0cc54f62d4e43c4d17bc7de081a8e87806064ba192060c5f03bd0f124c9a52",
+      "log_bytes": 640,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:52:22.809983+00:00",
+      "finished_at": "2026-11-13T06:52:24.236955+00:00",
+      "elapsed_seconds": 1.422,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "target-image-check-attempt1",
+      "job_id": "target_image_check",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "run",
+        "--rm",
+        "--name",
+        "mjobs-migration-rehearsal-c707-image-check-e49a",
+        "--network",
+        "none",
+        "--cpus",
+        "1",
+        "--memory",
+        "512m",
+        "--pids-limit",
+        "64",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--entrypoint",
+        "python",
+        "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "-B",
+        "-c",
+        "import os,json; from cli import migration_precondition as g; print(json.dumps({'uid':os.getuid(),'code_hash':g.code_hash(),'schema_hash':g.digest(g.required_signature())},sort_keys=True))"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {},
+      "stdin": null,
+      "timeout_seconds": 60,
+      "global_timeout_seconds": 80,
+      "output_limit_bytes": 65536,
+      "job_sha256": "699105ae3998265e2f7d8d18a5104fa147791948865ce9d51e0124e17963236b",
+      "intent_sha256": "607dfebcbed70a342d9fdbbb75748fdf925391b3c68c71a96b3ddbf8825dbe39",
+      "worker_receipt_sha256": "ecb7d3ccc84f744d24b78407a34b047e94f7294ac5fc9c959a36ace8221ab8df",
+      "launcher_receipt_sha256": "70b4f1395dcff6f9f1594eb27f690acd7b2eb42d7b9415c5b89f4ead7ab154fb",
+      "log_sha256": "c5f264d258a4fd923ceeeb314d8bb785eb8dffb8995c3b1e4d7feda0c839e6ad",
+      "log_bytes": 179,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:31:34.819641+00:00",
+      "finished_at": "2026-11-13T06:31:35.793100+00:00",
+      "elapsed_seconds": 0.968,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "upgraded-after-runtime-attempt1",
+      "job_id": "upgraded_after_runtime",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-rehearsal-c707",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--pull",
+        "never",
+        "-T",
+        "--name",
+        "mjobs-migration-rehearsal-c707-upgraded-after-e49a",
+        "api",
+        "python",
+        "-",
+        "--expected-revision",
+        "20261104rv01",
+        "--expected-source",
+        "5b2e306144ca39fff1c199e1b0c215efe18f6fc1"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\upgraded-snapshot-inspector.py",
+        "sha256": "9d8025b5c09841fd9b4bbb827a3392a1dbbaec03bb4d973dc8984fbbbc1a270a"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "1ecf05d4edff34671b90b75b72dac21892c04ee6eb467c8621180246fcd04fd5",
+      "intent_sha256": "7a7b751513125598be65cbf59f09b0e06edf0ed269f9d801529a8667d0d26a4f",
+      "worker_receipt_sha256": "1bca0bbf7ebccf8e3b6f6b63674a68996c5fcb484260e8cfb4922e15dfd6bf70",
+      "launcher_receipt_sha256": "3d027880431c77303d7a107d87a0507a4dad645dc55f132feffb9c2b6bd73c45",
+      "log_sha256": "1e0dcab063e6b13631180a061345d2f2b2baa22835aed51d89766115a850ad56",
+      "log_bytes": 2822,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:53:06.225010+00:00",
+      "finished_at": "2026-11-13T06:53:08.159163+00:00",
+      "elapsed_seconds": 1.922,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "upgraded_snapshot-attempt1",
+      "job_id": "upgraded_snapshot",
+      "argv": [
+        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+        "compose",
+        "-p",
+        "mjobs-migration-rehearsal-c707",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--pull",
+        "never",
+        "-T",
+        "--name",
+        "mjobs-migration-rehearsal-c707-upgraded-snapshot-e49a",
+        "api",
+        "python",
+        "-",
+        "--expected-revision",
+        "20261104rv01",
+        "--expected-source",
+        "5b2e306144ca39fff1c199e1b0c215efe18f6fc1"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": {
+        "file": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence\\inputs\\upgraded-snapshot-inspector.py",
+        "sha256": "9d8025b5c09841fd9b4bbb827a3392a1dbbaec03bb4d973dc8984fbbbc1a270a"
+      },
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "f09079a1c4a6d51537668eaad45c0a8207157fbf47bdeb5f2061f950a64802d6",
+      "intent_sha256": "087659a911e9a9e783aa15eff43b8d63ac7046faf2c76bf5bb056983d9a36be9",
+      "worker_receipt_sha256": "dedb49877a67b70ab4ede8a860f82837eef2c8867364bd40442cb1841db8c8ab",
+      "launcher_receipt_sha256": "742cbbe3522e6f9e37013fc53959d246010252c3c534d3e2906f87803ed7e553",
+      "log_sha256": "1aafdd58e8ca5b70115e0fb0f10ea02b1e6463760baa0a4c5a2fc177e5b5780d",
+      "log_bytes": 2828,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:40:12.751409+00:00",
+      "finished_at": "2026-11-13T06:40:14.632860+00:00",
+      "elapsed_seconds": 1.875,
+      "job_finalized_zero_members": true
+    },
+    {
+      "name": "verify_guard_archive-attempt1",
+      "job_id": "verify_guard_archive",
+      "argv": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "cli.local_backup",
+        "verify",
+        "--archive",
+        "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\backup-parent\\guarded-5b2e-20261113T063701Z-67ad9052"
+      ],
+      "cwd": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e",
+      "environment_overrides": {
+        "COMPOSE_FILE": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\target-5b2e\\compose.yml;C:\\MJobsMigrationRehearsal\\20261112-c707\\upgrade-networks.yml",
+        "COMPOSE_PATH_SEPARATOR": ";",
+        "COMPOSE_PROFILES": "fixture",
+        "MJOBS_COMPOSE_MOCK": "1",
+        "MJOBS_DEPLOY_SHA": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+        "MJOBS_IMAGE": "sha256:e63836b5c5e932d1cdc61ad375eced7c197c9fb36bbfe83b7ca64891ac4fe4bf",
+        "MJOBS_NOTIFICATIONS_ENABLED": "0",
+        "MJOBS_OPERATION_MODE": "FIXTURE",
+        "MJOBS_PORT": "18891",
+        "MJOBS_WORKER_LOG_LEVEL": "WARNING"
+      },
+      "stdin": null,
+      "timeout_seconds": 90,
+      "global_timeout_seconds": 110,
+      "output_limit_bytes": 131072,
+      "job_sha256": "77689264fb2cde3b3054c94a09746836e9da5e5b5819d1c0a506591a5df4103f",
+      "intent_sha256": "0fce7263ef95b8a0b9bc14554e42fba4b1ddb6e9d12c49ea22d41bf2f22f841e",
+      "worker_receipt_sha256": "3b608aa4af2444c3797103d586b009a5107b1743825b0e0771817ae9c2eca9c6",
+      "launcher_receipt_sha256": "91497503881c4c304f302b17a3745d251e9e860aa6581dd61efa77c7b4ccaab7",
+      "log_sha256": "d2044c72ef3bfcba303c54e9de5f2a627b8040a0d4701f451406797a98c064ba",
+      "log_bytes": 41,
+      "status": "OBSERVED_EXIT",
+      "reason": "BOUNDED_COMMAND_EXIT_OBSERVED",
+      "command_returncode": 0,
+      "host_returncode": 0,
+      "started_at": "2026-11-13T06:39:51.962526+00:00",
+      "finished_at": "2026-11-13T06:39:52.634644+00:00",
+      "elapsed_seconds": 0.671,
+      "job_finalized_zero_members": true
+    }
+  ],
+  "private_receipts": {
+    "root": "C:\\MJobsMigrationRehearsal\\20261112-c707\\archives\\e49a-private-96d2bf27cc5a\\evidence",
+    "files": [
+      {
+        "name": "admission-observation-062329.json",
+        "sha256": "a3f633ab78ff682e5a0e592525b5ed02713629dc3e680dbe3aaa9f08585bea6f",
+        "bytes": 43515
+      },
+      {
+        "name": "evidence-metadata-qualification.json",
+        "sha256": "8dd2fa5ae053761339a73bb760301e156313cc5e0fe6433104914ade6ed31d9c",
+        "bytes": 1834
+      },
+      {
+        "name": "execution-overlay-v1.json",
+        "sha256": "9cc169f2e6e76394403982cbd5c98c1aa290cdf5f66f9bd9202674b88b00cf84",
+        "bytes": 10867
+      },
+      {
+        "name": "independent-review-record.json",
+        "sha256": "dda7b82463c8374074686877d922159f2ad813fa1c20a7dfe0995fa82e079af9",
+        "bytes": 3322
+      },
+      {
+        "name": "main-source-gates-observation.json",
+        "sha256": "48b8d020e9e1189e45663691d7af437962fe3fe311808af4fdbfd1b41c934699",
+        "bytes": 1580
+      },
+      {
+        "name": "old-6a47-source-seal.json",
+        "sha256": "180530e5b2bbc42956151a6121836b5b24d1a70689f276c945394a64c36cc7ba",
+        "bytes": 623382
+      },
+      {
+        "name": "phase-a-build-and-prebackup-gates.json",
+        "sha256": "02721f003a4e537ef4a6bbd8295ce76459edb77e4d933121707775909b639f51",
+        "bytes": 1662
+      },
+      {
+        "name": "phase-a-image-and-private-configuration.json",
+        "sha256": "3a60db9eeaa175ee33e0ad59fce41cfdb75c09b912f5816bbfe90205aa5512a0",
+        "bytes": 999
+      },
+      {
+        "name": "phase-a-original-baseline-verified.json",
+        "sha256": "69612cf91064d8524f30b73dd2b17faa9d6e986a57bafbd6406daa84fbb70bde",
+        "bytes": 621
+      },
+      {
+        "name": "phase-b-guard-command-observed.json",
+        "sha256": "3420fc9fd11e46ccac6686b8a86c79ab711c18aabfe021879809df1ae4325a33",
+        "bytes": 449
+      },
+      {
+        "name": "phase-b-guarded-upgrade-verified.json",
+        "sha256": "6ce540ddfb574297cc6c16679751c3ee98d89495a1979132d9322cc840848197",
+        "bytes": 2034
+      },
+      {
+        "name": "phase-b-pre-upgrade.json",
+        "sha256": "6f0d3a00506d2d4000b16504fa9e822de0adc63011ae9ce6edcd8191e53d3f1c",
+        "bytes": 11405
+      },
+      {
+        "name": "phase-b-preservation-and-catalog.json",
+        "sha256": "3dee5559d42baeeb350bf13e574ecd505562ac7cab1d83583b8564a4dc2b8f96",
+        "bytes": 1164
+      },
+      {
+        "name": "phase-c-after-runtime-preservation.json",
+        "sha256": "dfc4e8207796bd04112928ac417f8c03726943e33a95ab4181b260ff1e592b60",
+        "bytes": 5558
+      },
+      {
+        "name": "phase-c-runtime-readback-format-failure.json",
+        "sha256": "2065b03261db95c8a47cdcc202641d2a11d3f3f823d51225d62e6c621f0ba723",
+        "bytes": 399
+      },
+      {
+        "name": "phase-c-runtime-semantic-pass.json",
+        "sha256": "85a2d0f1f13e34ef33a16b09739de1b8ab5ec7605f0bf5adc0728111e8c5dbe2",
+        "bytes": 10108
+      },
+      {
+        "name": "phase-c-source-stopped-preserved.json",
+        "sha256": "3523028ff0e637a2f99a88ef4d39197c529639a2990e2264e213f5491591419a",
+        "bytes": 12055
+      },
+      {
+        "name": "phase-c-upgraded-runtime-observed.json",
+        "sha256": "6301f34d68b7c8540dbfde843a0a0c9f44ec7d5e47f4aba468bd98b21f53babd",
+        "bytes": 17582
+      },
+      {
+        "name": "phase-c-writers-stopped.json",
+        "sha256": "bf90ac5f122d19d706ad0a0fa37398bd99c1889776e528705ba72cfafd5d4ca4",
+        "bytes": 9597
+      },
+      {
+        "name": "phase-d-cleanup-id-format-failure.json",
+        "sha256": "1e6b2037a81caedf39b6d89c446dad5e3a0adb8d7390bfa08f8a42e949a737ec",
+        "bytes": 663
+      },
+      {
+        "name": "phase-d-final-stopped-preserved.json",
+        "sha256": "8a17215191167fe606a91fac4ebd669f8d0fe87ebcfaafe7b50917d9675df6a7",
+        "bytes": 37442
+      },
+      {
+        "name": "phase-d-restore-admission.json",
+        "sha256": "e94872c0806a37640f656429b1c9c1c1960ae9415b1caf0b2c4b094761513d5a",
+        "bytes": 15833
+      },
+      {
+        "name": "phase-d-restored-preservation-pass.json",
+        "sha256": "7063f22ff14f80ec8a30b34f05c4686af9da3cd7008c815e606328865821b94f",
+        "bytes": 6422
+      },
+      {
+        "name": "phase-d-restored-runtime-observed.json",
+        "sha256": "715d910ef6d1ac346a8e78761c1672b9e93247b9d1d2f3cb8a2409b6b08c713a",
+        "bytes": 29155
+      },
+      {
+        "name": "phase-d-restored-writers-stopped.json",
+        "sha256": "3a51d988cffcec69ec8d68e479a1237eed4eeb87b80f0987e7a19d437c615113",
+        "bytes": 9481
+      },
+      {
+        "name": "private-command-control-proof.json",
+        "sha256": "0538ff1c464c5192b0b79a502ad3b6bbd5208e21867287d9eccc58554ae5f1a2",
+        "bytes": 1592
+      },
+      {
+        "name": "runtime-release-receipt.json",
+        "sha256": "8e931d8d3f0f34d2469b4b014fd39c58af040e20ccb7ddfffcc7531a0a01b94f",
+        "bytes": 11723
+      },
+      {
+        "name": "target-5b2e-source-seal.json",
+        "sha256": "6451c72a97da256c9a5fc1dfcfa188071e4bf75eed11bfb31afd6e81edc767ef",
+        "bytes": 641054
+      }
+    ]
+  },
+  "coordination": {
+    "original_scoped_c707_release": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6834656654",
+    "steward_delegation": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6845163956",
+    "runtime_release_journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6846440879",
+    "canonical_acceptance_writer": "2d4f15a3",
+    "source_runtime_claim_release_does_not_retire_other_legacy_claims": true
+  },
+  "remaining_gates": {
+    "production_guarded_backup_migration_restart": "NOT_RUN",
+    "production_postdeploy_validation": "NOT_RUN",
+    "browser_profiles_or_every_database_table_preservation": "NOT_RUN",
+    "ordinary_external_provider_delivery": "NOT_RUN",
+    "measured_network_egress_absence": "NOT_RUN",
+    "canonical_acceptance_promotion": "NOT_PERFORMED",
+    "new_evidence_commit_hosted_checks": "NOT_RUN"
+  },
+  "interpretation": "PASS applies only to this bounded synthetic guarded-upgrade/full-runtime/separate-old-version-restore rehearsal. Main source hosted gates and the full-stock-image tests are distinct evidence. This file records no production deployment or completed original/reference requirement.",
+  "metadata_qualification": {
+    "at": "2026-11-13T07:06:24.426817+00:00",
+    "status": "PASS",
+    "tested_source": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "draft_evidence_sha256": "28d8c639e0bde7a28b838a416ba2efeb23d6ba55ac466bd93f8dc4766439daf7",
+    "chain": {
+      "job_sha256": "fe27d6fc302b172d9301d6bec817a6507b5e5052f0561f7dce690e650440b6ed",
+      "launcher_sha256": "be7d40756553dbdc1be5674fe8bf1ab40056691b7044473a9a2815c2077b32f8",
+      "log_sha256": "081a034848f4c333aed8ba92effb53330d376adeb61f0748676f0f459f290ba0",
+      "started_at": "2026-11-13T07:05:57.441656+00:00",
+      "finished_at": "2026-11-13T07:05:57.962827+00:00",
+      "elapsed_seconds": 0.516,
+      "job_finalized_zero_members": true
+    },
+    "commands": [
+      {
+        "argv": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.agent_skills"
+        ],
+        "returncode": 0,
+        "elapsed_seconds": 0.063,
+        "stdout": "Agent skill validation: PASS\r\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "returncode": 0,
+        "elapsed_seconds": 0.062,
+        "stdout": "Catalogue validation: PASS\r\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "returncode": 0,
+        "elapsed_seconds": 0.078,
+        "stdout": "Progress journal validation: PASS\r\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "returncode": 0,
+        "elapsed_seconds": 0.063,
+        "stdout": "Progress dashboard: CURRENT\r\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "returncode": 0,
+        "elapsed_seconds": 0.062,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "light_claim_released_at": "2026-11-13T07:06:24.362490+00:00",
+    "runtime_proof_chains_unchanged": true,
+    "scope": "Read-only repository integrity gates. Final evidence JSON parse/staged whitespace/provenance are checked separately; these commands are not a new product-runtime run."
+  }
+}

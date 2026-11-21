@@ -74,6 +74,70 @@ again. The protected backup is under
 necessary for resilience to hardware/disk failure. Never use
 `docker compose down -v` to troubleshoot a populated project.
 
+## Explicit private deployment root
+
+The updater supports one optional, application-specific setting:
+`MJOBS_MICRO_HOME`. When it is **unset**, the existing LOCALAPPDATA-based
+updater home and `C:\Tools\Dev\MJobs-Micro` configuration source remain unchanged.
+
+When explicitly set, its value must name an **existing directory on a local
+fixed Windows drive**, with an existing `config` directory beneath it. For
+example, `C:\MJobsMicroProtected` is a path spelling, not a claim that this
+directory exists or has qualified permissions. The updater creates no root,
+moves no existing deployment and performs no bootstrap or key generation.
+
+| Explicit-mode item | Location beneath `MJOBS_MICRO_HOME` |
+| --- | --- |
+| Configuration and original encryption key | `config\.env` |
+| Deployment Compose overlay | `config\compose.micro.yml` |
+| Exact independent release clones | `releases\<full-source-SHA>` |
+| Protected deployment baseline | `state.json` |
+| Atomic-state temporary file | `state.new.json` |
+| Single-updater byte-zero lock | `update.lock` |
+| Updater journal and rotated journal | `update.log`, `update.old.log` |
+| Stock database/document backups | `backups\<timestamp-and-old-SHA>` |
+
+Empty or invalid explicit settings fail with the fixed
+`MJOBS_MICRO_HOME_INVALID` reason before any directory creation, lock, log,
+Git or Docker operation; they never fall back to the legacy location. Values
+must be literal drive-absolute paths: no UNC/device paths, network drive mappings,
+drive-relative paths, traversal components, environment expansion, reserved
+device names or redirected/reparse components. Existing known entries must
+have the expected directory or regular-file type. Missing root/config
+directories are retained as a refusal, not created automatically.
+
+These are **plain-path and layout checks, not an NTFS privacy assessment**.
+Before enabling a relocated task, trusted operator tooling must run the
+**unchanged stock** `cli.migration_precondition.require_private_parent` and
+`require_private_file` checks on the proposed directories, state,
+configuration and their ancestors. The updater does not repeat those ownership
+and DACL checks on every invocation. A bootstrap receipt proves only the
+recorded bootstrap-time checks; it is not per-invocation ACL proof.
+
+Relocation requires a separately reviewed, authorized bootstrap. Preserve the
+old task definition and files, disable future launches of the exact old task,
+reconcile any running instance, and coordinate the old and new updater locks.
+Changing the environment setting creates a different lock location; the new
+lock alone does not serialize an old task. Install the trusted new task action
+disabled until that handoff is qualified. The setting does not move the
+installed script or change the scheduled task for you.
+
+Reconcile the original configuration and encryption key without exposing
+values. Copying legacy bytes into a private destination establishes destination
+privacy, not their authenticity. Prepare the exact old release at
+`<home>\releases\<old-state-SHA>`, with the same old SHA/image/original
+deployment timestamp and the validated relocated source path. Explicit mode
+requires `state.source` to equal that exact native path string and uses the
+existing independent-clone verifier before GitHub, migration inspection or
+backup. It verifies the old clone even when main has not changed.
+
+The four exact-SHA GitHub gates, newest-check selection, source verification,
+fresh main/gate recheck, migration-change refusal, command bounds, stock backup
+diagnostics and whole-update lock scope remain in place. This setting is not a
+migration authorization, a production cutover controller, a privacy waiver or
+a baseline-adoption command. The updater has no `--help` or `--dry-run`
+mode; those arguments do not make an invocation read-only.
+
 ## Verified-main deployment without always-on agents
 
 The existing GitHub main workflows still run independent CI, integration
