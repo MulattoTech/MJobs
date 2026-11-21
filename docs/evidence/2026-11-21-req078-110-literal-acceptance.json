@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "CANONICAL_ORIGINAL_REQUIREMENT_ACCEPTANCE_PROPOSAL",
+  "publication": "UNPUBLISHED_STAGING_AWAITING_UPSTREAM_AND_EXACT_MAIN_CHECKS",
+  "prepared_at_utc": "2026-11-21T00:18:06.242419+00:00",
+  "repository": "MulattoTech/MJobs",
+  "staging_base": "4967e233b050d066b354900d28f30ea60cc7da37",
+  "dependency_pr": {
+    "number": 1006,
+    "source_head": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "url": "https://github.com/MulattoTech/MJobs/pull/1006",
+    "status_at_preflight": "OPEN; 4/5 required workflow groups green, Integration running",
+    "merge_sha": "NOT_YET_VERIFIED"
+  },
+  "issues": [
+    {
+      "id": "MJ-REQ-078",
+      "issue": 79,
+      "url": "https://github.com/MulattoTech/MJobs/issues/79",
+      "original_requirement": "Use company discovery confidence scores; low-confidence sources require COMPANY_SOURCE_REVIEW_REQUIRED",
+      "example_tiers": "EXAMPLES_NOT_MANDATORY_NUMERIC_CALIBRATION",
+      "proposed_acceptance": "PASS_ON_NARROW_LITERAL_SCOPE",
+      "basis": [
+        "services/company_discovery/domains.py verified domain evidence",
+        "services/company_discovery/sources.py finite/confidence thresholds and review-required status",
+        "services/company_discovery/flywheel.py provenance-safe unverified enrollment",
+        "tests/integration/test_company_source_view.py and public discovery/identity tests"
+      ],
+      "excluded_and_unverified": [
+        "statistical probability calibration",
+        "full operator review-resolution workflows"
+      ],
+      "related_existing_work": [
+        "MJ-REQ-081 / issue #82",
+        "MJ-REQ-196 / issue #197"
+      ]
+    },
+    {
+      "id": "MJ-REQ-110",
+      "issue": 111,
+      "url": "https://github.com/MulattoTech/MJobs/issues/111",
+      "original_requirement": "Use a configurable narrowing/deduping/filtering funnel to avoid costly AI on every job immediately",
+      "example_volumes": "EXAMPLES_NOT_MANDATORY_ABSOLUTE_NUMBERS",
+      "proposed_acceptance": "PASS_ON_NARROW_LITERAL_SCOPE",
+      "basis": [
+        "services/ai/cost_controls.py bounded deterministic policy",
+        "services/ai/selected_search_candidates.py profile/search snapshot",
+        "services/ai/durable_evaluation.py candidate-limited durable execution",
+        "packages/persistence/store.py profile-scoped policy and review gates",
+        "services/documents/generate.py review/current-input guard",
+        "tests/integration/test_ai_cost_policy_api.py; tests/unit/test_ai_cost_controls.py"
+      ],
+      "excluded_and_unverified": [
+        "live paid provider inference and billing provenance",
+        "global/per-provider spend budgets"
+      ],
+      "related_existing_work": [
+        "MJ-REF-015 / issue #385"
+      ]
+    }
+  ],
+  "independent_review": "https://github.com/MulattoTech/MJobs/pull/1006#issuecomment-7053606409",
+  "local_verification": {
+    "pr1006_current_head": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
+    "focused_checkout_tests": "32 primary + 7 subtests passed, zero failures/errors/skips",
+    "receipt_sha256": "43bb4af8994a0412fcea1790082775285079b7d6ed499cac06cc426ef4b7dcfe",
+    "independent_narrow_suite": "23 primary + 7 subtests passed on prior PR source",
+    "receipt_sha256_prior": "13295e2913016043c4f60d0edac5b919f1c6f86544174e43c155608416eb75d6",
+    "further_proof": "GitHub hosted exact-merged-main CI NOT_RUN until upstream protected merge"
+  },
+  "conditions_before_publication": [
+    "PR #1006 protected GitHub merge confirmed",
+    "Actual merge SHA is in current main and matches reviewed browser test blobs",
+    "New main exact-SHA required CI and not-deployed image candidate successful",
+    "Rewrite dependency state in this evidence file with verified final SHA and results",
+    "Review and approve acceptance ledger as a distinct protected PR",
+    "Keep the overlapping MJ-REF and MJ-REQ scopes separate; never assert live billing verified"
+  ],
+  "real_application_submission": "OFF",
+  "production_deployment": "NOT_PERFORMED"
+}
