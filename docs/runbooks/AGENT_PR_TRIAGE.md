@@ -1,8 +1,8 @@
 # Agentic PR backlog triage
 
 A small GitHub-hosted workflow, `.github/workflows/agentic-pr-triage.yml`, classifies
-open pull requests when PRs are opened, updated, labeled, or made ready for review
-and once daily. It uses the repository's own GitHub Actions token, not paid
+open pull requests four times daily, or when an authorized operator dispatches
+the workflow. It does **not** use privileged pull-request events. It uses the repository's own GitHub Actions token, not paid
 Copilot credits and **not a runner on MulattoTechBox**.
 
 ## What happens automatically
@@ -40,7 +40,8 @@ secrets, repository rules, projects, production data, or local Docker instances.
 ## Runtime/cost controls
 
 - One hosted job per trigger, bounded to 8 minutes.
-- Daily schedule for active high-volume repositories, weekly for dormant ones.
+- Four scheduled runs daily for high-volume MJobs; daily for other active
+  repositories, and weekly for lower-activity ones.
 - No third-party paid AI reviewer and no repeating full CI unless an opted-in
   stale branch is refreshed.
 - GitHub Actions minutes can still accrue, particularly on private repos.
