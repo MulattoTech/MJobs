@@ -1,4 +1,4 @@
-# MJobs — Windows Docker Desktop owner-only preview
+# MJobs — Windows Docker Desktop personal preview
 
 This is a developer-preview deployment, **not** a production-readiness claim. It
 serves the **real full stack**: React, FastAPI, PostgreSQL 17, Redis 7,
@@ -7,8 +7,9 @@ Real employer submissions remain OFF. There is no native MJobs multiuser auth.
 
 ## Live architecture
 
-- URL: **https://mjobs.m-techlabs.com**, restricted to the owner's Cloudflare
-  account email using the Cloudflare Access application `MJobs Personal Preview`.
+- URL: **https://mjobs.m-techlabs.com**, gated by the Cloudflare Access
+  application `MJobs Personal Preview`. Its effective audience depends on all
+  applicable Access policies and the external evaluator described below.
 - Origin: existing Windows PC `MulattoTechBox`, running Docker Desktop's
   **shared WSL2 Linux engine**. No standalone 8 GB Hyper-V VM is needed for MJobs.
 - Compose source: `C:\Tools\Dev\MJobs-Micro` — an **isolated clone**, not
@@ -36,6 +37,35 @@ ten MJobs runtime containers together consumed roughly 0.8 GB of active memory;
 Docker/WSL page cache can temporarily grow considerably during image builds.
 Docker's WSL2 backend can reclaim unused cache over time. Windows PC and
 Docker Desktop must stay running for the site to stay available.
+
+## Access boundary
+
+Read-only policy inspection on **2026-11-05 UTC** returned two Allow policies
+for this application:
+
+| Policy | Admission selector |
+| --- | --- |
+| `MJobs owner only` | One owner-email selector |
+| `M-TechLabs centrally approved accounts` | External evaluation; one-hour session override |
+
+The application uses HttpOnly cookies, a twelve-hour default session, and no
+OPTIONS preflight bypass. The returned policy list contained no Bypass policy.
+These are a dated configuration observation; recheck the complete current policy
+list before assessing access. The owner-email policy's name does not establish
+that the application's entire audience is owner-only.
+
+The external evaluator's effective approved-account population was **not
+verified** by that inspection. MJobs still runs in PERSONAL mode without native
+multiuser authentication. Access policy metadata,
+healthy workers and an anonymous login redirect do not establish isolation
+between applicant profiles.
+
+Release verification must separately confirm the intended permitted and denied
+identities through authenticated browser journeys, the external evaluator's
+applicable decisions, the tunnel's existing JWT validation, and the exact running
+revision. Preserve the configured access controls while gathering that evidence.
+The [sanitized inspection receipt](../../docs/evidence/2026-11-05-web-8bff6fc6-access-boundary.md)
+records what was observed and what remains unverified.
 
 ## Startup and resilience
 
