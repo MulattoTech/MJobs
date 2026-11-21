@@ -100,8 +100,11 @@ content before publishing a revision or export; the safe error names only the
 configured term and output path, never surrounding content. Current preferences
 also gate downloads, document history and local mock-adapter use of older
 revisions, so adding a term cannot leave prior conflicting output usable. The
-avoid list is consumed only by local post-generation validation and is not copied
-into prompt/document contexts or audit payloads (the local path uses no AI prompt).
+avoid list is not copied into prompt/document contexts or audit payloads.
+AI resume requests also validate the projected raw selected-fact and bounded
+target-job fields against current avoid terms before encoding or provider use.
+A match refuses the whole request without editing or dropping selected facts;
+post-generation validation still blocks prohibited wording introduced by a provider.
 Tests cover possessives,
 partial-word false positives, Unicode, profile isolation, history preservation,
 answer exports and browser-visible block reasons. No new database migration.
