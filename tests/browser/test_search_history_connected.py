@@ -332,5 +332,285 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                 self.assertFalse(server_thread.is_alive(), "Search-history API server did not stop")
 
 
+def test_backend_valid_source_labels_survive_api_history_readback_and_reload(record_property):
+    """Read synthetic stored labels through the real API and compiled SPA."""
+    import json
+    from time import monotonic, sleep
+
+    from services.discovery.search_history import record_search_history
+    from services.discovery.search_history_events import build_search_history_record
+
+    labels = {
+        "ascii_201": "A" * 201,
+        "ascii_256": "B" * 256,
+        "mixed_256": "C" * 128 + "\U0001f680" * 128,
+    }
+    receipt = {
+        "outcome": "NOT_COMPLETED",
+        "fixture_admitted": False,
+        "fixture_history_records": 0,
+        "fixture_writes_before_read_baseline": True,
+        "producer_trim_preserved_labels": False,
+        "source_lengths": {
+            name: {"code_points": len(label),
+                   "utf16_units": len(label.encode("utf-16-le")) // 2}
+            for name, label in labels.items()
+        },
+        "phases": [],
+        "database_unchanged": False,
+        "history_unchanged": False,
+        "applications_unchanged": False,
+        "attempts_unchanged": False,
+        "operations_unchanged": False,
+        "request_count": 0,
+        "request_limit_exceeded": False,
+        "external_requests": 0,
+        "unexpected_mutations": [],
+        "page_error_types": [],
+    }
+    cleanup = {
+        "context_closed": True, "browser_closed": True,
+        "playwright_stopped": True, "api_thread_stopped": True,
+        "socket_closed": True, "database_disposed": True,
+        "temporary_directory_removed": True,
+        "error_types": [], "all_resources_closed": False,
+        "primary_failure_preserved": False,
+    }
+    directory = store = sock = server = server_thread = None
+    playwright = browser = context = None
+    primary_failure = None
+    try:
+        assert (ROOT / "apps/web/dist/index.html").is_file(), "Build apps/web before browser acceptance"
+        directory = tempfile.TemporaryDirectory(prefix="mjobs-history-source-labels-")
+        root = Path(directory.name)
+        cleanup["temporary_directory_removed"] = False
+        store = Store(f"sqlite:///{(root / 'history.db').as_posix()}")
+        cleanup["database_disposed"] = False
+        store.migrate()
+        store.bind_workspace_mode("FIXTURE")
+        store.save_profile(dict(PROFILE))
+        store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                            "email": "other@example.test"})
+
+        expected = {"fixture": {}, "other": {}}
+        fixture_labels = [("fixture", name, label) for name, label in labels.items()]
+        fixture_labels.append(("other", "other_profile", "Other fixture source"))
+        for profile_id, name, label in fixture_labels:
+            # This deliberately seeds terminal metadata; no discovery worker runs.
+            run = build_search_history_record({
+                "id": f"mj236-{name}", "kind": "DISCOVER", "entity_id": profile_id,
+                "state": "COMPLETED", "attempt_count": 1, "params": {},
+                "started_at": "2026-11-14T00:00:00Z",
+                "updated_at": "2026-11-14T00:00:01Z",
+            }, {
+                "source": f"  {label}  ", "query": f"MJ236 {name}",
+                "filters": {"remote": "REQUIRED"},
+                "results": 3, "new_jobs": 1, "duplicates": 2, "errors": [],
+            })
+            assert run is not None and run["source"] == label
+            saved = record_search_history(store, run)
+            assert saved["source"] == label
+            expected[profile_id][saved["run_id"]] = {
+                "id": saved["run_id"],
+                **{key: value for key, value in saved.items() if key != "run_id"},
+            }
+        receipt["fixture_history_records"] = len(fixture_labels)
+        receipt["producer_trim_preserved_labels"] = True
+
+        sock = bound_browser_socket()
+        cleanup["socket_closed"] = False
+        origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+        app = create_app(store, "http://127.0.0.1:1", root,
+                         "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+        server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+        server_thread = threading.Thread(
+            target=server.run, kwargs={"sockets": [sock]}, daemon=True,
+        )
+        cleanup["api_thread_stopped"] = False
+        server_thread.start()
+        deadline = monotonic() + 10
+        while not server.started:
+            assert server_thread.is_alive() and monotonic() <= deadline, "History API did not start"
+            sleep(0.02)
+
+        def database_snapshot():
+            with store.engine.connect() as connection:
+                return {
+                    "history": [dict(row) for row in connection.execute(
+                        select(m.audit).where(m.audit.c.action.in_({
+                            "SEARCH_RUN_COMPLETED", "SEARCH_RUN_FAILED", "SEARCH_RUN_CANCELLED",
+                        })).order_by(m.audit.c.id)).mappings()],
+                    **{
+                        name: [dict(row) for row in connection.execute(
+                            select(table).order_by(table.c.id)).mappings()]
+                        for name, table in (
+                            ("applications", m.applications),
+                            ("attempts", m.attempts),
+                            ("operations", m.operations),
+                        )
+                    },
+                }
+
+        before = database_snapshot()
+        assert len(before["history"]) == 4
+        assert before["applications"] == before["attempts"] == before["operations"] == []
+        receipt["fixture_admitted"] = True
+
+        playwright = sync_playwright().start()
+        cleanup["playwright_stopped"] = False
+        browser = playwright.chromium.launch(headless=True)
+        cleanup["browser_closed"] = False
+        context = browser.new_context()
+        cleanup["context_closed"] = False
+
+        def local_reads_only(route):
+            request = route.request
+            parsed = urlsplit(request.url)
+            receipt["request_count"] += 1
+            if receipt["request_count"] > 500:
+                receipt["request_limit_exceeded"] = True
+                route.abort()
+            elif (parsed.scheme, parsed.netloc) != ("http", urlsplit(origin).netloc):
+                receipt["external_requests"] += 1
+                route.abort()
+            elif request.method != "GET":
+                if len(receipt["unexpected_mutations"]) < 20:
+                    receipt["unexpected_mutations"].append(
+                        {"method": request.method, "path": parsed.path})
+                route.abort()
+            else:
+                route.continue_()
+
+        context.route("**/*", local_reads_only)
+        page = context.new_page()
+        page.set_default_timeout(10000)
+        page.on("pageerror", lambda error: receipt["page_error_types"].append(type(error).__name__))
+        page.goto(origin, wait_until="domcontentloaded")
+        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+        page.reload(wait_until="domcontentloaded")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+
+        def verify_history(response, profile_id, phase):
+            assert response.request.method == "GET"
+            assert response.url == f"{origin}/profiles/{profile_id}/search-history?limit=50"
+            assert response.status == 200
+            body = response.json()
+            assert body["profile_id"] == profile_id and body["next_cursor"] is None
+            assert len(body["items"]) == len(expected[profile_id])
+            assert {item["id"]: item for item in body["items"]} == expected[profile_id]
+            panel = page.get_by_role("region", name="Search history", exact=True)
+            table = panel.get_by_role(
+                "table", name=f"Saved search runs for profile {profile_id}", exact=True)
+            expect(table).to_be_visible()
+            expect(table.locator("tbody tr")).to_have_count(len(expected[profile_id]))
+            for item in expected[profile_id].values():
+                row = table.locator("tbody tr").filter(
+                    has=page.get_by_role("cell", name=item["query"], exact=True))
+                expect(row).to_have_count(1)
+                # text_content preserves the exact label, including non-BMP characters.
+                assert row.get_by_role("cell").nth(0).text_content() == item["source"]
+            receipt["phases"].append({
+                "name": phase, "profile_id": profile_id, "status": response.status,
+                "items": len(body["items"]), "api_labels_exact": True, "ui_labels_exact": True,
+            })
+            return table
+
+        history_url = origin + "/profiles/fixture/search-history?limit=50"
+        with page.expect_response(lambda response:
+                response.url == history_url and response.request.method == "GET") as initial:
+            page.get_by_role("button", name="Activity", exact=True).click()
+        verify_history(initial.value, "fixture", "initial_readback")
+
+        page.reload(wait_until="domcontentloaded")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+        with page.expect_response(lambda response:
+                response.url == history_url and response.request.method == "GET") as reloaded:
+            page.get_by_role("button", name="Activity", exact=True).click()
+        verify_history(reloaded.value, "fixture", "reload")
+
+        other_url = origin + "/profiles/other/search-history?limit=50"
+        with page.expect_response(lambda response:
+                response.url == other_url and response.request.method == "GET") as other:
+            page.get_by_label("Active profile", exact=True).select_option("other")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("other")
+        other_table = verify_history(other.value, "other", "profile_isolation")
+        for label in labels.values():
+            expect(other_table.get_by_role("cell", name=label, exact=True)).to_have_count(0)
+
+        after = database_snapshot()
+        for name in ("history", "applications", "attempts", "operations"):
+            receipt[f"{name}_unchanged"] = after[name] == before[name]
+            assert receipt[f"{name}_unchanged"], name
+        receipt["database_unchanged"] = after == before
+        assert receipt["database_unchanged"]
+        assert not receipt["request_limit_exceeded"]
+        assert receipt["external_requests"] == 0
+        assert receipt["unexpected_mutations"] == []
+        assert receipt["page_error_types"] == []
+        receipt["outcome"] = "PASS"
+    except BaseException as error:
+        primary_failure = error
+        receipt["outcome"] = "FAIL"
+        receipt["failure_type"] = type(error).__name__
+        raise
+    finally:
+        for key, resource in (("context_closed", context), ("browser_closed", browser)):
+            if resource is not None:
+                try:
+                    resource.close()
+                    cleanup[key] = True
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+        if playwright is not None:
+            try:
+                playwright.stop()
+                cleanup["playwright_stopped"] = True
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if server is not None:
+            server.should_exit = True
+        if server_thread is not None:
+            try:
+                if server_thread.ident is not None:
+                    server_thread.join(timeout=10)
+                cleanup["api_thread_stopped"] = not server_thread.is_alive()
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if sock is not None:
+            try:
+                sock.close()
+                cleanup["socket_closed"] = sock.fileno() == -1
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if cleanup["api_thread_stopped"]:
+            if store is not None:
+                try:
+                    store.engine.dispose()
+                    cleanup["database_disposed"] = True
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+            if directory is not None:
+                try:
+                    directory.cleanup()
+                    cleanup["temporary_directory_removed"] = not Path(directory.name).exists()
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+        cleanup["primary_failure_preserved"] = primary_failure is not None
+        cleanup["all_resources_closed"] = not cleanup["error_types"] and all(
+            cleanup[key] for key in (
+                "context_closed", "browser_closed", "playwright_stopped",
+                "api_thread_stopped", "socket_closed", "database_disposed",
+                "temporary_directory_removed",
+            )
+        )
+        if not cleanup["all_resources_closed"] and primary_failure is None:
+            receipt["outcome"] = "FAIL_CLEANUP"
+        record_property("search_history_source_label_receipt", json.dumps(receipt, sort_keys=True))
+        record_property("search_history_source_label_cleanup", json.dumps(cleanup, sort_keys=True))
+        if not cleanup["all_resources_closed"] and primary_failure is None:
+            raise AssertionError("Search-history source-label resources did not close")
+
+
+
 if __name__ == "__main__":
     unittest.main()
