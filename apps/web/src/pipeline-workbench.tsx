@@ -56,6 +56,7 @@ const SAFE_BLOCKERS:Record<string,string> = {
   SCORE_MISSING:'This job needs a current profile score.',
   SCORE_STALE:'The profile changed since this job was scored.',
   SCORE_INVALID:'The stored profile score is not usable.',
+  JOB_CLOSED:'This job is marked closed, filled, expired, or removed.',
   DOCUMENTS_MISSING:'Resume and cover letter have not been prepared.',
   DOCUMENTS_STALE:'Prepared documents use an older profile version.',
   DOCUMENTS_INCOMPLETE:'Resume and cover letter are not both available.',

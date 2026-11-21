@@ -116,6 +116,72 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertNotIn("private", repr(item))
         self.assertNotIn("example.test", repr(item))
 
+    def test_closed_lifecycle_blocks_preparation_and_reopening_recovers(self):
+        self.add_job("closed-job")
+        original = self.read()["items"][0]
+        self.assertTrue(original["can_prepare"])
+        for status in ("CLOSED", "FILLED", "EXPIRED", "REMOVED", "closed", " removed "):
+            with self.subTest(status=status):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == "closed-job").values(
+                        attributes={"status": status}))
+                item = self.read()["items"][0]
+                self.assertFalse(item["can_prepare"])
+                self.assertEqual(item["stage"], "NEEDS_REVIEW")
+                self.assertNotEqual(item["next_action"], "PREPARE")
+                self.assertNotEqual(item["fingerprint"], original["fingerprint"])
+                self.assertIn("JOB_CLOSED", {blocker["code"] for blocker in item["blockers"]})
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "closed-job").values(
+                attributes={"status": "ACTIVE"}))
+        reopened = self.read()["items"][0]
+        self.assertTrue(reopened["can_prepare"])
+        self.assertEqual(reopened["stage"], "READY_TO_PREPARE")
+        self.assertNotIn("JOB_CLOSED", {blocker["code"] for blocker in reopened["blockers"]})
+
+    def test_non_closed_status_does_not_invent_a_closure(self):
+        self.add_job("unknown-status-job")
+        for status in (None, "ACTIVE", "POSSIBLY_ACTIVE", "UNKNOWN",
+                       "This may be closed", ["CLOSED"]):
+            with self.subTest(status=status):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(
+                        m.jobs.c.id == "unknown-status-job").values(attributes={"status": status}))
+                item = self.read()["items"][0]
+                self.assertTrue(item["can_prepare"])
+                self.assertNotIn("JOB_CLOSED", {blocker["code"] for blocker in item["blockers"]})
+
+    def test_closed_job_preserves_prepared_documents_and_reported_tracking(self):
+        job = self.add_job("closed-prepared-job", application=True,
+                           docs=(("resume", 1, self.profile_version),
+                                 ("cover-letter", 1, self.profile_version)))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job["job_id"]).values(
+                attributes={"status": "CLOSED"}))
+        prepared = self.read()["items"][0]
+        self.assertFalse(prepared["can_prepare"])
+        self.assertEqual(prepared["stage"], "PREPARED")
+        self.assertEqual(prepared["documents_state"], "CURRENT")
+        self.assertEqual(prepared["application_id"], job["application_id"])
+        self.assertEqual(prepared["next_action"], "OPEN_APPLICATION")
+        self.assertIn("JOB_CLOSED", {blocker["code"] for blocker in prepared["blockers"]})
+
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="closed-job-user-tracking",
+                entity_id=identity("application-tracking", "fixture", job["application_id"]),
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "INTERVIEW", "attribution": "USER_REPORTED", "sequence": 1},
+                timestamp="2026-11-05T00:00:00Z"))
+        tracked = self.read()["items"][0]
+        self.assertFalse(tracked["can_prepare"])
+        self.assertEqual(tracked["stage"], "TRACKING")
+        self.assertEqual(tracked["tracking_status"], "INTERVIEW")
+        self.assertEqual(tracked["tracking_attribution"], "USER_REPORTED")
+        self.assertEqual(tracked["application_id"], job["application_id"])
+        self.assertIn("JOB_CLOSED", {blocker["code"] for blocker in tracked["blockers"]})
+
     def test_stale_profile_score_and_documents_are_not_reported_as_current(self):
         job = self.add_job(
             "stale-job", application=True,

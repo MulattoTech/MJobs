@@ -105,6 +105,35 @@ describe('PipelineWorkbenchView',()=>{
       .toThrow('PIPELINE_RESPONSE_INVALID');
   });
 
+  it('shows a closed-job blocker without offering preparation and preserves application access',async()=>{
+    const message='This job is marked closed, filled, expired, or removed.';
+    for(const stage of ['NEEDS_REVIEW','PREPARED','TRACKING'] as const) {
+      const applicationId=stage==='NEEDS_REVIEW'?null:'private-closed-application';
+      const closed=item({stage,can_prepare:false,application_id:applicationId,
+        blockers:[{code:'JOB_CLOSED',message}],next_action:applicationId?'OPEN_APPLICATION':'REVIEW_MATCH'});
+      const response=parsePipelineWorkbench({...workbench,items:[closed],
+        counts:{total:1,by_stage:{[stage]:1}}},'profile-a');
+      const onOpenApplication=vi.fn();
+      const tree=PipelineWorkbenchView({profileId:'profile-a',workbench:response,loading:false,error:false,
+        onRetry:vi.fn(),onPrepare:vi.fn(),onOpenApplication});
+      const html=renderToStaticMarkup(tree);
+      expect(html).toContain(message);
+      expect(findElement(tree,element=>element.type==='button'&&
+        element.props.children==='Prepare application documents')).toBeNull();
+      const open=findElement(tree,element=>element.type==='button'&&
+        element.props.children==='Open existing application');
+      if(applicationId) {
+        expect(open).not.toBeNull();
+        open?.props.onClick();
+        expect(onOpenApplication).toHaveBeenCalledExactlyOnceWith(applicationId);
+      } else expect(open).toBeNull();
+      const client={prepare:vi.fn()};
+      await expect(queuePipelinePreparation(client,'profile-a',response.profile_version,
+        response.items[0],'closed-request')).rejects.toThrow('PIPELINE_ITEM_NOT_READY');
+      expect(client.prepare).not.toHaveBeenCalled();
+    }
+  });
+
   it('opens an existing application only through the supplied callback',()=>{
     const onOpenApplication=vi.fn();
     const ready=workbench.items[0];

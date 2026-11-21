@@ -11,6 +11,7 @@ from sqlalchemy import case, func, select
 from packages.persistence import models as m
 from packages.persistence.store import identity
 from services.dedupe.routes import load_job_routes, plan_application_routes
+from services.discovery.lifecycle import CLOSED_STATES, status_claim
 from services.tracking.applications import PIPELINE_STATUSES
 
 STAGES = (
@@ -24,6 +25,7 @@ _SAFE_MESSAGES = {
     "SCORE_MISSING": "This job needs a current profile score.",
     "SCORE_STALE": "The profile changed since this job was scored.",
     "SCORE_INVALID": "The stored profile score is not usable.",
+    "JOB_CLOSED": "This job is marked closed, filled, expired, or removed.",
     "DOCUMENTS_MISSING": "Resume and cover letter have not been prepared.",
     "DOCUMENTS_STALE": "Prepared documents use an older profile version.",
     "DOCUMENTS_INCOMPLETE": "Resume and cover letter are not both available.",
@@ -229,6 +231,8 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
     items = []
     for job in selected_jobs:
         job_id = str(job["id"])
+        attributes = job["attributes"] if isinstance(job["attributes"], dict) else {}
+        job_closed = status_claim(attributes.get("status")) in CLOSED_STATES
         app = app_by_job.get(job_id)
         score_row = match_by_job.get(job_id)
         score_state = "MISSING"
@@ -250,6 +254,8 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
             and (op["params"] or {}).get("rescore_only") for op in job_operations)
         route, route_for_hash, route_blocker = _route_plan(store, job_id, profile, app, mode)
         blockers = []
+        if job_closed:
+            blockers.append(_block("JOB_CLOSED"))
         if score_state != "CURRENT":
             blockers.append(_block({"MISSING": "SCORE_MISSING", "STALE": "SCORE_STALE",
                                     "INVALID": "SCORE_INVALID"}[score_state]))
@@ -273,6 +279,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         tracking = tracking_by_entity.get(entity) if entity else None
         can_prepare = bool(
             score_state == "CURRENT" and approved_fact_ids and route and not route_blocker
+            and not job_closed
             and mode in {"FIXTURE", "PERSONAL"}
             and not active and not discovery_active and not tracking
             and (not app or app["state"] in _PREPARABLE_STATES)

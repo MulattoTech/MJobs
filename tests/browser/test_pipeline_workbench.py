@@ -8,7 +8,7 @@ import unittest
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
-from sqlalchemy import select
+from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
@@ -39,6 +39,10 @@ class PipelineWorkbenchBrowserTests(unittest.TestCase):
                                     "Synthetic Pipeline Engineer", "Synthetic Pipeline Employer")
             self._seed_profile_job(store, "other-profile", "b" * 64,
                                     "Foreign Synthetic Role", "Foreign Synthetic Employer")
+
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == "a" * 64).values(
+                    attributes={"status": "CLOSED"}))
 
             app = create_app(
                 store, "http://127.0.0.1:1", root,
@@ -91,6 +95,22 @@ class PipelineWorkbenchBrowserTests(unittest.TestCase):
                     prepare_button = workbench.get_by_role(
                         "button", name="Prepare application documents", exact=True,
                     )
+                    expect(workbench).to_contain_text(
+                        "This job is marked closed, filled, expired, or removed.")
+                    expect(prepare_button).to_have_count(0)
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Pipeline", exact=True).click()
+                    expect(workbench).to_contain_text(
+                        "This job is marked closed, filled, expired, or removed.")
+                    expect(prepare_button).to_have_count(0)
+                    with store.engine.begin() as connection:
+                        self.assertEqual(connection.execute(select(m.operations.c.id).where(
+                            m.operations.c.kind == "PREPARE")).all(), [])
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == "a" * 64).values(
+                            attributes={"status": "ACTIVE"}))
+                    workbench.get_by_role("button", name="Refresh readiness", exact=True).click()
+                    expect(workbench).not_to_contain_text(
+                        "This job is marked closed, filled, expired, or removed.")
                     expect(prepare_button).to_be_enabled()
 
                     endpoint = "/profiles/fixture/pipeline-workbench/" + "a" * 64 + "/prepare"
