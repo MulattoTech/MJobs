@@ -75,6 +75,13 @@ class ProfileAICredentialTests(unittest.TestCase):
     def test_saved_key_reaches_real_router_at_fixed_origin_and_stays_private(self):
         preview = self.preview()
         self.assertEqual(preview['provider_access']['credential_source'], 'SAVED_PROFILE')
+        disclosure = preview['provider_access']['data_flow']
+        self.assertEqual(disclosure['status'], 'RECORDED')
+        self.assertEqual(disclosure['contract'], 'JOB_SCORING_V1')
+        self.assertEqual(disclosure['prompt_fields'], [
+            'job_title', 'company', 'job_description', 'deterministic_match_score'])
+        self.assertEqual(disclosure['provider_retention'], 'UNKNOWN')
+        self.assertEqual(self.requests, [])  # Disclosure/preview does not invoke a provider.
         operation = self.queue(preview=preview)
         self.client = self.case.new_client()  # Recover the saved intent through another API instance.
         self.assertEqual(execute_operation(operation)['status'], 'COMPLETED')
@@ -82,6 +89,17 @@ class ProfileAICredentialTests(unittest.TestCase):
         request = self.requests[0]
         self.assertEqual(str(request.url), 'https://api.openai.com/v1/chat/completions')
         self.assertEqual(request.headers['authorization'], 'Bearer ' + self.secret)
+        payload = json.loads(request.content)
+        prompt = payload['messages'][0]['content']
+        candidate = preview['candidates'][0]
+        self.assertIn('Title: ' + candidate['title'], prompt)
+        self.assertIn('Company: ' + candidate['company'], prompt)
+        self.assertIn('Python SQL synthetic private sentinel.', prompt)
+        self.assertIn('Deterministic match score: ' + str(candidate['deterministic_score']) + '/100', prompt)
+        self.assertLessEqual(len(prompt), disclosure['text_limits']['prompt'])
+        for private_value in ('alex@example.test', 'Alex Fixture',
+                              'Controlled fictional test application.', self.secret, self.environment_secret):
+            self.assertNotIn(private_value, prompt)
         history = self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs']
         self.assertEqual(history[0]['provider_access'], preview['provider_access'])
         self.assertEqual(execute_operation(operation)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
@@ -89,6 +107,13 @@ class ProfileAICredentialTests(unittest.TestCase):
         with self.store.engine.connect() as connection:
             batch = connection.execute(select(m.ai_evaluation_batches)).mappings().one()
             metadata = json.dumps(batch['snapshot'])
+            self.assertEqual(batch['snapshot']['provider_binding']['data_flow_contract'], 'JOB_SCORING_V1')
+        self.assertEqual(self.store.count('applications'), 0)
+        self.assertEqual(self.store.count('documents'), 0)
+        # Later configuration is not a basis for rewriting an old disclosure.
+        self.store.save_ai_task_settings('fixture', {'job_scoring': {'provider': 'local', 'model': 'later'}})
+        later_history = self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs']
+        self.assertEqual(later_history[0]['provider_access'], preview['provider_access'])
         public = json.dumps(preview) + json.dumps(history) + self.client.get('/operations?profile_id=fixture').text
         self.assertNotIn('ciphertext_fingerprint', public)
         for secret in (self.secret, self.environment_secret, self.key):
@@ -198,6 +223,9 @@ class ProfileAICredentialTests(unittest.TestCase):
         self.client.delete('/profiles/fixture/provider-credentials/openai')
         preview = self.preview()
         self.assertEqual(preview['provider_access']['credential_source'], 'RUNTIME_CONFIGURATION')
+        self.assertEqual(preview['provider_access']['data_flow']['status'], 'RECORDED')
+        self.assertIsNone(preview['provider_access']['destination'])
+        self.assertNotIn('unapproved.example', json.dumps(preview['provider_access']))
         operation = self.queue(preview=preview)
         self.save_key()
         self.assertEqual(execute_operation(operation)['status'], 'COMPLETED')
@@ -210,6 +238,8 @@ class ProfileAICredentialTests(unittest.TestCase):
                    side_effect=AssertionError('Disabled provider attempted decryption')):
             preview = self.preview()
             self.assertEqual(preview['provider_access']['credential_source'], 'DISABLED')
+            self.assertEqual(preview['provider_access']['data_flow'], {
+                'status': 'DISABLED', 'contract': 'JOB_SCORING_V1'})
             response = self.client.post('/profiles/fixture/ai-cost-plan/evaluate/queued', json={
                 'request_id': 'disabled-saved-credential-intent'})
         self.assertEqual(response.status_code, 409)
@@ -286,3 +316,27 @@ print(json.dumps({'status':result['status'],'calls':len(requests),'correct_key':
         self.assertEqual(self.requests[0].headers['authorization'], 'Bearer ' + self.environment_secret)
         history = self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs']
         self.assertIsNone(history[0]['provider_access'])
+
+    def test_legacy_saved_binding_does_not_backfill_data_flow_disclosure(self):
+        from services.ai.durable_evaluation import _digest
+        operation = self.queue()
+        with self.store.engine.begin() as connection:
+            snapshot = dict(connection.execute(select(m.ai_evaluation_batches.c.snapshot).where(
+                m.ai_evaluation_batches.c.id == operation)).scalar_one())
+            snapshot['provider_binding'].pop('data_flow_contract')
+            params = dict(connection.execute(select(m.operations.c.params).where(
+                m.operations.c.id == operation)).scalar_one())
+            params['snapshot_digest'] = _digest(snapshot)
+            connection.execute(update(m.ai_evaluation_batches).where(
+                m.ai_evaluation_batches.c.id == operation).values(snapshot=snapshot))
+            connection.execute(update(m.operations).where(m.operations.c.id == operation).values(params=params))
+        self.assertEqual(execute_operation(operation)['status'], 'COMPLETED')
+        self.client = self.case.new_client()
+        history = self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs']
+        self.assertEqual(history[0]['provider_access']['credential_source'], 'SAVED_PROFILE')
+        self.assertEqual(history[0]['provider_access']['data_flow'], {'status': 'UNKNOWN'})
+        self.assertEqual(self.requests[0].headers['authorization'], 'Bearer ' + self.secret)
+        with self.store.engine.connect() as connection:
+            stored = connection.execute(select(m.ai_evaluation_batches.c.snapshot).where(
+                m.ai_evaluation_batches.c.id == operation)).scalar_one()
+        self.assertNotIn('data_flow_contract', stored['provider_binding'])

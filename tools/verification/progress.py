@@ -452,6 +452,7 @@ def _append_milestone_locked(state_path: Path, entry: dict, *,
     if entries and _utc_timestamp(entry["timestamp"]) < _utc_timestamp(entries[-1]["timestamp"]):
         raise ValueError("Milestone timestamp precedes existing checkpoint")
     entries.append(entry)
+    state["current_milestone"] = entry["milestone_id"]
     state["current_phase"] = entry["current_phase"]
     state["last_safe_checkpoint"] = entry["last_safe_checkpoint"]
 

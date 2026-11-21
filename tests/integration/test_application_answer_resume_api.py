@@ -14,7 +14,9 @@ from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.applications.preflight import persist_preflight
+from services.applications.answer_resume import _binding
+from services.applications.preflight import latest_preflight, persist_preflight
+from services.applications.run_requests import queue_mock_run
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -177,6 +179,94 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
         self.assertEqual(value["answer"]["id"], ANSWER["id"])
         self.assertTrue(value["answer"]["user_approved"])
         self.assertEqual(value["preflight"], {"result": "PASS", "is_current": True})
+
+    def test_reprepared_documents_reject_cached_answer_review_before_admission(self):
+        cached_payload = self.payload("stale-document-review")
+        before = self.store.application(self.application_id)
+        before_preflight = latest_preflight(self.store, self.application_id)
+        self.assertTrue(before_preflight["is_current"])
+
+        # Reprepare through the real document service, without changing the
+        # reviewed profile, answer, question, or form metadata fingerprint.
+        prepared_id = prepare(
+            self.store, before["job_id"], "fixture", self.root,
+            cover_letter_style="technical",
+        )
+        self.assertEqual(prepared_id, self.application_id)
+        current = self.store.application(self.application_id)
+        self.assertEqual(current["profile_version"], before["profile_version"])
+        self.assertEqual(current["route_id"], before["route_id"])
+        self.assertEqual(current["document_version"], before["document_version"] + 1)
+        stale_preflight = latest_preflight(self.store, self.application_id)
+        self.assertEqual(stale_preflight["event_id"], before_preflight["event_id"])
+        self.assertEqual(stale_preflight["metadata_fingerprint"], FORM_FINGERPRINT)
+        self.assertFalse(stale_preflight["is_current"])
+
+        refused = self.client.post(self.base, json=cached_payload)
+        self.assertEqual(refused.status_code, 409, refused.text)
+        self.assertEqual(
+            refused.json()["detail"]["code"], "APPLICATION_ANSWER_REVIEW_STALE",
+        )
+        self.assertEqual(self.apply_mock_operation_count(), 0)
+        with self.store.engine.connect() as connection:
+            requested_events = connection.execute(select(func.count()).select_from(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "APPLICATION_RUN_REQUESTED_V1",
+            )).scalar_one()
+        self.assertEqual(requested_events, 0)
+
+        # New evidence for the current document revision makes the same
+        # approved answer eligible again; the historical record is retained.
+        persist_preflight(self.store, self.application_id, {
+            **before_preflight,
+            "document_version": current["document_version"],
+            "observed_at": "2026-10-29T00:01:00Z",
+        })
+        refreshed = self.payload("current-document-review")
+        self.assertEqual(refreshed["answer_id"], cached_payload["answer_id"])
+        self.assertEqual(refreshed["form_fingerprint"], cached_payload["form_fingerprint"])
+        admitted = self.client.post(self.base, json=refreshed)
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        self.assertEqual(self.apply_mock_operation_count(), 1)
+
+    def test_legacy_queued_resume_rejects_stale_preflight_before_adapter_access(self):
+        payload = self.payload("legacy-stale-document-review")
+        historical_binding = _binding(
+            self.store, "fixture", self.application_id, payload,
+        )
+        before = self.store.application(self.application_id)
+        prepare(
+            self.store, before["job_id"], "fixture", self.root,
+            cover_letter_style="technical",
+        )
+        current = self.store.application(self.application_id)
+        self.assertEqual(current["document_version"], before["document_version"] + 1)
+        self.assertEqual(current["profile_version"], before["profile_version"])
+        stale_preflight = latest_preflight(self.store, self.application_id)
+        self.assertFalse(stale_preflight["is_current"])
+        self.assertEqual(
+            stale_preflight["event_id"], historical_binding["preflight_event_id"],
+        )
+
+        # Model an operation admitted by the old code: its document snapshot
+        # is current but its reviewed-answer binding still names the old,
+        # unchanged preflight event. No newer event ID masks this defect.
+        queued = queue_mock_run(
+            self.store, "fixture", self.application_id, submit=False,
+            request_id=payload["request_id"], resume_binding=historical_binding,
+        )
+        self.assertEqual(queued["state"], "QUEUED")
+        result, mocked = self.execute(
+            queued["operation_id"],
+            lambda *_args, **_kwargs: self.fail("adapter must not start"),
+        )
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(
+            self.operation_error(queued["operation_id"]),
+            "APPLICATION_ANSWER_REVIEW_STALE",
+        )
+        mocked.assert_not_called()
+        self.assertEqual(self.store.application(self.application_id), current)
 
     def test_stale_unknown_cross_scope_and_unapproved_inputs_never_admit(self):
         valid = self.payload()

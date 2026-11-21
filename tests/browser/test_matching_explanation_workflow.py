@@ -5,6 +5,7 @@ test skipped until its component is mounted and the checked web bundle includes 
 """
 
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 import re
 import tempfile
@@ -237,6 +238,42 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
             ai_requests=[]
             submission_requests=[]
             rescore_requests=[]
+            expected_visits=[
+                ("fixture","cloud-one",1),
+                ("fixture","cloud-two",2),
+                ("fixture","cloud-stale",3),
+                ("other","network-one",1),
+            ]
+            expected_view_urls=[
+                f"{origin}/profiles/{profile_id}/jobs/{job_id}/view"
+                for profile_id,job_id,_ in expected_visits
+            ]
+            view_requests=[]
+            view_receipts={}
+
+            def read_visits():
+                with store.engine.connect() as connection:
+                    return {row["id"]:dict(row) for row in connection.execute(
+                        select(m.profile_job_views)).mappings()}
+
+            def assert_visit_receipt(response,index):
+                self.assertEqual(response.status,201)
+                receipt=response.json()
+                profile_id,job_id,_=expected_visits[index]
+                self.assertEqual((receipt["profile_id"],receipt["job_id"]),(profile_id,job_id))
+                self.assertIsInstance(receipt["viewed_at"],str)
+                self.assertIsNotNone(datetime.fromisoformat(receipt["viewed_at"]).tzinfo)
+                view_receipts[(profile_id,job_id)]=receipt["viewed_at"]
+                visits=read_visits()
+                self.assertEqual(sorted(
+                    (row["profile_id"],row["job_id"],row["visit_order"])
+                    for row in visits.values()
+                ),sorted(expected_visits[:index+1]))
+                for row in visits.values():
+                    self.assertEqual(row["viewed_at"],
+                                     view_receipts[(row["profile_id"],row["job_id"])])
+                return visits
+
             cloud_two_attempts=0
             try:
                 thread.start()
@@ -247,6 +284,8 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                     time.sleep(0.02)
                 database_before_browser=_snapshot(store)
                 database_after_refresh=None
+                view_table=m.profile_job_views.name
+                self.assertEqual(database_before_browser[view_table],[])
 
                 with sync_playwright() as playwright:
                     browser=playwright.chromium.launch(headless=True)
@@ -300,6 +339,13 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                                 route.fulfill(status=503,json={"detail":"Synthetic retry fixture"})
                             else:
                                 route.continue_()
+                        elif (request.method=="POST"
+                              and len(view_requests)<len(expected_view_urls)
+                              and request.url==expected_view_urls[len(view_requests)]
+                              and request.post_data in (None,"")):
+                            # Only these explicit card opens may record visits.
+                            view_requests.append(request.url)
+                            route.continue_()
                         elif request.method not in {"GET","HEAD","OPTIONS"}:
                             blocked_writes.append((request.method,request.url))
                             route.abort()
@@ -325,10 +371,14 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
 
                     explanation=page.locator(".job-detail section.panel").filter(has=page.get_by_role(
                         "heading",name=re.compile("match explanation",re.IGNORECASE)))
+                    self.assertEqual(read_visits(),{})
                     with page.expect_response(lambda response:
                         urlsplit(response.url).path.endswith("/cloud-one/match-explanation")
-                    ) as first_explanation:
+                    ) as first_explanation, page.expect_response(lambda response:
+                        response.request.method=="POST" and response.url==expected_view_urls[0]
+                    ) as first_view:
                         page.locator(".job-card").filter(has_text="Cloud Systems Engineer").click()
+                    assert_visit_receipt(first_view.value,0)
                     self.assertEqual(first_explanation.value.status,200)
                     first_body=first_explanation.value.json()
                     self.assertEqual(first_body["profile_id"],"fixture")
@@ -348,8 +398,11 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
 
                     with page.expect_response(lambda response:
                         urlsplit(response.url).path.endswith("/cloud-two/match-explanation")
-                    ) as transient_failure:
+                    ) as transient_failure, page.expect_response(lambda response:
+                        response.request.method=="POST" and response.url==expected_view_urls[1]
+                    ) as second_view:
                         page.locator(".job-card").filter(has_text="Platform Cloud Engineer").click()
+                    views_before_retry=assert_visit_receipt(second_view.value,1)
                     self.assertEqual(transient_failure.value.status,503)
                     expect(explanation.get_by_role("alert")).to_be_visible()
                     expect(explanation).not_to_contain_text("fixture:cloud-linux")
@@ -366,11 +419,16 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                     expect(explanation).to_contain_text("fixture:platform-skill")
                     expect(explanation).not_to_contain_text("fixture:cloud-linux")
                     expect(explanation).not_to_contain_text("83")
+                    self.assertEqual(read_visits(),views_before_retry,
+                                     "Retrying an explanation must not record another visit")
 
                     with page.expect_response(lambda response:
                         urlsplit(response.url).path.endswith("/cloud-stale/match-explanation")
-                    ) as stale_response:
+                    ) as stale_response, page.expect_response(lambda response:
+                        response.request.method=="POST" and response.url==expected_view_urls[2]
+                    ) as third_view:
                         page.locator(".job-card").filter(has_text="Cloud Reliability Engineer").click()
+                    views_before_refresh=assert_visit_receipt(third_view.value,2)
                     self.assertEqual(stale_response.value.status,409)
                     expect(explanation.get_by_role("alert")).to_contain_text("out of date")
                     refresh_matches=page.get_by_role("button",name="Refresh profile matches",exact=True)
@@ -408,7 +466,13 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                         "cloud-scoring-v2",
                     )
                     for table_name in database_before_browser:
-                        if table_name!=match_table:
+                        if table_name==view_table:
+                            self.assertEqual(
+                                {row["id"]:row for row in database_after_refresh[view_table]},
+                                views_before_refresh,
+                                "Refreshing a match must not mutate recorded visits",
+                            )
+                        elif table_name!=match_table:
                             self.assertEqual(
                                 database_after_refresh[table_name],database_before_browser[table_name],
                                 f"Refreshing a match must not mutate {table_name}",
@@ -420,8 +484,16 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                     other_search.select_option("network-search")
                     with page.expect_response(lambda response:
                         urlsplit(response.url).path.endswith("/network-one/match-explanation")
-                    ) as other_profile_response:
+                    ) as other_profile_response, page.expect_response(lambda response:
+                        response.request.method=="POST" and response.url==expected_view_urls[3]
+                    ) as other_view:
                         page.locator(".job-card").filter(has_text="Network Operations Engineer").click()
+                    views_after_other=assert_visit_receipt(other_view.value,3)
+                    self.assertEqual(
+                        {key:row for key,row in views_after_other.items() if row["profile_id"]=="fixture"},
+                        views_before_refresh,
+                        "Opening another profile's job must preserve the first profile's visits",
+                    )
                     self.assertEqual(other_profile_response.value.status,200)
                     other_body=other_profile_response.value.json()
                     self.assertEqual(other_body["profile_id"],"other")
@@ -435,14 +507,23 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
 
                     self.assertEqual(cloud_two_attempts,1)
                     self.assertGreaterEqual(len(explanation_requests),6)
+                    self.assertEqual(view_requests,expected_view_urls)
                     self.assertEqual(blocked_writes,[])
                     self.assertEqual(external_requests,[])
                     self.assertEqual(ai_requests,[])
                     self.assertEqual(submission_requests,[])
                     browser.close()
 
-                self.assertEqual(_snapshot(store),database_after_refresh,
-                                 "Reading score explanations must not mutate any database rows")
+                database_after_browser=_snapshot(store)
+                for table_name in database_after_refresh:
+                    if table_name==view_table:
+                        self.assertEqual(
+                            {row["id"]:row for row in database_after_browser[view_table]},views_after_other,
+                            "Reading explanations must not mutate the four recorded visits",
+                        )
+                    else:
+                        self.assertEqual(database_after_browser[table_name],database_after_refresh[table_name],
+                                         f"Reading score explanations must not mutate {table_name}")
             finally:
                 server.should_exit=True
                 thread.join(timeout=5)

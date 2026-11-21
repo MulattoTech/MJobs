@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-039",
+  "objective": "Comparison acceptance and protected integration are complete",
+  "owner": "ChatGPT-Web d9b89794",
+  "branch": "web/20261120-d9b89794/comparison-acceptance",
+  "head_sha": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+  "routing_state": "COMPLETE",
+  "next_action": "Comparison acceptance is complete on main6916. Diagnose and prepare a focused repair for its failed control-read timing assertion, preserve the failed main/candidate record, and obtain fresh hosted gates plus a separately scoped protected-merge approval. Hold PR1029/navigation publication while main repair takes priority; production/key/ACL actions remain separately reserved.",
+  "created_at": "2026-11-20T11:34:34.317576+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Approved1065/1066/1064 each passed all15 exact-head checks and five required gates. Actual merges4d/4fa/6916 match reviewed trees; final6916 parents4fa+98 and tree521d were verified. Review/thread checks clear; integration lock released.",
+      "result": "PASS"
+    },
+    {
+      "command": "Actual6916 progress journal PASS and dashboard CURRENT. Original188/366 unchanged; reference20/59 with onlyMJREF039 promoted. All41 journal entries and currentmilestone preserved.",
+      "result": "PASS"
+    },
+    {
+      "command": "All five comparison criteria/prerequisites/native provenance verified. Prior actual comparison30Python/API/browser+28subtests and20frontend/typebuild PASS; combined168tests+189subtests and progress45tests+37subtests (7 expected POSIX-specific Windows skips) remain attributed to their executed revisions and exact unchanged inputs.",
+      "result": "PASS"
+    },
+    {
+      "command": "Built435 candidate retained fresh1294frontend tests/typecheck/Vite PASS, 3476 host canonical files and three shipped-file hashes. Actual6916 differs only in two checkpoint docs; runtime/dependencies/Dockerfile/model and62 guard inputs unchanged. Source identity is not a new runtime execution.",
+      "result": "PASS"
+    },
+    {
+      "command": "Actual main6916 Python job136255159784 failed one control-read timing assertion (1.3132076179999785s vs<1);5747passes,55skips,5238passedsubtests. CI / required failed. Candidate44726503972 failed at its gate wait; build/record/upload skipped, zero artifacts. Hosted cause remains unclassified; no rerun or waiver.",
+      "result": "FAIL"
+    },
+    {
+      "command": "New final-main image validation, production original-key retention/backup/recovery/rollout, and final dependency-alert disposition remain unverified. Prepared fixture repair and later PR1029/navigation protected merges require their own fresh gates and scoped approval.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+  "transfer_history": [
+    {
+      "from_owner": "ChatGPT-Web d9b89794",
+      "to_owner": "ChatGPT-Web d9b89794",
+      "reason": "The owned comparison source branch was protected-merged as d9e3bf11; root continues the same task in its isolated acceptance-record branch after both approved merges. No other writer owns either task checkout.",
+      "transferred_at": "2026-11-20T07:35:26.092980+00:00"
+    }
+  ]
+}

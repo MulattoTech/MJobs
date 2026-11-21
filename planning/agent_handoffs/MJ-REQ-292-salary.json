@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-292-salary",
+  "objective": "Display canonical salary in job detail without stale legacy fallback",
+  "owner": "Codex-01a1da02",
+  "branch": "codex/p0-job-salary-20261114",
+  "head_sha": "d4efdb85c7e7409219a0cf4950a7b74a9e11c8da",
+  "routing_state": "VERIFY",
+  "next_action": "Publish one reviewed adoption PR after live capacity/overlap checks; qualify exact-head gates, protected merge, then verify on main",
+  "created_at": "2026-11-14T13:35:27.741537+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "26 salary unit cases; connected salary/capture2; postlint salary1; build/typecheck; Ruff/ESLint; provenance/diff",
+      "result": "PASS"
+    },
+    {
+      "command": "Full60-step connected acceptance; real salary provider; salary filter browser",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}

@@ -113,8 +113,6 @@ class Greenhouse:
 
     def _request(self, suffix, params=None):
         self.check()
-        if self.transport is None:
-            self._wait_for_rate_limit()
         remaining_budget = getattr(self.check, "remaining_seconds", None)
         request_timeout = self.request_timeout
         if callable(remaining_budget):
@@ -150,7 +148,32 @@ class Greenhouse:
                                        name="mjobs-greenhouse-cancellation", daemon=True)
             watcher.start()
             try:
-                with client.stream("GET", self._request_url(suffix), params=params) as response:
+                # Budget refresh may read durable control state. Finish it and
+                # local client/watcher setup before the final rate admission.
+                budget_deadline = None
+                budget_limited_timeout = False
+                if callable(remaining_budget):
+                    # The callback returns the time remaining after its durable
+                    # control read. Do not subtract that callback latency twice.
+                    remaining = remaining_budget()
+                    budget_deadline = time.monotonic() + remaining
+                if self.transport is None:
+                    self._wait_for_rate_limit()
+                else:
+                    self.check()
+                request_timeout = self.request_timeout
+                if budget_deadline is not None:
+                    available = budget_deadline - time.monotonic()
+                    if available <= 0:
+                        # Preserve an authoritative local stop if already known.
+                        # This failure path never dispatches a request.
+                        self.check()
+                        from workers.operations import OperationTimedOut
+                        raise OperationTimedOut("OPERATION_TIMEOUT")
+                    budget_limited_timeout = available <= request_timeout
+                    request_timeout = min(request_timeout, available)
+                with client.stream("GET", self._request_url(suffix), params=params,
+                                   timeout=request_timeout) as response:
                     active_response.append(response)
                     if response.is_redirect:
                         raise SourceError("SOURCE_REDIRECT_BLOCKED")
@@ -184,6 +207,21 @@ class Greenhouse:
                         payload = __import__("json").loads(content)
                     except ValueError as error:
                         raise SourceError("SOURCE_INVALID_JSON") from error
+            except httpx.TimeoutException as error:
+                if cancellation_errors:
+                    raise cancellation_errors[0]
+                if budget_limited_timeout:
+                    # A worker-budget cutoff can beat the watcher. Preserve its
+                    # authoritative local stop before recording a provider fault.
+                    self.check()
+                    if cancellation_errors:
+                        raise cancellation_errors[0]
+                    if time.monotonic() >= budget_deadline:
+                        from workers.operations import OperationTimedOut
+                        raise OperationTimedOut("OPERATION_TIMEOUT") from error
+                # A shorter provider cap, or an early unrelated timeout, remains
+                # a provider failure rather than acquiring a later worker stop.
+                raise
             except BaseException:
                 if cancellation_errors:
                     raise cancellation_errors[0]
@@ -205,19 +243,19 @@ class Greenhouse:
 
     def _wait_for_rate_limit(self):
         interval = 60 / self.rate_limit
-        # Reserve each request start atomically. Parallel callers share the
-        # source's rate schedule instead of independently passing a per-thread
-        # interval check and creating a burst.
-        with self._rate_limit_lock:
-            now = time.monotonic()
-            scheduled = now if self._last_request is None else max(now, self._last_request + interval)
-            self._last_request = scheduled
-        wait = scheduled - time.monotonic()
-        while wait > 0:
+        while True:
             self.check()
-            time.sleep(min(wait, 0.25))
-            wait = scheduled - time.monotonic()
-        self.check()
+            # Recheck actual admission time after every wake. Overdue callers
+            # cannot consume expired reservations together and create a burst.
+            with self._rate_limit_lock:
+                now = time.monotonic()
+                wait = (0 if self._last_request is None else
+                        self._last_request + interval - now)
+                if wait <= 0:
+                    self._last_request = now
+                    return
+            # Cancellation and other callers remain unblocked while waiting.
+            time.sleep(min(wait, CANCELLATION_POLL_INTERVAL))
 
     def search(self):
         self._reset_request_status()
@@ -237,8 +275,25 @@ class Greenhouse:
             try:
                 payload = jobs_request.result()
             except Exception as failure:
-                failures.append(failure)
-                payload = None
+                if (not failures and isinstance(board, dict)
+                        and isinstance(failure, SourceError)
+                        and failure.code == "SOURCE_PAYLOAD_LIMIT"):
+                    # Both original GETs have settled. A complete metadata-only
+                    # listing uses the same byte/job/time/rate/network limits;
+                    # it is not a sample or a fan-out to individual job pages.
+                    self.check()
+                    self._reset_request_status()
+                    payload = self._get("/jobs")
+                    try:
+                        self._validate_metadata_inventory(payload)
+                    except SourceError as invalid:
+                        with self._status_lock:
+                            self.status = invalid.code
+                            self._request_failed = True
+                        raise
+                else:
+                    failures.append(failure)
+                    payload = None
             if failures:
                 # Both requests have now settled. Recheck cancellation/deadline
                 # so a concurrent provider error cannot turn a local stop into
@@ -268,6 +323,48 @@ class Greenhouse:
         complete = 'meta' not in payload or (type(total) is int and total == len(payload['jobs']))
         return SearchBatch(HOST + "/v1/boards/" + self.tenant + "/jobs",
                            tuple(SourceItem(raw, company) for raw in payload["jobs"]), company, complete_inventory=complete)
+
+    def _validate_metadata_inventory(self, payload):
+        """Require an exact inventory before metadata can replace a large body.
+
+        Keep provider rows untouched for posting snapshots and reciprocal native
+        proof. Missing description text is not missing inventory membership.
+        """
+        if not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
+            raise SourceError("SOURCE_INVALID_FORMAT")
+        rows = payload["jobs"]
+        if len(rows) > 1000:
+            raise SourceError("SOURCE_JOB_LIMIT")
+        meta = payload.get("meta")
+        total = meta.get("total") if isinstance(meta, dict) else None
+        if type(total) is not int or total != len(rows):
+            raise SourceError("SOURCE_INVALID_FORMAT")
+        identifiers = set()
+        for raw in rows:
+            self.check()
+            parsed = self.normalize(raw)
+            if raw["id"] in identifiers:
+                raise SourceError("SOURCE_DUPLICATE_JOB_ID")
+            identifiers.add(raw["id"])
+            if not parsed["title"]:
+                raise SourceError("SOURCE_INVALID_JOB")
+            url = raw.get("absolute_url")
+            try:
+                if not isinstance(url, str) or not url or any(
+                        character.isspace() or ord(character) < 32 or ord(character) == 127
+                        for character in unquote(url)):
+                    raise ValueError()
+                target = urlsplit(url)
+                path = unquote(target.path)
+                if (target.scheme != "https" or not target.hostname or target.username or target.password
+                        or target.port not in (None, 443) or "\\" in url
+                        or any(part in (".", "..") for part in path.split("/"))):
+                    raise ValueError()
+                if target.hostname in ("boards.greenhouse.io", "job-boards.greenhouse.io"):
+                    if path.rstrip("/") != f"/{self.tenant}/jobs/{raw['id']}":
+                        raise ValueError()
+            except ValueError:
+                raise SourceError("SOURCE_INVALID_JOB") from None
 
     def collect(self):
         """Compatibility for callers of the original bounded board collection API."""
@@ -365,6 +462,7 @@ class Greenhouse:
         return {"requisition": str(raw["id"]), "title": title, "description": description,
                 "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
+                    "description_status": "SOURCE_PROVIDED" if description else "UNAVAILABLE",
                     "lifecycle_claim": "ACTIVE",
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
                     "employment_type": employment_type, "experience_level": experience["level"],
@@ -385,5 +483,6 @@ class Greenhouse:
                     "remote_regions": location_facts["remote_regions"],
                     "remote_indicated": location_facts["remote_indicated"], "country": location_facts["country"],
                     "state": location_facts["state"], "city": location_facts["city"],
-                    "skill_evidence": "description_mentions", "submission_capability": "MANUAL_ONLY", "fictional": False,
+                    "skill_evidence": "description_mentions" if description else "title_mentions",
+                    "submission_capability": "MANUAL_ONLY", "fictional": False,
                     "application_url_status": "PROVIDER_SUPPLIED" if url else "UNAVAILABLE"}}

@@ -152,7 +152,11 @@ class _Stream(httpcore.NetworkStream):
                           timeout_error=httpcore.ConnectTimeout, io_error=httpcore.ConnectError)
             return self
         except BaseException:
-            self.close()
+            # Expected socket-close errors must not replace the TLS/control failure.
+            try:
+                self.close()
+            except OSError:
+                pass
             raise
 
     def get_extra_info(self, info):
@@ -170,6 +174,14 @@ class _Stream(httpcore.NetworkStream):
 
     def close(self):
         self.connection.close()
+
+
+def _close_discarded_socket(connection):
+    """Attempt disposal without replacing the request outcome with an OS close error."""
+    try:
+        connection.close()
+    except OSError:
+        pass
 
 
 class _Backend(httpcore.NetworkBackend):
@@ -208,7 +220,7 @@ class _Backend(httpcore.NetworkBackend):
                     last_error = error
                     if connection is not None:
                         pending.remove(connection)
-                        connection.close()
+                        _close_discarded_socket(connection)
                     self.check()
             while pending:
                 remaining = _remaining(self.check, deadline, httpcore.ConnectTimeout)
@@ -219,11 +231,11 @@ class _Backend(httpcore.NetworkBackend):
                     if not status:
                         return _Stream(connection, self.check)
                     last_error = OSError(status, "Source connection failed")
-                    connection.close()
+                    _close_discarded_socket(connection)
             raise httpcore.ConnectError("All bounded source connection attempts failed") from last_error
         finally:
             for connection in pending:
-                connection.close()
+                _close_discarded_socket(connection)
 
 
 class SourceTransport(httpx.HTTPTransport):

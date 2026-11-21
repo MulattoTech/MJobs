@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T15:07:39Z",
+  "generated_at": "2026-11-20T07:18:47Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -280,8 +280,10 @@
       ]
     },
     "MJ-REF-039": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-20-job-comparison-acceptance.json"
+      ]
     },
     "MJ-REF-040": {
       "result": "NOT_RUN",

@@ -161,6 +161,51 @@ def _profile_job_ids(profile_id):
     ).subquery("profile_export_job_ids")
 
 
+def export_source_metadata_json(store, profile_id):
+    """Export bounded posting projections for only this profile's associated jobs.
+
+    This separate contract does not change profile backup/restore. It exports only
+    the bounded projection and never promotes metadata into confidence or authority.
+"""
+    from services.normalization.source_metadata import source_metadata_view
+
+    with store.read_snapshot() as connection:
+        _profile(connection, profile_id)
+        profile_jobs = _profile_job_ids(profile_id)
+        statement = (
+            select(m.postings)
+            .join(profile_jobs, profile_jobs.c.job_id == m.postings.c.job_id)
+            .order_by(m.postings.c.job_id, m.postings.c.id)
+            .limit(MAX_EXPORT_ROWS + 1)
+            .execution_options(stream_results=True, yield_per=1, max_row_buffer=1)
+        )
+        postings = []
+        total_bytes = 256 + len(profile_id.encode("utf-8"))
+        with connection.execute(statement) as result:
+            for posting in result.mappings():
+                if len(postings) >= MAX_EXPORT_ROWS:
+                    raise DataExportError("EXPORT_TOO_LARGE")
+                row = {
+                    "job_id": posting["job_id"],
+                    "source_metadata": source_metadata_view(dict(posting)),
+                }
+                encoded = json.dumps(row, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+                total_bytes += len(encoded.encode("utf-8")) + 1
+                if total_bytes > MAX_EXPORT_BYTES:
+                    raise DataExportError("EXPORT_TOO_LARGE")
+                postings.append(row)
+        document = {
+            "schema_version": 1,
+            "export_type": "source_metadata",
+            "profile_id": profile_id,
+            "postings": postings,
+        }
+        serialized = json.dumps(document, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        if len(serialized.encode("utf-8")) > MAX_EXPORT_BYTES:
+            raise DataExportError("EXPORT_TOO_LARGE")
+        return serialized
+
+
 def _safe_discovery_reasons(value):
     if not isinstance(value, list):
         return [], False

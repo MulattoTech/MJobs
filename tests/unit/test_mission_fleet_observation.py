@@ -24,7 +24,7 @@ class Element {
 const elements=new Map(),requests=[],timers=[];
 const get=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
 const health={ok:true,turboEnabled:scenario==='turbo'||scenario==='conflict',sustainedEnabled:scenario==='steady'||scenario==='conflict'};
-const snapshot={offline:scenario==='offline',sessions:[
+const snapshot={offline:scenario==='offline',snapshotAt:'2026-10-30T13:50:29.574Z',sessions:[
  {id:'active',harness:'codex',activity:'active',busy:true},
  {id:'idle',harness:'codex',activity:'idle',busy:false},
  {id:'old',harness:'codex',activity:'exited',busy:false},
@@ -58,6 +58,8 @@ vm.createContext(context);vm.runInContext(source,context);
  const provider=context.MJobsFleetObservation.provider('codex');
  if(scenario==='offline'){
    assert.equal(provider.available,false);assert.equal(provider.total,0);
+   assert.match(get('live-fleet-summary').textContent,/daemon unavailable/i);
+   assert.match(get('live-fleet-summary').textContent,/2026-10-30/);
  }else{
    assert.equal(provider.total,2);assert.equal(provider.working,1);
    assert.match(get('live-fleet-summary').textContent,/3 managed sessions; 2 working/);

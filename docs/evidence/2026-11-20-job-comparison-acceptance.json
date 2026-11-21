@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REF-039",
+  "issue": 415,
+  "title": "Bounded comparison of saved job evidence",
+  "acceptance_decision": "PASS",
+  "recorded_at_utc": "2026-11-20T07:18:47Z",
+  "reviewer": "ChatGPT-Web integration owner d9b89794",
+  "publication": {
+    "state": "RECORDING_PR_CANDIDATE",
+    "note": "This is the reviewed acceptance decision proposed for protected integration. Until that PR merges, main's canonical MJ-REF-039 entry remains NOT_RUN."
+  },
+  "scope": "Read-only comparison of current saved matches for 2-10 jobs against one persisted verified career profile/search context, with shared versus role-specific structured job requirements and provenance. No new AI rewriting, scoring algorithm accuracy or arbitrary job-text optimization requirement is inferred.",
+  "source": {
+    "tested_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+    "tree": "f8f543fcb1b46211953f65ce421ccda2937867db",
+    "merged_pr": 1045,
+    "merged_at_utc": "2026-11-20T06:53:35Z",
+    "reviewed_pr_head": "abe15febd13e39b0b2e27eaa8f42fdf3382cb3c0",
+    "tree_equals_reviewed_head": true
+  },
+  "criteria": [
+    {
+      "id": "AC1",
+      "criterion": "Define a bounded, testable capability and stable data/API contract.",
+      "result": "PASS",
+      "implementation": [
+        "services/matching/job_comparison.py",
+        "apps/api/job_comparison.py",
+        "apps/web/src/job-comparison-client.ts",
+        "apps/web/src/job-comparison-workspace.tsx"
+      ],
+      "tests": [
+        "tests/unit/test_job_comparison.py",
+        "tests/integration/test_job_comparison_api.py",
+        "tests/integration/test_job_comparison_api_recovery.py",
+        "apps/web/src/job-comparison-client.test.ts"
+      ],
+      "evidence": "The API, pure service, typed client and connected UI define a bounded 2-10 selected-job contract tied to the current persisted profile/search/match context. Existing automated contract, recovery and connected-browser tests now pass on the actual merged revision."
+    },
+    {
+      "id": "AC2",
+      "criterion": "Preserve verified-fact provenance, local-first behavior, deterministic safety gates, and current submission policy.",
+      "result": "PASS",
+      "implementation": [
+        "services/matching/job_comparison.py",
+        "apps/api/job_comparison.py",
+        "packages/persistence/store.py",
+        "apps/web/src/job-comparison-workspace.tsx"
+      ],
+      "tests": [
+        "tests/unit/test_job_comparison.py",
+        "tests/integration/test_job_comparison_api.py",
+        "tests/browser/test_job_comparison_workspace.py",
+        "tests/browser/test_job_comparison_scope_recovery.py"
+      ],
+      "evidence": "Structured requirement provenance, explicit unknown evidence, current scope/filter membership, immutable saved scores, sanitized stale/error handling, and read-only/no-external-request browser assertions pass on the integrated revision. The UI does not recast job requirements as candidate qualifications."
+    },
+    {
+      "id": "AC3",
+      "criterion": "Add automated tests and evidence; code presence is not PASS.",
+      "result": "PASS",
+      "implementation": [
+        "docs/evidence/2026-11-20-comparison-salary-provenance.md"
+      ],
+      "tests": [
+        "tests/unit/test_job_comparison.py",
+        "tests/integration/test_job_comparison_api.py",
+        "tests/integration/test_job_comparison_api_recovery.py",
+        "tests/integration/test_job_comparison_app_mount.py",
+        "tests/browser/test_job_comparison_workspace.py",
+        "tests/browser/test_job_comparison_scope_recovery.py",
+        "apps/web/src/job-comparison-client.test.ts",
+        "apps/web/src/job-comparison-workspace.test.tsx",
+        "apps/web/src/job-comparison-workspace-recovery.test.tsx"
+      ],
+      "evidence": "Fresh integrated-source typecheck/build, 30 Python/API/browser tests plus 28 subtests and 20 frontend tests executed successfully. Exact revision/tree, module identity, commands, logs and hashes are retained. Earlier failing-first repair evidence remains supplemental."
+    },
+    {
+      "id": "AC4",
+      "criterion": "Update the reference feature matrix and completion report when work begins and when verified.",
+      "result": "PASS",
+      "implementation": [
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_TRACKING.md",
+        "planning/agent_handoffs/MJ-REF-039.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests": [],
+      "evidence": "This recording batch updates only MJ-REF-039 in the canonical reference matrix, regenerates the requirement index and completion dashboard/card from the authorities, and appends a source-bound milestone/checkpoint. The decision is recorded now, not backdated to implementation or issue closure. Protected-main publication remains a separate gate."
+    },
+    {
+      "id": "AC5",
+      "criterion": "Implement independently unless license compatibility and attribution are explicitly verified.",
+      "result": "PASS",
+      "implementation": [
+        "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "services/matching/job_comparison.py",
+        "apps/api/job_comparison.py",
+        "apps/web/src/job-comparison-workspace.tsx"
+      ],
+      "tests": [],
+      "evidence": "The integration owner reviewed the native MJobs service, API, typed client/workspace, introduction/repair history and concept-only reference policy. The reviewed design uses MJobs saved-match, scope, structured-evidence and safety contracts. No direct third-party source, tests, prompts, prose or assets were identified in that scoped review, and this recording change introduces none. The feature-specific registry/log record pins the concept and primary license. This is a scoped provenance conclusion, not an exhaustive historical similarity audit."
+    }
+  ],
+  "executed_validation": {
+    "tested_at_utc": "2026-11-20T06:57:53.0938134Z",
+    "python": {
+      "result": "PASS",
+      "tests_passed": 30,
+      "subtests_passed": 28,
+      "failures": 0,
+      "skips": 0,
+      "pytest_seconds": 25.73,
+      "wall_seconds": 27.527,
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -B -m pytest -q -p no:cacheprovider tests/unit/test_job_comparison.py tests/integration/test_job_comparison_api.py tests/integration/test_job_comparison_api_recovery.py tests/integration/test_job_comparison_app_mount.py tests/browser/test_job_comparison_workspace.py tests/browser/test_job_comparison_scope_recovery.py --tb=short --junitxml=.tmp/acceptance-review/postmerge-comparison.xml"
+    },
+    "frontend": {
+      "result": "PASS",
+      "tests_passed": 20,
+      "files": 3,
+      "vitest_seconds": 0.232,
+      "wall_seconds": 0.855,
+      "command": "npm --prefix apps/web test -- --coverage.enabled=false src/job-comparison-client.test.ts src/job-comparison-workspace.test.tsx src/job-comparison-workspace-recovery.test.tsx"
+    },
+    "build": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run build",
+      "wall_seconds": 1.835,
+      "warning": "Existing >500 kB bundle advisory; no build or typecheck error."
+    },
+    "source_identity": "Imported API, comparison service and persistence modules resolved inside the owned checkout at the tested revision.",
+    "tracked_clean_after": true,
+    "whitespace": "PASS",
+    "receipt": "postmerge-validation-receipt.json",
+    "receipt_sha256": "d2f54160bc65fc4feda9b0f01a909f3881fadc1d0d330d606d6938c9340eb319",
+    "retained_receipt_hashes": [
+      {
+        "file": "postmerge-build.log",
+        "sha256": "f272e753173fe43125555556fc78dcae6e0ae3651982f2f53359ab2b12c55e08"
+      },
+      {
+        "file": "postmerge-build-receipt.json",
+        "sha256": "568ec91728f6cc43c4814bfd5f0ad9c4ad28b1b6e32a420070eaf58c16912136"
+      },
+      {
+        "file": "postmerge-python.log",
+        "sha256": "09c23b64a24d37f5143881256c74a2b9dd0569f031c70fd101ad75906630ec6b"
+      },
+      {
+        "file": "postmerge-python-receipt.json",
+        "sha256": "f0f6888013c3a36ad64a9fb9ad9b6b91867398901c88349d870aba3cb106591a"
+      },
+      {
+        "file": "postmerge-comparison.xml",
+        "sha256": "b35958cd6235676d61541f58b44c82b1f0d030344eca1c9392f720a8ed94a90a"
+      },
+      {
+        "file": "postmerge-source-identity.json",
+        "sha256": "db640c314ce46426c96c485ae055bf47241cb12a1d9796c6a1f99d17167253bc"
+      },
+      {
+        "file": "postmerge-frontend.log",
+        "sha256": "46d39b2c319e02a069b1c28319d33afe4288513a7e134a3149460d0265b84778"
+      },
+      {
+        "file": "postmerge-frontend-receipt.json",
+        "sha256": "2cf167b182227bb27a7812a2db22215d0fe839b867b686b3054de9a578fcbdf0"
+      }
+    ],
+    "fixture_scope": "Disposable synthetic SQLite databases, ephemeral local ports, installed Chromium, fresh built frontend. Browser tests assert no external/submission requests and no persisted-table writes.",
+    "environment_limit": "Cached installed Windows Python environment and private frontend dependencies; previously recorded host Node 27 alpha. This is local integrated feature evidence, not a production build."
+  },
+  "hosted_source_gates": {
+    "head": "abe15febd13e39b0b2e27eaa8f42fdf3382cb3c0",
+    "result": "PASS",
+    "successful_check_records": 15,
+    "required_gates": 5,
+    "note": "These checks belong to the approved feature source head. They do not claim a later recording PR's hosted result or individual hosted-test skip counts."
+  },
+  "provenance": {
+    "project_id": "RESUME_MATCHER",
+    "repository": "https://github.com/srbhr/Resume-Matcher",
+    "inspected_commit": "63fc344a9a59a79db6fa9d96aff188dc9faf545b",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/srbhr/Resume-Matcher/blob/63fc344a9a59a79db6fa9d96aff188dc9faf545b/LICENSE",
+    "license_blob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "primary_license_confirmed_at_utc": "2026-11-20",
+    "posture": "CONCEPT_ONLY",
+    "third_party_code_or_assets_incorporated": false,
+    "review_scope": "The integration owner reviewed the native MJobs service, API, typed client/workspace, introduction/repair history and concept-only reference policy. The reviewed design uses MJobs saved-match, scope, structured-evidence and safety contracts. No direct third-party source, tests, prompts, prose or assets were identified in that scoped review, and this recording change introduces none. The feature-specific registry/log record pins the concept and primary license. This is a scoped provenance conclusion, not an exhaustive historical similarity audit.",
+    "native_lineage": [
+      "757892fdbdbc5765eed44ec37ac655c19d99d2ac (new MJobs pure service and unit tests)",
+      "741bf1c871e5a2fd72f49ab6f8ac3cd8360bf13b (MJobs API)",
+      "6035f682e8fc8edbadfbab64202eba6389fe0248 (MJobs workspace)",
+      "5a58db36b298575e58c4e9b9380e238dfc7884a7 (connect MJobs API/UI and mount tests)",
+      "4b8fffc9723eae86d6b97b1d37ca171e574128c1 (membership/browser repair)",
+      "9d7b7b72d997c5338392cbc73e39a160ad398c8e (typed recovery)",
+      "387c1082d1d433db081bf9b66a022468cf15bbb9 (salary/provenance repair)",
+      "6c5db928b316ee751453fe25d71f288b36d872a8 (scoped lint)"
+    ],
+    "registry": "docs/reference/REFERENCE_PROJECTS.json",
+    "log": "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+    "historical_exhaustive_similarity_audit": "NOT_PERFORMED"
+  },
+  "canonical_change": {
+    "authority": "planning/REFERENCE_GAP_MATRIX.json",
+    "requirement": "MJ-REF-039",
+    "from": "NOT_RUN",
+    "to": "PASS",
+    "reference_before": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "total": 59
+    },
+    "reference_after": {
+      "PASS": 20,
+      "PARTIAL": 4,
+      "NOT_RUN": 35,
+      "total": 59
+    },
+    "original_unchanged": {
+      "PASS": 188,
+      "PARTIAL": 82,
+      "NOT_RUN": 96,
+      "total": 366
+    }
+  },
+  "recording_validation": {
+    "result": "PASS",
+    "commands": [
+      "python -B -m tools.verification.reference_provenance",
+      "python -B tools/mjobs_reconcile_planning.py --apply",
+      "python -B -m tools.verification.catalogue",
+      "python -B -m tools.verification.progress validate",
+      "python -B -m tools.verification.progress_dashboard --write",
+      "python -B -m tools.verification.progress_dashboard --check",
+      "python -B -m tools.ownership_index --check",
+      "python -B -m tools.ci.check_repository",
+      "python -B -m tools.verification.commit_provenance --commit 3182143f2a8a22062da8f2602165b1e7d60a16f4",
+      "git diff --check"
+    ],
+    "note": "Observed local validation only. Final generated-diff verification and exact published candidate hosted checks are recorded separately; no prior-head hosted result is substituted."
+  },
+  "limitations": [
+    "The feature compares saved per-job scores and structured observed requirements; it does not generate resume rewrites, new qualifications or new scores.",
+    "Saved-score browser fixtures do not qualify the upstream scoring algorithm. Original MJ-REQ-112 and every original canonical acceptance result remain unchanged.",
+    "Authenticated public validation, production rollout, live providers and production-data recovery are not established by this local-first feature evidence.",
+    "No employer submission, paid model call, production data edit or service restart occurred during feature validation.",
+    "GitHub issue closure is not used as proof of acceptance. Protected integration of this recording candidate is pending."
+  ],
+  "prerequisite_assessment": {
+    "sources": [
+      "planning/REFERENCE_GAP_QUEUE.md#rg-pr-012--role-scoring-and-portfolio-comparison",
+      "docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md",
+      "planning/REQUIREMENT_INDEX.json",
+      "planning/REFERENCE_GAP_MATRIX.json",
+      "https://github.com/MulattoTech/MJobs/issues/415"
+    ],
+    "declared_foundations": [
+      "Matching engine and profile configuration for RG-PR-012.",
+      "Mature verified CareerFact/document/matching foundation for the legacy REF-GAP-007 concept."
+    ],
+    "assessment": "The bounded comparison consumes existing persisted profile/search/match and structured-evidence interfaces, exercised by the scoped API and connected-browser evidence. No explicit requirement-ID acceptance prerequisite binds MJ-REF-039 to MJ-REQ-112 PASS; issue415 names112 as existing overlap. This accepts the bounded comparison's use of those existing interfaces and does not waive a declared prerequisite or qualify the upstream scoring algorithm.",
+    "original_MJ_REQ_112": "UNCHANGED"
+  },
+  "recording_fix": {
+    "source_commit": "3182143f2a8a22062da8f2602165b1e7d60a16f4",
+    "problem": "Stock progress record appended a milestone but left current_milestone stale; dashboard/card read that stale pointer.",
+    "change": "Update current_milestone from the validated entry inside the existing locked append before atomic publication.",
+    "regression": "tests/unit/test_progress_dashboard.py::DashboardTests::test_recorded_milestone_advances_dashboard_without_changing_counts",
+    "failing_first": {
+      "result": "EXPECTED_FAIL",
+      "tests_failed": 1,
+      "seconds": 0.26,
+      "observed": "SOURCE_EXAMPLE != CURRENT_ACCEPTANCE",
+      "log_sha256": "e006e9b458a2a54a01ea3f4245f944241b449ed51946d4ccb9e247cbab018693"
+    },
+    "after": {
+      "result": "PASS",
+      "tests_passed": 45,
+      "subtests_passed": 37,
+      "skipped": 7,
+      "seconds": 10.61,
+      "skip_reason": "One POSIX symlink case and six POSIX directory-descriptor durability cases are not supported on this Windows host.",
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/unit/test_progress_journal.py tests/unit/test_progress_journal_concurrency.py tests/unit/test_progress_journal_durability.py tests/unit/test_progress_journal_readers.py tests/unit/test_progress_journal_recovery.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py --tb=short --junitxml=.tmp/progress-milestone-after.xml",
+      "log_sha256": "9e0651c388cd8b51cc6c5d748194c8b8e8a25b2ab02896ab583c754b4a18eded",
+      "junit_sha256": "238053d70717aec1785e05c25d2ef4b9bb0229ff0372ed36864e2ff53079269a"
+    },
+    "static_checks": "python -B -m ruff check --select E9,F tools/verification/progress.py tests/unit/test_progress_dashboard.py: PASS",
+    "independent_AI_review": "No blocking findings. Assignment follows validation inside the existing lock; journal entries and canonical acceptance counts are preserved. No human review or second test execution is claimed.",
+    "limitations": "The seven POSIX-only cases remain NOT_RUN locally. Exact published recording-head hosted checks are a separate gate."
+  }
+}
