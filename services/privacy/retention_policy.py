@@ -11,6 +11,7 @@ from sqlalchemy import select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import now
+from services.privacy.transient_retention import _valid_rule
 
 
 _ENTITY = "SYSTEM_TRANSIENT_RETENTION"
@@ -67,6 +68,7 @@ def _normalize_config(config):
             _fail("RETENTION_POLICY_INVALID_CONFIG")
         rules = []
         seen = set()
+        seen_roots = set()
         for rule in raw_rules:
             if not isinstance(rule, Mapping) or set(rule) != {
                     "id", "category", "relative_root", "pattern", "max_age_days"}:
@@ -89,7 +91,12 @@ def _normalize_config(config):
             if (posix.is_absolute() or any(part in {"", ".", ".."} for part in parts)
                     or any(part.casefold() in _PROTECTED for part in parts)):
                 _fail("RETENTION_POLICY_INVALID_CONFIG")
+            # Saved consent must not enable rules the sweep engine rejects.
+            # Keep the policy's additional protected names above as well.
+            if _valid_rule(rule) is None or relative_root.casefold() in seen_roots:
+                _fail("RETENTION_POLICY_INVALID_CONFIG")
             seen.add(rule_id)
+            seen_roots.add(relative_root.casefold())
             rules.append({"id": rule_id, "category": category, "relative_root": relative_root,
                           "pattern": pattern, "max_age_days": age})
         rules.sort(key=lambda rule: rule["id"])

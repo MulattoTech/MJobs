@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031132Z-475f811ba74e",
+  "observed_at_utc": "2026-11-09T03:26:28.558442+00:00",
+  "requirement_id": "MJ-REQ-170",
+  "related_requirement": "MJ-REF-042",
+  "scope": "Static retention-rule admission alignment only; no full requirement promotion",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "f18b02954a49f88e8cb27fa707aec37ed25cefd1",
+  "implementation_tree": "bc641e2db9b7b76190ea38aada3c1b8ccb95f0ad",
+  "environment": {
+    "os": "Linux",
+    "python": "3.12.14",
+    "packages": {
+      "SQLAlchemy": "2.1.1",
+      "FastAPI": "0.141.1",
+      "Starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "pydantic": "2.13.4",
+      "greenlet": "3.5.5"
+    },
+    "dependency_pins_fully_matched": false,
+    "fixtures": "Temporary SQLite, synthetic files, in-process FastAPI; no network, browser, employer submission or production cleanup"
+  },
+  "baseline": {
+    "source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "new_regression_tests": 3,
+    "assertion_failures": 17,
+    "exit_code": 1,
+    "result": "EXPECTED_RED",
+    "scope": "New regression tests against unchanged main production source"
+  },
+  "focused_tests": {
+    "command": "PYTHONPATH=/workspace/scratch/a6379588013b/retention-admission-deps python -m unittest -v tests.unit.test_retention_policy tests.unit.test_transient_retention tests.integration.test_retention_policy",
+    "tested_sha": "f18b02954a49f88e8cb27fa707aec37ed25cefd1",
+    "tests_run": 23,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "exit_code": 0,
+    "result": "PASS"
+  },
+  "criteria": [
+    {
+      "criterion": "Reject runtime-protected roots and invalid path components before consent",
+      "result": "PASS"
+    },
+    {
+      "criterion": "Reject case-insensitive duplicate managed roots",
+      "result": "PASS"
+    },
+    {
+      "criterion": "GET, PUT and preview return fixed 503 code for invalid server rules",
+      "result": "PASS"
+    },
+    {
+      "criterion": "Rejection preserves audit rows, previous consent, synthetic files, and blocks engine entry",
+      "result": "PASS"
+    },
+    {
+      "criterion": "Valid consent, preview, bounded pruning and recovery remain functional",
+      "result": "PASS"
+    }
+  ],
+  "integrity_commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS\n"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS\n"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 3 source files\n"
+    }
+  ],
+  "independent_review": {
+    "reviewer": "Separate source reviewer foundation_scout",
+    "result": "No scoped blocking finding",
+    "scope": "Source compatibility, no circular import, preserved stricter protections, test adequacy; not human approval"
+  },
+  "limitations": [
+    "Full MJ-REQ-170 acceptance not re-established; canonical status is historical",
+    "MJ-REF-042 full data-flow/privacy/provider disclosure remains NOT_RUN",
+    "Dynamic filesystem/runtime checks remain necessary",
+    "Windows execution, PostgreSQL concurrency and authenticated browser/production journeys NOT_RUN",
+    "Required hosted checks must qualify the final published revision",
+    "No canonical matrices, live retention configuration, production data or submission behavior changed"
+  ]
+}
