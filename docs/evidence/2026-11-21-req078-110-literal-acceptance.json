@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "CANONICAL_ORIGINAL_REQUIREMENT_ACCEPTANCE_PROPOSAL",
-  "publication": "PRIVATE_STAGING_UPDATED_TO_EXACT_MERGED_MAIN_POSTMERGE_GATES_PENDING",
+  "publication": "PRIVATE_FINAL_CI_VERIFIED_PENDING_SEPARATE_PROTECTED_ACCEPTANCE_PR",
   "prepared_at_utc": "2026-11-21T00:18:06.242419+00:00",
   "repository": "MulattoTech/MJobs",
   "staging_base": "4967e233b050d066b354900d28f30ea60cc7da37",
@@ -68,7 +68,7 @@
     "receipt_sha256": "43bb4af8994a0412fcea1790082775285079b7d6ed499cac06cc426ef4b7dcfe",
     "independent_narrow_suite": "23 primary + 7 subtests passed on prior PR source",
     "receipt_sha256_prior": "13295e2913016043c4f60d0edac5b919f1c6f86544174e43c155608416eb75d6",
-    "further_proof": "Actual protected squash SHA eafd2cfbf8d371a77200afad66f25649a74e7b7b verified in current main with 11/11 reviewed PR blobs identical. New main CI/deployment candidate pending; not eligible for acceptance PR publication until exact-SHA gates finish."
+    "further_proof": "Protected PR #1006 merged into main eafd2cfbf8d371a77200afad66f25649a74e7b7b; all 11 reviewed file blobs verified. Authenticated exact-main postmerge CI and image candidate passed; manifest SHA-256 ec1a6a735be27fff4c5a355fc6be98b00234d3ee8aab7df712441b57219aa3d2. Separate protected acceptance review and merge remain pending."
   },
   "conditions_before_publication": [
     "PR #1006 protected GitHub merge confirmed",
@@ -86,10 +86,77 @@
     "pr_head_sha": "53824f50c32a92b7e10c0e112c0b59d28de25bfb",
     "reviewed_pr_file_blobs_preserved": 11,
     "all_five_required_pr_workflow_groups": "SUCCESS",
-    "postmerge_fast_ci": "IN_PROGRESS_AT_PREPARATION",
-    "postmerge_integration": "IN_PROGRESS_AT_PREPARATION",
+    "postmerge_fast_ci": "SUCCESS",
+    "postmerge_integration": "SUCCESS_ALL_SHARDS_AND_AGGREGATE",
     "postmerge_secret_scan": "SUCCESS",
-    "postmerge_deployment_candidate": "IN_PROGRESS_NOT_DEPLOYED",
-    "ci_readback": "Recheck exact current main CI before publication; statuses not final"
+    "postmerge_deployment_candidate": "CANDIDATE_VALIDATED_NOT_DEPLOYED",
+    "ci_readback": "Exact main SHA and required workflow identities rechecked through authenticated GitHub REST"
+  },
+  "verified_postmerge_gates": {
+    "verified_at_utc": "2026-11-21T00:48:07.348530+00:00",
+    "main_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+    "workflow_runs": {
+      "security": {
+        "id": 44843692733,
+        "name": "Secret scan - reviewed history",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "fast": {
+        "id": 44843692795,
+        "name": "CI - fast",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "integration": {
+        "id": 44843692712,
+        "name": "Integration - PostgreSQL and Redis",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      },
+      "candidate": {
+        "id": 44843692782,
+        "name": "MJobs deployment candidate",
+        "head_sha": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+        "status": "completed",
+        "conclusion": "success",
+        "attempt": 1
+      }
+    },
+    "integration_jobs": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 0",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 1",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Integration / shard 2",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "deployment_candidate_manifest": {
+      "artifact_id": 14682963016,
+      "sha256": "ec1a6a735be27fff4c5a355fc6be98b00234d3ee8aab7df712441b57219aa3d2",
+      "source_commit": "eafd2cfbf8d371a77200afad66f25649a74e7b7b",
+      "result": "CANDIDATE_VALIDATED_NOT_DEPLOYED"
+    },
+    "note": "GitHub Actions candidate validation only; no deploy, push or image publication"
   }
 }
