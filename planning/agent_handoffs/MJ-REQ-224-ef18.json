@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-224-ef18",
+  "objective": "Repair Teamtailor and Breezy rendered-control analysis with worker budgets; preserve controlled-fixture, privacy and review boundaries",
+  "owner": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "branch": "web/ef1809b6/application-adapter-budget",
+  "head_sha": "ce133e3d0fff032bc01a2e47c4d6c86f6a83278c",
+  "routing_state": "INTEGRATE",
+  "next_action": "Publish the independently reviewed exact-source candidate through admission, observe required hosted checks and hand it to the sole integration steward; canonical224/004 remain partial",
+  "created_at": "2026-11-13T21:25:11.943610+00:00",
+  "requirements": [
+    "MJ-REQ-224",
+    "MJ-REQ-004"
+  ],
+  "tests": [
+    {
+      "command": "Exact ce133e3d:160 tests plus143 subtests;7 native Chromium tests;0fail/error/skip",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent immutable code review PASS_SCOPED_NO_BLOCKING_FINDINGS; source provenance and AST/diff checks PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact eventual PR-head required hosted checks; protected integration; production; full224/004 acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "evidence_file": "docs/evidence/2026-11-13-application-adapter-budget-ef18.json",
+  "source_test_revision": "ce133e3d0fff032bc01a2e47c4d6c86f6a83278c",
+  "source_tree": "a2093f926ce36513d728dcbfc1ef22c4d21a70b5",
+  "source_binding": "head_sha is the operational checkpoint; actual executed and reviewed source is source_test_revision. Subsequent evidence-only commits do not create new runtime proof.",
+  "baseline_failures_preserved": {
+    "head": "c1347eaf6b242a12cf3d87f6b224feca616aa9fb",
+    "failed": 2,
+    "errors": 0,
+    "skips": 0
+  },
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "limitations": [
+    "Locator resolution is timed; renderer JavaScript execution remains cooperative.",
+    "Metadata and state are separate reads; same-count control replacement identity is not newly bound.",
+    "Synthetic local tests do not prove live ATS compatibility, form filling, uploads, submission, or whole MJ224/MJ004 acceptance."
+  ]
+}
