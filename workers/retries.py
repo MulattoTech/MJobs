@@ -13,7 +13,7 @@ from workers.operations import MAX_ATTEMPTS
 
 
 _SAFE_KINDS = {"DISCOVER", "COMPANY_DISCOVER"}
-_TRANSIENT_FETCH_CODES = {"DNS_TIMEOUT", "DNS_BUSY", "DNS_FAILED", "FETCH_DEADLINE"}
+_TRANSIENT_FETCH_CODES = {"DNS_TIMEOUT", "DNS_BUSY", "DNS_FAILED", "FETCH_DEADLINE", "TRANSPORT_TRANSIENT"}
 
 
 def discovery_retry_plan(connection, operation, failure, timestamp):
