@@ -75,7 +75,7 @@ class ConfiguredSubmissionLimitTests(unittest.TestCase):
         finally:
             reopened.engine.dispose()
 
-    def test_configured_caps_use_existing_rolling_and_company_durable_counters(self):
+    def test_configured_caps_use_rolling_and_company_daily_durable_counters(self):
         first, second = (self.store.application(identifier) for identifier in self.applications)
         with self.store.engine.begin() as connection:
             company_id = connection.execute(select(m.jobs.c.company_id).where(
@@ -85,7 +85,7 @@ class ConfiguredSubmissionLimitTests(unittest.TestCase):
         for key, age, reason in (
                 (KEYS[0], timedelta(minutes=30), "HOURLY_LIMIT_REACHED"),
                 (KEYS[1], timedelta(hours=2), "DAILY_LIMIT_REACHED"),
-                (KEYS[2], timedelta(days=2), "COMPANY_LIMIT_REACHED")):
+                (KEYS[2], timedelta(hours=2), "COMPANY_LIMIT_REACHED")):
             with self.subTest(setting=key):
                 with self.store.engine.begin() as connection:
                     connection.execute(update(m.applications).where(
