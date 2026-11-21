@@ -126,6 +126,77 @@ class CompanyDiscoverySitemapSafetyTests(unittest.TestCase):
         self.assertEqual(self._source_count(), 1)
         self._assert_get_only(client)
 
+    def test_unknown_sitemap_encoding_preserves_safe_route_recovery(self):
+        sitemap_url = ORIGIN + "/sitemap.xml"
+        pages = {
+            ORIGIN + "/": self._homepage(),
+            sitemap_url: self._page(
+                sitemap_url, '<?xml version="1.0" encoding="unknown-encoding"?><urlset/>',
+            ),
+            **self._career_feed_pages(),
+        }
+        client = SitemapFixtureTransport(pages)
+
+        result = self._discover(client)
+
+        self.assertEqual(result["careers_url"], CAREERS_URL)
+        self.assertEqual(result["endpoint"], FEED_URL)
+        self.assertEqual(result["jobs_imported"], 1)
+        self.assertIn(("GET", sitemap_url), client.requests)
+        self.assertEqual(self._source_count(), 1)
+        self.assertTrue(all(urlsplit(url).netloc == "employer.example" for _, url in client.requests))
+        self._assert_get_only(client)
+
+    def test_encoded_doctype_career_route_is_never_requested_or_enrolled(self):
+        sitemap_url = ORIGIN + "/sitemap.xml"
+        rejected_url = ORIGIN + "/special/careers"
+        xml = (
+            '<?xml version="1.0"?><!DOCTYPE urlset>'
+            f"<urlset><url><loc>{rejected_url}</loc></url></urlset>"
+        )
+        pages = {
+            ORIGIN + "/": self._homepage(),
+            sitemap_url: self._page(sitemap_url, xml.encode("utf-16-le").decode("latin-1")),
+            rejected_url: self._page(
+                rejected_url,
+                '<h1>Employer Example Careers</h1>'
+                '<link rel="alternate" type="application/rss+xml" href="/careers/jobs.xml">',
+            ),
+            **self._career_feed_pages(),
+        }
+        client = SitemapFixtureTransport(pages)
+
+        result = self._discover(client)
+
+        self.assertNotIn(("GET", rejected_url), client.requests)
+        self.assertEqual(result["careers_url"], CAREERS_URL)
+        self.assertEqual(result["jobs_imported"], 1)
+        self.assertEqual(self._source_count(), 1)
+        self._assert_get_only(client)
+
+    def test_encoded_doctype_child_sitemap_is_never_requested(self):
+        sitemap_url = ORIGIN + "/sitemap.xml"
+        child_url = ORIGIN + "/special/sitemap.xml"
+        xml = (
+            '<?xml version="1.0"?><!DOCTYPE sitemapindex>'
+            f"<sitemapindex><sitemap><loc>{child_url}</loc></sitemap></sitemapindex>"
+        )
+        pages = {
+            ORIGIN + "/": self._homepage(),
+            sitemap_url: self._page(sitemap_url, xml.encode("utf-16-be").decode("latin-1")),
+            child_url: self._page(child_url, "<urlset/>"),
+            **self._career_feed_pages(),
+        }
+        client = SitemapFixtureTransport(pages)
+
+        result = self._discover(client)
+
+        self.assertNotIn(("GET", child_url), client.requests)
+        self.assertEqual(result["careers_url"], CAREERS_URL)
+        self.assertEqual(result["jobs_imported"], 1)
+        self.assertEqual(self._source_count(), 1)
+        self._assert_get_only(client)
+
     def test_off_origin_sitemap_hint_is_never_requested_and_cannot_enroll_a_source(self):
         pages = {
             ORIGIN + "/": self._homepage(

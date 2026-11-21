@@ -71,37 +71,65 @@ def _read_selection(path: Path) -> str:
         raise ValueError("BROWSER_PROFILE_SELECTION_INVALID") from None
 
 
+def _profile_directory(path: Path, *, initialize: bool = False) -> bool:
+    """Admit only real, private session directories; never chmod old state."""
+    _unalias(path)
+    if initialize:
+        # Create each session-bearing level explicitly. With parents=True, only
+        # the final named child would receive this mode.
+        path.mkdir(mode=0o700, exist_ok=True)
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        if initialize:
+            raise ValueError("BROWSER_PROFILE_UNSAFE") from None
+        return False
+    if (not stat.S_ISDIR(metadata.st_mode)
+            or (os.name == "posix" and stat.S_IMODE(metadata.st_mode) & 0o077)):
+        raise ValueError("BROWSER_PROFILE_UNSAFE")
+    _unalias(path)
+    return True
+
+
 def browser_profile_path(application_root: Path, *, initialize: bool = False) -> Path:
     """Resolve a pinned selection; initialize only before an authorized launch.
 
-The exclusive small manifest never contains credentials. A malformed or partial
-manifest fails closed; it is never replaced with a different session selection.
-Every cookie directory remains below browser-profile, the backup exclusion root.
-"""
-    root = Path(application_root).absolute()
-    selection = root / _SELECTION
-    profile_root = root / "browser-profile"
-    for path in (root, selection, profile_root):
-        _unalias(path)
-    if selection.exists():
-        name = _read_selection(selection)
-    elif initialize:
-        # An existing unlabelled session predates selection support.
-        name = "default" if profile_root.exists() else configured_browser_profile()
-        root.mkdir(parents=True, exist_ok=True)
-        try:
-            descriptor = os.open(selection, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        except FileExistsError:
+    The exclusive small manifest never contains credentials. A malformed or
+    partial manifest fails closed; it is never replaced with a different session
+    selection. Every cookie directory remains below the backup exclusion root.
+    Existing session directories must be private on POSIX; Windows mode bits do
+    not establish ACL isolation. Read-only lookup never creates missing state.
+    """
+    try:
+        root = Path(application_root).absolute()
+        selection = root / _SELECTION
+        profile_root = root / "browser-profile"
+        for path in (root, selection):
+            _unalias(path)
+        existing_profile = _profile_directory(profile_root)
+        if selection.exists():
             name = _read_selection(selection)
+        elif initialize:
+            # An existing unlabelled session predates selection support.
+            name = "default" if existing_profile else configured_browser_profile()
+            root.mkdir(parents=True, exist_ok=True)
+            try:
+                descriptor = os.open(selection, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            except FileExistsError:
+                name = _read_selection(selection)
+            else:
+                with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                    json.dump({"schema_version": 1, "name": name}, stream)
+                    stream.flush()
+                    os.fsync(stream.fileno())
         else:
-            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-                json.dump({"schema_version": 1, "name": name}, stream)
-                stream.flush()
-                os.fsync(stream.fileno())
-    else:
-        name = "default"
-    profile = profile_root if name == "default" else profile_root / name
-    _unalias(profile)
-    if initialize:
-        profile.mkdir(parents=True, exist_ok=True)
-    return profile
+            name = "default"
+        profile = profile_root if name == "default" else profile_root / name
+        _profile_directory(profile_root, initialize=initialize)
+        if profile != profile_root:
+            _profile_directory(profile, initialize=initialize)
+        return profile
+    except OSError:
+        # OS errors can contain private local paths. Consumers already handle
+        # the fixed unsafe-profile refusal; preserve that public boundary.
+        raise ValueError("BROWSER_PROFILE_UNSAFE") from None

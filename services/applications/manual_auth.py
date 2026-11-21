@@ -331,7 +331,9 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
     if (not isinstance(application_id, str)
             or not _FINGERPRINT.fullmatch(application_id)):
         return None
-    application_path_id = os.path.basename(application_id)
+    # Reconstruct a fixed-width hexadecimal filename after strict validation.
+    # Keep raw request text out of filesystem paths, including read-only probes.
+    application_path_id = f"{int(application_id, 16):064x}"
     if application_path_id != application_id:
         return None
     if not isinstance(attempt_id, str) or not _ATTEMPT_ID.fullmatch(attempt_id):
