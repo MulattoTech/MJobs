@@ -4,10 +4,28 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from cli import ui_e2e
+from cli import acceptance_onboarding, ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_first_run_search_binds_historical_profile_version_after_later_edit(self):
+        searched = "a" * 64
+        current = "b" * 64
+        binding = acceptance_onboarding.assert_first_run_search_profile_version(
+            {"params": {"profile_version": searched}}, searched, current)
+        self.assertEqual(binding, {
+            "search_profile_version": searched,
+            "operation_profile_version": searched,
+            "current_profile_version": current,
+            "current_profile_advanced": True,
+        })
+        with self.assertRaisesRegex(ValueError, "FIRST_RUN_SEARCH_PROFILE_VERSION_MISMATCH"):
+            acceptance_onboarding.assert_first_run_search_profile_version(
+                {"params": {"profile_version": searched}}, current, current)
+        with self.assertRaisesRegex(ValueError, "FIRST_RUN_SEARCH_PROFILE_VERSION_INVALID"):
+            acceptance_onboarding.assert_first_run_search_profile_version(
+                {"params": {"profile_version": "not-a-version"}}, "not-a-version", current)
+
     def test_terminal_application_readback_requires_exact_profile_and_application(self):
         current = {
             "id": "application-1",
@@ -443,9 +461,12 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             ("POST", "/profiles/p1/applications/a1/mock-run"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel"),
+            ("PUT", "/profiles/p1/applications/a1/tracking/status"),
         )
         blocked = (
             ("PUT", "/profiles/p1/applications/a1/reprepare"),
+            ("POST", "/profiles/p1/applications/a1/tracking/status"),
+            ("PUT", "/profiles/p1/applications/a1/tracking/notes"),
             ("GET", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel/extra"),
             ("POST", "/profiles/p1/applications/a1/submit"),
@@ -464,6 +485,11 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         comparison = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/" \
                     "uploaded-resume-comparison/operations?request_id=private-query"
         self.assertTrue(ui_e2e.is_allowed_onboarding_request("POST", comparison, origin))
+        tracking_status = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/tracking/status"
+        self.assertTrue(ui_e2e.is_allowed_onboarding_request("PUT", tracking_status, origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request("PUT", tracking_status, "employer.example"))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "PUT", tracking_status.replace("/tracking/status", "/tracking/notes"), origin))
         self.assertFalse(ui_e2e.is_allowed_onboarding_request(
             "POST", comparison, "employer.example"))
         self.assertFalse(ui_e2e.is_allowed_onboarding_request(
@@ -600,6 +626,45 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "unexpected approved facts"):
             ui_e2e.assert_onboarding_profile_facts(corrupted, {"imported-summary"})
 
+    def test_profile_readback_preserves_explicitly_unapproved_skill_before_reapproval(self):
+        profile = {"facts": [
+            {"fact_id": "python-entry", "kind": "skill", "text": "Python", "verified": True,
+             "user_approved": True},
+            {"fact_id": "sql-entry", "kind": "skill", "text": "SQL", "verified": True,
+             "user_approved": False},
+            {"fact_id": "imported-summary", "kind": "summary", "text": "Synthetic imported summary",
+             "verified": False, "user_approved": False},
+        ]}
+
+        approved = ui_e2e.assert_onboarding_profile_facts(
+            profile, {"imported-summary"}, expected_approved_fact_texts={"Python"},
+            expected_unapproved_fact_texts={"SQL"})
+
+        self.assertEqual(approved, {"Python": "python-entry"})
+
+    def test_onboarding_inventory_capture_requires_complete_v4_for_same_profile(self):
+        inventory = {
+            "schema_version": 4, "scope": "ALL_PERSISTED_JOBS", "profile_id": "profile-1",
+            "profile_version": "a" * 64, "job_count": 1, "source_copy_count": 2,
+            "snapshot_sha256": "b" * 64, "sha256": "c" * 64,
+            "jobs": [{"job_id": "job-1", "canonical_sha256": "d" * 64,
+                      "route_count": 1, "source_copy_count": 2,
+                      "source_copies": [{"source": "fixture"}],
+                      "source_copies_sha256": "e" * 64}],
+        }
+        with patch.object(ui_e2e, "collect_persisted_job_inventory", return_value=inventory) as collect:
+            captured = ui_e2e.collect_onboarding_job_inventory(lambda path: None, "profile-1")
+        self.assertIs(captured, inventory)
+        collect.assert_called_once()
+
+        for key, value in (("schema_version", 3), ("scope", "VISIBLE_JOBS"),
+                           ("profile_id", "other-profile")):
+            with self.subTest(key=key), patch.object(
+                    ui_e2e, "collect_persisted_job_inventory",
+                    return_value={**inventory, key: value}):
+                with self.assertRaisesRegex(ValueError, "complete v4 inventory for this profile"):
+                    ui_e2e.collect_onboarding_job_inventory(lambda path: None, "profile-1")
+
     def test_documents_must_exclude_imported_pending_facts(self):
         ui_e2e.assert_no_pending_facts_in_documents([
             {"fact_ids": ["python-entry"], "facts_used": [
@@ -620,6 +685,18 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                      "user_approved": True},
                 ]},
             ], {"imported-summary"}, {"python-entry", "sql-entry"})
+
+    def test_only_exact_profile_version_conflict_allows_explicit_fact_reload(self):
+        conflict = {"detail": {"code": "FACT_REJECTION_VERSION_CHANGED"}}
+        self.assertTrue(ui_e2e.is_fact_rejection_version_conflict(409, conflict))
+        for status, body in (
+            (409, {"detail": {"code": "FACT_REJECTION_CONTENT_CHANGED"}}),
+            (409, {"detail": {"code": "FACT_REJECTION_REQUIRES_PENDING_FACT"}}),
+            (200, conflict),
+            (409, {"detail": "Conflict"}),
+        ):
+            with self.subTest(status=status, body=body):
+                self.assertFalse(ui_e2e.is_fact_rejection_version_conflict(status, body))
 
 
 if __name__ == "__main__":

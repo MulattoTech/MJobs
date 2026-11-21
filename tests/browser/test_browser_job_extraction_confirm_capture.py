@@ -170,6 +170,55 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         raw_capture_ref,
                     )
                     visible_text = page.get_by_label("Visible page text", exact=True)
+                    oversized_text = (
+                        "Title: Provisional Systems Administrator\n"
+                        "Company: Provisional Synthetic Employer\n"
+                        "Location: Tulsa, OK\n"
+                        "Job ID: provisional-job-123\n"
+                        f"Listing URL: {reference_url}\n"
+                        f"Application URL: {application_url}\n"
+                        f"Description: {'界' * 13_000}"
+                    )
+                    visible_text.fill(oversized_text)
+                    before_oversized_review = table_counts()
+                    with page.expect_response(
+                        lambda response: response.url == origin + preview_path
+                        and response.status == 200,
+                    ) as oversized_preview:
+                        page.get_by_role(
+                            "button", name="Preview extraction", exact=True,
+                        ).click()
+                    oversized_result = oversized_preview.value.json()
+                    self.assertEqual(len(oversized_result["fields"]["description"]["value"]), 13_000)
+                    for label in ("Title", "Company", "Source job ID", "listing URL", "application URL"):
+                        page.get_by_label(f"Confirm low-confidence {label}", exact=True).check()
+                    page.get_by_role("button", name="Confirm reviewed details", exact=True).click()
+                    confirmed_description = page.get_by_role(
+                        "textbox", name="Confirmed job description", exact=True,
+                    )
+                    expect(confirmed_description).to_have_value("界" * 13_000)
+                    page.get_by_role(
+                        "checkbox", name="Confirm reviewed job description", exact=True,
+                    ).check()
+                    page.get_by_role(
+                        "button", name="Confirm reviewed job details", exact=True,
+                    ).click()
+                    expect(page.get_by_role("alert")).to_contain_text(
+                        "40,000-byte capture limit",
+                    )
+                    self.assertEqual(manual_posts, [])
+                    self.assertEqual(table_counts(), before_oversized_review)
+
+                    # Reopening the extractor gives the user the documented recovery
+                    # path: a fresh, shorter original capture with durable readback.
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name=re.compile(r"^Jobs\s+\d+$"),
+                    ).click()
+                    page.get_by_role("button", name=job["title"], exact=False).first.click()
+                    panel = page.get_by_role("region", name="Review captured job details")
+                    expect(panel).to_be_visible()
+                    page.get_by_label("Raw capture reference", exact=True).fill(raw_capture_ref)
                     visible_text.fill(hostile_text)
                     preview_before = table_counts()
                     with page.expect_response(
@@ -200,9 +249,9 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         "application_url",
                     ])
                     self.assertEqual(table_counts(), preview_before)
-                    self.assertEqual(len(preview_posts), 1)
+                    self.assertEqual(len(preview_posts), 2)
                     self.assertEqual(
-                        preview_posts[0]["capture"]["visible_text"], hostile_text,
+                        preview_posts[1]["capture"]["visible_text"], hostile_text,
                     )
                     expect(panel).to_contain_text("VISIBLE_TEXT")
                     expect(panel).to_contain_text("65% confidence")

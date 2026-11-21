@@ -34,6 +34,7 @@ Prettier and component checks.
 npm test --prefix apps/web
 npm run build --prefix apps/web
 .\.venv\Scripts\python.exe -m tools.ci.check_repository
+.\.venv\Scripts\python.exe -m tools.ownership_index --check
 .\.venv\Scripts\python.exe -m tools.verification.catalogue
 .\.venv\Scripts\python.exe -m tools.verification.progress validate
 git diff --check

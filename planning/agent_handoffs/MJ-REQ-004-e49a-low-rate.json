@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "issue": 5,
+  "state": "VERIFY",
+  "canonical_status": "PARTIAL",
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "source_commit": "456411e11d886ef7c4eacbaca7ebfee28391a38a",
+  "branch": "web/e49a1cba/sqlite-low-rate",
+  "worktree": "C:\\Tools\\Dev\\MJobs-Web\\e49a1cba-sqlite-low-rate-verification",
+  "evidence": "docs/evidence/2026-11-13-web-e49a-sqlite-low-rate-verification.json",
+  "local_result": "39primary tests and11subtests PASS,0failures/errors/skips; immutable456411",
+  "hosted_result": "NOT_RUN on adoption head",
+  "integration": "NOT_RUN; exact Nov9 resumed steward role unresolved",
+  "deployment": "NOT_RUN",
+  "acceptance_changed": false,
+  "next_action": "Pass required exact-published-head checks; confirmed sole integrator reviews and integrates normally; then refresh dependent PR1016 against newmain and earn fresh required gates.",
+  "ownership": {
+    "claim_key": "web:WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad:low-rate-adoption:fba4a40142e341f6847d5536c959cb91",
+    "disposition": "Active preparation only; source claims released after publication"
+  }
+}

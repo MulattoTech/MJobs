@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-20T09:34:03.533745+00:00",
+  "task": "PR1066 deadline-corrected dependency composition",
+  "outcome": "SCOPED_LOCAL_REVALIDATION_PASS_FRESH_HOSTED_GATES_REQUIRED",
+  "current_main": "68c8ac18454be004bdc9b6f3f51ba1755781c0d9",
+  "source_revision": "25925cd8e4a5a023d3ce6998ce68195471cdbdf1",
+  "source_tree": "865a6ec7aac6efcd023c409b34e1a1c5c19edf23",
+  "prerequisite": {
+    "pr": 1065,
+    "head": "edc25e8f25ec548918b972e8c6e7827080de6486",
+    "evidence": "docs/evidence/2026-11-20-source-timeout-health.json"
+  },
+  "prior_published_head": "a8fa68fed08c49607faf58c2050968f05dea29cc",
+  "prior_hosted_failure": {
+    "job": "https://github.com/MulattoTech/MJobs/actions/runs/44704929221/job/136182057567",
+    "test": "SourceAdapterConnectCancellationTests.test_lever_global_finite_deadline_during_real_tcp_connect",
+    "failure": "FAILED source health rather than NOT_CHECKED despite durable operation timeout",
+    "disposition": "Deterministically reproduced callback-accounting and timeout-classification defects repaired in1065; original failure retained."
+  },
+  "component_origins": {
+    "soupsieve": {
+      "pr": 1020,
+      "head": "da8d38fea423b437535a09248655e8db23c8aa7f"
+    },
+    "opentelemetry_api": {
+      "pr": 1031,
+      "head": "2be5af25cf97347973104cdd26e4eaeb0b7eeedd"
+    }
+  },
+  "combined_validation": {
+    "started_utc": "2026-11-20T09:30:03.240379+00:00",
+    "finished_utc": "2026-11-20T09:31:23.241632+00:00",
+    "test_selectors": [
+      "tests/unit/test_greenhouse_rate_admission.py",
+      "tests/integration/test_greenhouse.py",
+      "tests/unit/test_greenhouse_cancellation_cleanup.py",
+      "tests/unit/test_greenhouse_metadata_inventory.py",
+      "tests/unit/test_greenhouse_salary.py",
+      "tests/integration/test_source_adapter_connect_cancellation.py",
+      "tests/integration/test_source_http_tcp_cleanup.py",
+      "tests/integration/test_source_http_tls_cleanup.py",
+      "tests/unit/test_ats_detection.py",
+      "tests/unit/test_structured_posting_descriptions.py",
+      "tests/unit/test_career_page_sitemaps.py",
+      "tests/unit/test_testedrecruits_source.py",
+      "tests/integration/test_testedrecruits_source.py",
+      "tests/unit/test_llm_telemetry.py",
+      "tests/integration/test_llm_telemetry_integration.py"
+    ],
+    "counts": {
+      "passed": 168,
+      "subtests_passed": 189,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0
+    },
+    "pytest_summary": "168 passed, 1 warning, 189 subtests passed in 78.07s (0:01:18)",
+    "runtime_seconds": 78.891,
+    "dependencies": {
+      "soupsieve": {
+        "version": "4.0",
+        "module": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "target": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps"
+      },
+      "beautifulsoup4": {
+        "version": "4.15.0",
+        "module": "C:\\Tools\\Dev\\MJobs\\.venv\\Lib\\site-packages\\bs4\\__init__.py"
+      },
+      "opentelemetry-api": {
+        "version": "1.45.2",
+        "tracecontext_module": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py",
+        "target": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies"
+      }
+    },
+    "product_import_count": 267,
+    "backend_manifest_count": 427,
+    "backend_manifest_sha256": "a7c7992617821645a857229400271615355d237df88af73f5859d63de61d6c8f",
+    "reviewed_greenhouse_blobs": {
+      "services/discovery/sources/greenhouse.py": "b01b9a9b274fdee58e22d3142238384ce0864d84",
+      "tests/integration/test_greenhouse.py": "71be6670af7cc75f51c11be175fd7a97185e8ed7",
+      "tests/unit/test_greenhouse_rate_admission.py": "702d7819464df3b4dd6d955ab530892850afd82c"
+    },
+    "dependency_blobs": {
+      "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+      "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8"
+    },
+    "pytest.log_sha256": "5da0b7c27330e54059c29e7ae6f0170c46d2015fd7c55b7cc381a40dcb33f543",
+    "pytest.xml_sha256": "5a74cddbcd9b46ab72e2998e0c7f9479396882d4a91a75036aa8615188d579a9",
+    "receipt_sha256": "d370ea29d07fbd34d0d6f9f01adc820782a113cab3cbaebff49eab018a4228c9",
+    "runner_sha256": "abbe7142b851c4d99f084c5de48c93d23adda54ec8ddec6f032b789f78fc437f",
+    "foreign_product_imports": 0,
+    "warning": "One retained PytestAssertRewriteWarning for anyio preimport; zero errors."
+  },
+  "composition": "Exact reviewed1065 ancestry and currentmain68c included. All427 backend/dependency/test blobs also match acceptance source79744983.",
+  "independent_composition_review": {
+    "verdict": "CLEAR_FOR_SCOPED_EVIDENCE_COMPOSITION",
+    "reviewer": "Independent acceptance_backlog agent",
+    "receipt_sha256": "55c2f243767e8f58d02537480e56c50426c18bd6f51cd3818b52f233ce4628d1",
+    "dependency_source": "25925cd8e4a5a023d3ce6998ce68195471cdbdf1",
+    "acceptance_source": "797449837437ad56048cf8bc8e2a1c35d165dac7",
+    "backend_files": 427,
+    "unchanged_progress_scope_paths": 106,
+    "unchanged_progress_manifest_sha256": "40856862562b6e7cd5fa8befa2e2e4424a49f3591ffc23fea5070184ed7743b1",
+    "checks": "Raw receipt/log/JUnit/runner hashes, private package identities, exact427backend blobs, reviewed3product/test blobs, currentmain ancestry, and unchanged progress/config/matrix evidence verified.",
+    "tests_reexecuted_by_reviewer": false,
+    "limits": "Scoped source/evidence review; final docs-only identities and exact published-head hosted gates remain separate."
+  },
+  "preserved_history": {
+    "schema_version": 1,
+    "recorded_utc": "2026-11-20T08:36:08.553666+00:00",
+    "task": "Owned dependency remediation integration",
+    "outcome": "COMBINED_LOCAL_VALIDATION_PASS",
+    "base_revision": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
+    "tested_source_revision": "22ffebd66b805d87d91ab38799f5cc851c25e2eb",
+    "tested_source_tree": "27d9bd4a0e3e0060e4e409e945fbce1963a42d6b",
+    "changes": [
+      {
+        "package": "soupsieve",
+        "from": "2.10",
+        "to": "4.0",
+        "alerts": [
+          71,
+          72,
+          73
+        ],
+        "advisories": [
+          "GHSA-mmhr-3c5m-f64f",
+          "GHSA-7g44-g9rc-x53w",
+          "GHSA-6655-6qjp-jx7x"
+        ],
+        "minimum_covering_all_reported_ranges": "4.0.0"
+      },
+      {
+        "package": "opentelemetry-api",
+        "from": "1.45.1",
+        "to": "1.45.2",
+        "alerts": [
+          74
+        ],
+        "advisories": [
+          "GHSA-mf5v-w3w3-f6cg"
+        ],
+        "first_patched": "1.45.2"
+      }
+    ],
+    "manifest_contract": "requirements.lock includes requirements.txt; no second resolved pin.",
+    "preserved_original_commits": {
+      "PR1020": "da8d38fea423b437535a09248655e8db23c8aa7f",
+      "PR1031": "2be5af25cf97347973104cdd26e4eaeb0b7eeedd",
+      "PR1065_prerequisite": "5ac4ea6cf9b66027ed2aadef991d03a02b26e4e7"
+    },
+    "ancestry_check": "Root verified all three originals and base main are ancestors of the tested combined source.",
+    "publication_review": {
+      "integration_owner": "ChatGPT-Web d9b89794",
+      "route": "One explicitly owned consolidation PR using the supported new-PR publication path.",
+      "classification": "Development/security under the actual human publisher; no trusted-dependency automation exemption.",
+      "reason": "The repository's existing-PR updater explicitly supports only same-repository human-published PRs. No supported bot-update workflow was found.",
+      "reuse_and_nonduplication": "Reuse both existing Dependabot commits as ancestors in one active integration route, with their existing evidence and fresh combined validation. Do not recreate their patches or open separate replacement PRs for each pin.",
+      "original_pr_readback_utc": "2026-11-20T08:28:29Z",
+      "original_pr_readback": "PR1020 and PR1031 both remain open at the exact original heads; no bot branch, PR state or alert state was changed.",
+      "independent_review": "ci_prs and deployment_readonly independently reviewed this supported consolidation path; root owns the explicit scope decision.",
+      "required_next_gates": "Fresh live publication preflight, current-head hosted checks, serialized protected integration after PR1065, and new user approval.",
+      "policy_changes": false
+    },
+    "runtime": {
+      "python": "3.12.10",
+      "soupsieve": "4.0",
+      "opentelemetry_api": "1.45.2",
+      "beautifulsoup4": "4.15.0",
+      "isolation": "Both upgraded packages loaded from separate private dependency targets; shared environment unchanged."
+    },
+    "combined_verification": {
+      "source_revision": "22ffebd66b805d87d91ab38799f5cc851c25e2eb",
+      "source_tree": "27d9bd4a0e3e0060e4e409e945fbce1963a42d6b",
+      "started_utc": "2026-11-20T08:30:06.375541+00:00",
+      "finished_utc": "2026-11-20T08:30:55.825182+00:00",
+      "invocation": "pytest.main with the selectors below, -q -ra --color=no -p no:cacheprovider, and owned JUnit/basetemp paths",
+      "test_selectors": [
+        "tests/unit/test_greenhouse_rate_admission.py",
+        "tests/integration/test_greenhouse.py",
+        "tests/unit/test_greenhouse_cancellation_cleanup.py",
+        "tests/unit/test_greenhouse_metadata_inventory.py",
+        "tests/unit/test_greenhouse_salary.py",
+        "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_greenhouse_public_cancel_during_real_tcp_connect",
+        "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_public_cancel_budget_excludes_fixture_dispatch_delay",
+        "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_public_cancel_budget_rejects_delay_after_handler_admission",
+        "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_positive_public_worker_collections_and_fresh_readback",
+        "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_finite_worker_deadline_during_real_tcp_connect",
+        "tests/integration/test_source_http_tcp_cleanup.py",
+        "tests/integration/test_source_http_tls_cleanup.py",
+        "tests/unit/test_ats_detection.py",
+        "tests/unit/test_structured_posting_descriptions.py",
+        "tests/unit/test_career_page_sitemaps.py",
+        "tests/unit/test_testedrecruits_source.py",
+        "tests/integration/test_testedrecruits_source.py",
+        "tests/unit/test_llm_telemetry.py",
+        "tests/integration/test_llm_telemetry_integration.py"
+      ],
+      "result": "PASS",
+      "counts": {
+        "passed": 146,
+        "subtests_passed": 162,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0
+      },
+      "pytest_summary": "146 passed, 1 warning, 162 subtests passed in 47.51s",
+      "runner_seconds": 48.218,
+      "owned_product_imports": 267,
+      "foreign_product_imports": 0,
+      "tracked_source_unchanged": true,
+      "warning": "One retained PytestAssertRewriteWarning: anyio was imported during the identity preflight before pytest initialized rewriting; zero test errors.",
+      "receipt_sha256": "23304610ffad6fd3cac002d6e210143dc8884bea17a552920e1c79325827d084",
+      "runner_sha256": "3c4d79221ca6cbfa1dd8d85f1964f8f952e74faa54ee6c24de65ad9120cd2ca6",
+      "pytest_log_sha256": "1ec6b3c7e45aaf92e5df98c2c6ceef529ba37259e6bd02835db2f24675f5a3fa",
+      "junit_sha256": "1817b7dabb6b9fd59a9bc304bdfa068527b1c9d19d84af8e79bce01b8b2bdca5"
+    },
+    "source_identity": {
+      "file_count": 427,
+      "manifest_sha256": "f4f7dc89f54d35ac5310750ab5769b7174a5e258728ad769e06e48955f10f88a",
+      "greenhouse_blobs": {
+        "services/discovery/sources/greenhouse.py": "d7e01142f31187df696be65a6f3741a42b554708",
+        "tests/integration/test_greenhouse.py": "7f418582b528a8e44eafbc93c3d0bfa1e9be51cd",
+        "tests/unit/test_greenhouse_rate_admission.py": "9e562e061363e899d02c0394bb978250152b537b"
+      },
+      "dependency_blobs": {
+        "requirements.txt": "904bea1ca93d35ae35978f32cfc779e7f26d03bd",
+        "requirements.lock": "97e939f81d2ba8cb5ccefb547cc336cebece15c8"
+      },
+      "scope": "Recorded apps/api, cli, fixtures, packages, services, workers, dependency manifests and selected backend test files; this is scoped source identity, not whole-tree equivalence."
+    },
+    "repository_checks": [
+      "tools.verification.catalogue PASS",
+      "tools.verification.progress validate PASS",
+      "tools.verification.progress_dashboard --check CURRENT",
+      "tools.ownership_index --check CURRENT",
+      "tools.ci.check_repository PASS with zero errors",
+      "Commit provenance and git diff --check PASS"
+    ],
+    "opentelemetry_preparation_secret_scan": {
+      "source_revision": "a0fa92d517377dd1be46e308134b22344f31c3fa",
+      "result": "PASS",
+      "finding_count": 0,
+      "scanner_exit_code": 0,
+      "gitleaks": {
+        "version": "8.30.1",
+        "archive": "gitleaks_8.30.1_linux_x64.tar.gz",
+        "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+      },
+      "all_commits": 4584,
+      "refs": 148,
+      "scope": "all fetched origin heads/tags plus the private candidate; no shared local worktree-only refs",
+      "redaction": "--all and --redact; raw child output suppressed",
+      "scanner_policy_unchanged_from_main": true,
+      "scanner_sha256": "c6613ec96d2661f1d35674583b9cb2b07595c23dbb65fe39101c36e3a8e39253",
+      "ignore_sha256": "e23658b2366608968f0ad5386ae735421bdac96cd5adda852b9d0db314183f25",
+      "private_receipt_sha256": "41198a0f568535afc3b285d9364ee5cc44eace239465e0fba18f12d1afc6f7e0",
+      "runner_cleanup": "PASS",
+      "historical_failure": "PR1031's older hosted scan reported failure. Its diagnostic artifact expired; the precise finding is unknown. This newer scan does not establish the cause of that older failure.",
+      "local_setup_retry": "A first owned runner could not execute the verified binary on its noexec tmpfs, before scanning. A scoped exec-capable owned tmpfs retry completed; no scanner or ignore policy was changed."
+    },
+    "acceptance_change": false,
+    "limits": [
+      "Version-range mapping and scoped compatibility verification do not prove global absence of vulnerabilities.",
+      "The combined source has not yet completed hosted CI or a full repository suite in this record.",
+      "The private secret scan is tied to the OpenTelemetry preparation and fetched origin history, not a claim of hosted PASS on the later publication head.",
+      "No exploit reproduction, provider/employer/exporter traffic, production dependency update, alert dismissal or protected merge was performed."
+    ]
+  },
+  "limits": [
+    "No acceptance promotion",
+    "No protected merge or production change",
+    "The four default-branch dependency alerts remain open until authorized integration and fresh readback.",
+    "Original bot branches are unchanged; this remains one ordinary owned consolidation route.",
+    "Fresh exact-head hosted checks remain required; old-head successes do not transfer."
+  ]
+}

@@ -1,0 +1,906 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-20T09:00:08Z",
+  "subject": "PR1063 private navigation characterization continuation",
+  "requirement": "housekeeping / docs/AGENT_EFFICIENCY_AUDIT.md B1",
+  "acceptance_decision": "NOT_EVALUATED",
+  "canonical_acceptance_changed": false,
+  "publication_status": "NOT_PUBLISHED",
+  "original_pr": "https://github.com/MulattoTech/MJobs/pull/1063",
+  "original_pr_head": "6f234339c954574e00c9cdd4983525defcf68a96",
+  "original_pr_state_at_preparation": "OPEN_DRAFT; this work did not modify its branch, metadata or ownership",
+  "main_at_preparation": "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794",
+  "source_commit": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+  "source_tree": "1fdeaadee6b96e442b500d109288da66c0b61aa5",
+  "source_commit_parents": [
+    "6f234339c954574e00c9cdd4983525defcf68a96",
+    "3eb5f102a1b9ddc6ade53d3b14c0c3b6d33d0794"
+  ],
+  "source_blobs": {
+    "apps/web/src/main.characterization.test.ts": "45c612fb4ba7e9bdb67770d43741df079280452e",
+    "apps/web/src/main.tsx": "05bd8ae00c0d0c6e1201aee8acbeac831b0b02cc",
+    "apps/web/src/navigation.tsx": "f91da292122a719c1f7e38ce8755d54325a6a6bc"
+  },
+  "problem": "The draft extraction replaced assertions about the complete tab array and every header title with declaration-text and Jobs-title checks, so that characterization case no longer guarded the stated preservation contract.",
+  "change": "Import MAIN_TABS and tabTitle, then compare the actual sequence of [tab, tabTitle(tab)] pairs with all ten expected original pairs. Other characterization cases and product files are unchanged from the original PR.",
+  "ownership": "New isolated worktree and branch only; no original draft branch update, ownership takeover, PR publication, review submission, or merge.",
+  "validation": {
+    "cwd": "apps/web",
+    "cached_tooling": "Private copy of existing node_modules after exact package-lock.json byte-hash match; no installs or shared/global dependency changes.",
+    "package_lock_sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+    "runtime": "Node v27.0.0-alpha.0.0.0 on the existing Windows host; Vitest/TypeScript/React resolve inside the owned worktree.",
+    "baseline": {
+      "command": "node node_modules/vitest/vitest.mjs run src/main.characterization.test.ts --coverage.enabled=false --maxWorkers=1 --reporter=json",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "seconds": 1.0532272
+    },
+    "corrected": {
+      "command": "node node_modules/vitest/vitest.mjs run src/main.characterization.test.ts --coverage.enabled=false --maxWorkers=1 --reporter=json",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "seconds": 0.5563224
+    },
+    "negative_controls": {
+      "mechanism": "The same corrected test file runs with a private Vite pre-transform applied only to the owned src/navigation.tsx module in memory. No product file is edited.",
+      "command": "MJOBS_NAVIGATION_NEGATIVE_CONTROL=<case>; node node_modules/vitest/vitest.mjs run src/main.characterization.test.ts --coverage.enabled=false --maxWorkers=1 --reporter=json --config <worktree>/.tmp/navigation-review/mutations.config.ts",
+      "verification_result": "PASS: each control exits 1, fails only the preservation assertion, and passes the other three cases.",
+      "cases": [
+        {
+          "name": "empty_tabs",
+          "mutation": "Replace MAIN_TABS initializer with [].",
+          "expected_failed": 1,
+          "observed_failed": 1,
+          "other_tests_passed": 3,
+          "seconds": 0.5692641
+        },
+        {
+          "name": "reordered_tabs",
+          "mutation": "Swap Jobs and Pipeline in MAIN_TABS.",
+          "expected_failed": 1,
+          "observed_failed": 1,
+          "other_tests_passed": 3,
+          "seconds": 0.5249068
+        },
+        {
+          "name": "wrong_non_jobs_title",
+          "mutation": "Change only Pipeline's title to Incorrect negative-control title.",
+          "expected_failed": 1,
+          "observed_failed": 1,
+          "other_tests_passed": 3,
+          "seconds": 0.4947061
+        }
+      ],
+      "source_integrity": "SHA-256 of main.tsx, navigation.tsx, characterization test, package.json, and package-lock.json remained identical before and after all controls."
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "result": "PASS",
+      "exit_code": 0,
+      "seconds": 0.9011214
+    },
+    "whitespace": {
+      "command": "git diff --check; git diff --cached --check",
+      "result": "PASS"
+    },
+    "commit_provenance": {
+      "command": "python -B -m tools.verification.commit_provenance --commit 8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "result": "PASS: provenance complete for 1 source files"
+    },
+    "independent_review": {
+      "reviewer": "ci_prs agent",
+      "scope": "Read-only assertion/import diff review",
+      "result": "CLEAR; actual membership, order, labels and all ten titles are checked without mutation; no additional tests requested."
+    }
+  },
+  "private_receipts": ".tmp/navigation-review/validation.json, baseline.json, green.json, three negative-control JSON/log pairs, typecheck.log, mutations.config.ts, validate.ps1",
+  "limitations": [
+    "Full frontend, browser and integration suites NOT_RUN on this private candidate; only the requested focused file and typecheck were executed.",
+    "Hosted checks NOT_RUN on this private source commit. PR1063's existing successful runs belong to original head 6f234339.",
+    "Owner coordination, current-main refresh if needed, exact-head hosted gates and approval remain future integration steps.",
+    "No feature acceptance, canonical matrix, shared handoff, production runtime or provider submission changes.",
+    "This continuation is outside the active PR1065, PR1066 and PR1064 protected merge batch."
+  ],
+  "concurrent_owner_activity": {
+    "observed_at_utc": "2026-11-20T09:01:25Z",
+    "latest_pr_head": "7d5f2db54d8c135e1c6297edc0c9739ca8405d7b",
+    "updated_at_utc": "2026-11-20T08:56:43Z",
+    "commit_message": "Merge remote-tracking branch 'origin/main' into mulattotech-b1-navigation-extraction",
+    "delta_from_original": "The 17 changed paths are incoming main changes; main.tsx, navigation.tsx and main.characterization.test.ts are unchanged.",
+    "consequence": "Active original-branch maintenance is evident. The local assertion correction is not duplicated, but owner coordination remains required before any publication."
+  },
+  "current_refresh": {
+    "recorded_at_utc": "2026-11-20T10:24:02.948930+00:00",
+    "result": "CURRENT_MAIN_REFRESH_WITH_UNCHANGED_FRONTEND_INPUTS",
+    "publication_status": "NOT_PUBLISHED",
+    "integrated_main": "4d305af37f9994a352b815ca62b683b8fe05b5fd",
+    "prior_private_head": "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+    "refreshed_source_head": "86089eea4373a472ad3ee52590063d4062e1127d",
+    "refreshed_source_tree": "94b7ec0a127ede2bcc9112e848943c0740fdc5e4",
+    "merge_parents": [
+      "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+      "4d305af37f9994a352b815ca62b683b8fe05b5fd"
+    ],
+    "original_pr_resolution": {
+      "pr": 1063,
+      "state": "MERGED",
+      "head": "7d5f2db54d8c135e1c6297edc0c9739ca8405d7b",
+      "merge_commit": "68c8ac18454be004bdc9b6f3f51ba1755781c0d9",
+      "merged_at_utc": "2026-11-20T09:21:17Z",
+      "effect": "The navigation extraction is now on main. This separate private continuation retains only the missing characterization assertion; no original branch or PR was modified."
+    },
+    "incremental_paths_against_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "source_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+    "source_change": "No reimplementation. The prior direct MAIN_TABS/tabTitle assertion remains byte-identical and checks all ten ordered pairs.",
+    "identity_proof": {
+      "tested_source_revision": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "prior_private_revision": "81266d828c851eeb6857cde5b68c15fc15d9c73e",
+      "target_source_revision": "86089eea4373a472ad3ee52590063d4062e1127d",
+      "unchanged_frontend_file_count": 326,
+      "frontend_manifest_sha256": "be8ad71882d006f87dbe135fdc3a1595e5ce3e992e099e0ffc455a0d64029f0f",
+      "scope": "Entire tracked apps/web tree: product files, characterization inputs, package manifest/lock, Vite and TypeScript configuration.",
+      "working_files_match_git_blobs": true,
+      "original_evidence_preserved": true,
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362"
+    },
+    "retained_execution": {
+      "source_revision": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_tests": {
+        "passed": 4,
+        "failed": 0
+      },
+      "typecheck": "PASS",
+      "negative_controls": "Three expected failures: empty tabs, swapped Jobs/Pipeline order, and wrong Pipeline title. Each failed only the preservation assertion and retained three other passes.",
+      "interpretation": "Prior execution is retained through exact unchanged inputs. These are not new test executions on the refreshed head."
+    },
+    "checks_executed_on_refresh": {
+      "git_diff_check": "PASS",
+      "git_diff_cached_check": "PASS",
+      "source_and_working_frontend_identity": "PASS: 326 files",
+      "merge_commit_provenance": "PASS: no source-code changes in this commit"
+    },
+    "tests_reexecuted": false,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "private_identity_receipt": ".tmp/navigation-review/refresh-4d/identity-before-commit.json",
+    "limitations": [
+      "New exact-head hosted checks remain NOT_RUN until ordinary publication.",
+      "Full frontend, browser and integration suites were not rerun for unchanged inputs.",
+      "No canonical matrices, shared session handoff, task checkpoints, production state or original PR branches were edited.",
+      "This continuation is outside the approved protected merge batch for PR1065, PR1066 and PR1064; no protected merge is authorized here."
+    ]
+  },
+  "approved_acceptance_base_refresh": {
+    "recorded_at_utc": "2026-11-20T10:57:56.167818+00:00",
+    "result": "PASS",
+    "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+    "prepared_source": "091840e2e1c69e213f988aabf4781d2e792b4537",
+    "prepared_tree": "46a6a0b9b5926842e1866e5239c10dc9c0fce14e",
+    "base_pr": 1064,
+    "prepared_base": "98affaa1b266e91a3a40e828c7295a41aa73ea1e",
+    "base_state": "Published approved PR1064; actual protected merge still pending",
+    "file_count": 326,
+    "additions": 0,
+    "deletions": 0,
+    "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+    "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+    "working_canonical_blobs_match": true,
+    "tests_reexecuted": false,
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": 3
+    },
+    "parents": [
+      "e7df41ad5b1818c5c02ec0c674790f789279c455",
+      "98affaa1b266e91a3a40e828c7295a41aa73ea1e"
+    ],
+    "incremental_paths": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "claim_key": "web:d9b89794:navigation-refresh:21394e4d6e244587",
+    "publication": "NOT_PUBLISHED",
+    "scope": "All 326 tracked apps/web files and canonical working bytes match the earlier executed source, including manifests, lockfile, build configuration and test inputs.",
+    "interpretation": "The four positive cases, TypeScript check and three expected-failure controls are retained earlier executions. They were not rerun for this identical frontend source.",
+    "actual_main_binding": "Root must verify the actual PR1064 merge/base before normal publication. This preparation is outside the approved protected merge batch.",
+    "original_evidence_preserved": true,
+    "canonical_acceptance_changed": false,
+    "private_identity_receipt": ".tmp/navigation-review/refresh-acceptance/identity.json",
+    "private_identity_sha256": "6b04fc0ee9848b3133b131924b5ad1035bdc59aa264944e0f62a0b985511a732"
+  },
+  "pending_repair_base_refresh": {
+    "recorded_at_utc": "2026-11-20T12:03:21.006737Z",
+    "result": "PASS: history-preserving private refresh with identical frontend inputs",
+    "publication_status": "NOT_PUBLISHED",
+    "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+    "prior_private_head": "18bf887134dc0dd239b6e826a33ba1234341979e",
+    "prepared_source": "efc626ea31d90bc4fa6105ec068388e3c8171eb7",
+    "prepared_tree": "81346089749646133e8158845c1310da8527dec2",
+    "parents": [
+      "18bf887134dc0dd239b6e826a33ba1234341979e",
+      "12bfea6afe7395fc3312d2235a394e7746c4607d"
+    ],
+    "base_pr": 1068,
+    "prepared_base": "12bfea6afe7395fc3312d2235a394e7746c4607d",
+    "base_state": "PUBLISHED_BUT_UNMERGED at the fresh preflight; PR1068 is not actual main",
+    "actual_main_at_preflight": "6916d08ca947615f77b530e77ed28626d4ad46ba",
+    "prior_acceptance_merge": "PR1064 was merged as 6916d08ca947615f77b530e77ed28626d4ad46ba; that actual main is already an ancestor of this pending repair base. Earlier refresh records retain their original observations.",
+    "incremental_paths_against_prepared_base": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "source_change": "No reimplementation. The existing assertion of actual MAIN_TABS/tabTitle values and all ten ordered pairs is byte-identical.",
+    "identity_proof": {
+      "scope": "All tracked apps/web files, including product source, characterization inputs, package manifest and lockfile, Vite and TypeScript configuration.",
+      "frontend_file_count": 326,
+      "additions": 0,
+      "deletions": 0,
+      "changed_git_blobs": 0,
+      "changed_canonical_working_files": 0,
+      "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+      "test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362",
+      "source_identity_receipt": ".tmp/navigation-review/refresh-repair-12bfea6a/identity.json",
+      "source_identity_receipt_sha256": "1eb34042037d1693f0b2efcd0386f339ae13e1b22acf2e251f472a5956ef4afa",
+      "previous_evidence_bytes_sha256": "cac00dd4574fe3b507605b2b2f4bfeef78dbcadbba02b15ac4e2dc2a6d203b09"
+    },
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_positive_tests_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": "Three expected failures: empty tabs, swapped Jobs/Pipeline order, and an incorrect Pipeline title. Each failed only the preservation assertion and kept the other three cases passing.",
+      "interpretation": "These are earlier executions carried by exact unchanged frontend inputs, not fresh runs on the refreshed candidate."
+    },
+    "checks_executed_on_refresh": {
+      "history_and_two_path_incremental_scope": "PASS",
+      "git_and_canonical_working_frontend_identity": "PASS: 326 files",
+      "merge_commit_provenance": "PASS; merge has no authored source-code changes, and required trailers were independently parsed",
+      "whitespace": "PASS"
+    },
+    "tests_reexecuted": false,
+    "all_prior_evidence_fields_preserved": true,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "limits": [
+      "This branch remains private; no push, PR creation, original branch update, or protected merge was performed.",
+      "PR1068's candidate is pending integration. Root must bind the actual integrated base and obtain fresh exact-head hosted gates before a later protected merge.",
+      "No imported product, canonical matrix, shared session handoff, or task checkpoint was authored by this refresh; only the existing characterization test and its evidence differ from the prepared base.",
+      "No new full frontend, browser, or integration execution, provider traffic, dependency download, or production operation was performed."
+    ]
+  },
+  "integrated_main_binding": {
+    "recorded_at_utc": "2026-11-20T12:29:50.199381Z",
+    "state": "PREPARED_PRIVATE_ON_ACTUAL_MAIN",
+    "actual_main": "7064ef048df4953f4bc050468ecda141cabba38d",
+    "actual_main_tree": "cdaa040c192dda0e4b6a1e0ae5ff505872cefb32",
+    "actual_merge_pr": 1068,
+    "actual_merge_confirmed_at_utc": "2026-11-20T12:25:25Z",
+    "actual_main_parents": [
+      "6916d08ca947615f77b530e77ed28626d4ad46ba",
+      "12bfea6afe7395fc3312d2235a394e7746c4607d"
+    ],
+    "previous_pending_base": "12bfea6afe7395fc3312d2235a394e7746c4607d",
+    "actual_main_tree_equals_previous_pending_base": true,
+    "source_merge": "a4ade5b88c407a2e586f6ac1c35efbc69d0df9d1",
+    "source_tree": "6b8b7863ab1fa188d3a025acfc91ee73ee9c8ac7",
+    "source_merge_parents": [
+      "5439337965286903b9387be34581f6616550171d",
+      "7064ef048df4953f4bc050468ecda141cabba38d"
+    ],
+    "entire_source_tree_unchanged_from_prior_private": true,
+    "incremental_paths_against_actual_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json"
+    ],
+    "frontend_identity": {
+      "tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "unchanged_files": 326,
+      "canonical_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "manifest_encoding": "Raw git ls-tree -r -z SOURCE -- apps/web output",
+      "canonical_working_files_match": true,
+      "test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+      "prior_validation_receipt_sha256": "48f3c9e5c4f80fe028bf1fe04b3807a328537a7b413c04dc24e856b682041362"
+    },
+    "retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "focused_positive_tests_passed": 4,
+      "typecheck": "PASS",
+      "negative_controls": 3,
+      "qualification": "Prior executions only: empty tabs, swapped Jobs/Pipeline order and incorrect Pipeline title each failed the preservation assertion while the other three cases passed. No tests rerun for this identical frontend source."
+    },
+    "canonical_verification": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366,
+        "as_of": "2026-11-14T19:58:30.913144+00:00"
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59,
+        "as_of": "2026-11-20T07:18:47Z"
+      },
+      "journal_entries": 41,
+      "current_milestone": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+      "release_readiness": "UNKNOWN",
+      "changes": 0,
+      "source": "7064ef048df4953f4bc050468ecda141cabba38d",
+      "validator_binding": "Read-only validators ran in the owned merge checkout; all canonical files, verifier source and every non-navigation path match actual main. No canonical files were written."
+    },
+    "checks": [
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "output": "Catalogue validation: PASS",
+        "log_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "output": "Progress journal validation: PASS",
+        "log_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470"
+      },
+      {
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "output": "Progress dashboard: CURRENT",
+        "log_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53"
+      }
+    ],
+    "source_identity_and_acceptance_receipt": {
+      "path": ".tmp/navigation-review/refresh-main-7064ef04/identity-acceptance.json",
+      "sha256": "b617a19c46aa35d75beb1abde18d341941ec49f2a14aa97e754a572c2a681c6f"
+    },
+    "all_previous_evidence_fields_preserved": true,
+    "tests_reexecuted": false,
+    "acceptance_decision": "NOT_EVALUATED",
+    "canonical_acceptance_changed": false,
+    "publication_status": "NOT_PUBLISHED",
+    "remaining_gates": [
+      "Root review and ordinary publication admission for the separate navigation characterization correction.",
+      "Fresh exact-head hosted checks and separate protected-integration authorization before merging this continuation.",
+      "Actual-main CI and automatic nondeploying candidate verification are observed separately by root; this record asserts no hosted result or deployment."
+    ]
+  },
+  "profile_fixture_composition_f297": {
+    "recorded_utc": "2026-11-20T14:23:58.911003+00:00",
+    "state": "PRIVATE_COMPOSITION_QUALIFIED_FOR_FRESH_HOSTED_CHECKS",
+    "actual_main": "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+    "actual_main_tree": "02a209d1543f67c7dbd7a97dd04554d7edefa953",
+    "approved_merge": {
+      "pr": 1029,
+      "merged_at_utc": "2026-11-20T13:57:50Z",
+      "parents": [
+        "7064ef048df4953f4bc050468ecda141cabba38d",
+        "765ad2bdc2201e10cb93509a3a6772a189bd7941"
+      ],
+      "tree_verified_equal_to_reviewed": true,
+      "approval_consumed": true,
+      "owned_integration_lock_released": true
+    },
+    "composed_source_commit": "55f4467e1680d526cb843c75399f8952884f0c19",
+    "composed_source_tree": "6f7afcbbfb5eb7e3ab8c2aa374fa31e58a6e89ed",
+    "composed_source_parents": [
+      "5cc5ff795bf5243352c66cc636142c6fff782f1c",
+      "2b5f393f1527745035d25d83295f4e65e5b56f72"
+    ],
+    "incremental_paths_against_actual_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "input_binding": {
+      "profile_tested_source": "edbd7dffa74b40ba1f9cb09c9139ea6122cbd9f4",
+      "profile_tested_index_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+      "profile_test_blob": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+      "green_receipt_sha256": "cd23944f160dcd22579b59c5fa2dd0c86f92bea27cd34a429e7f2e4694535de9",
+      "profile_imports": 254,
+      "key_inputs": 14,
+      "distinct_profile_input_paths": 258,
+      "raw_working_byte_matches": 254,
+      "newline_only_working_differences": [],
+      "git_blobs_and_canonical_working_inputs_match": true,
+      "mismatches": [],
+      "frontend_tested_source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "frontend_files": 326,
+      "frontend_tree_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "frontend_git_and_canonical_working_inputs_match": true,
+      "canonical_acceptance_blobs": {
+        "planning/CAPABILITY_MATRIX.json": "bc86e8250b9b5101c8ef7713a1e3c0b38628af4c",
+        "planning/REFERENCE_GAP_MATRIX.json": "afe9d9c6308dd09a0f41c7f1273c065cb0d3d1db"
+      },
+      "tests_reexecuted": false
+    },
+    "input_binding_receipt": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\compose-profile-f297\\receipt.json",
+      "sha256": "efc47bd1f88f24aa257a7ec1aa98d67fba285b5d5141a346646fa37cf2ff0044"
+    },
+    "retained_local_executions": {
+      "navigation": {
+        "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+        "focused_tests_passed": 4,
+        "typecheck": "PASS",
+        "expected_failure_controls": 3,
+        "qualification": "Earlier execution retained through exact 326-file frontend and canonical working-byte equality; no new execution on the composed source."
+      },
+      "profile": {
+        "source": "edbd7dffa74b40ba1f9cb09c9139ea6122cbd9f4",
+        "tested_index_tree": "e3c2a1d0665f462acabb8d8a9c7468f5b03888bd",
+        "primary_tests_passed": 21,
+        "subtests_passed": 14,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "seconds": 57.08,
+        "warnings": 1,
+        "warning": "Private harness anyio assertion rewrite warning",
+        "expected_failure_control": "Original fixture fails delayed preparation before the repair; retained unchanged.",
+        "original_test_methods_preserved": 19,
+        "original_assertion_asts_preserved": 91,
+        "boundaries": "The 0.8-second real operation deadline and one-second real transport entry/completion limits remain unchanged.",
+        "qualification": "Executed staged tree equals source commit tree; all 254 imported source blobs and raw working bytes plus all 14 key inputs match composition (258 distinct paths). No rerun on later evidence/composition commits."
+      }
+    },
+    "main_verification": {
+      "recorded_utc": "2026-11-20 14:21:29 UTC",
+      "status": "BLOCKED_BY_INTEGRATION_FAILURE",
+      "check_conclusions": {
+        "skipped": 1,
+        "failure": 3,
+        "success": 14
+      },
+      "active_checks": 0,
+      "unit": {
+        "primary_passed": 5749,
+        "subtests_passed": 5238,
+        "skipped": 55,
+        "warnings": 1,
+        "warning": "Existing SQLAlchemy deprecation",
+        "run_id": 44748956268,
+        "job_id": 136331505232,
+        "qualification": "The separate 50-test/39-subtest integrity subset overlaps and is not added as unique tests."
+      },
+      "web": {
+        "files_passed": 165,
+        "tests_passed": 1294,
+        "typecheck": "PASS",
+        "production_build": "PASS",
+        "job_id": 136331505063,
+        "qualification": "Existing deprecation and chunk-size warnings retained."
+      },
+      "integration": {
+        "run_id": 44748955875,
+        "shard0": "PASS",
+        "shard1": "FAIL",
+        "shard2": "PASS",
+        "aggregate": "FAIL",
+        "failed_job_id": 136331503482,
+        "aggregate_job_id": 136341914019,
+        "sole_failed_test": "SourceAdapterConnectCancellationTests.test_lever_eu_finite_deadline_during_real_tcp_connect",
+        "failed_shard_counts": {
+          "passed": 1109,
+          "failed": 1,
+          "skipped": 28,
+          "subtests_passed": 474,
+          "warnings": 15,
+          "errors": 0
+        }
+      },
+      "candidate": {
+        "run_id": 44748955871,
+        "job_id": 136331504282,
+        "status": "FAILED_AT_REQUIRED_INTEGRATION_GATE",
+        "completed_at_utc": "2026-11-20T14:17:39Z",
+        "image_build": "SKIPPED",
+        "verified_commit_record": "SKIPPED",
+        "manifest_upload": "SKIPPED",
+        "artifacts": 0,
+        "production_deployed": false
+      },
+      "monitor_final_receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\evidence-main-f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4\\verification-final.json",
+        "sha256": "82ac4b93fa013fc739b2a257f5bb6218fb4170833eb1fc5d9c78207efb98a092"
+      },
+      "root_terminal_api_receipt": {
+        "path": "C:\\MJobsBuilds-d9b89794\\evidence-main-f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4\\root-main-terminal-api-verification.json",
+        "sha256": "4b5809c19acf6b75c487234d8d631f7bda89ff89099340a08a856ec20d8d89b3"
+      },
+      "root_fast_ci_receipt_sha256": "18133d85126e8a1dbcc007b98d96780d5415249923b28ef14da182eaeb968111",
+      "failed_shard_receipt_sha256": "363df5b35c9dc0ce75ac0ece25b7ac564e675c98ec60d04500109fc12529dc00",
+      "candidate_log_sha256": "033dfeeb5568b9afec63d1cb8399fb225864af9c3b02d9e79e80b85720ad9327"
+    },
+    "fresh_main_failure_qualification": {
+      "tested_fixture_blob": "f2ed3411afdd1bc44ece2ee0bee55fde61643129",
+      "new_profile_fixture_executed_on_main": false,
+      "diagnostic": "At the failed assertion, the real profile phase had entered without a recorded exit. SSL factory calls, TCP connects, requests and recorded worker outcomes were zero.",
+      "outcome_qualification": "OTHER/NONE is the fallback for an absent recorded outcome, not a terminal operation status or proof of OPERATION_TIMEOUT.",
+      "historical_difference": "The prior PR1069 execution recorded a completed 803.8 ms profile read and terminal OPERATION_TIMEOUT. Preserve the newer incomplete phase snapshot separately; a shared root cause is not established.",
+      "independent_gate_review": "CLEAR: synchronous real preparation returns before the deadline guard can arm; existing armed/released/collector gates precede engaged.wait(1), so preparation consumes neither the operation budget nor the transport wait.",
+      "remaining_runtime_boundary": "The collector performs its own real read after the deadline begins. A subsequent runtime stall still consumes the operation budget and can fail the transport-targeted case.",
+      "slowdown_cause": "UNKNOWN",
+      "hosted_success_guaranteed": false,
+      "additional_source_correction_established": false
+    },
+    "historical_pr1069_failure": {
+      "head": "ee1096b69db708c49e737460844b58ad2d536d90",
+      "run_id": 44742709060,
+      "failed_job_id": 136310100319,
+      "rerun_performed": false,
+      "evidence_retained": true
+    },
+    "canonical_acceptance": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59
+      },
+      "changes": 0,
+      "release_readiness": "UNKNOWN"
+    },
+    "connection_recovery": "The authorized MTerm path was read back successfully and ambiguous prior mutations were reconciled before further actions; this is not proof of canonical-only OAuth or the earlier transport failure cause.",
+    "static_lint_qualification": "Full-file default Ruff remains FAIL_EXISTING_FINDINGS: baseline eight, candidate eight; no suppression or policy weakening.",
+    "tests_reexecuted_for_composition": false,
+    "canonical_acceptance_changed": false,
+    "product_runtime_changed": false,
+    "combined_hosted_checks": "NOT_RUN_AT_THIS_PRIVATE_CHECKPOINT",
+    "protected_merge_authorized": false,
+    "publication_status": "PRIVATE_PENDING_FINAL_REVIEW_AND_ORDINARY_EXISTING_PR_UPDATE_ADMISSION",
+    "previous_evidence_fields_preserved": true
+  },
+  "runtime_router_refresh_and_profile_delay_target": {
+    "recorded_utc": "2026-11-20T15:22:29.702095+00:00",
+    "state": "PRIVATE_CURRENT_MAIN_SOURCE_QUALIFIED_PENDING_FRESH_HOSTED_CHECKS",
+    "actual_main": "87ca270f44ada37fa4c0155f725301f170c93eac",
+    "actual_main_tree": "f5967583bf34ff78d1f345b037f48ccee9e5b44f",
+    "main_advance": {
+      "pr": 1067,
+      "merged_at_utc": "2026-11-20T14:44:26Z",
+      "parents": [
+        "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+        "df8c8cd7a69d053e0d3a0a5ec84b7e8715c51631"
+      ],
+      "paths": [
+        "apps/api/main.py",
+        "apps/api/runtime_routes.py",
+        "tests/integration/test_api_main_characterization.py"
+      ],
+      "performed_by_this_root": false
+    },
+    "source_commit": "a6f56839d22de4932a627584897c54568367494f",
+    "source_tree": "43513d21909c4312dac2ed4c7fb3fe708e687a72",
+    "source_parent": "d7d08580b44ae97b38b45539dc00f26d7dcf3ffe",
+    "source_tree_equals_executed_index": true,
+    "fixture_blob": "f2612b89a41e2118c2ea70bba52fa8f40e9a5dc5",
+    "navigation_test_blob": "45c612fb4ba7e9bdb67770d43741df079280452e",
+    "candidate_paths_against_main": [
+      "apps/web/src/main.characterization.test.ts",
+      "docs/evidence/2026-11-20-navigation-characterization.json",
+      "docs/evidence/2026-11-20-source-profile-readiness.json",
+      "planning/SESSION_HANDOFF.md",
+      "tests/integration/test_source_adapter_connect_cancellation.py"
+    ],
+    "input_binding": {
+      "profile_imports": 256,
+      "key_inputs": 14,
+      "distinct_backend_paths": 260,
+      "git_and_raw_imported_working_bytes_match": true,
+      "key_canonical_working_bytes_match": true,
+      "frontend_files": 326,
+      "frontend_git_and_canonical_working_bytes_match": true,
+      "frontend_listing_sha256": "441f231c9e10345c6b5b8d84ddc4a3fa250ea86c9a6d1bc45aa2dd7e0e6cc812",
+      "canonical_acceptance_blobs_unchanged": true,
+      "tests_reexecuted": false
+    },
+    "prior_published_execution": {
+      "head": "e95d702148316965b026af1c292c6abbdcaa5e6b",
+      "base": "f297d6711dfd551c1e4fdfc7f2e5491c7b4930f4",
+      "synthetic_merge": "34e28303aaf97bdb75fdc0ec4b2dc51a807ca6bc",
+      "tree": "f8065d6eacf73f8ab03c44af884c43d611f15f9c",
+      "checks_passed": 15,
+      "required_gates_passed": 5,
+      "unit": {
+        "primary_passed": 5749,
+        "subtests_passed": 5238,
+        "skipped": 55,
+        "warnings": 1
+      },
+      "web": {
+        "tests_passed": 1294,
+        "files_passed": 165,
+        "typecheck": "PASS",
+        "build": "PASS",
+        "warnings_retained": true
+      },
+      "integration": {
+        "primary_passed": 3389,
+        "subtests_passed": 1974,
+        "skipped": 56,
+        "warnings": 26,
+        "failures": 0,
+        "errors": 0,
+        "run_id": 44755362188
+      },
+      "compose": {
+        "browser_tests_passed": 5,
+        "run_id": 44755362190,
+        "completed_at_utc": "2026-11-20T14:57:48Z",
+        "onboarding": "PARTIAL; synthetic discovery does not prove live-provider discovery/source identity",
+        "source_restart_inventory": "PASS: 2 jobs and 4 source copies",
+        "backup_restore_replay": "PASS",
+        "separate_post_restore_public_inventory": "NOT_RUN; fictional-demo baseline contained none",
+        "external_submission": false
+      },
+      "integration_receipt_sha256": "db758d8ebf6b3364d30d602d4fb6c5fc3b37c43f95cf82b8c2939bdf361096af",
+      "nonintegration_receipt_sha256": "c215b7da77e117306d7f1a969a917da2faf81651b3e05090fdbcd7f6eb8d96e7",
+      "qualification": "These first-attempt workflows completed on f297 plus e95. They do not qualify this new source on 87ca. No workflow was rerun, cancelled or dispatched."
+    },
+    "actual_failed_refresh": {
+      "source": "d7d08580b44ae97b38b45539dc00f26d7dcf3ffe",
+      "fixture_blob": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+      "primary_passed": 20,
+      "subtests_passed": 14,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "seconds": 55.71,
+      "test": "test_lever_eu_finite_deadline_with_slow_profile_preparation",
+      "failure": "Measured preparation 0.8899999999994179 did not satisfy the added >= 0.9 lower bound. Failure occurred before mandatory TCP assertions in that case; its transport success is not established.",
+      "receipt_sha256": "51cc71db19560cfec4cbc53aedb0713c557a80100342ddfaff895af65bdb4398",
+      "classification": "Owned fixture-delay lower-bound failure; no API-router or product regression causation established."
+    },
+    "clock_metadata": {
+      "monotonic": {
+        "implementation": "GetTickCount64()",
+        "monotonic": true,
+        "adjustable": false,
+        "resolution": 0.015625
+      },
+      "perf_counter": {
+        "implementation": "QueryPerformanceCounter()",
+        "monotonic": true,
+        "adjustable": false,
+        "resolution": 1e-07
+      }
+    },
+    "clock_qualification": "The short interval is consistent with the observed 0.015625-second GetTickCount64 resolution; its exact contribution remains untraced.",
+    "delay_correction": "Both owned injected profile-delay seams wait until the same real monotonic elapsed duration reaches the requested delay; sleep receives only positive remaining time. One owned callback returns early once, then calls real sleep.",
+    "preserved_contract": "No product edits, global time/sleep patches, cached profile results, threshold relaxation or deadline changes. Existing .9s delay lower bound, .8s worker deadline, 1s transport bound, real collector reread, socket and cleanup assertions remain.",
+    "preserved_ast": {
+      "previous21": {
+        "methods": 21,
+        "assertions": 116,
+        "method_asts_equal": true,
+        "assertion_asts_preserved": true
+      },
+      "original19": {
+        "methods": 19,
+        "assertions": 91,
+        "method_asts_equal": true,
+        "assertion_asts_preserved": true
+      }
+    },
+    "fresh_proof": {
+      "source": "a6f56839d22de4932a627584897c54568367494f",
+      "tree": "43513d21909c4312dac2ed4c7fb3fe708e687a72",
+      "red": {
+        "summary": "1 failed, 1 warning in 3.14s",
+        "status": "EXPECTED_REGRESSION_FAILURE",
+        "failure": [
+          {
+            "test": "test_lever_eu_profile_delay_retries_early_return",
+            "message": "AssertionError: 0.0 not greater than or equal to 0.9"
+          }
+        ],
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\red\\receipt.json",
+          "sha256": "94899c6fb366b9878c91f06dc2f2bf5674f5d03ff2f44bb87c64b8417a7443aa",
+          "bytes": 98767
+        },
+        "run_count": 1
+      },
+      "green": {
+        "summary": "22 passed, 1 warning, 14 subtests passed in 62.67s (0:01:02)",
+        "status": "PASS",
+        "primary_tests": 22,
+        "subtests": 14,
+        "totals": {
+          "tests": "36",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "62.670"
+        },
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\green\\receipt.json",
+          "sha256": "e6e1be420585538783d36b67e971cff078b362642b1aaf1fa0a92b242e1b7401",
+          "bytes": 99059
+        },
+        "run_count": 1,
+        "control_lines": [
+          "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.016 first_execution_seconds=0.000 connects=1",
+          "uOWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          "uOWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          ".uuuuu.OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.015 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.907 first_execution_seconds=0.000 connects=1",
+          ".OWNED_PROFILE_DELAY_EARLY_RETURN",
+          "OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.907 first_execution_seconds=0.000 connects=1",
+          "OWNED_PROFILE_DELAY_SLEEP_CALLS count=2",
+          ".OWNED_PROFILE_READINESS mode=profile_deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.906 connects=0",
+          ".OWNED_PROFILE_READINESS mode=deadline preparation_calls=1 preparation_seconds=0.000 first_execution_seconds=0.000 connects=1"
+        ],
+        "warnings": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Lib\\site-packages\\_pytest\\config\\__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio"
+        ]
+      },
+      "import_count": 256,
+      "import_manifest_sha256": "aebc53b326746f021ce0c48a97b43f4b7657387c36fe72ab3cf5ee8ad08abfd1",
+      "comparison_to_failed_refresh": {
+        "comparison_source": "Prior actual failed run at d7/87ca; comparison does not relabel its result",
+        "previous_file_count": 256,
+        "current_file_count": 256,
+        "changed_git_blobs": {
+          "tests/integration/test_source_adapter_connect_cancellation.py": {
+            "previous": "a873b5bdde4e8e6a096c559d652c36ef176d02c6",
+            "current": "f2612b89a41e2118c2ea70bba52fa8f40e9a5dc5"
+          }
+        },
+        "changed_working_sha256": {
+          "tests/integration/test_source_adapter_connect_cancellation.py": {
+            "previous": "78b0c52c3db5112a22bf021b5c090bf1e152e0cb3a33eb4469ad8952802ddc77",
+            "current": "1dfad90720b26fec0d5863a9347c55bf409193b05f1a52c2e429e21cff6753fd"
+          }
+        },
+        "added_files": {},
+        "removed_files": {},
+        "added_module_names": [],
+        "removed_module_names": []
+      },
+      "network": {
+        "policy": "OWNED_LOOPBACK_ONLY",
+        "loopback_events": {
+          "socket.bind": 72,
+          "socket.connect": 107
+        },
+        "blocked_attempts": []
+      },
+      "runtime": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "platform": "Windows-11-10.0.26300-SP0"
+      },
+      "dependencies": {
+        "soupsieve": "4.0",
+        "opentelemetry-api": "1.45.2",
+        "SQLAlchemy": "2.1.1",
+        "httpx": "0.28.1",
+        "pytest": "9.1.1"
+      },
+      "dependency_origins": {
+        "soupsieve": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-soupsieve\\.tmp\\soupsieve-deps\\soupsieve\\__init__.py",
+        "opentelemetry-api": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-otel\\.tmp\\otel-dependencies\\opentelemetry\\trace\\propagation\\tracecontext.py"
+      }
+    },
+    "source_handoff": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\HANDOFF.json",
+      "sha256": "05160d11e4d5219145478095c56369294c5cb55c1962ecb4b3e9995a8e2bb4cb"
+    },
+    "independent_review": {
+      "reviewer": "acceptance_backlog",
+      "result": "CLEAR",
+      "scope": "Immutable diff; all 21 prior methods and 116 assertion ASTs plus the original 19/91 baseline; deterministic RED and full GREEN; all 256 imports / 260 distinct inputs; all 32 artifact hashes; source/tree equality and exact claim releases."
+    },
+    "root_source_review": "CLEAR: elapsed is compared directly, only positive remaining sleep is requested, and the callback is limited to owned injected profile delays.",
+    "static_validation": {
+      "receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\eng-20261120-d9b89794-navigation\\.tmp\\navigation-review\\refresh-main-87ca270f\\profile-delay-target\\static\\receipt.json",
+        "sha256": "c419eeaa738a6c6d86cef0b02c600e22cdf66f9a15e3ea8778cddb485edbcd8a",
+        "bytes": 4488
+      },
+      "ast_preservation": {
+        "previous21": {
+          "methods": 21,
+          "assertions": 116,
+          "method_asts_equal": true,
+          "assertion_asts_preserved": true
+        },
+        "original19": {
+          "methods": 19,
+          "assertions": 91,
+          "method_asts_equal": true,
+          "assertion_asts_preserved": true
+        }
+      },
+      "syntax": "PASS",
+      "whitespace": {
+        "working_whitespace": "PASS",
+        "staged_whitespace": "PASS"
+      },
+      "ruff_disposition": "FAIL_EXISTING_FINDINGS; baseline and candidate have identical code/message multiset; no new findings",
+      "ruff_codes": {
+        "I001": 2,
+        "B023": 5,
+        "BLE001": 1
+      },
+      "baseline_comparison": "PASS_NO_NEW_FINDINGS"
+    },
+    "provenance": {
+      "exit_code": 0,
+      "result": "PASS: provenance complete for 1 source files"
+    },
+    "source_resource_claims_released": true,
+    "navigation_retained_execution": {
+      "source": "8226f834e9f396e8c7afcee85a12d7c127e4c05a",
+      "tests_passed": 4,
+      "typecheck": "PASS",
+      "expected_failure_controls": 3,
+      "qualification": "All 326 frontend Git entries and canonical working bytes remain identical; no local frontend rerun was needed."
+    },
+    "canonical_acceptance": {
+      "original": {
+        "PASS": 188,
+        "PARTIAL": 82,
+        "NOT_RUN": 96,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 20,
+        "PARTIAL": 4,
+        "NOT_RUN": 35,
+        "total": 59
+      },
+      "changes": 0,
+      "release_readiness": "UNKNOWN"
+    },
+    "hosted_checks_on_new_source": "NOT_RUN",
+    "publication_status": "PRIVATE_PENDING_FINAL_REVIEW_AND_ORDINARY_UPDATE_ADMISSION",
+    "protected_merge_approved": false,
+    "previous_1029_approval_consumed": true,
+    "previous_evidence_fields_preserved": true,
+    "tests_reexecuted_for_documentation": false,
+    "limits": [
+      "Historical hosted profile failures retain their separate traces and unknown causes.",
+      "The current full-file proof is local Windows execution with one retained anyio assertion-rewrite warning.",
+      "Full Ruff remains FAIL_EXISTING_FINDINGS: the same eight baseline findings, with no new findings or suppressions.",
+      "All previous failures and controls remain retained; no acceptance promotion or production deployment is implied."
+    ]
+  }
+}

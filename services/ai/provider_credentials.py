@@ -9,6 +9,7 @@ import re
 from sqlalchemy import select
 
 from packages.persistence import models as m
+from services.ai.data_flow import JOB_SCORING_CONTRACT, public_job_scoring_data_flow
 from services.ai.providers.openai import OpenAIProvider, DEFAULT_OPENAI_BASE_URL
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 
@@ -20,12 +21,15 @@ class CredentialBindingError(ValueError):
 
 
 def snapshot_binding(store, profile_id, provider):
+    """Capture credential routing and disclosure for a new job-scoring plan."""
     if provider == 'openai':
         encrypted = store.encrypted_provider_credential(profile_id, provider)
         if encrypted is not None:
             return {'provider': provider, 'source': 'SAVED_PROFILE',
+                    'data_flow_contract': JOB_SCORING_CONTRACT,
                     'ciphertext_fingerprint': hashlib.sha256(encrypted).hexdigest()}
     return {'provider': provider,
+            'data_flow_contract': JOB_SCORING_CONTRACT,
             'source': 'DISABLED' if provider == 'disabled' else 'RUNTIME_CONFIGURATION'}
 
 
@@ -33,7 +37,8 @@ def public_access(binding):
     if binding is None:
         return None  # Legacy plans never claimed a saved credential binding.
     return {'provider': binding['provider'], 'credential_source': binding['source'],
-            'destination': 'https://api.openai.com' if binding['source'] == 'SAVED_PROFILE' else None}
+            'destination': 'https://api.openai.com' if binding['source'] == 'SAVED_PROFILE' else None,
+            'data_flow': public_job_scoring_data_flow(binding)}
 
 
 def require_binding(connection, profile_id, snapshot):

@@ -710,6 +710,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                         "The reviewed cover letter changed; review and approve it again",
                     ) from None
         if prior:
+            same_route = prior["route_id"] == route["id"]
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
             expected_template=resume_template
@@ -735,11 +736,34 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
                      if key not in {'claim_validation', 'prompt_provenance'}} == cover_letter_context)
-            if reviewed_cover_letter is None and prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_ai_proposal and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
+            if same_route and reviewed_cover_letter is None and prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_ai_proposal and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
                 raise PreparationError("DOCUMENT_HISTORY_LOCKED", "Historical or active application cannot be regenerated")
+            if not same_route:
+                active_attempt = connection.execute(select(m.attempts.c.id).where(
+                    m.attempts.c.application_id == prior["id"],
+                    m.attempts.c.state == "RUNNING",
+                ).limit(1)).first()
+                active_operation = connection.execute(select(m.operations.c.id).where(
+                    m.operations.c.entity_id == prior["id"],
+                    or_(
+                        and_(m.operations.c.kind.in_(("APPLY_MOCK", "MANUAL_AUTH")),
+                             m.operations.c.state.in_(("QUEUED", "RUNNING"))),
+                        and_(m.operations.c.kind == "MANUAL_AUTH",
+                             m.operations.c.state == "BLOCKED",
+                             m.operations.c.error == "BROWSER_RELEASE_UNCONFIRMED"),
+                        and_(m.operations.c.kind.in_((
+                            "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN")),
+                             m.operations.c.state == "RUNNING"),
+                    ),
+                ).limit(1)).first()
+                if active_attempt or active_operation:
+                    raise PreparationError(
+                        "APPLICATION_REPREPARE_IN_PROGRESS",
+                        "Application work is still in progress; reconcile it before changing its route",
+                    )
         selected = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                           for row in eligible], [row["fact_id"] for row in eligible])
         application_id = identity(job_id, profile_id)

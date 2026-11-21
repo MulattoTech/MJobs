@@ -1,6 +1,6 @@
 """MJ-REQ-004: real public-worker connect cancellation for remaining adapters.
 
-Provider endpoints, operation timeout and SSL-context readiness are fixture seams.
+Provider endpoints, operation timeout, profile and SSL readiness are fixture seams.
 Only cold-SSL accounting uses an owned operation clock; socket/cancellation
 budgets retain the real clock. No production transport/check/stream is replaced.
 Synthetic loopback stores only.
@@ -35,13 +35,30 @@ from packages.persistence.store import Store
 from tests.integration.test_source_http_socket_budget import tcp_connect_stall
 from tests.integration.test_spine import PROFILE
 from workers import tasks as worker_tasks
+from workers import operations as worker_operations
 from workers.tasks import execute_operation
-from services.discovery.sources import http_transport
+from services.discovery.sources import collect as source_collection, http_transport
 from services.discovery.sources.registry import source_adapter
 
 
 ENDPOINTS = {"greenhouse": "HOST", "remoteok": "API_URL", "wwr": "FEED_URL"}
 LEVER_TENANTS = ("global:synthetic", "eu:synthetic")
+
+
+def worker_outcome_diagnostic(result):
+    """Only stable categories, never returned messages, identifiers or values."""
+    statuses = {"COMPLETED", "CANCELLED", "DEAD_LETTERED", "BLOCKED", "FAILED", "QUEUED"}
+    categories = {
+        "OPERATION_TIMEOUT", "OPERATION_CONTROL_UNAVAILABLE", "CANCEL_REQUESTED",
+        "SOURCE_DISABLED", "SOURCE_BACKOFF", "SOURCE_COOLDOWN", "SOURCE_NETWORK_ERROR",
+    }
+    result = result if type(result) is dict else {}
+    status, category = result.get("status"), result.get("error_category")
+    return {
+        "status": status if type(status) is str and status in statuses else "OTHER",
+        "error_category": ("NONE" if category is None else category
+                           if type(category) is str and category in categories else "OTHER"),
+    }
 
 
 def source_tenant(provider):
@@ -88,6 +105,21 @@ def empty_source(provider):
 
 
 class SourceAdapterConnectCancellationTests(unittest.TestCase):
+    def test_worker_phase_diagnostic_excludes_private_results(self):
+        private = "SYNTHETIC_PRIVATE /private/path SELECT secret FROM private"
+        for category in (private, {"message": private}, [private]):
+            with self.subTest(kind=type(category).__name__):
+                diagnostic = worker_outcome_diagnostic({
+                    "status": private, "error_category": category,
+                    "error": private, "failure": {"detail": private},
+                })
+                self.assertEqual(diagnostic, {"status": "OTHER", "error_category": "OTHER"})
+                self.assertNotIn(private, repr(diagnostic))
+        self.assertEqual(worker_outcome_diagnostic({
+            "status": "DEAD_LETTERED", "error_category": "OPERATION_TIMEOUT",
+            "error": private,
+        }), {"status": "DEAD_LETTERED", "error_category": "OPERATION_TIMEOUT"})
+
     def test_injected_transports_keep_control_even_when_falsey(self):
         class FalseyTransport(httpx.MockTransport):
             def __bool__(self):
@@ -124,12 +156,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
                    transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0,
-                   cancel_dispatch_delay=0, cancel_service_delay=0):
+                   cancel_dispatch_delay=0, cancel_service_delay=0,
+                   profile_setup_delay=0, profile_read_delay=0, profile_delay_sleep=None):
         tenant = tenant or source_tenant(provider)
         cold_ssl = mode == "cold_ssl_deadline"
         pre_ssl_deadline = mode == "pre_ssl_deadline"
         unprepared_ssl = cold_ssl or pre_ssl_deadline
-        finite_deadline = mode == "deadline" or unprepared_ssl
+        profile_deadline = mode == "profile_deadline"
+        prepare_profile = mode == "deadline" or profile_deadline
+        finite_deadline = mode == "deadline" or unprepared_ssl or profile_deadline
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -155,15 +190,115 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             transport_completed = threading.Event()
             transport_operation_completed = threading.Event()
             phases = {}
+            pre_ssl_phases = {}
             # Only the cold-SSL accounting case uses a controlled operation
             # clock. The production deadline is still created once at worker
             # entry; its clock advances only inside the real SSL factory below.
             cold_clock_value = [0.0]
             cold_clock = SimpleNamespace(monotonic=lambda: cold_clock_value[0]) if cold_ssl else None
             ssl_factory_calls = {"entered": 0, "completed": 0}
+            profile_preparing = [False]
+            profile_reads = []
+            profile_setup_delayed = [False]
+            original_profile = Store.profile
+            original_worker_store = worker_tasks.Store
+            prepared_worker_stores = []
+            profile_preparations = []
+            profile_read_delayed = [False]
             cancel_calls = []
             worker_finished_at = []
             worker = None
+
+            def observe_phase(name, action):
+                def observed(*args, **kwargs):
+                    if (threading.current_thread() is not worker
+                            or "collector_entered_at" not in phases
+                            or ssl_context_uses or ssl_factory_calls["entered"]):
+                        return action(*args, **kwargs)
+                    # Fixed names and at most 16 samples per phase; retain no
+                    # arguments, results, SQL, exceptions or connection objects.
+                    samples = pre_ssl_phases.setdefault(name, [])
+                    if len(samples) >= 16:
+                        return action(*args, **kwargs)
+                    sample = {"entered_at": time.monotonic()}
+                    samples.append(sample)
+                    try:
+                        return action(*args, **kwargs)
+                    finally:
+                        sample["exited_at"] = time.monotonic()
+                return observed
+
+            def wait_for_profile_delay(seconds):
+                sleep = time.sleep if profile_delay_sleep is None else profile_delay_sleep
+                started = time.monotonic()
+                while True:
+                    elapsed = time.monotonic() - started
+                    if elapsed >= seconds:
+                        return
+                    remaining = seconds - elapsed
+                    if remaining > 0:
+                        sleep(remaining)
+
+            def observe_profile_read(worker_store, profile_id, version=None, connection=None):
+                targeted = (threading.current_thread() is worker
+                            and profile_id == PROFILE["id"]
+                            and (profile_preparing[0] or "collector_entered_at" in phases))
+                if not targeted:
+                    return original_profile(worker_store, profile_id, version, connection)
+                sample = {"entered_at": time.monotonic(),
+                          "phase": "preparation" if profile_preparing[0] else "execution"}
+                profile_reads.append(sample)
+                try:
+                    if profile_setup_delay and not profile_setup_delayed[0]:
+                        profile_setup_delayed[0] = True
+                        wait_for_profile_delay(profile_setup_delay)
+                    if (profile_read_delay and not profile_preparing[0]
+                            and not profile_read_delayed[0]):
+                        self.assertTrue(deadline_started_at,
+                                        "Slow collector profile read must follow deadline construction")
+                        profile_read_delayed[0] = True
+                        sample["delayed_after_deadline"] = True
+                        wait_for_profile_delay(profile_read_delay)
+                    return original_profile(worker_store, profile_id, version, connection)
+                finally:
+                    sample["exited_at"] = time.monotonic()
+
+            def prepare_worker_store(*args, **kwargs):
+                owned = threading.current_thread() is worker
+                if owned:
+                    self.assertEqual(args, (url,), "Worker must use the exact owned fixture database")
+                    self.assertEqual(kwargs, {})
+                worker_store = original_worker_store(*args, **kwargs)
+                if not owned or not prepare_profile:
+                    return worker_store
+                try:
+                    self.assertEqual(prepared_worker_stores, [],
+                                     "Prepare exactly one owned worker Store")
+                    prepared_worker_stores.append(worker_store)
+                    sample = {"entered_at": time.monotonic()}
+                    profile_preparations.append(sample)
+                    profile_preparing[0] = True
+                    try:
+                        # Warm this Store's real connection/query path, discarding
+                        # data. The collector must still perform its own read.
+                        worker_store.profile(PROFILE["id"])
+                    finally:
+                        profile_preparing[0] = False
+                        sample["exited_at"] = time.monotonic()
+                    return worker_store
+                except BaseException:
+                    # execute_operation constructs Store before its try/finally.
+                    worker_store.engine.dispose()
+                    raise
+
+            original_factory = source_collection.source_adapter
+
+            def observe_adapter_factory(*args, **kwargs):
+                adapter = observe_phase("adapter_factory", original_factory)(*args, **kwargs)
+                if threading.current_thread() is worker:
+                    cleanup.enter_context(patch.object(
+                        adapter, "search", new=observe_phase("adapter_search", adapter.search)))
+                return adapter
 
             # Transport-ready cases prepare the trust store separately. The
             # cold-context case charges real factory completion to its owned
@@ -186,6 +321,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             def ready_ssl_context(verify=True, cert=None, trust_env=True):
                 if (threading.current_thread() is worker and verify is True
                         and cert is None and trust_env is False):
+                    phases.setdefault("ssl_factory_entered_at", time.monotonic())
                     if unprepared_ssl:
                         ssl_factory_calls["entered"] += 1
                         phases["cold_ssl_wall_started_at"] = time.monotonic()
@@ -205,8 +341,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         ssl_factory_calls["completed"] += 1
                         self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
                         self.assertTrue(context.check_hostname)
+                        phases.setdefault("ssl_factory_completed_at", time.monotonic())
                         return context
                     ssl_context_uses.append(time.monotonic())
+                    phases.setdefault("ssl_factory_completed_at", time.monotonic())
                     return ssl_context
                 return original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -222,6 +360,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "worker_finished_at", "terminal_readback_at",
                     "cold_ssl_started_at", "cold_ssl_completed_at",
                     "cold_ssl_wall_started_at", "cold_ssl_wall_completed_at",
+                    "ssl_factory_entered_at", "ssl_factory_completed_at",
                 )
                 timestamps = {}
                 for key in timestamp_keys:
@@ -243,12 +382,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 connection = state.get("connecting_socket")
                 return (f"phase_ms_from_deadline={relative_ms}; "
                         f"deadline_clock={'controlled' if cold_ssl else 'real'}; "
-                        f"ssl_factory_calls={ssl_factory_calls!r}; phases={phases!r}; "
-                        f"worker_errors={errors!r}; outcomes={len(outcome)}; "
+                        f"ssl_factory_calls={ssl_factory_calls!r}; wall_phase_times={timestamps!r}; "
+                        f"pre_ssl_phases={pre_ssl_phases!r}; "
+                        f"profile_preparations={profile_preparations!r}; profile_reads={profile_reads!r}; "
+                        f"worker_outcome={worker_outcome_diagnostic(outcome[-1] if outcome else None)}; "
+                        f"worker_error_count={len(errors)}; outcomes={len(outcome)}; "
                         f"connects={state.get('connects', 0)}; requests={state.get('requests', 0)}; "
                         f"socket_fd={connection.fileno() if connection is not None else None}")
 
             def observe_collect_source(*args, **kwargs):
+                if prepare_profile:
+                    self.assertEqual(len(prepared_worker_stores), 1)
+                    self.assertIs(args[0], prepared_worker_stores[0],
+                                  "Collector must use the same prepared real worker Store")
                 # This is a sticky, non-blocking observation after the production
                 # deadline has started. Never wait here: scheduler delay belongs
                 # to the test coordinator, not the production worker's deadline.
@@ -296,9 +442,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     if owned:
                         phases["connect_ex_status"] = status
                     return status
-                except BaseException as error:
+                except BaseException:
                     if owned:
-                        phases["transport_call_error"] = f"{type(error).__name__}: {error}"
+                        phases["transport_call_error"] = "CONNECT_EXCEPTION"
                     raise
                 finally:
                     if owned:
@@ -358,6 +504,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     new=observe_connect_tcp), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", side_effect=record_timeout), patch(
+                    "workers.tasks.Store", new=prepare_worker_store), patch(
+                    "workers.operations._read_operation_control",
+                    new=observe_phase("control_read", worker_operations._read_operation_control)), patch.object(
+                    Store, "profile", new=observe_phase("profile", observe_profile_read)), patch(
+                    "services.discovery.sources.collect.source_adapter", new=observe_adapter_factory), patch(
                     "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
                 if cold_ssl:
                     # Replace this module binding, never attributes on the
@@ -422,8 +573,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                                                if isinstance(result, dict)
                                                                else type(result).__name__)
                             phases["worker_outcome_at"] = time.monotonic()
-                        except BaseException as error:
-                            errors.append(f"{type(error).__name__}: {error}")
+                        except BaseException:
+                            errors.append("WORKER_EXCEPTION")
                             phases["worker_error_at"] = time.monotonic()
                         finally:
                             finished_at = time.monotonic()
@@ -453,6 +604,18 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
                             f"{phase_diagnostic()}")
+                        if prepare_profile:
+                            self.assertEqual(len(profile_preparations), 1)
+                            self.assertEqual(len(deadline_started_at), 1)
+                            self.assertLessEqual(profile_preparations[0]["exited_at"],
+                                                 deadline_started_at[0],
+                                "Real profile preparation must finish before the worker deadline starts")
+                            if profile_setup_delay:
+                                self.assertGreater(profile_setup_delay, .8)
+                                self.assertTrue(profile_setup_delayed[0])
+                                self.assertGreaterEqual(
+                                    profile_preparations[0]["exited_at"] - profile_preparations[0]["entered_at"],
+                                    profile_setup_delay)
                         if mode == "deadline":
                             self.assertEqual(len(deadline_started_at), 1,
                                 f"{provider} source collector entered without one recorded operation deadline; "
@@ -603,6 +766,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              f"Expired setup must not start a socket connect; {phase_diagnostic()}")
                             self.assertFalse(transport_completed.is_set(),
                                              f"Setup timeout cannot report transport success; {phase_diagnostic()}")
+                        elif profile_deadline:
+                            self.assertGreater(profile_read_delay, .8)
+                            self.assertTrue(profile_read_delayed[0])
+                            delayed_reads = [sample for sample in profile_reads
+                                             if sample.get("delayed_after_deadline")]
+                            self.assertEqual(len(delayed_reads), 1)
+                            self.assertGreaterEqual(delayed_reads[0]["entered_at"], deadline_started_at[0])
+                            self.assertGreaterEqual(delayed_reads[0]["exited_at"] - delayed_reads[0]["entered_at"],
+                                                    profile_read_delay)
+                            self.assertEqual(ssl_factory_calls, {"entered": 0, "completed": 0})
+                            self.assertEqual(ssl_context_uses, [])
+                            self.assertFalse(transport_entered.is_set(), phase_diagnostic())
+                            self.assertFalse(transport_completed.is_set(), phase_diagnostic())
                         elif provider == "remoteok":
                             self.assertTrue(ssl_context_uses,
                                 "Owned remoteok transport did not use its ready SSL context")
@@ -636,12 +812,26 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         finally:
                             reopened.engine.dispose()
                         self.assertEqual(state["requests"], (2 if provider == "greenhouse" else 1) if mode == "positive" else 0)
-                        if unprepared_ssl:
+                        if unprepared_ssl or profile_deadline:
                             self.assertEqual(state["connects"], 0)
                             self.assertIsNone(state.get("connecting_socket"))
                         elif mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
+                        if prepare_profile:
+                            preparation_reads = [sample for sample in profile_reads
+                                                 if sample["phase"] == "preparation"]
+                            execution_reads = [sample for sample in profile_reads
+                                               if sample["phase"] == "execution"]
+                            self.assertEqual(len(preparation_reads), 1)
+                            self.assertTrue(execution_reads,
+                                            "The real collector must reread the profile after preparation")
+                            self.assertGreaterEqual(execution_reads[0]["entered_at"], phases["collector_entered_at"])
+                            self.assertGreaterEqual(execution_reads[0]["entered_at"], deadline_started_at[0])
+                            print(f"OWNED_PROFILE_READINESS mode={mode} preparation_calls={len(profile_preparations)} "
+                                  f"preparation_seconds={profile_preparations[0]['exited_at'] - profile_preparations[0]['entered_at']:.3f} "
+                                  f"first_execution_seconds={execution_reads[0]['exited_at'] - execution_reads[0]['entered_at']:.3f} "
+                                  f"connects={state['connects']}")
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
@@ -730,6 +920,30 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def test_lever_eu_finite_deadline_during_real_tcp_connect(self):
         self.run_source("lever", "deadline", tenant="eu:synthetic", coordinator_delay=1.05)
+
+    def test_lever_eu_finite_deadline_with_slow_profile_preparation(self):
+        self.run_source("lever", "deadline", tenant="eu:synthetic",
+                        coordinator_delay=1.05, profile_setup_delay=.9)
+
+    def test_lever_eu_profile_delay_retries_early_return(self):
+        sleep_calls = []
+
+        def return_early_once(seconds):
+            sleep_calls.append(seconds)
+            if len(sleep_calls) == 1:
+                print("OWNED_PROFILE_DELAY_EARLY_RETURN")
+                return
+            time.sleep(seconds)
+
+        self.run_source("lever", "deadline", tenant="eu:synthetic",
+                        coordinator_delay=1.05, profile_setup_delay=.9,
+                        profile_delay_sleep=return_early_once)
+        self.assertGreaterEqual(len(sleep_calls), 2)
+        self.assertTrue(all(seconds > 0 for seconds in sleep_calls))
+        print(f"OWNED_PROFILE_DELAY_SLEEP_CALLS count={len(sleep_calls)}")
+
+    def test_lever_eu_slow_profile_read_after_deadline_prevents_connect(self):
+        self.run_source("lever", "profile_deadline", tenant="eu:synthetic", profile_read_delay=.9)
 
     def test_lever_global_healthy_worker_and_fresh_source_readback(self):
         self.run_source("lever", "positive", tenant="global:synthetic")

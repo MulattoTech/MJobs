@@ -293,6 +293,29 @@ class ProfileRestoreTests(unittest.TestCase):
         self.assertEqual(search["source_ids"], [])
         self.assertNotIn("scheduler", search["criteria"])
 
+    def test_persistence_validation_clears_imported_employer_grants_without_changing_plan(self):
+        from packages.domain.employer_verification import disabled_preference
+        from packages.persistence.profile_restore import _validate_plan
+
+        backup = _payload()
+        # This grant-only persistence fixture has no resume or document files.
+        for section in ("uploaded_resumes", "resume_revisions", "document_files", "documents"):
+            backup[section] = []
+        for snapshot in backup["profile_versions"]:
+            snapshot["contact"]["preferences"]["company_discovery"]["employer_verification"] = {
+                "version": 1, "mode": "GREENHOUSE_RECIPROCAL_V1", "activation_id": "a" * 32,
+            }
+        plan = build_restore_plan(backup, "restored-profile")
+        original = copy.deepcopy(plan)
+        profile, _, _, _, history, _ = _validate_plan(plan, "verification-restore")
+        self.assertEqual(profile["preferences"]["company_discovery"]["employer_verification"],
+                         disabled_preference())
+        for snapshot in history["profile_versions"]:
+            self.assertEqual(snapshot["contact"]["preferences"]["company_discovery"]["employer_verification"],
+                             disabled_preference())
+            self.assertFalse(snapshot["contact"]["preferences"]["company_discovery"]["company_discovery_enabled"])
+        self.assertEqual(plan, original)
+
     def test_missing_optional_file_bytes_are_explicitly_warned(self):
         payload = _payload()
         payload["document_files"] = []

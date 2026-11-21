@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-136",
+  "objective": "Integrate existing PR1034 after the authorized PR1045 merge, preserving original field-key behavior and exact-source verification",
+  "owner": "ChatGPT-Web d9b89794",
+  "branch": "web/20261120-d9b89794/rehearsal-fields",
+  "head_sha": "94b1502b5052869411bdacbe1c52da9df91e4998",
+  "routing_state": "INTEGRATE",
+  "next_action": "Publish one bounded nonforce update to existing PR1034; require all fresh current-head gates, then merge under the user authorization already received. Preserve acceptance PARTIAL and production approval boundary.",
+  "created_at": "2026-11-19T23:40:42.981812-06:00",
+  "requirements": [
+    "MJ-REQ-136"
+  ],
+  "tests": [
+    {
+      "command": "Candidate tree f028c28f, committed unchanged as2d3c0972: 39 frontend tests, 11 Python/browser tests, typecheck/build, scoped ESLint and repository gates PASS; independent AI review no blockers",
+      "result": "PASS"
+    },
+    {
+      "command": "Prior published ed78ee3d passed all15hosted checks including all5required gates; historical evidence only",
+      "result": "PASS"
+    },
+    {
+      "command": "Combined tree4437b70a committed identically as94b1502b:63frontend tests and41Python/API/browser tests plus28subtests;zero failures/skips;TypeScript and production build",
+      "result": "PASS"
+    },
+    {
+      "command": "Separate executed candidateed78ee3d: genuine guarded PostgreSQL backup/upgrade/fresh restore,13baseline table snapshots,document bytes,1synthetic credential,and owned fixture cleanup;see docs/evidence/2026-11-20-guarded-recovery-d9b89794.json",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted checks on new published head",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Authenticated public workflow;production rollout;full MJ-REQ-136 acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
