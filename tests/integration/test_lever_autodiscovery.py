@@ -272,6 +272,60 @@ class LeverAutodiscoveryTests(unittest.TestCase):
             with self.assertRaisesRegex(Exception,'DISCOVERY_.*CHANGED|COMPANY_ATS_BINDING_REVIEW_REQUIRED'):
                 collect_source(self.store,source['collector_source_id'],'fixture')
 
+    def test_optional_salary_faults_preserve_durable_inventory(self):
+        _, source = self.enroll()
+        self.jobs.extend([
+            dict(posting(2), description='Salary: $80,000 - $100,000 per year. Python.',
+                 salaryRange={'min': 25, 'max': 10 ** 400,
+                              'interval': 'per-hour', 'currency': 'USD'}),
+            dict(posting(3), salaryRange={'min': 25, 'max': 45,
+                                          'interval': ['per-hour'], 'currency': 'USD'}),
+            dict(posting(4), salaryRange={'min': 25, 'max': 45,
+                                          'interval': 'per-hour', 'currency': 'USD'}),
+        ])
+
+        def recollect():
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.job_sources).where(
+                    m.job_sources.c.id == source['collector_source_id']).values(
+                        last_attempt='2000-01-01T00:00:00+00:00'))
+            with patch.object(Lever, '_get',
+                    lambda adapter, suffix, params=None: self.board(adapter, suffix, params)):
+                collect_source(self.store, source['collector_source_id'], 'fixture')
+
+        recollect()
+        reopened = Store(self.store.url)
+        try:
+            with reopened.engine.connect() as connection:
+                jobs = connection.execute(select(m.jobs).where(
+                    m.jobs.c.company_id == self.company_id)).mappings().all()
+                self.assertEqual(len(jobs), 4)
+                by_native_id = {job['attributes']['native_posting_id']: job for job in jobs}
+                fallback = by_native_id[self.jobs[1]['id']]['attributes']
+                self.assertEqual((fallback['salary_min'], fallback['salary_max']), (80000, 100000))
+                self.assertEqual(fallback['salary_period'], 'YEAR')
+                unknown = by_native_id[self.jobs[2]['id']]['attributes']
+                self.assertEqual((unknown['salary_min'], unknown['salary_max']), (25, 45))
+                self.assertEqual(unknown['salary_period'], 'UNKNOWN')
+                self.assertEqual(by_native_id[self.jobs[3]['id']]['attributes']['salary_period'], 'HOUR')
+                raw_postings = connection.execute(select(m.postings.c.raw)).scalars().all()
+                raw_snapshots = connection.execute(select(m.posting_snapshots.c.raw)).scalars().all()
+                for raw in self.jobs:
+                    self.assertIn(raw, raw_postings)
+                    self.assertIn(raw, raw_snapshots)
+                health = connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == source['collector_source_id'])).mappings().one()
+                self.assertEqual(health['health_status'], 'HEALTHY')
+                self.assertEqual(health['jobs_seen'], 4)
+                self.assertEqual(health['consecutive_failures'], 0)
+                job_ids = {job['id'] for job in jobs}
+            recollect()
+            with reopened.engine.connect() as connection:
+                self.assertEqual(set(connection.execute(select(m.jobs.c.id).where(
+                    m.jobs.c.company_id == self.company_id)).scalars()), job_ids)
+        finally:
+            reopened.engine.dispose()
+
     def test_later_inventory_failure_preserves_existing_jobs_and_recovery_imports_once(self):
         _,source=self.enroll()
         with self.store.engine.begin() as connection:
