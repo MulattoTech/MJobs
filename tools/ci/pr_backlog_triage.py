@@ -54,6 +54,17 @@ def prs():
     return found
 
 
+def code_age_days(pr):
+    # Labels/comments mutate pull_request.updated_at; use the actual head
+    # commit timestamp so classification cannot refresh itself indefinitely.
+    try:
+        commit = get("/commits/" + pr["head"]["sha"])
+        date = commit["commit"]["committer"]["date"]
+        return max(0, (NOW - timestamp(date)).days)
+    except (RuntimeError, KeyError, TypeError, ValueError):
+        return 365  # Fail closed: never auto-merge a commit with unknown age.
+
+
 def checks(sha):
     runs = get("/commits/" + sha + "/check-runs?per_page=100").get("check_runs", [])
     statuses = get("/commits/" + sha + "/status").get("statuses", [])
@@ -68,7 +79,7 @@ def checks(sha):
 
 
 def classify(pr):
-    age = (NOW - timestamp(pr["updated_at"])).days
+    age = code_age_days(pr)
     state = pr.get("mergeable_state")
     if pr["draft"]:
         return "draft", False
@@ -151,7 +162,7 @@ def main():
         except RuntimeError as exc:
             print(f"PR #{pr['number']} couldn't be labeled: {exc}")
             continue
-        age = (NOW - timestamp(pr["updated_at"])).days
+        age = code_age_days(pr)
         trusted = (pr["user"]["login"].lower() == OWNER and pr["head"].get("repo") and
                    pr["head"]["repo"]["full_name"].lower() == REPO.lower())
         if (not trusted or pr["draft"] or "agent:hold" in current or age >= 30 or
