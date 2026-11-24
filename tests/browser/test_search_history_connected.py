@@ -189,8 +189,8 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         table = panel.get_by_role("table", name="Saved search runs for profile fixture")
                         expect(table).to_be_visible()
                         for heading in ("Source", "Query", "Started", "Finished", "Run status",
-                                        "Results", "New jobs", "Duplicates", "Errors",
-                                        "Filters and details"):
+                                        "Results", "New jobs", "Legacy duplicates", "Posting activity",
+                                        "Errors", "Filters and details"):
                             expect(table.get_by_role("columnheader", name=heading, exact=True)).to_be_visible()
 
                         self.assertTrue(all(item["profile_id"] == "fixture" for item in new_runs))
@@ -397,19 +397,27 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         fixture_labels.append(("other", "other_profile", "Other fixture source"))
         for profile_id, name, label in fixture_labels:
             # This deliberately seeds terminal metadata; no discovery worker runs.
+            details = {
+                "source": f"  {label}  ", "query": f"MJ236 {name}",
+                "filters": {"remote": "REQUIRED"},
+                "results": 3, "new_jobs": 1, "duplicates": 2, "errors": [],
+            }
+            if name == "ascii_201":
+                details["posting_activity"] = {"new": 1, "unchanged": 1, "updated": 1}
             run = build_search_history_record({
                 "id": f"mj236-{name}", "kind": "DISCOVER", "entity_id": profile_id,
                 "state": "COMPLETED", "attempt_count": 1, "params": {},
                 "started_at": "2026-11-14T00:00:00Z",
                 "updated_at": "2026-11-14T00:00:01Z",
-            }, {
-                "source": f"  {label}  ", "query": f"MJ236 {name}",
-                "filters": {"remote": "REQUIRED"},
-                "results": 3, "new_jobs": 1, "duplicates": 2, "errors": [],
-            })
+            }, details)
             assert run is not None and run["source"] == label
             saved = record_search_history(store, run)
             assert saved["source"] == label
+            if name == "ascii_201":
+                assert saved["posting_activity"] == details["posting_activity"]
+                assert saved["duplicates"] == details["posting_activity"]["unchanged"]
+            else:
+                assert "posting_activity" not in saved and saved["duplicates"] == 2
             expected[profile_id][saved["run_id"]] = {
                 "id": saved["run_id"],
                 **{key: value for key, value in saved.items() if key != "run_id"},
@@ -503,12 +511,23 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
                 "table", name=f"Saved search runs for profile {profile_id}", exact=True)
             expect(table).to_be_visible()
             expect(table.locator("tbody tr")).to_have_count(len(expected[profile_id]))
+            legacy_index = table.get_by_role("columnheader", name="Legacy duplicates", exact=True).evaluate(
+                "header => header.cellIndex")
+            activity_index = table.get_by_role("columnheader", name="Posting activity", exact=True).evaluate(
+                "header => header.cellIndex")
             for item in expected[profile_id].values():
                 row = table.locator("tbody tr").filter(
                     has=page.get_by_role("cell", name=item["query"], exact=True))
                 expect(row).to_have_count(1)
                 # text_content preserves the exact label, including non-BMP characters.
-                assert row.get_by_role("cell").nth(0).text_content() == item["source"]
+                cells = row.get_by_role("cell")
+                assert cells.nth(0).text_content() == item["source"]
+                if "posting_activity" in item:
+                    expect(cells.nth(legacy_index)).to_have_text("—")
+                    expect(cells.nth(activity_index)).to_have_text("New 1 · Unchanged 1 · Updated 1")
+                else:
+                    expect(cells.nth(legacy_index)).to_have_text("2")
+                    expect(cells.nth(activity_index)).to_have_text("Unavailable (legacy run)")
             receipt["phases"].append({
                 "name": phase, "profile_id": profile_id, "status": response.status,
                 "items": len(body["items"]), "api_labels_exact": True, "ui_labels_exact": True,
