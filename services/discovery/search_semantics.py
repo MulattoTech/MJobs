@@ -260,6 +260,11 @@ _REQUIRED_ONSITE = re.compile(
     r"|\bon[- ]?site\s+(?:attendance|work|visits?)\s+(?:is|are|may\s+be)\s+required\b",
     re.I,
 )
+_HYBRID_WORK_CONTEXT = re.compile(
+    r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|model|onsite)\b"
+    r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
+    re.I,
+)
 
 
 def classify_location(location_text, description=""):
@@ -267,7 +272,11 @@ def classify_location(location_text, description=""):
     combined = f"{location} {description or ''}"
     folded = combined.casefold()
     remote_indicated = bool(re.search(r"\bremote\b", folded))
-    hybrid_indicated = bool(re.search(r"\bhybrid\b", folded) or (remote_indicated and _REQUIRED_ONSITE.search(combined)))
+    hybrid_indicated = bool(
+        re.search(r"\bhybrid\b", location, re.I)
+        or _HYBRID_WORK_CONTEXT.search(description or "")
+        or (remote_indicated and _REQUIRED_ONSITE.search(combined))
+    )
     onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
 
     country = None
@@ -400,6 +409,13 @@ def _residence_scopes(text):
     return (text[match.end():] for match in _RESIDENCE_REQUIREMENT.finditer(text))
 
 
+def _geographic_clause_tail(text, end):
+    """Return only the remainder of the current sentence after a country name."""
+    tail = text[end:]
+    boundary = re.search(r"[.!?;\n]", tail)
+    return tail[:boundary.start()] if boundary else tail
+
+
 def _declared_residence_states(text):
     for scope in _residence_scopes(text):
         if match := _RESIDENCE_STATES.match(scope):
@@ -450,8 +466,8 @@ def _remote_residence_status(job, state, arrangement):
                 continue
             country_scope = re.match(rf"{_US_LOCATION}\b", scope, re.I)
             if country_scope:
-                qualifier = scope[country_scope.end():].strip()
-                if qualifier and not re.fullmatch(r"(?:only\s*)?[.;:!?]*", qualifier, re.I):
+                qualifier = _geographic_clause_tail(scope, country_scope.end()).strip()
+                if qualifier and not re.fullmatch(r"(?:only\s*)?", qualifier, re.I):
                     return "UNKNOWN"
                 expressly_eligible = True
             elif re.match(rf"{_OTHER_COUNTRY}\b", scope, re.I):
@@ -461,13 +477,23 @@ def _remote_residence_status(job, state, arrangement):
     if expressly_eligible:
         return "ELIGIBLE"
 
+    for match in _REMOTE_TEXT_SCOPE.finditer(description):
+        qualifier = _geographic_clause_tail(description, match.end()).strip()
+        if qualifier and not re.fullmatch(r"only", qualifier, re.I):
+            return "UNKNOWN"
+
     if re.fullmatch(rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", scope, re.I):
         return "ELIGIBLE"
     if location_states:
         return "ELIGIBLE"
     if job.get("remote_type") == "REMOTE_COUNTRY":
         return "EXCLUDED"
-    return "ELIGIBLE" if _REMOTE_TEXT_SCOPE.search(description) or _WORLDWIDE_WORK.search(description) else "UNKNOWN"
+    for match in _REMOTE_TEXT_SCOPE.finditer(description):
+        qualifier = _geographic_clause_tail(description, match.end()).strip()
+        if not qualifier or re.fullmatch(r"only", qualifier, re.I):
+            return "ELIGIBLE"
+        return "UNKNOWN"
+    return "ELIGIBLE" if _WORLDWIDE_WORK.search(description) else "UNKNOWN"
 
 
 def normalize_title(value):
