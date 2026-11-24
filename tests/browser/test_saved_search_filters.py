@@ -142,15 +142,25 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(python_card).to_be_visible()
                     expect(hidden_card).to_be_visible()
 
+                    # A reload restores the selected search and its explicit visibility
+                    # opt-ins. Choosing All jobs must clear those opt-ins again.
                     page.reload(wait_until="domcontentloaded")
                     expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(1)
-                    expect(dismissed).not_to_be_checked()
-                    expect(blacklisted).not_to_be_checked()
-                    searches.select_option(saved_id)
+                    expect(searches).to_have_value(saved_id)
                     expect(dismissed).to_be_checked()
                     expect(blacklisted).to_be_checked()
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("application_priority")
+                    expect(python_card).to_be_visible()
                     expect(hidden_card).to_be_visible()
+                    searches.select_option("")
+                    expect(searches).to_have_value("")
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    searches.select_option(saved_id)
+                    expect(dismissed).to_be_checked()
+                    expect(blacklisted).to_be_checked()
 
                     # Old records do not inherit a previous search's opt-ins.
                     searches.select_option("legacy-visibility")
