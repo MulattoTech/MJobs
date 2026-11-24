@@ -247,6 +247,33 @@ class SearchSemanticsTests(unittest.TestCase):
                        "remote_type": attributes["remote_type"]}
                 self.assertEqual(evaluate_search(criteria, job)["matched"], expected_state is not None)
 
+    def test_timezone_eligibility_scope_is_distinct_from_work_hours(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Remote within the United States. Candidates based in the Pacific time-zone may apply.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Candidates based in the Pacific time zone may apply.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Applicants residing in Pacific time-zone are eligible.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Applicants residing in Pacific time zone are eligible.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Collaboration hours overlap the Pacific time-zone.",
+             "ELIGIBLE", True),
+            ("Remote within the United States. We collaborate with teams in the Pacific time zone.",
+             "ELIGIBLE", True),
+            ("Remote within the United States. Working hours follow Pacific time.",
+             "ELIGIBLE", True),
+        )
+        for description, expected_status, expected_match in cases:
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, US", description)
+                job = {"location": "Remote, US", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["remote_residence"]["status"], expected_status)
+                self.assertEqual(result["matched"], expected_match, result["reasons"])
+
     def test_employment_type_normalization(self):
         cases = {
             "Permanent full-time employee": "FULL_TIME",

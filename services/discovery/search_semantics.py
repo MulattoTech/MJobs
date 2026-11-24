@@ -407,14 +407,16 @@ _COUNTRY_SCOPE_CUE = re.compile(
     r"(?:approved|eligible)\s+(?:states?|locations?))\b",
     re.I,
 )
+_NAMED_US_TIME_ZONE = (
+    r"(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)"
+    r"\s+time[- ]zones?"
+)
 _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
-    r"\bonly\s+(?:(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)"
-    r"\s+time\s+zones?\s+(?:applicants?|candidates?)|"
-    r"(?:applicants?|candidates?)\s+(?:located\s+)?(?:in|within)\s+(?:the\s+)?"
-    r"(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)\s+time\s+zones?)"
-    r"\s+(?:are\s+)?(?:eligible|may\s+apply|can\s+apply|will\s+be\s+considered)\b"
-    r"|\b(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)"
-    r"\s+time\s+zones?\s+(?:applicants?|candidates?)\s+only\s+(?:are\s+)?eligible\b",
+    rf"\b(?:only\s+)?{_NAMED_US_TIME_ZONE}\s+(?:applicants?|candidates?)\s+"
+    r"(?:only\s+)?(?:are\s+)?(?:eligible|may\s+apply|can\s+apply|will\s+be\s+considered)\b"
+    rf"|\b(?:only\s+)?(?:applicants?|candidates?)\s+"
+    rf"(?:(?:based|residing|located|living)\s+)?(?:in|within)\s+(?:the\s+)?{_NAMED_US_TIME_ZONE}\s+"
+    r"(?:only\s+)?(?:are\s+)?(?:eligible|may\s+apply|can\s+apply|will\s+be\s+considered)\b",
     re.I,
 )
 _LOCATION_SCOPE = re.compile(
