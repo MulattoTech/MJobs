@@ -243,8 +243,8 @@ def _append_event(store, profile_id: str, application_id: str, request_id: str,
 
 
 def set_application_pipeline_status(store, profile_id: str, application_id: str,
-                                    status: str, request_id: str) -> dict:
-    if status not in PIPELINE_STATUSES:
+                                    status: str | None, request_id: str) -> dict:
+    if status is not None and status not in PIPELINE_STATUSES:
         raise ValueError("Unsupported application pipeline status")
     _append_event(store, profile_id, application_id, request_id,
                   "APPLICATION_PIPELINE_STATUS",

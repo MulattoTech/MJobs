@@ -17,12 +17,16 @@ const application = { id: 'app-a', profile_id: 'fixture', job_id: '', title: 'Sy
   document_version: 1, profile_version: 1, answer_bank: [] };
 const applicationB = { ...application, id: 'app-b', title: 'Other role', company: 'Other company' };
 type TrackingState = { status: string | null; attribution: string | null; notes: unknown[];
-  history: { type: string; status?: string; attribution?: string; sequence: number; timestamp: string }[];
+  history: { type: string; status?: string | null; attribution?: string; sequence: number; timestamp: string }[];
   external_reports: unknown[] };
 const trackingBefore: TrackingState = { status: null, attribution: null, notes: [], history: [], external_reports: [] };
 const trackingAfter: TrackingState = { status: 'READY', attribution: 'USER_REPORTED', notes: [],
   history: [{ type: 'status', status: 'READY', attribution: 'USER_REPORTED', sequence: 1,
     timestamp: '2026-11-06T19:00:00Z' }], external_reports: [] };
+const trackingCleared: TrackingState = { status: null, attribution: 'USER_REPORTED', notes: [],
+  history: [...trackingAfter.history, { type: 'status', status: null,
+    attribution: 'USER_REPORTED', sequence: 2, timestamp: '2026-11-06T19:01:00Z' }],
+  external_reports: [] };
 const noDocumentText = { documents: [] };
 
 function json(body: unknown, status = 200): Response { return Response.json(body, { status }); }
@@ -168,6 +172,43 @@ describe('application tracking write readback', () => {
     expect(getByRole(trackingB, 'list', { name: 'Application history' }).textContent).toBe('');
   });
 
+  it('does not apply a pending clear response after the user selects a different application', async () => {
+    let releaseWrite!: (value: Response) => void;
+    let pending = false;
+    activeFetch = async (input, init) => {
+      const path = String(input);
+      const method = init?.method || 'GET';
+      if (pending && method === 'PUT' && path.includes('/app-a/tracking/status')) {
+        return await new Promise<Response>(resolve => { releaseWrite = resolve; });
+      }
+      const route = new URL(path, 'http://localhost').pathname;
+      if (route === '/applications') return response(path, method, [application, applicationB]);
+      if (route === '/profiles/fixture/applications/app-a/tracking') return json(trackingAfter);
+      if (route.includes('/app-b/tracking')) return json(trackingBefore);
+      if (route === '/profiles/fixture/applications/app-b') return json(applicationB);
+      if (route === '/profiles/fixture/applications/app-b/documents') return json(noDocumentText);
+      if (route === '/profiles/fixture/applications/app-b/answers') return json({ answers: [] });
+      return response(path, method);
+    };
+
+    await mount();
+    await click('Applications 2');
+    await click('Synthetic company Synthetic role');
+    const trackingA = getByRole(container, 'region', { name: 'Application tracking' });
+    fireEvent.change(getByRole(trackingA, 'combobox', { name: 'Manual application status' }), {
+      target: { value: '' },
+    });
+    pending = true;
+    await act(async () => { fireEvent.click(getByRole(trackingA, 'button', { name: 'Update status' })); });
+    await click('Other company Other role');
+    pending = false;
+    await act(async () => { releaseWrite(json(trackingCleared)); await new Promise(resolve => setTimeout(resolve, 0)); });
+
+    const trackingB = getByRole(container, 'region', { name: 'Application tracking' });
+    expect((getByRole(trackingB, 'combobox', { name: 'Manual application status' }) as HTMLSelectElement).value).toBe('');
+    expect(getByRole(trackingB, 'list', { name: 'Application history' }).textContent).toBe('');
+  });
+
   it('reuses the write request id when the PUT commits but the readback fails', async () => {
     const requestIds: string[] = [];
     const recorded = new Set<string>();
@@ -215,5 +256,38 @@ describe('application tracking write readback', () => {
     expect(requestIds[1]).toBe(requestIds[0]);
     expect(persistedTracking.history).toHaveLength(1);
     expect(getByRole(tracking, 'list', { name: 'Application history' }).textContent).toContain('Ready');
+  });
+
+  it('sends an explicit null to clear a saved status and reads back the empty stage', async () => {
+    let persistedTracking = trackingAfter;
+    let clearPayload: { status: string | null; request_id: string } | undefined;
+    activeFetch = async (input, init) => {
+      const path = String(input);
+      const method = init?.method || 'GET';
+      if (path.endsWith('/tracking/status') && method === 'PUT') {
+        clearPayload = JSON.parse(String(init?.body)) as typeof clearPayload;
+        persistedTracking = trackingCleared;
+        return json(persistedTracking);
+      }
+      if (path.endsWith('/tracking')) return json(persistedTracking);
+      return response(path, method);
+    };
+
+    await mount();
+    await click('Applications 1');
+    await click('Synthetic company Synthetic role');
+    const tracking = getByRole(container, 'region', { name: 'Application tracking' });
+    fireEvent.change(getByRole(tracking, 'combobox', { name: 'Manual application status' }), {
+      target: { value: '' },
+    });
+    const update = getByRole(tracking, 'button', { name: 'Update status' }) as HTMLButtonElement;
+    expect(update.disabled).toBe(false);
+    await click('Update status');
+
+    expect(clearPayload?.status).toBeNull();
+    expect(clearPayload?.request_id).toBeTruthy();
+    expect((getByRole(tracking, 'combobox', { name: 'Manual application status' }) as HTMLSelectElement).value).toBe('');
+    expect(getByRole(tracking, 'list', { name: 'Application history' }).textContent).toContain('Not tracked');
+    expect((getByRole(tracking, 'button', { name: 'Update status' }) as HTMLButtonElement).disabled).toBe(true);
   });
 });

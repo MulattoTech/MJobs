@@ -620,7 +620,7 @@ class CompanyContextReviewInput(BaseModel):
 class ApplicationPipelineStatusInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     status: Literal["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
-                    "TECHNICAL_INTERVIEW", "FINAL_INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"]
+                    "TECHNICAL_INTERVIEW", "FINAL_INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"] | None
     request_id: str = Field(min_length=1, max_length=64)
 
     @model_validator(mode="after")

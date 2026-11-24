@@ -243,6 +243,28 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     expect(tracking).to_contain_text("Applied — reported by you")
                     expect(tracking.get_by_role("list", name="Application history")).to_contain_text(note_text)
                     expect(page.get_by_role("link", name="Download PDF", exact=True).first).to_be_visible()
+                    page.get_by_label("Manual application status", exact=True).select_option("")
+                    clear_status = tracking.get_by_role("button", name="Update status", exact=True)
+                    expect(clear_status).to_be_enabled()
+                    clear_status.click()
+                    expect(tracking).to_contain_text("Not tracked")
+                    expect(board.get_by_role("region", name="Not tracked").get_by_role(
+                        "button", name=job["title"], exact=False)).to_be_visible()
+
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Applications", exact=False).click()
+                    board = page.get_by_role("region", name="Application pipeline")
+                    not_tracked_card = board.get_by_role("region", name="Not tracked").get_by_role(
+                        "button", name=job["title"], exact=False)
+                    expect(not_tracked_card).to_be_visible()
+                    not_tracked_card.click()
+                    tracking = page.get_by_role("region", name="Application tracking")
+                    expect(page.get_by_label("Manual application status", exact=True)).to_have_value("")
+                    history = tracking.get_by_role("list", name="Application history")
+                    expect(history).to_contain_text("Applied — reported by you")
+                    expect(history).to_contain_text("Not tracked")
+                    expect(history).to_contain_text(note_text)
                     self.assertFalse(external)
                     context.close()
                     browser.close()

@@ -14,6 +14,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.tracking.applications import record_external_application_report
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 
@@ -116,6 +117,74 @@ class ApplicationPipelineTests(unittest.TestCase):
                 m.audit.c.action.in_(("APPLICATION_PIPELINE_STATUS", "APPLICATION_NOTE"))
             )).all()
         self.assertEqual(rows, [])
+
+    def test_null_pipeline_status_clears_stage_and_preserves_durable_history(self):
+        status_url = self.url + "/status"
+        original_state = self.store.application(self.application_id)["state"]
+        applied = self.client.put(status_url, json={
+            "status": "APPLIED", "request_id": "clear-status-applied"})
+        self.assertEqual(applied.status_code, 200, applied.text)
+        note = self.client.post(self.url + "/notes", json={
+            "text": "Synthetic note retained after clearing.", "request_id": "clear-status-note"})
+        self.assertEqual(note.status_code, 201, note.text)
+        external_report = record_external_application_report(
+            self.store, "fixture", self.application_id, "clear-status-report-event",
+            "clear-status-report-capture", "a" * 64, "MANUAL",
+            "2026-11-24T10:00:00Z", None,
+            self.store.application(self.application_id)["job_id"], "MATCHED")
+        self.assertEqual(len(external_report["tracking"]["external_reports"]), 1)
+
+        invalid = self.client.put(status_url, json={
+            "status": "NOT_A_STAGE", "request_id": "clear-status-invalid"})
+        self.assertEqual(invalid.status_code, 422)
+
+        cleared = self.client.put(status_url, json={
+            "status": None, "request_id": "clear-status-null"})
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        self.assertIsNone(cleared.json()["status"])
+        replay = self.client.put(status_url, json={
+            "status": None, "request_id": "clear-status-null"})
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertEqual(replay.json(), cleared.json())
+        self.assertEqual([event["sequence"] for event in replay.json()["history"]], [1, 2, 3, 4])
+        self.assertEqual([event.get("status") for event in replay.json()["history"]
+                          if event["type"] == "status"], ["APPLIED", None])
+        self.assertEqual(replay.json()["notes"][0]["text"], note.json()["notes"][0]["text"])
+        self.assertEqual(replay.json()["external_reports"], external_report["tracking"]["external_reports"])
+
+        foreign = self.client.put(
+            f"/profiles/other/applications/{self.application_id}/tracking/status",
+            json={"status": None, "request_id": "foreign-clear-status"})
+        self.assertEqual(foreign.status_code, 404)
+        application_before_reopen = self.store.application(self.application_id)
+        self.assertEqual(application_before_reopen["state"], original_state)
+        self.assertIsNone(application_before_reopen["confirmation"])
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                            operation_mode="FIXTURE"))
+        reopened_tracking = self.client.get(self.url)
+        self.assertEqual(reopened_tracking.status_code, 200, reopened_tracking.text)
+        self.assertIsNone(reopened_tracking.json()["status"])
+        self.assertEqual([event.get("status") for event in reopened_tracking.json()["history"]
+                          if event["type"] == "status"], ["APPLIED", None])
+        self.assertEqual(len(reopened_tracking.json()["notes"]), 1)
+        self.assertEqual(len(reopened_tracking.json()["external_reports"]), 1)
+
+        listed = self.client.get("/applications", params={"profile_id": "fixture"})
+        self.assertEqual(listed.status_code, 200, listed.text)
+        row = next(item for item in listed.json()["applications"]
+                   if item["id"] == self.application_id)
+        self.assertIsNone(row["pipeline_status"])
+        self.assertEqual(len(row["external_reports"]), 1)
+        detail = self.client.get(f"/profiles/fixture/applications/{self.application_id}")
+        self.assertEqual(detail.status_code, 200, detail.text)
+        self.assertEqual(detail.json()["state"], application_before_reopen["state"])
+        self.assertIsNone(detail.json()["confirmation"])
 
     def test_unknown_dynamic_required_field_review_survives_reopen_and_detail_read(self):
         from services.applications.mock_adapter import apply_mock
