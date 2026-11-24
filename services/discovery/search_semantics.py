@@ -49,6 +49,18 @@ def normalize_us_state(value):
     normalized = re.sub(r"[^a-z]+", " ", str(value or "").casefold()).strip()
     return normalized.upper() if normalized.upper() in US_STATES else _STATE_CODES_BY_NAME.get(normalized)
 
+
+_LOCATION_ARRANGEMENT_SUFFIX = re.compile(
+    r"\s*\(\s*(?:hybrid|on[- ]?site|onsite|remote)\s*\)\s*$", re.I,
+)
+
+
+def _normalize_location_state(value):
+    text = str(value or "").strip()
+    if suffix := _LOCATION_ARRANGEMENT_SUFFIX.search(text):
+        text = text[:suffix.start()].strip()
+    return normalize_us_state(text)
+
 def _fold(value):
     return str(value or "").casefold()
 
@@ -298,7 +310,7 @@ def classify_location(location_text, description=""):
             city = first[:200]
         # A state beside the city is stronger evidence than a code-like word
         # or an unrelated state mentioned in the job description.
-        state = next((code for part in reversed(parts[1:]) if (code := normalize_us_state(part))), None)
+        state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
 
     restricted_states = set()
     if remote_indicated:
@@ -395,6 +407,16 @@ _COUNTRY_SCOPE_CUE = re.compile(
     r"(?:approved|eligible)\s+(?:states?|locations?))\b",
     re.I,
 )
+_EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
+    r"\bonly\s+(?:(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)"
+    r"\s+time\s+zones?\s+(?:applicants?|candidates?)|"
+    r"(?:applicants?|candidates?)\s+(?:located\s+)?(?:in|within)\s+(?:the\s+)?"
+    r"(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)\s+time\s+zones?)"
+    r"\s+(?:are\s+)?(?:eligible|may\s+apply|can\s+apply|will\s+be\s+considered)\b"
+    r"|\b(?:pacific|mountain|central|eastern|atlantic|alaska|hawaii(?:-aleutian)?)"
+    r"\s+time\s+zones?\s+(?:applicants?|candidates?)\s+only\s+(?:are\s+)?eligible\b",
+    re.I,
+)
 _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
@@ -475,6 +497,8 @@ def _remote_residence_status(job, state, arrangement):
     if any(state in _stated_us_states(exclusion["states"])
            for pattern in _STATE_EXCLUSIONS for exclusion in pattern.finditer(text)):
         return "EXCLUDED"
+    if _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY.search(text):
+        return "UNKNOWN"
 
     location_states = _location_scope_states(location)
     if location_states and state not in location_states:

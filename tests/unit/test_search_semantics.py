@@ -95,6 +95,12 @@ class SearchSemanticsTests(unittest.TestCase):
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, US", "Applicants must reside in the US approved states.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States. Only Pacific time zone applicants are eligible.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Remote within the US. Only applicants in the Pacific time zone may apply.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States. Collaboration hours overlap the Pacific time zone.",
+             True, None),
             ("Remote, US", "Applicants must reside in OK, TX.", True, None),
             ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
             ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
@@ -222,6 +228,24 @@ class SearchSemanticsTests(unittest.TestCase):
             with self.subTest(location=location, attributes=attributes):
                 job = {"location": location, "remote_type": "ONSITE", "attributes": attributes}
                 self.assertEqual(evaluate_search(criteria, job)["matched"], expected)
+
+    def test_location_state_accepts_only_known_arrangement_suffixes(self):
+        criteria = {"work_arrangements": ["HYBRID", "ONSITE"], "states": ["OK", "TX"],
+                    "cities": ["Durant", "Denison", "Sherman"]}
+        for location, expected_city, expected_state, expected_arrangement in (
+            ("Durant, OK (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, Oklahoma (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Denison, TX (On-site)", "Denison", "TX", "ONSITE"),
+            ("Durant, OK (Hiring)", "Durant", None, "UNKNOWN"),
+        ):
+            with self.subTest(location=location):
+                attributes = classify_location(location)
+                self.assertEqual(attributes["city"], expected_city)
+                self.assertEqual(attributes["state"], expected_state)
+                self.assertEqual(attributes["remote_type"], expected_arrangement)
+                job = {"location": location, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                self.assertEqual(evaluate_search(criteria, job)["matched"], expected_state is not None)
 
     def test_employment_type_normalization(self):
         cases = {
