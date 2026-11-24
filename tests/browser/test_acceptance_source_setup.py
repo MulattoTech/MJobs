@@ -11,7 +11,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 from cli.acceptance_source_setup import _policy_sha, compose_owned_public_containment
-from cli.acceptance_public_source import _validate_lease_continuity
+from cli.acceptance_public_source import _digest, _validate_lease_continuity
 from packages.persistence.store import identity
 from services.discovery.sources.registry import source_adapter
 from tests.unit import test_acceptance_containment as owner_fixtures
@@ -493,14 +493,67 @@ class _PublicSetupAPI(owner_fixtures.FakeAPI):
         from cli.acceptance_public_source import ENDPOINTS
 
         self.provider = provider
+        self.primary_id = identity(provider, "default")
         self.collection_state = "COMPLETED"
         self.mutate_created = mutate_created
         self.mutate_readback = mutate_readback
         self.creation_read_seen = False
-        self.public["attributes"].update(provider=provider, source_endpoint=ENDPOINTS[provider])
+        self.public["attributes"].update(provider=provider, source_endpoint=ENDPOINTS[provider],
+                                         source_id=self.primary_id)
         self.public["postings"][0]["source"] = ENDPOINTS[provider]
+        self.public["postings"][0]["id"] = identity(self.primary_id, owner_fixtures.PUBLIC_STORAGE_ID)
+        if provider == "remotive":
+            # Exercise Remotive's genuine provenance contract with a synthetic
+            # provider-shaped record; keep all derived identities in sync.
+            raw = {
+                "id": "provider-job",
+                "url": "https://remotive.com/remote-jobs/software-dev/provider-job",
+                "title": "Public role",
+                "company_name": "Public Employer",
+                "description": "Build public Python services.",
+                "candidate_required_location": "Worldwide",
+            }
+            normalized = source_adapter({"provider": provider, "tenant": "default"}).normalize(raw)
+            company_id = identity(provider, owner_fixtures.company_slug("Public Employer"))
+            storage_id = identity(company_id, normalized["requisition"])
+            posting = self.public["postings"][0]
+            posting_id = identity(self.primary_id, storage_id)
+            checksum = _digest(raw)
+            self.public.update(company_id=company_id, company="Public Employer",
+                               requisition=normalized["requisition"], title=normalized["title"])
+            self.public["attributes"]["native_posting_id"] = normalized["attributes"]["native_posting_id"]
+            posting.update(id=posting_id, source_job_id=storage_id, raw=raw,
+                           snapshots=[{"id": identity(posting_id, checksum),
+                                       "sha256": checksum,
+                                       "retrieved_at": "2026-11-06T12:00:00+00:00"}])
 
     def request(self, method, path, **kwargs):
+        # The base FakeAPI hardcodes the WWR-derived ID. This two-provider
+        # fixture uses an explicit primary ID; preserve that same identity in
+        # the dispatched parent and child readback instead of aliasing a path.
+        if (method, path) == ("POST", f"/sources/{self.primary_id}/collect"):
+            self.calls.append((method, path, deepcopy(kwargs)))
+            primary = next(row for row in self.sources if row["id"] == self.primary_id)
+            primary.update(last_attempt="2026-11-06T12:00:00+00:00",
+                           last_success="2026-11-06T12:00:00+00:00",
+                           health_status="HEALTHY", jobs_seen=1)
+            self.operations.append({"id": "own-operation", "kind": "DISCOVER",
+                "entity_id": "profile", "state": self.collection_state,
+                "attempt_count": 1, "params": {"source_id": primary["id"],
+                    "request_id": kwargs["json"]["request_id"], "profile_version": "v1"}})
+            return {"operation_id": "own-operation"}
+        if (method, path) == ("GET", f"/profiles/profile/sources/{self.primary_id}/collections/own-operation/children"):
+            self.calls.append((method, path, deepcopy(kwargs)))
+            assert kwargs.get("params") == {"attempt": 1}
+            parent = next(row for row in self.operations if row["id"] == "own-operation")
+            assert parent["params"]["source_id"] == self.primary_id
+            response = dict(schema_version=1, profile_id="profile", profile_version="v1",
+                source_id=self.primary_id, parent_operation_id="own-operation",
+                parent_operation_attempt=1, parent_request_id=parent["params"]["request_id"],
+                complete=parent["state"] == "COMPLETED", limit=2,
+                children=[], enrolled_sources=[], lineage_sha256=_digest([]))
+            response["sha256"] = _digest(response)
+            return response
         if (method, path) != ("PUT", "/sources"):
             return super().request(method, path, **kwargs)
         self.calls.append((method, path, deepcopy(kwargs)))
@@ -510,7 +563,7 @@ class _PublicSetupAPI(owner_fixtures.FakeAPI):
         configured = _configured_source(policy, previous=old)
         configured["backoff_until"] = old.get("backoff_until") if old else None
         if policy["provider"] == self.provider:
-            configured["id"] = "public-source"
+            configured["id"] = self.primary_id
         returned_id = configured["id"]
         if old is None:
             self.sources.append(configured)
@@ -526,7 +579,7 @@ class _PublicSetupAPI(owner_fixtures.FakeAPI):
     def producer_request(self, method, path, **kwargs):
         result = self.request(method, path, **kwargs)
         if ((method, path) == ("GET", "/sources") and not self.creation_read_seen
-                and any(row.get("id") == "public-source" for row in self.sources)):
+                and any(row.get("id") == self.primary_id for row in self.sources)):
             self.creation_read_seen = True
             if self.mutate_readback is not None:
                 self.mutate_readback(result)

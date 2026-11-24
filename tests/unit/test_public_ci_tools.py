@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from tools.ci.check_repository import check_markdown, check_required_ci, check_workflows
+from tools.ownership_index import check_index
 from tools.ci.run_shard import select_files
 from tools.ci.test_summary import summarize
 from tools.ci.release_gate import unmet
@@ -24,6 +25,11 @@ class PublicCITests(unittest.TestCase):
     def test_links_cannot_escape_checkout(self):
         (self.root / 'README.md').write_text('[bad](../outside.md)', encoding='utf-8')
         self.assertTrue(check_markdown(self.root, ['README.md']))
+
+    def test_ownership_index_freshness_is_read_only(self):
+        current, message = check_index(self.root)
+        self.assertFalse(current)
+        self.assertIn('missing', message)
 
     def test_shards_cover_every_test_once(self):
         folder = self.root / 'tests/browser'
