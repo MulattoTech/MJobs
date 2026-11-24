@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-941-INTEGRATION",
+  "objective": "Refresh independently reviewed discovery rollback PR941 onto protected main",
+  "owner": "web-20261105T012958Z-8ea0f53d51f6",
+  "branch": "web/web-20261105T012958Z-8ea0f53d51f6/pr941-integration",
+  "head_sha": "2da457f42e2380718e9f117120f666d75916ec88",
+  "routing_state": "INTEGRATE",
+  "next_action": "Revalidate live ownership, current main/head, five required hosted gates and review threads; acquire a fresh short integration lock for protected merge; keep acceptance PARTIAL",
+  "created_at": "2026-11-05T02:00:22.399381+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source 2da457f42e2380718e9f117120f666d75916ec88: 12 focused tests PASS, zero FAIL/ERROR/SKIP; reviewed source/test blobs unchanged",
+      "result": "PASS"
+    },
+    {
+      "command": "Final-head hosted gates, protected merge, and PR941 deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Upstream main advanced during prior hosted integration; new candidate requires fresh exact-base verification"
+  ]
+}

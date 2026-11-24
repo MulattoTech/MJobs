@@ -3,7 +3,7 @@
 Params are lookup hints, never log fields. No provider/service calls, writes,
 locks, or arbitrary first-row selection belong in this projection.
 """
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from packages.persistence import models as m
 from workers.structured_logging import safe_operation_context
@@ -236,6 +236,14 @@ def resolve_operation_log_context(store, operation):
     connection prevents failed enrichment from affecting its transaction.
     """
     with store.engine.connect() as connection:
+        if connection.dialect.name == 'postgresql':
+            # Cap each optional context lock wait, preserving stricter settings.
+            # Closing this read transaction rolls back the local setting.
+            connection.execute(text(
+                "SELECT set_config('lock_timeout', "
+                "CAST(LEAST(NULLIF(setting, '0')::integer, :budget) AS text), true) "
+                "FROM pg_settings WHERE name = 'lock_timeout'"
+            ), {"budget": 1000})
         saved = _one(connection, select(m.operations).where(m.operations.c.id == operation.get('id')))
         if saved is None or any(saved[field] != operation.get(field) for field in ('kind', 'entity_id')):
             return {}

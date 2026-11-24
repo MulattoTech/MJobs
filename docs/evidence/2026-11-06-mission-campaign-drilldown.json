@@ -1,0 +1,30 @@
+{
+  "tested_commit": "ae7268a0ebe9e8bf68fb4093550e5179eb9645d3",
+  "observed_at": "2026-11-06T19:27:56.160060+00:00",
+  "scoreboard": {
+    "total": 60,
+    "verified_pass": 0,
+    "PARTIAL": 39,
+    "NOT_RUN": 21,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "campaign_source_revision": "8a19ad63c05700c814f563da4f0891d232031dca",
+  "ledger_sha256": "f7ae17090be6a6c3460ff8a4cd182e1a2aeed6b1c805815270681ee18b25ad0f",
+  "result": "PASS",
+  "checks": [
+    "actual API ledger projection",
+    "P0 requirement disclosure",
+    "six canonical phase sizes",
+    "60 rendered step rows",
+    "expanded state after Refresh",
+    "no browser errors",
+    "readable canonical title and visible expanded campaign after refresh"
+  ],
+  "limits": [
+    "isolated temporary server; installed18729 unchanged",
+    "current doc-only worktree edit does not affect executable source",
+    "Temporary preview server thread exceeded its10second shutdown join; owning script exited0. Installed service was untouched."
+  ],
+  "description": "Actual-ledger local P0 drilldown verification; no application acceptance promotion."
+}

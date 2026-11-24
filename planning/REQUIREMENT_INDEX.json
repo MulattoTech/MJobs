@@ -350,7 +350,7 @@
       "priority": "P3",
       "area": "untriaged",
       "category": "subfeature",
-      "status": "NOT_RUN",
+      "status": "PASS",
       "triage_required": true
     },
     {
@@ -706,7 +706,7 @@
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-017.F07",
@@ -714,7 +714,7 @@
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-017.S01",
@@ -1450,7 +1450,7 @@
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-079",
@@ -1754,7 +1754,7 @@
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-111",
@@ -2650,7 +2650,7 @@
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-204.N03",
@@ -2666,7 +2666,7 @@
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-204.N05",
@@ -2674,7 +2674,7 @@
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-205",
@@ -3446,9 +3446,9 @@
     }
   ],
   "summary": {
-    "PARTIAL": 86,
-    "PASS": 202,
-    "NOT_RUN": 137
+    "PARTIAL": 84,
+    "PASS": 210,
+    "NOT_RUN": 131
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

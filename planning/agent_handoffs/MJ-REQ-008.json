@@ -1,37 +1,35 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REQ-008",
-  "objective": "Flush POSIX immediate-parent journal entries and repair the canonical durability barrier before derived sync",
-  "owner": "web-20261105T000026Z-d18a5de9925b",
-  "branch": "web/web-20261105T000026Z-d18a5de9925b/MJ-REQ-008",
-  "head_sha": "351d5ef0b2017c46ce4203e9afe239fc295358a9",
-  "routing_state": "RESUME",
-  "next_action": "Refresh PR939 against current main and require all protected checks on its actual candidate before locked integration",
-  "created_at": "2026-11-05T00:12:34.183771+00:00",
+  "objective": "Coordinate checkpoint readers with cooperating publishers while preserving explicit crash recovery",
+  "owner": "web-20261105T012947Z-02e5ae3c5d644f53a14c166656ca2d82",
+  "branch": "web/web-20261105T012947Z-02e5ae3c5d644f53a14c166656ca2d82/MJ-REQ-008",
+  "head_sha": "c6cfe36a7217c0afcc97ac97a9c90319d1b50fe7",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the scoped PR, verify protected candidate checks, and integrate only under the separate lock",
+  "created_at": "2026-11-05T01:40:34.809257+00:00",
   "requirements": [
     "MJ-REQ-008"
   ],
   "tests": [
     {
-      "command": "Linux unittest: 36 PASS/1 platform SKIP; Windows pytest: 30 PASS/7 platform SKIP/25 subtests PASS; catalogue, progress validation, dashboard, diff and provenance PASS",
+      "command": "Source c6cfe36a: Linux journal unittest 42 PASS/1 platform SKIP; Windows 36 PASS/7 platform SKIP; catalogue, progress, dashboard, repository policy, whitespace and provenance PASS",
       "result": "PASS"
     },
     {
-      "command": "Physical host restart/power loss, Windows directory durability, new ancestor durability, independent review, exact candidate hosted CI, production deployment",
+      "command": "Independent review, protected actual-candidate CI, physical host/power restart, deployment and full MJ-REQ-008 acceptance",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Full original MJ-REQ-008 remains PARTIAL: physical interruption and broader durability obligations remain unverified",
-    "Initial hosted secret scan failed on two independently verified PR937 test-file blob IDs; exact fingerprint reuse tested locally, new candidate scan pending",
-    "Hosted PostgreSQL/Redis integration and current-base candidate checks remain pending"
+    "Integration is separately owned; canonical MJ-REQ-008 remains PARTIAL"
   ],
-  "updated_at": "2026-11-05T00:30:18Z",
-  "pr_url": "https://github.com/MulattoTech/MJobs/pull/939",
-  "scanner_triage": {
-    "source_pr": 937,
-    "review_comment": "https://github.com/MulattoTech/MJobs/pull/937#issuecomment-6645953846",
-    "ignore_blob": "cccac02db1fc375f6e9aff711f5525b15bd5a650",
-    "policy_tests": "6 PASS, 0 FAIL, 0 SKIP"
-  }
+  "transfer_history": [
+    {
+      "from_owner": "web-20261105T000026Z-d18a5de9925b",
+      "to_owner": "web-20261105T012947Z-02e5ae3c5d644f53a14c166656ca2d82",
+      "reason": "Previous owner completed PR939 and explicitly released scope in issue9 comment6646577161; fresh claim HTTP201 plus readback recorded in comment6647132286",
+      "transferred_at": "2026-11-05T01:40:34.757126+00:00"
+    }
+  ]
 }

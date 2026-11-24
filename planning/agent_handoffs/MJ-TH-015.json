@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-TH-015",
+  "objective": "Correct closed-job recent history; verify browser journey and migration/release safety for PR930",
+  "owner": "web-20261105T000436Z-dae77e607c6e",
+  "branch": "web/web-20261105T000436Z-dae77e607c6e/MJ-TH-015",
+  "head_sha": "00d224fc000b1248832082fe8dec80845a85d4ab",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Reacquire exact feature/PR claims; refresh candidate; resolve required secret-scan gate with its existing owner; repeat stock guarded rehearsal when isolated Compose networking is available; arrange supported guarded rollout before protected merge",
+  "created_at": "2026-11-05T00:48:49.037128+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "SQLite 7 tests plus 10 subtests; real PostgreSQL17 2 tests; web 8 tests; typecheck/lint/build; isolated Chromium 1 journey (9.09 s); integrity/provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "Full guarded driver (setup blocked); connected Brave; final-candidate protected gates; protected merge; production feature journey/deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Docker default network pools exhausted: full guarded rehearsal never started PostgreSQL; owned resources removed",
+    "Earlier required secret scan failed with redacted findings in another branch; existing scanner owner active",
+    "Scheduled updater refuses changed migration digest; guarded release transaction is not yet established"
+  ]
+}

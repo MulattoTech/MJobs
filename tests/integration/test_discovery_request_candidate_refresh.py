@@ -38,13 +38,17 @@ class CandidateRefreshTests(unittest.TestCase):
             def now(cls, tz=None):
                 return due.astimezone(tz) if tz else due.replace(tzinfo=None)
         self.sequence += 1
-        response = case.client.post("/sources/" + case.source_id + "/collect",
-            json={"profile_id": profile_id, "request_id": "candidate-refresh-" + str(self.sequence)})
-        self.assertEqual(response.status_code, 202, response.text)
         with patch("httpx.HTTPTransport.handle_request",
                    lambda transport, request: case._native_boundary(transport, request)), \
                 patch("services.discovery.sources.collect.datetime", CollectionClock), \
-                patch("services.discovery.sources.collect.now", return_value=due.isoformat()):
+                patch("services.discovery.sources.collect.now", return_value=due.isoformat()), \
+                patch("packages.persistence.store.datetime", CollectionClock), \
+                patch("workers.operations.datetime", CollectionClock):
+            # Later polls must advance admission and lease timestamps along
+            # with persisted source observations, rather than expire a real-time lease.
+            response = case.client.post("/sources/" + case.source_id + "/collect",
+                json={"profile_id": profile_id, "request_id": "candidate-refresh-" + str(self.sequence)})
+            self.assertEqual(response.status_code, 202, response.text)
             outcome = execute_operation(response.json()["operation_id"])
         self.assertEqual(outcome["status"], "COMPLETED", outcome)
         with case.store.engine.connect() as connection:

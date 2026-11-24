@@ -60,7 +60,7 @@ def test_mission_control_returns_to_fleet_hub_locally_and_remotely():
 def test_mission_theme_loads_after_every_component_stylesheet():
     stylesheets = [attrs["href"] for tag, attrs in _page_tags()
                    if tag == "link" and attrs.get("rel") == "stylesheet"]
-    assert stylesheets.count("/static/fleet-runtime.css") == 1
+    assert stylesheets.count("/static/fleet-runtime.css?v=2") == 1
     assert stylesheets.count("/static/fleet-theme.css?v=1") == 1
     assert stylesheets[-1] == "/static/fleet-theme.css?v=1"
 

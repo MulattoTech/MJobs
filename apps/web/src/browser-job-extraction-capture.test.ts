@@ -267,6 +267,36 @@ describe('explicit browser extraction capture client', () => {
     }), manual, 'reject-route-unreviewed')).toThrow(/review each removed extracted field/i);
   });
 
+  it('allows reviewed removal of oversized optional original provenance but still blocks unreviewed removal', () => {
+    const oversizedUrl = `https://jobs.example.test/${'a'.repeat(2_100)}`;
+    const oversizedOriginal = confirmation({
+      preview: {
+        ...confirmation().preview,
+        review_required: [],
+        fields: {
+          ...fields,
+          listing_url: {
+            value: oversizedUrl, source: 'PROVIDER_FIELDS', confidence: 0.9, review_required: false,
+          },
+        },
+      },
+      corrections: { ...confirmation().corrections, listing_url: '' },
+    });
+
+    const removed = buildBrowserJobExtractionCapturePayload(profileId, oversizedOriginal, manual, 'remove-oversized-original');
+    expect(removed.payload.source_details.extraction_capture.raw_fields.listing_url).toBeNull();
+    expect(removed.payload.source_details.extraction_capture.review_receipt.rejected_fields)
+      .toContain('listing_url');
+
+    const unreviewed = confirmation({
+      preview: oversizedOriginal.preview,
+      corrections: oversizedOriginal.corrections,
+      reviewed_fields: ['title', 'company', 'description', 'application_url'],
+    });
+    expect(() => buildBrowserJobExtractionCapturePayload(profileId, unreviewed, manual, 'unreviewed-oversized-removal'))
+      .toThrow(/review each removed extracted field.*listing_url/i);
+  });
+
   it('rejects oversized UTF-8 payload before making a request', async () => {
     const request = vi.fn();
     const client = createBrowserJobExtractionCaptureClient(profileId, request, () => 'large-id');
@@ -277,7 +307,54 @@ describe('explicit browser extraction capture client', () => {
         fields: { ...fields, description: { ...fields.description, value: largeDescription } },
       },
     });
-    await expect(client.capture(largeConfirmation, manual)).rejects.toThrow(/100 KiB limit/i);
+    await expect(client.capture(largeConfirmation, manual)).rejects.toThrow(/original extracted description exceeds the 20000-character capture limit/i);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('rejects original extraction provenance that exceeds API limits before POST, even when corrected', async () => {
+    const request = vi.fn();
+    const client = createBrowserJobExtractionCaptureClient(profileId, request, () => 'bounded-id');
+    const tooMuchUnicode = '界'.repeat(14_000);
+    const oversized = confirmation({
+      preview: {
+        ...confirmation().preview,
+        fields: { ...fields, description: { ...fields.description, value: tooMuchUnicode } },
+      },
+      corrections: { ...confirmation().corrections, title: 'Reviewed title.' },
+    });
+
+    await expect(client.capture(oversized, manual)).rejects.toThrow(/40,000-byte capture limit.*Shorten or re-extract/i);
+    expect(request).not.toHaveBeenCalled();
+
+    const longCanonical = 'Reviewed canonical text. '.repeat(1_000);
+    const unknownDescription = confirmation({
+      preview: {
+        ...confirmation().preview,
+        unknown_fields: [...confirmation().preview.unknown_fields, 'description'],
+        fields: { ...fields, description: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false } },
+      },
+      reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
+    });
+    const longManualDescription = { ...manual, description: longCanonical };
+    const longPayload = buildBrowserJobExtractionCapturePayload(
+      profileId, unknownDescription, longManualDescription, 'long-canonical-id',
+    ).payload;
+    expect(longPayload.description).toBe(longCanonical.trim());
+    expect(longPayload.source_details.extraction_capture.raw_fields.description).toBeNull();
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('rejects an original extracted description above the API character limit before POST', async () => {
+    const request = vi.fn();
+    const client = createBrowserJobExtractionCaptureClient(profileId, request, () => 'raw-limit-id');
+    const extracted = confirmation({
+      preview: {
+        ...confirmation().preview,
+        fields: { ...fields, description: { ...fields.description, value: 'x'.repeat(20_001) } },
+      },
+      corrections: { ...confirmation().corrections, title: 'Short reviewed title.' },
+    });
+    await expect(client.capture(extracted, manual)).rejects.toThrow(/original extracted description exceeds the 20000-character capture limit/i);
     expect(request).not.toHaveBeenCalled();
   });
 

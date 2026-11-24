@@ -23,6 +23,36 @@ from services.applications.manual_auth import (
 from services.discovery.pipeline import MockClient
 
 
+def _host_runtime_bootstrap(site_packages):
+    """Load the chosen venv's .pth files, then prefer it to base-Python globals."""
+    site_path = str(Path(site_packages).resolve(strict=True))
+    if not Path(site_path).is_dir():
+        raise ValueError("HOST_RUNTIME_UNAVAILABLE")
+    # BrowserTreeJob deliberately uses the base executable. Its default sys.path
+    # includes system site-packages before the venv, so addsitedir alone would
+    # append the validated runtime and silently select a different dependency.
+    # Keep the current directory and standard-library paths in their original
+    # order; move only this runtime directory ahead of site-package directories.
+    return (
+        'import os,site,runpy;_mjobs_runtime_site=' + repr(site_path) +
+        ';site.addsitedir(_mjobs_runtime_site);'
+        '_mjobs_runtime_key=os.path.normcase(os.path.abspath(_mjobs_runtime_site));'
+        '_mjobs_site_keys={os.path.normcase(os.path.abspath(p)) for p in site.getsitepackages()};'
+        '_mjobs_paths=[p for p in site.sys.path if '
+        'os.path.normcase(os.path.abspath(p or os.curdir)) != _mjobs_runtime_key];'
+        '_mjobs_site_index=next((i for i,p in enumerate(_mjobs_paths) if '
+        'os.path.normcase(os.path.abspath(p or os.curdir)) in _mjobs_site_keys),len(_mjobs_paths));'
+        '_mjobs_paths.insert(_mjobs_site_index,_mjobs_runtime_site);'
+        'site.sys.path[:]=_mjobs_paths;'
+    )
+
+
+def _manual_auth_host_bootstrap(site_packages, *, module='services.applications.manual_auth_host'):
+    """Build the complete private host invocation with pinned runtime imports."""
+    return (_host_runtime_bootstrap(site_packages) +
+        "import sys;sys.argv=['host'];runpy.run_module(" + repr(module) + ",run_name='__main__')")
+
+
 def _confirm_unlaunched_rollback(store, operation_id, owner_token, binding, observer, query):
     """Confirm the acknowledged observer's durable compensation, never a launch."""
     try:
@@ -94,9 +124,8 @@ def open_isolated_manual_auth_window(*, store, operation_id, application_id,
             check()
         # Repo-owned module and installed runtime only. No API secrets/profile/
         # operation token enter command arguments or the host environment.
-        bootstrap = ('import site,runpy;site.addsitedir(' +
-            repr(str(Path(sys.prefix) / 'Lib/site-packages')) +
-            ");import sys;sys.argv=['host'];runpy.run_module('services.applications.manual_auth_host',run_name='__main__')")
+        runtime_site = Path(sys.prefix) / 'Lib' / 'site-packages'
+        bootstrap = _manual_auth_host_bootstrap(runtime_site)
         launch_attempted = True
         job.launch([sys._base_executable, '-c', bootstrap],
                          cwd=str(Path(__file__).resolve().parents[2]), private_input=payload)

@@ -84,6 +84,21 @@ const maxFieldLengths: Partial<Record<BrowserJobExtractionFieldName, number>> = 
   listing_url: 2000,
   application_url: 2000,
 };
+// These limits apply to retained extraction provenance, not corrected values.
+// Keep them aligned with services/discovery/manual_capture.py.
+const maxOriginalFieldLengths: Partial<Record<BrowserJobExtractionFieldName, number>> = {
+  title: 500,
+  company: 200,
+  description: 20_000,
+  location: 1000,
+  employment_type: 500,
+  date_posted: 100,
+  valid_through: 100,
+  source_job_id: 256,
+  listing_url: 2000,
+  application_url: 2000,
+};
+const maxExtractionMetadataBytes = 40_000;
 const knownSources = ['JOBPOSTING_SCHEMA', 'PROVIDER_FIELDS', 'USER_SELECTED_TEXT', 'VISIBLE_TEXT', 'UNKNOWN'] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -295,6 +310,16 @@ export function buildBrowserJobExtractionCapturePayload(
     throw new Error(`Explicitly review each removed extracted field before capture: ${unreviewedRejectedFields.join(', ')}.`);
   }
   for (const name of browserJobExtractionFields) {
+    const value = originalValues[name];
+    const limit = maxOriginalFieldLengths[name];
+    if (!rejectedFieldSet.has(name) && value && limit !== undefined && [...value].length > limit) {
+      throw new Error(
+        `The original extracted ${name.replaceAll('_', ' ')} exceeds the ${limit}-character capture limit. ` +
+        'Shorten or re-extract the original capture before saving; corrections keep the original provenance.',
+      );
+    }
+  }
+  for (const name of browserJobExtractionFields) {
     const value = finalValues[name];
     const limit = maxFieldLengths[name];
     if (value && limit !== undefined && value.length > limit) {
@@ -362,6 +387,33 @@ export function buildBrowserJobExtractionCapturePayload(
     user_corrected: confirmedValues[name] !== originalValues[name],
   }])) as BrowserJobExtractionCapturePayload['source_details']['extraction_capture']['field_provenance'];
 
+  const extractionCapture = {
+    schema_version: 1 as const,
+    raw_fields: Object.fromEntries(browserJobExtractionFields.map(name => [
+      name, rejectedFieldSet.has(name) ? null : originalValues[name],
+    ])) as Record<BrowserJobExtractionFieldName, string | null>,
+    field_provenance: fieldProvenance,
+    raw_capture_ref: captureRef,
+    review_receipt: {
+      schema_version: 1 as const,
+      confirmed_by_user: true as const,
+      reviewed_fields: [...confirmation.reviewed_fields],
+      rejected_fields: rejectedFields,
+    },
+  };
+  // The API normalizes every confidence to a Python float before applying its
+  // byte cap (so JSON 0/1 becomes 0.0/1.0). Account for that bounded expansion.
+  const serializedMetadataBytes = new TextEncoder().encode(JSON.stringify(extractionCapture)).byteLength;
+  const normalizedConfidenceExpansion = Object.values(fieldProvenance).reduce(
+    (extra, provenance) => extra + (Number.isInteger(provenance.confidence) ? 2 : 0), 0,
+  );
+  if (serializedMetadataBytes + normalizedConfidenceExpansion > maxExtractionMetadataBytes) {
+    throw new Error(
+      'The original extracted details exceed the 40,000-byte capture limit. ' +
+      'Shorten or re-extract the original capture before saving; corrections keep the original provenance.',
+    );
+  }
+
   return {
     payload: {
       profile_id: selectedProfileId,
@@ -376,20 +428,7 @@ export function buildBrowserJobExtractionCapturePayload(
       observed_hops: observedHops,
       source_details: {
         confirmed_source_job_id: finalValues.source_job_id,
-        extraction_capture: {
-          schema_version: 1,
-          raw_fields: Object.fromEntries(browserJobExtractionFields.map(name => [
-            name, rejectedFieldSet.has(name) ? null : originalValues[name],
-          ])) as Record<BrowserJobExtractionFieldName, string | null>,
-          field_provenance: fieldProvenance,
-          raw_capture_ref: captureRef,
-          review_receipt: {
-            schema_version: 1,
-            confirmed_by_user: true,
-            reviewed_fields: [...confirmation.reviewed_fields],
-            rejected_fields: rejectedFields,
-          },
-        },
+        extraction_capture: extractionCapture,
       },
     },
     notices,

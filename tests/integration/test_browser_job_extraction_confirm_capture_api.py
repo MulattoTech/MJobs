@@ -15,6 +15,7 @@ from sqlalchemy import func, select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.applications.job_extraction import extract_job_capture
 from tests.integration.test_spine import PROFILE
 
 
@@ -239,6 +240,56 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
         )
         self.assertEqual(other.status_code, 200, other.text)
         self.assertEqual(other.json()["candidates"], [])
+
+    def test_actual_unicode_extraction_exceeds_metadata_api_bound_and_fresh_capture_succeeds(self):
+        extracted = extract_job_capture({
+            "job_posting": {
+                "@type": "JobPosting",
+                "title": "Systems Administrator",
+                "hiringOrganization": {"name": "Example Infrastructure Group"},
+                "description": "界" * 20_000,
+                "url": "https://jobs.example.invalid/roles/sysadmin",
+                "applicationUrl": "https://careers.example.invalid/apply/sysadmin",
+            },
+        })
+        raw_description = extracted["fields"]["description"]["value"]
+        self.assertEqual(len(raw_description), 20_000)
+        self.assertEqual(len(raw_description.encode("utf-8")), 60_000)
+        oversized = self._payload("actual-extractor-oversized-unicode")
+        for name, field in extracted["fields"].items():
+            if field["value"] is not None:
+                oversized["source_details"]["extraction_capture"]["raw_fields"][name] = field["value"]
+        before = self._counts()
+
+        rejected = self._post_without_network(oversized)
+
+        self.assertEqual(rejected.status_code, 422)
+        self.assertIn("safe metadata limit", rejected.text)
+        self.assertEqual(self._counts(), before)
+
+        # A fresh shorter extraction demonstrates recovery and durable readback.
+        fresh = extract_job_capture({
+            "job_posting": {
+                "@type": "JobPosting", "title": "Systems Administrator",
+                "hiringOrganization": {"name": "Example Infrastructure Group"},
+                "description": "Reviewed canonical description from a fresh shorter extraction.",
+                "url": "https://jobs.example.invalid/roles/sysadmin",
+                "applicationUrl": "https://careers.example.invalid/apply/sysadmin",
+            },
+        })
+        recovered = self._payload("fresh-short-extraction")
+        recovered["description"] = fresh["fields"]["description"]["value"]
+        recovered["source_details"]["extraction_capture"]["raw_fields"]["description"] = recovered["description"]
+        saved = self._post_without_network(recovered)
+        self.assertEqual(saved.status_code, 201, saved.text)
+        job_id = saved.json()["job"]["id"]
+        readback = self._get_without_network(f"/jobs/{job_id}", params={"profile_id": "fixture"})
+        self.assertEqual(readback.status_code, 200, readback.text)
+        self.assertEqual(readback.json()["description"], recovered["description"])
+        self.assertEqual(
+            readback.json()["postings"][0]["raw"]["submitted_fields"]["source_details"]
+                ["extraction_capture"]["raw_fields"]["description"], recovered["description"],
+        )
 
     def test_unreviewed_or_invalid_extraction_provenance_is_rejected_without_writes(self):
         invalid_payloads = []

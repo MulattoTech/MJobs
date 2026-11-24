@@ -44,11 +44,11 @@ def _integration_issue_status(issue: int | None) -> str:
 def _safe_url(value: str | None) -> str | None:
     if not value:
         return None
-    parsed = urlsplit(value)
-    if (parsed.scheme.casefold() not in {"http", "https"} or not parsed.hostname
-            or parsed.username is not None or parsed.password is not None):
-        return None
     try:
+        parsed = urlsplit(value)
+        if (parsed.scheme.casefold() not in {"http", "https"} or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None):
+            return None
         host = parsed.hostname.encode("idna").decode("ascii").lower().rstrip(".")
         port = parsed.port
     except (UnicodeError, ValueError):

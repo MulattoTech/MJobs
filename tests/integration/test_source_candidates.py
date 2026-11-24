@@ -112,6 +112,62 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         reread = self.client.get("/source-candidates", params={"profile_id": "fixture"})
         self.assertEqual(len(reread.json()["candidates"][0]["observations"]), 1)
 
+    def test_unparseable_optional_urls_preserve_valid_passive_capture(self):
+        invalid_urls = ("https://[broken", "https://[not-ipv6]/job",
+                        "https://example.invalid\uff0fprivate-token/job")
+        valid_url = "https://talenthop.com/apply/role?session=private-token"
+        for index, invalid_url in enumerate(invalid_urls):
+            for field in ("observed_hops", "source_url", "application_url"):
+                with self.subTest(invalid_url=invalid_url, field=field):
+                    payload = {
+                        "profile_id": "fixture", "request_id": f"malformed-{index}-{field}",
+                        "discovery_origin": "LinkedIn", "application_url": valid_url,
+                    }
+                    if field == "observed_hops":
+                        payload[field] = ["https://linkedin.com/jobs/123", invalid_url]
+                    else:
+                        payload[field] = invalid_url
+                        if field == "application_url":
+                            payload["source_url"] = valid_url
+                    with patch("socket.create_connection", side_effect=AssertionError("network forbidden")):
+                        captured = self.client.post("/source-candidates", json=payload)
+                        self.assertEqual(captured.status_code, 201, captured.text)
+                        replay = self.client.post("/source-candidates", json=payload)
+                        self.assertEqual(replay.status_code, 200, replay.text)
+                    candidate = captured.json()["candidate"]
+                    self.assertEqual(candidate["domain"], "talenthop.com")
+                    self.assertFalse(candidate["collection_enabled"])
+                    self.assertEqual(candidate["state"], "NEEDS_REVIEW")
+                    self.assertNotIn("private-token", str(candidate))
+                    observation = next(row for row in candidate["observations"]
+                                       if row["capture_key"] == "MANUAL_CAPTURE:" + payload["request_id"])
+                    self.assertEqual(observation["discovery_origin"], "LinkedIn")
+                    self.assertEqual(observation["origin_attribution"], "USER_REPORTED")
+                    self.assertIsNone(observation["job_id"])
+                    self.assertIsNone(observation["application_id"])
+                    if field == "observed_hops":
+                        self.assertEqual(observation[field], ["https://linkedin.com/jobs/123",
+                                                              {"state": "UNKNOWN"}])
+                    else:
+                        self.assertIsNone(observation[field])
+                    self.assertEqual(replay.json()["candidate"], candidate)
+        self.store.engine.dispose()
+        reread = self.client.get("/source-candidates", params={"profile_id": "fixture"})
+        self.assertEqual(reread.status_code, 200, reread.text)
+        self.assertEqual(len(reread.json()["candidates"][0]["observations"]), 9)
+        isolated = self.client.get("/source-candidates", params={"profile_id": "other"})
+        self.assertEqual(isolated.json()["candidates"], [])
+
+    def test_unparseable_only_source_report_is_rejected_without_records(self):
+        response = self.client.post("/source-candidates", json={
+            "profile_id": "fixture", "request_id": "invalid-only",
+            "source_url": "https://[broken", "application_url": "https://[not-ipv6]/job",
+        })
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json()["detail"], "A valid HTTP or HTTPS source URL is required")
+        listed = self.client.get("/source-candidates", params={"profile_id": "fixture"})
+        self.assertEqual(listed.json()["candidates"], [])
+
     def test_supported_feed_import_catalogues_external_application_origin_idempotently(self):
         with self.store.engine.begin() as connection:
             upsert(connection, m.companies, {

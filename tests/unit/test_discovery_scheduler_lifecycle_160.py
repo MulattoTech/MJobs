@@ -95,12 +95,18 @@ class DiscoverySchedulerLifecycleTests(unittest.TestCase):
                              lambda engine: recovered_disposals.append(engine))
                 redis = Mock()
                 stop = SystemExit(0)
+                shared_time = scheduler.time
+                original_sleep = shared_time.sleep
+                clock = Mock(wraps=shared_time)
+                clock.sleep.side_effect = stop
                 with patch.dict(os.environ, environment, clear=True), \
                         patch.object(scheduler, "Store", return_value=reopened), \
                         patch.object(scheduler.Redis, "from_url", return_value=redis) as create_redis, \
                         patch.object(scheduler, "scheduler_tick", return_value={}) as tick, \
                         patch.object(scheduler, "run_transient_retention_if_configured") as retention, \
-                        patch.object(scheduler.time, "sleep", side_effect=stop):
+                        patch.object(scheduler, "time", clock):
+                    self.assertIs(shared_time.sleep, original_sleep,
+                                  "Scheduler fixture must preserve shared time.sleep")
                     with self.assertRaises(SystemExit) as caught:
                         scheduler.run_forever()
                 self.assertIs(caught.exception, stop)

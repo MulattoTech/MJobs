@@ -1,0 +1,507 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T152935Z-810dfeed71db",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T16:54:15.470360+00:00",
+  "purpose": "Reuse the released scanner owner correction for the exact five independently verified nonsecret findings blocking PR1006.",
+  "affected_pr": 1006,
+  "failed_head": "b410690c7e41db4b951da0a611b0ce682b902547",
+  "source_execution_head": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+  "dependency": {
+    "repository": "MulattoTech/MJobs",
+    "commit": "974b06e345ee9d9ae2ba43a6e36e470d8d82fe60",
+    "url": "https://github.com/MulattoTech/MJobs/commit/974b06e345ee9d9ae2ba43a6e36e470d8d82fe60",
+    "path": ".gitleaksignore",
+    "exact_reused_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+    "prior_owner_run": "web-20261109T131824Z-4f1d2da391c4",
+    "prior_claim_released_utc": "2026-11-09T16:49:13.487677+00:00",
+    "new_own_atomic_claim": "web:web-20261109T152935Z-810dfeed71db:PR1006-reviewed-scanner-fingerprints"
+  },
+  "change": {
+    "added_exact_fingerprints": [
+      "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json:generic-api-key:164",
+      "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json:generic-api-key:32",
+      "5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41",
+      "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json:generic-api-key:20",
+      "cc1e5083ce1a94b20a424e09a038c0f72972ab10:docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json:generic-api-key:520"
+    ],
+    "removed_entries": [],
+    "rule_or_path_wide_exclusions": false,
+    "workflow_or_scanner_config_changes": false,
+    "production_or_browser_fixture_changes": false
+  },
+  "independent_nonsecret_proof": {
+    "sha256": "297fa17411c658d2b52e614c87ea3fafb16e8d4c3a8ec3f92b696f95c9dd601b",
+    "receipt": {
+      "schema_version": 1,
+      "type": "independent_exact_run_redacted_secret_scan_review",
+      "reviewer": "/root/integration_inventory",
+      "reviewed_at_utc": "2026-11-09T16:47:37.812701+00:00",
+      "verdict": "FIVE_VERIFIED_NONSECRET_GIT_IDENTIFIERS; REQUIRED_HOSTED_GATE_REMAINS_FAILURE",
+      "repository": "MulattoTech/MJobs",
+      "pull_request": {
+        "number": 1006,
+        "url": "https://github.com/MulattoTech/MJobs/pull/1006",
+        "head": "b410690c7e41db4b951da0a611b0ce682b902547",
+        "base": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+      },
+      "run": {
+        "id": 42656749339,
+        "name": "Secret scan - reviewed history",
+        "head_sha": "b410690c7e41db4b951da0a611b0ce682b902547",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure",
+        "attempt": 1,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42656749339",
+        "created_at": "2026-11-09T16:38:01Z",
+        "updated_at": "2026-11-09T16:38:16Z"
+      },
+      "jobs": [
+        {
+          "id": 129297142789,
+          "name": "Security / secret scan",
+          "head_sha": "b410690c7e41db4b951da0a611b0ce682b902547",
+          "status": "completed",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Scan with checksum-verified binary and narrow reviewed fingerprints",
+              "status": "completed",
+              "conclusion": "failure"
+            },
+            {
+              "name": "Publish bounded redacted diagnostics only",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "artifact_metadata": [
+        {
+          "id": 13692067055,
+          "name": "redacted-secret-candidates",
+          "size_in_bytes": 2139,
+          "digest": "sha256:921efa5b7149687f2f375d49df43473568d26c6c6f6798d078320a97889a4078",
+          "head_sha": "b410690c7e41db4b951da0a611b0ce682b902547",
+          "run_id": 42656749339,
+          "expired": false
+        }
+      ],
+      "artifact_verification": {
+        "zip_sha256": "921efa5b7149687f2f375d49df43473568d26c6c6f6798d078320a97889a4078",
+        "zip_bytes": 2139,
+        "matches_github_digest_and_size": true,
+        "members": [
+          {
+            "name": "secret-scan-redacted.json",
+            "bytes": 8091,
+            "sha256": "3b397890b7d06737b867344fef6565a3acf02083e327df430f4f7dcb89d40eb3",
+            "records": 5
+          }
+        ],
+        "redacted_identifiers_receipt": {
+          "path": "/workspace/scratch/8a8dff07082c/pr1006-secret-scan-redacted-identifiers-810d.json",
+          "sha256": "7c52e06b7d21f7ba517f6bc194e5045e5ca16f98a8848ca93d369c16c23e7f11"
+        },
+        "raw_zip_saved": false,
+        "retained_finding_fields": [
+          "RuleID",
+          "File",
+          "Commit",
+          "StartLine",
+          "EndLine",
+          "Fingerprint"
+        ],
+        "secret_or_match_values_or_signed_urls_retained": false
+      },
+      "findings": [
+        {
+          "finding": {
+            "RuleID": "generic-api-key",
+            "File": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json",
+            "Commit": "08c80e4648abb8a0286506c95c09e55c64571339",
+            "StartLine": 32,
+            "EndLine": 32,
+            "Fingerprint": "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json:generic-api-key:32"
+          },
+          "proof": {
+            "index": 0,
+            "evidence_commit": "08c80e4648abb8a0286506c95c09e55c64571339",
+            "evidence_file": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json",
+            "evidence_line": 32,
+            "evidence_blob": "cf4f77280f272cdd59be0f17601d63e3fa197351",
+            "evidence_blob_independently_recomputed": true,
+            "evidence_file_sha256": "198a3358f1993dc68e7d5ad77cec988509cffd8f95878bf15e034622069529a1",
+            "flagged_property_name": "tests/integration/test_profile_ai_credentials.py",
+            "line_is_exact_single_json_property": true,
+            "verification_method": "Local immutable git object read; recomputed raw object SHA1 and content SHA256",
+            "flagged_value_equals_recomputed_object_id": true,
+            "classification": "VERIFIED_GIT_BLOB_OBJECT_ID_NOT_A_CREDENTIAL",
+            "object_type": "blob",
+            "recomputed_object_id": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+            "raw_object_bytes": 16576,
+            "raw_object_sha256": "4d6259962b05963519f3ddf119808c67cb067df35e061da54312c07c90fc91ce",
+            "source_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+            "source_path": "tests/integration/test_profile_ai_credentials.py"
+          },
+          "finding_commit_is_one_of_pr_two_commits": false,
+          "finding_commit_in_pr_head_ancestry": false,
+          "finding_file_in_pr_changed_paths": false,
+          "fingerprint_present_in_pr_head_ignore_file": false
+        },
+        {
+          "finding": {
+            "RuleID": "generic-api-key",
+            "File": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json",
+            "Commit": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45",
+            "StartLine": 20,
+            "EndLine": 20,
+            "Fingerprint": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json:generic-api-key:20"
+          },
+          "proof": {
+            "index": 1,
+            "evidence_commit": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45",
+            "evidence_file": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json",
+            "evidence_line": 20,
+            "evidence_blob": "373042a432096e4db03050cc501627ed41defafa",
+            "evidence_blob_independently_recomputed": true,
+            "evidence_file_sha256": "5008f480378a0d85be3fafb28fa18833a9ed1c1ff4a37d6a9f0115a72a64cd2e",
+            "flagged_property_name": "tests/integration/test_profile_ai_credentials.py",
+            "line_is_exact_single_json_property": true,
+            "verification_method": "Local immutable git object read; recomputed raw object SHA1 and content SHA256",
+            "flagged_value_equals_recomputed_object_id": true,
+            "classification": "VERIFIED_GIT_BLOB_OBJECT_ID_NOT_A_CREDENTIAL",
+            "object_type": "blob",
+            "recomputed_object_id": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+            "raw_object_bytes": 16576,
+            "raw_object_sha256": "4d6259962b05963519f3ddf119808c67cb067df35e061da54312c07c90fc91ce",
+            "source_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+            "source_path": "tests/integration/test_profile_ai_credentials.py"
+          },
+          "finding_commit_is_one_of_pr_two_commits": false,
+          "finding_commit_in_pr_head_ancestry": false,
+          "finding_file_in_pr_changed_paths": false,
+          "fingerprint_present_in_pr_head_ignore_file": false
+        },
+        {
+          "finding": {
+            "RuleID": "generic-api-key",
+            "File": "docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json",
+            "Commit": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e",
+            "StartLine": 41,
+            "EndLine": 41,
+            "Fingerprint": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41"
+          },
+          "proof": {
+            "index": 2,
+            "evidence_commit": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e",
+            "evidence_file": "docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json",
+            "evidence_line": 41,
+            "evidence_blob": "1c42dfe57781e0af3664c45a17a9c65c701d5f67",
+            "evidence_blob_independently_recomputed": true,
+            "evidence_file_sha256": "08ee7bef8a3529279291b41bf218857ad5e4407da1c02760b73d5ce9b8215f8d",
+            "flagged_property_name": "exact_api_snapshot_commit",
+            "line_is_exact_single_json_property": true,
+            "verification_method": "Local immutable git object read; recomputed raw object SHA1 and content SHA256",
+            "flagged_value_equals_recomputed_object_id": true,
+            "classification": "VERIFIED_GIT_COMMIT_OBJECT_ID_NOT_A_CREDENTIAL",
+            "object_type": "commit",
+            "recomputed_object_id": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+            "raw_object_bytes": 1887,
+            "raw_object_sha256": "5af7942207c0aa01ac0491fbe75b0f56ca511839c58c03c01d2beda837f367bc"
+          },
+          "finding_commit_is_one_of_pr_two_commits": false,
+          "finding_commit_in_pr_head_ancestry": false,
+          "finding_file_in_pr_changed_paths": false,
+          "fingerprint_present_in_pr_head_ignore_file": false
+        },
+        {
+          "finding": {
+            "RuleID": "generic-api-key",
+            "File": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json",
+            "Commit": "08c80e4648abb8a0286506c95c09e55c64571339",
+            "StartLine": 164,
+            "EndLine": 164,
+            "Fingerprint": "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json:generic-api-key:164"
+          },
+          "proof": {
+            "index": 3,
+            "evidence_commit": "08c80e4648abb8a0286506c95c09e55c64571339",
+            "evidence_file": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json",
+            "evidence_line": 164,
+            "evidence_blob": "7ba5772a3b585dfdf45d79f83390201ed7ce9119",
+            "evidence_blob_independently_recomputed": true,
+            "evidence_file_sha256": "5db3e92b399bbf2f4c150e9f5cb61f286ed3ec68b241f66d18758122d5f97a5c",
+            "flagged_property_name": "tests/integration/test_profile_ai_credentials.py",
+            "line_is_exact_single_json_property": true,
+            "verification_method": "Local immutable git object read; recomputed raw object SHA1 and content SHA256",
+            "flagged_value_equals_recomputed_object_id": true,
+            "classification": "VERIFIED_GIT_BLOB_OBJECT_ID_NOT_A_CREDENTIAL",
+            "object_type": "blob",
+            "recomputed_object_id": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+            "raw_object_bytes": 16576,
+            "raw_object_sha256": "4d6259962b05963519f3ddf119808c67cb067df35e061da54312c07c90fc91ce",
+            "source_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+            "source_path": "tests/integration/test_profile_ai_credentials.py"
+          },
+          "finding_commit_is_one_of_pr_two_commits": false,
+          "finding_commit_in_pr_head_ancestry": false,
+          "finding_file_in_pr_changed_paths": false,
+          "fingerprint_present_in_pr_head_ignore_file": false
+        },
+        {
+          "finding": {
+            "RuleID": "generic-api-key",
+            "File": "docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+            "Commit": "cc1e5083ce1a94b20a424e09a038c0f72972ab10",
+            "StartLine": 520,
+            "EndLine": 520,
+            "Fingerprint": "cc1e5083ce1a94b20a424e09a038c0f72972ab10:docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json:generic-api-key:520"
+          },
+          "proof": {
+            "index": 4,
+            "evidence_commit": "cc1e5083ce1a94b20a424e09a038c0f72972ab10",
+            "evidence_file": "docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+            "evidence_line": 520,
+            "evidence_blob": "0c7c3497c16d10eec18d8f839684886d8aad019e",
+            "evidence_blob_independently_recomputed": true,
+            "evidence_file_sha256": "62c2d071c076cb0135695d78a0644a11b00a307c81ffa8f16103f8b7559b8ada",
+            "flagged_property_name": "tests/integration/test_application_answer_resume_api.py",
+            "line_is_exact_single_json_property": true,
+            "verification_method": "GitHub immutable commit/path contents API; recomputed raw blob object SHA1 and file SHA256",
+            "flagged_value_equals_recomputed_object_id": true,
+            "classification": "VERIFIED_GIT_BLOB_OBJECT_ID_NOT_A_CREDENTIAL",
+            "object_type": "blob",
+            "recomputed_object_id": "c660408277faeef95beb9c7abdc1dfd46f1abf63",
+            "raw_object_bytes": 16671,
+            "raw_object_sha256": "53a0be2b881d5a77102c621e27b22e4c2e33a1d3edded223240388cd87a20bea",
+            "source_revision": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+            "source_path": "tests/integration/test_application_answer_resume_api.py"
+          },
+          "finding_commit_is_one_of_pr_two_commits": false,
+          "finding_commit_in_pr_head_ancestry": false,
+          "finding_file_in_pr_changed_paths": false,
+          "fingerprint_present_in_pr_head_ignore_file": false
+        }
+      ],
+      "classification_totals": {
+        "total_actual_findings": 5,
+        "verified_git_blob_ids": 4,
+        "verified_git_commit_ids": 1,
+        "unresolved": 0,
+        "from_pr_two_commits": 0,
+        "in_pr_head_ancestry": 0,
+        "in_pr_changed_paths": 0
+      },
+      "pr_scope": {
+        "commits": [
+          "b410690c7e41db4b951da0a611b0ce682b902547",
+          "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0"
+        ],
+        "head_tree": "76887f7d8c453676bca150cd1f8d89372ecd1795",
+        "changed_paths": [
+          "docs/evidence/2026-11-09-web-810d-confidence-acceptance.json",
+          "docs/evidence/2026-11-09-web-810d-cost-controls-acceptance.json",
+          "docs/evidence/2026-11-09-web-810d-fact-review-browser.json",
+          "docs/evidence/2026-11-09-web-810d-visit-aware-browser.json",
+          "planning/agent_handoffs/MJ-REQ-078-confidence-web810d.json",
+          "planning/agent_handoffs/MJ-REQ-092-fact-review-web810d.json",
+          "planning/agent_handoffs/MJ-REQ-110-cost-controls-web810d.json",
+          "planning/agent_handoffs/MJ-REQ-114-browser-web810d.json",
+          "tests/browser/test_fact_review.py",
+          "tests/browser/test_matching_explanation_workflow.py"
+        ]
+      },
+      "scanner_contract": {
+        "source_bindings": {
+          ".github/workflows/secret-scan.yml": {
+            "git_blob": "82111982831efece8fd9a3ef6d56e5d8fd87728a",
+            "sha256": "ca33b999ef7c1258aec9e37c0bc121a90e86725261e982d5d0826ae3afb2e3e8",
+            "bytes": 1203
+          },
+          "tools/ci/secret_scan.py": {
+            "git_blob": "64c017cdef2a99bd7f40cfb63a921b2664fa0189",
+            "sha256": "c6613ec96d2661f1d35674583b9cb2b07595c23dbb65fe39101c36e3a8e39253",
+            "bytes": 2532
+          },
+          ".github/secret-scanner.json": {
+            "git_blob": "3d84a2a1f9f4dc4ef4403363ad77de699be17b78",
+            "sha256": "6b9b7b4daf0b061e592ae85067cf5b14f5b063495f8da879c3f0258effd7668c",
+            "bytes": 155
+          },
+          ".gitleaksignore": {
+            "git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+            "sha256": "e27ed9c5a08797cead3b9405ae28e93720036ee6fa8c9608f55ebbf29f63cc0f",
+            "bytes": 32622
+          }
+        },
+        "version": "8.30.1",
+        "scope": "git with --log-opts=--all over refs present in the hosted checkout; not limited to this PR diff",
+        "redaction": "--redact; current review retained only the named report identifiers and independently recomputed nonsecret provenance",
+        "reviewed_history_ignore_file": ".gitleaksignore",
+        "all_five_current_fingerprints_absent_at_pr_head": true,
+        "scanner_or_policy_changed_by_reviewer": false
+      },
+      "scoped_prepublication_receipt_review": {
+        "receipt_path": "/workspace/scratch/8a8dff07082c/scoped-secret-scan-810d.json",
+        "receipt_sha256": "dbe99406dd8d9ee59fe867d53556e724c7838eea378927e7a60d2bd1b81d06b7",
+        "reported_result": "PASS",
+        "reported_exit_code": 0,
+        "reported_finding_count": 0,
+        "pinned_version_and_archive_checksum_match_head_config": true,
+        "ten_file_bindings_match_pr_head": true,
+        "bindings": [
+          {
+            "path": "tests/browser/test_fact_review.py",
+            "sha256": "8ceaeddcc8cd7ac4a64cb4b04e26d072cb3b2523bfc487b34c9512334d5133b0",
+            "matches_receipt": true
+          },
+          {
+            "path": "tests/browser/test_matching_explanation_workflow.py",
+            "sha256": "28858e51286ed148075f88b202799f438474af75195442711e9a674125ef592e",
+            "matches_receipt": true
+          },
+          {
+            "path": "docs/evidence/2026-11-09-web-810d-fact-review-browser.json",
+            "sha256": "f253c58ba79217edf08a63f6541f637fdfbda9c80762ce48a0b4021c120c2974",
+            "matches_receipt": true
+          },
+          {
+            "path": "docs/evidence/2026-11-09-web-810d-visit-aware-browser.json",
+            "sha256": "435943f875a2fa5ef6e2cd6c09ade6bff719184c163ad4e40c269113402b85e3",
+            "matches_receipt": true
+          },
+          {
+            "path": "docs/evidence/2026-11-09-web-810d-confidence-acceptance.json",
+            "sha256": "4d546a60db926d7054686b12fabf8fab21215a9d42a4a9c68894ce69f327788e",
+            "matches_receipt": true
+          },
+          {
+            "path": "docs/evidence/2026-11-09-web-810d-cost-controls-acceptance.json",
+            "sha256": "41e254c2f1bcbeff02070a36a7e9f3a634350be518a722ada257cfc11dbe7ea8",
+            "matches_receipt": true
+          },
+          {
+            "path": "planning/agent_handoffs/MJ-REQ-114-browser-web810d.json",
+            "sha256": "3a6b57c3af8a92678a599c94142304e7983283e287becf353d2cb30efe2ddd23",
+            "matches_receipt": true
+          },
+          {
+            "path": "planning/agent_handoffs/MJ-REQ-110-cost-controls-web810d.json",
+            "sha256": "2af33c4ae854fb4643fc5d0736f1bf3145d459679b95fbc055ced86f20c620b1",
+            "matches_receipt": true
+          },
+          {
+            "path": "planning/agent_handoffs/MJ-REQ-092-fact-review-web810d.json",
+            "sha256": "ac9376dd54e5355eeb6a5d37a750fce1ebd686977a9a3673051f1d80201fdef3",
+            "matches_receipt": true
+          },
+          {
+            "path": "planning/agent_handoffs/MJ-REQ-078-confidence-web810d.json",
+            "sha256": "a569cde3f768b13530a14c183a35103feca94173022ba38127636c50c6b82bfc",
+            "matches_receipt": true
+          }
+        ],
+        "reviewer_reran_scanner": false,
+        "scope_limit": "A ten-file directory scan does not replace or overrule the failed all-ref hosted history gate."
+      },
+      "comparison_with_earlier_parent_report": {
+        "earlier_run": 42652619306,
+        "earlier_reported_findings": 4,
+        "earlier_artifact_not_independently_reopened_in_this_task": true,
+        "current_actual_findings": 5,
+        "additional_current_finding": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41"
+      },
+      "narrow_possible_remediation": {
+        "status": "PROOF_FOR_COORDINATED_OWNER_DISPOSITION_ONLY; NOT_APPLIED",
+        "basis": "Each exact flagged JSON property was bound to its immutable evidence-file blob and line, then equated to a Git object ID independently recomputed from exact bytes. No classification relies only on hexadecimal shape or the evidence author assertion.",
+        "allowed_scope_candidate": "The active scanner-fingerprint owner can review and publish disposition of exactly these five commit/path/rule/line fingerprints with these proofs, preserving every other scanner rule, history scope and prior finding. Reuse only the reviewed published owner correction through coordinated integration.",
+        "ownership_observation": "Parent reported scanner-approved-fingerprints claim held by web-20261109T131824Z-4f1d2da391c4, heartbeat2026-11-09T16:35:07Z, expiry16:50:07Z. This reviewer did not acquire, renew, release or independently refresh that lease; current ownership must be respected and rechecked before any mutation.",
+        "required_followup": "Keep run42656749339 FAILURE in history. Protected publication-head secret scanning and other required checks must actually pass after any authorized correction; these proofs do not waive that gate.",
+        "not_proposed": [
+          "Rule-wide or path-wide suppression",
+          "Scanner configuration or --all removal",
+          "Secret/Match publication",
+          "History rewriting",
+          "Uncoordinated ignore edits",
+          "Retrying an unchanged failing head"
+        ]
+      },
+      "limits": [
+        "This is a review of the five findings in this exact failed-run artifact, not a comprehensive credential, privacy or security audit.",
+        "The fifth newly observed flagged value is a Git commit identifier; it is explicitly not misclassified as a blob or SHA256.",
+        "No new scan, workflow run, review/comment publication, claim mutation, ignore edit, source edit, or canonical promotion was performed."
+      ],
+      "mutations_by_reviewer": [
+        "Scratch-only sanitized identifiers and this review receipt."
+      ]
+    }
+  },
+  "preserved_source_blobs": [
+    {
+      "path": "tests/browser/test_fact_review.py",
+      "git_blob": "c5fd90b602c809cdaa4fcfb94c2ce8133dfc1909"
+    },
+    {
+      "path": "tests/browser/test_matching_explanation_workflow.py",
+      "git_blob": "cd422b5084c3c19d5bd5aea8ca28a5e4bbfff73c"
+    },
+    {
+      "path": "tools/ci/secret_scan.py",
+      "git_blob": "64c017cdef2a99bd7f40cfb63a921b2664fa0189"
+    },
+    {
+      "path": ".github/secret-scanner.json",
+      "git_blob": "3d84a2a1f9f4dc4ef4403363ad77de699be17b78"
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "git_blob": "82111982831efece8fd9a3ef6d56e5d8fd87728a"
+    }
+  ],
+  "validation_at_authoring": {
+    "exact_dependency_and_five_fingerprint_set_comparison": "PASS",
+    "full_history_candidate_scan": "PENDING_EXECUTION",
+    "required_hosted_security_gate": "FAILURE_AT_b410; REQUIRES_FRESH_NEW_HEAD_PASS",
+    "canonical_transition_applied": false
+  },
+  "limits": [
+    "Only exact immutable commit/path/rule/line fingerprints are dispositioned; all detector rules and --all history scope remain active.",
+    "The original hosted failure stays recorded as FAILURE. This proof does not replace required checks on the updated publication head.",
+    "The existing078/110 acceptance packets remain unapplied and require the sole integration owner and fresh canonical CAS."
+  ],
+  "evidence_format_note": "File paths and verified Git object identifiers are separate fields; this preserves every binding without presenting a keyword-bearing path as a key/value credential-shaped entry."
+}

@@ -270,6 +270,8 @@ class Remotive:
                 domain="https://remotive.com",
             )
             items.append(SourceItem(raw, company))
+            if limit is not None and len(items) >= limit:
+                break
 
         return SearchBatch(
             endpoint=API_URL,

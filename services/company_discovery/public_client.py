@@ -8,11 +8,13 @@ from __future__ import annotations
 import hashlib
 import http.client
 import ipaddress
+import math
 import socket
 import ssl
 import threading
 import time
 import urllib.robotparser
+from contextlib import suppress
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
@@ -107,8 +109,16 @@ class PublicCompanyClient:
         self._parsed, self._host, self._port = parsed
         self._origin = _origin(self._parsed, self._host, self._port)
         self._policy = policy
-        self.concurrency = policy.concurrency if policy is not None else 1
         self._request_timeout = policy.request_timeout if policy is not None else REQUEST_TIMEOUT
+        if policy is None:
+            self.concurrency = 1
+        else:
+            # Concurrency is a ceiling, not a target. Do not launch probe workers
+            # that cannot overlap before the per-request timeout because they only
+            # add cancellation/control polling while waiting for the rate gate.
+            spacing = max(MIN_REQUEST_INTERVAL, 60.0 / policy.rate_limit)
+            useful_concurrency = max(1, math.ceil(self._request_timeout / spacing))
+            self.concurrency = min(policy.concurrency, useful_concurrency)
         self._reserve_rate = reserve_rate
         self._rate_lock = threading.Lock()
         self._robots_lock = threading.Lock()
@@ -370,16 +380,23 @@ class PublicCompanyClient:
                 if deadline_timer is not None:
                     deadline_timer.cancel()
                     deadline_timer.join()
-                if self._policy is not None and response is not None:
-                    response.close()
-                for item in (tls, sock):
-                    if item is not None:
-                        with self._resources_lock:
-                            self._sockets.discard(item)
-                        try:
-                            item.close()
-                        except OSError:
-                            pass
+                try:
+                    if self._policy is not None and response is not None:
+                        # Preserve the request outcome if the response-file
+                        # close fails; owned sockets are still closed below.
+                        with suppress(OSError):
+                            response.close()
+                finally:
+                    # Even an unexpected response cleanup error must reach every
+                    # socket owned by this request.
+                    for item in (tls, sock):
+                        if item is not None:
+                            with self._resources_lock:
+                                self._sockets.discard(item)
+                            try:
+                                item.close()
+                            except OSError:
+                                pass
         raise last_error or PublicFetchError("NETWORK_FAILED")
 
     def _load_robots(self, deadline):

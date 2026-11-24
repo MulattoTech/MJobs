@@ -213,7 +213,12 @@ class FactReviewBrowserTests(unittest.TestCase):
 
                     def prepare_from_ui(expected_eligible):
                         page.get_by_role('navigation').get_by_role('button', name='Jobs', exact=False).click()
-                        page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
+                        job_card = page.locator('.job-list').get_by_role(
+                            'button', name=f"{job['company']} {job['title']}", exact=True)
+                        job_card.click()
+                        detail = page.locator('.job-detail')
+                        expect(detail.get_by_role('heading', name=job['title'], exact=True)).to_be_visible()
+                        expect(detail.locator(':scope > .eyebrow')).to_have_text(job['company'])
                         with page.expect_response(lambda r: r.url == origin+'/applications' and r.request.method == 'POST') as response:
                             page.get_by_role('button', name='Prepare documents', exact=True).click()
                         operation = response.value.json()
