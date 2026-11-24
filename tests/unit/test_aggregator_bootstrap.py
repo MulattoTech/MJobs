@@ -591,6 +591,18 @@ def test_v2_changed_policy_cannot_create_a_client(field, value):
     assert trace == {'clients': [], 'requests': []}
 
 
+def test_v2_malformed_policy_reports_validation_stage_without_transport():
+    values, policy = v2_inputs()
+    policy['request_timeout'] += 1
+    diagnostic, trace = {}, {}
+
+    assert resolve_with_real_rate_gate(values, verification_policy=policy,
+        pending_sha256='c' * 64, diagnostic=diagnostic, trace=trace) is None
+
+    assert diagnostic == {'stop_code': 'VERIFICATION_POLICY_INVALID'}
+    assert trace == {'clients': [], 'requests': []}
+
+
 @pytest.mark.parametrize('pending', [None, True, 2, 'x', 'c' * 63])
 def test_v2_requires_the_exact_pending_digest(pending):
     values, policy = v2_inputs()

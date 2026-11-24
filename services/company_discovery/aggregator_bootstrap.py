@@ -430,7 +430,10 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
         verification_read_policy = None
         if v2:
             from packages.domain.employer_verification import verification_policy_snapshot
-            checked_policy = validate_verification_policy(verification_policy)
+            try:
+                checked_policy = validate_verification_policy(verification_policy)
+            except ValueError:
+                return stop('VERIFICATION_POLICY_INVALID')
             if (checked_policy != verification_policy_snapshot(profile_snapshot)
                     or type(pending_sha256) is not str
                     or re.fullmatch(r'[0-9a-f]{64}', pending_sha256) is None):
