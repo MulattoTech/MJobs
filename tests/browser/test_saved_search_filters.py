@@ -256,6 +256,24 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     self.assertIs(record["criteria"]["job_filters"]["include_dismissed"], True)
                     self.assertIs(record["criteria"]["job_filters"]["include_blacklisted"], True)
                     self.assertFalse(record["enabled"])
+                    rejected = context.request.put(origin + "/search-profiles", data={
+                        "id": saved_id, "profile_id": "fixture", "name": record["name"], "enabled": True,
+                    })
+                    self.assertEqual(rejected.status, 422, rejected.text())
+                    self.assertIn("Saved Jobs filters must be disabled", rejected.text())
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    snapshot = page.locator(".document").filter(
+                        has=page.get_by_text("Review hidden employers", exact=True),
+                    )
+                    expect(snapshot.get_by_text("View only", exact=True)).to_be_visible()
+                    expect(snapshot.get_by_role("button", name="Resume search", exact=True)).to_have_count(0)
+                    expect(snapshot.get_by_role("button", name=re.compile(r"^Collect"))).to_have_count(0)
+                    expect(snapshot.get_by_role("region", name="Schedule “Review hidden employers”")).to_have_count(0)
+                    expect(snapshot.get_by_text("Resume this search to collect jobs with it.")).to_have_count(0)
+                    expect(snapshot.get_by_role("button", name="Edit search", exact=True)).to_be_visible()
+                    expect(page.get_by_role("button", name="Collect local fixture jobs", exact=True)).to_have_count(0)
+                    page.get_by_role("button", name=re.compile(r"^Jobs \d+$")).click()
+                    expect(searches).to_have_value(saved_id)
 
                     searches.select_option("")
                     expect(dismissed).not_to_be_checked()
@@ -294,6 +312,9 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(blacklisted).not_to_be_checked()
                     expect(python_card).to_have_count(0)
                     expect(hidden_card).to_have_count(0)
+                    empty_snapshot = page.get_by_role("region", name="Empty jobs for Legacy saved filters")
+                    expect(empty_snapshot).to_contain_text("Adjust these filters to see jobs already in the workspace.")
+                    expect(empty_snapshot.get_by_role("button", name="Manage sources", exact=True)).to_have_count(0)
                     searches.select_option(saved_id)
                     expect(dismissed).to_be_checked()
                     expect(blacklisted).to_be_checked()

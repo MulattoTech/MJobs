@@ -131,6 +131,24 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     schedule = page.get_by_role("region", name=f'Schedule “{search_name}”')
                     expect(schedule.get_by_label("Enable scheduled discovery", exact=True)).to_be_checked()
                     expect(schedule.get_by_label("Interval (seconds)", exact=True)).to_have_value("900")
+                    search_card = page.locator(".document").filter(has=schedule)
+                    with page.expect_response(lambda response: response.url == origin + "/search-profiles"
+                                              and response.request.method == "PUT") as pause:
+                        search_card.get_by_role("button", name="Pause search", exact=True).click()
+                    self.assertEqual(pause.value.status, 200, pause.value.text())
+                    expect(search_card.get_by_text("Search paused", exact=True)).to_be_visible()
+                    expect(search_card.get_by_text("Resume this search to collect jobs with it.")).to_be_visible()
+                    expect(search_card.get_by_role("button", name="Collect for this search", exact=True)).to_be_disabled()
+                    with page.expect_response(lambda response: response.url == origin + "/search-profiles"
+                                              and response.request.method == "PUT") as resume:
+                        search_card.get_by_role("button", name="Resume search", exact=True).click()
+                    self.assertEqual(resume.value.status, 200, resume.value.text())
+                    expect(search_card.get_by_text("Search enabled", exact=True)).to_be_visible()
+                    expect(search_card.get_by_role(
+                        "button", name=f"Collect {search_name} from browser-scheduler-source", exact=True,
+                    )).to_be_enabled()
+                    expect(schedule.get_by_label("Enable scheduled discovery", exact=True)).to_be_checked()
+                    expect(schedule.get_by_label("Interval (seconds)", exact=True)).to_have_value("900")
 
                     # A separate interval edit persists, then the user can turn scheduling off.
                     schedule.get_by_label("Interval (seconds)", exact=True).fill("1200")
