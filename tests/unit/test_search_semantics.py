@@ -28,6 +28,40 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertEqual(classify_location("Hybrid - Austin, TX")["remote_type"], "HYBRID")
         self.assertEqual(classify_location("Austin, TX", "On-site role")["remote_type"], "ONSITE")
 
+    def test_worldwide_scope_requires_affirmative_whole_clause_evidence(self):
+        for description in ("Employees cannot work worldwide.",
+                            "Employees do not work worldwide.",
+                            "Employees cannot work worldwide. This role supports Linux.",
+                            "This role supports Linux; employees cannot work worldwide.",
+                            "Work worldwide is not permitted.",
+                            "Work worldwide is prohibited."):
+            with self.subTest(description=description):
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "UNKNOWN")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, job)
+                self.assertFalse(result["matched"])
+                self.assertEqual(result["remote_residence"]["status"], "UNKNOWN")
+
+        description = "Employees cannot work worldwide. Remote within the United States."
+        attributes = classify_location("Remote", description)
+        self.assertEqual(attributes["remote_type"], "REMOTE_US")
+        job = {"location": "Remote", "description": description,
+               "attributes": attributes, "remote_type": attributes["remote_type"]}
+        self.assertTrue(evaluate_search(
+            {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
+
+        for description in ("Work worldwide.", "Employees may work worldwide.",
+                            "Remote worldwide."):
+            with self.subTest(description=description, affirmative=True):
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_WORLDWIDE")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search(
+                    {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
+
     def test_remote_classification_uses_geographic_statements_instead_of_code_like_words(self):
         us = classify_location("Remote", "Work in the United States. We support IT and AI operations.")
         self.assertEqual((us["remote_type"], us["remote_regions"]), ("REMOTE_US", ["US"]))
@@ -155,6 +189,11 @@ class SearchSemanticsTests(unittest.TestCase):
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, United States", "This position is open only to candidates based in approved locations.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to candidates in Europe.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to European candidates.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to candidates in training.", True, None),
             ("Remote, United States", "This position is open only to candidates in California.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, United States", "This role is open only to medical residents.",
@@ -309,7 +348,10 @@ class SearchSemanticsTests(unittest.TestCase):
         for location, expected_city, expected_state, expected_arrangement in (
             ("Durant, OK (Hybrid)", "Durant", "OK", "HYBRID"),
             ("Durant, Oklahoma (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, OK 74701 (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, Oklahoma 74701-1234 (Hybrid)", "Durant", "OK", "HYBRID"),
             ("Denison, TX (On-site)", "Denison", "TX", "ONSITE"),
+            ("Durant, OK 74701 extra (Hybrid)", "Durant", None, "HYBRID"),
             ("Durant, OK (Hiring)", "Durant", None, "UNKNOWN"),
         ):
             with self.subTest(location=location):

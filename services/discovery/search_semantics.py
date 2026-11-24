@@ -337,7 +337,7 @@ def classify_location(location_text, description=""):
         remote_type = "ONSITE"
     elif remote_indicated and (
         re.fullmatch(_WORLDWIDE_LOCATION, _remote_scope_text(location), re.I)
-        or _WORLDWIDE_WORK.search(description or "")
+        or _has_affirmative_worldwide_work(description)
     ):
         remote_type = "REMOTE_WORLDWIDE"
         remote_regions = ["WORLDWIDE"]
@@ -434,6 +434,9 @@ _OPEN_ONLY_RESIDENCE_CUE = re.compile(
     r"|\b(?:approved|eligible)\s+(?:states?|locations?|regions?)\b"
     r"|^(?:applicants?|candidates?)\s+(?:currently\s+)?(?:based|located|living|residing)\s+(?:in|within)\b"
     rf"|^(?:applicants?|candidates?)\s+(?:in|within)\s+(?:{_STATE_LIST}|{_US_LOCATION}|{_OTHER_COUNTRY})\b"
+    r"|^(?:applicants?|candidates?)\s+(?:(?:currently\s+)?(?:based|located|living|residing)\s+)?(?:in|from)\s+"
+    r"(?:europe|european union|eu|emea|asia|asian|africa|african|south america|latin america|latam|apac|oceania)\b"
+    r"|^(?:european|asian|african|south american|latin american|oceania)\s+(?:applicants?|candidates?)\b"
     rf"|{_STATE_LIST}\s+residents?\b"
     rf"|^(?:{_STATE_LIST}|{_US_LOCATION}|{_OTHER_COUNTRY})(?:\s+(?:applicants?|candidates?|only))?$",
     re.I,
@@ -460,6 +463,17 @@ _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
 _WORLDWIDE_WORK = re.compile(rf"\b(?:work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b", re.I)
+_WORLDWIDE_NEGATION = re.compile(
+    r"\b(?:not|cannot|can\s+not|can't|do\s+not|don't|does\s+not|doesn't|never|"
+    r"unable\s+to|not\s+allowed\s+to|not\s+permitted\s+to|are\s+not\s+able\s+to|aren't\s+able\s+to)\b"
+    r"[^.!?;\n,]*$",
+    re.I,
+)
+_WORLDWIDE_TRAILING_NEGATION = re.compile(
+    r"^\s*(?:(?:is|are|isn't|aren't)\s+)?(?:not|never|prohibited|forbidden|disallowed)\b"
+    r"|^\s*(?:(?:is|are|isn't|aren't)\s+)?not\s+(?:allowed|permitted)\b",
+    re.I,
+)
 _REMOTE_TEXT_SCOPE = re.compile(
     rf"\b(?:remote|work)\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
     rf"(?P<country>{_US_LOCATION})\b",
@@ -467,6 +481,21 @@ _REMOTE_TEXT_SCOPE = re.compile(
 )
 _ALLOWED_STATES = re.compile(_STATE_LIST, re.I)
 _RESIDENCE_STATES = re.compile(rf"{_STATE_LIST}(?=\s*(?:[.;:\n]|$))", re.I)
+
+
+def _has_affirmative_worldwide_work(text):
+    text = str(text or "")
+    for match in _WORLDWIDE_WORK.finditer(text):
+        clause_start = max(
+            (boundary.end() for boundary in re.finditer(r"[.!?;\n,]", text[:match.start()])),
+            default=0,
+        )
+        clause_end_match = re.search(r"[.!?;\n,]", text[match.end():])
+        clause_end = match.end() + clause_end_match.start() if clause_end_match else len(text)
+        if (not _WORLDWIDE_NEGATION.search(text[clause_start:match.start()])
+                and not _WORLDWIDE_TRAILING_NEGATION.match(text[match.end():clause_end])):
+            return True
+    return False
 
 
 def _stated_us_states(value):
@@ -623,7 +652,7 @@ def _remote_residence_status(job, state, arrangement):
         return "ELIGIBLE"
     if job.get("remote_type") == "REMOTE_COUNTRY":
         return "EXCLUDED"
-    return "ELIGIBLE" if remote_country_eligible or _WORLDWIDE_WORK.search(description) else "UNKNOWN"
+    return "ELIGIBLE" if remote_country_eligible or _has_affirmative_worldwide_work(description) else "UNKNOWN"
 
 
 def normalize_title(value):
