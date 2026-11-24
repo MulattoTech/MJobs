@@ -392,7 +392,7 @@ _STATE_EXCLUSIONS = (
         re.I,
     ),
 )
-_RESIDENT_SCOPE_END = r"[!?;\n]|\.(?=\s|$)|$"
+_RESIDENT_SCOPE_END = r"[!?;\r\n]|\.(?=\s|$)|$"
 _RESIDENT_SCOPE = rf"(?:(?!{_RESIDENT_SCOPE_END}).)+?"
 _OPEN_ONLY_TO = re.compile(
     r"\b(?:open|available)[ \t]+"
@@ -415,7 +415,11 @@ _APPLICANT_ALLOWED_STATES = re.compile(
     r"(?:(?:may|can)\s+apply|are\s+eligible)\b",
     re.I,
 )
-_ONLY_RESIDENTS_APPLY = re.compile(r"\bonly\s+(?P<scope>.+?)\s+(?:may|can)\s+apply\b", re.I)
+_ONLY_RESIDENTS_APPLY = re.compile(
+    rf"\bonly[ \t]+(?P<scope>{_RESIDENT_SCOPE})[ \t]+"
+    rf"(?:(?:may|can)[ \t]+apply\b|are[ \t]+eligible\b(?=[ \t]*(?:to[ \t]+apply\b|{_RESIDENT_SCOPE_END})))",
+    re.I,
+)
 _RESIDENCE_REQUIREMENT = re.compile(
     r"\b(?:must|required\s+to|may\s+only|can\s+only|if\s+you)\s+(?:currently\s+)?"
     r"(?:reside|live|be\s+(?:located|based))\s+(?:in|within)\s*:?\s*"

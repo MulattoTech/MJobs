@@ -114,6 +114,18 @@ class SearchSemanticsTests(unittest.TestCase):
              False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "Only Oklahoma residents may apply.", True, None),
             ("Remote, United States", "Only candidates with Linux experience may apply.", True, None),
+            ("Remote, United States", "Only California residents are eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents are eligible to apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents are eligible for the training benefit.",
+             True, None),
+            ("Remote, United States", "Only Oklahoma residents are eligible.", True, None),
+            ("Remote, United States", "Only residents of approved hiring regions are eligible.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "Only candidates with Linux experience are eligible.", True, None),
+            ("Remote, United States", "Work on weekdays only during onboarding. "
+             "California residents may apply.", True, None),
             ("Remote, United States", "This position is open to California residents! "
              "Training benefits are available to current employees only.", True, None),
             ("Remote, United States", "California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
@@ -186,6 +198,18 @@ class SearchSemanticsTests(unittest.TestCase):
                     self.assertIn(reason, result["reasons"])
                 else:
                     self.assertEqual(result["remote_residence"], {"state": "OK", "status": "ELIGIBLE"})
+
+    def test_leading_only_after_unrelated_sentence_allows_the_named_state(self):
+        location = "Remote, United States"
+        description = "Work on weekdays only during onboarding. Only California residents may apply."
+        attributes = classify_location(location, description)
+        job = {"location": location, "description": description, "attributes": attributes,
+               "remote_type": attributes["remote_type"]}
+        for state, status in (("CA", "ELIGIBLE"), ("OK", "EXCLUDED")):
+            with self.subTest(state=state):
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, job)
+                self.assertEqual(result["remote_residence"], {"state": state, "status": status})
+                self.assertEqual(result["matched"], state == "CA")
 
     def test_remote_scope_fallback_requires_unqualified_us_geography(self):
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
