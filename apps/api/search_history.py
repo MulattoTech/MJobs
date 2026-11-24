@@ -5,12 +5,15 @@ from collections.abc import Mapping
 
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy.exc import NoResultFound
-from services.discovery.search_history import normalize_posting_activity
+from services.discovery.search_history import (
+    MAX_SEARCH_HISTORY_CURSOR_LENGTH,
+    is_search_history_id,
+    normalize_posting_activity,
+)
 
 
 _DEFAULT_LIMIT = 50
 _MAX_LIMIT = 100
-_MAX_CURSOR_LENGTH = 1024
 
 
 def _error(status_code: int, code: str):
@@ -31,11 +34,7 @@ def _project_run(run, profile_id: str):
     if run.get("profile_id") != profile_id:
         _error(500, "SEARCH_HISTORY_SCOPE_MISMATCH")
     search_profile_id = run.get("search_profile_id")
-    if search_profile_id is not None and (
-            not isinstance(search_profile_id, str)
-            or not search_profile_id.strip()
-            or len(search_profile_id) > 128
-            or any(ord(char) < 32 for char in search_profile_id)):
+    if search_profile_id is not None and not is_search_history_id(search_profile_id):
         _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
     if not isinstance(run.get("run_id"), str) or not run["run_id"].strip():
         _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
@@ -91,12 +90,10 @@ def create_search_history_router(store, *, history_lister=None) -> APIRouter:
     def read_search_history(
         profile_id: str,
         limit: int = Query(default=_DEFAULT_LIMIT, ge=1, le=_MAX_LIMIT),
-        cursor: str | None = Query(default=None, max_length=_MAX_CURSOR_LENGTH),
+        cursor: str | None = Query(default=None, max_length=MAX_SEARCH_HISTORY_CURSOR_LENGTH),
         search_profile_id: str | None = Query(default=None, min_length=1, max_length=128),
     ):
-        if search_profile_id is not None and (
-                not search_profile_id.strip()
-                or any(ord(char) < 32 for char in search_profile_id)):
+        if search_profile_id is not None and not is_search_history_id(search_profile_id):
             _error(422, "SEARCH_HISTORY_SEARCH_PROFILE_ID_INVALID")
         try:
             store.profile(profile_id)
@@ -125,9 +122,12 @@ def create_search_history_router(store, *, history_lister=None) -> APIRouter:
         next_cursor = result.get("next_cursor")
         if (next_cursor is not None and
                 (not isinstance(next_cursor, str) or not next_cursor
-                 or len(next_cursor) > _MAX_CURSOR_LENGTH)):
+                 or len(next_cursor) > MAX_SEARCH_HISTORY_CURSOR_LENGTH)):
             _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
         items = [_project_run(run, profile_id) for run in result["runs"]]
+        if search_profile_id is not None and any(
+                item.get("search_profile_id") != search_profile_id for item in items):
+            _error(500, "SEARCH_HISTORY_SCOPE_MISMATCH")
         return {
             "profile_id": profile_id,
             "items": items,

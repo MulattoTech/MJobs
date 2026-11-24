@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[2]
                      "Build apps/web before browser acceptance")
 class SearchHistoryConnectedBrowserTests(unittest.TestCase):
     def test_completed_fixture_search_history_is_durable_and_profile_scoped(self):
+        saved_search_id = " fixture-search "
         with tempfile.TemporaryDirectory(prefix="mjobs-search-history-browser-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'search-history.db').as_posix()}")
@@ -41,7 +42,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
             store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
                                 "email": "other@example.test"})
             save_search_profile(store, {
-                "id": "fixture-search",
+                "id": saved_search_id,
                 "profile_id": "fixture",
                 "name": "Synthetic systems administrator search",
                 "enabled": True,
@@ -103,8 +104,8 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
 
                         # Select a real saved search before starting a local discovery run.
                         expect(page.get_by_label("Saved search profile", exact=True).locator(
-                            "option[value='fixture-search']")).to_have_count(1)
-                        page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                            f"option[value='{saved_search_id}']")).to_have_count(1)
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search_id)
                         page.get_by_label("Included job titles", exact=True).fill("Python Developer")
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == "/search-profiles"
@@ -114,7 +115,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         expect(page.get_by_role("status").filter(
                             has_text="Saved title and keyword filters")).to_be_visible()
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search_id)
                         expect(page.get_by_label("Included job titles", exact=True)).to_have_value("Python Developer")
                         before = page.request.get(
                             origin + "/profiles/fixture/search-history?limit=50")
@@ -130,7 +131,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
                         queued = queued_response.value
                         self.assertEqual(queued.status, 202, queued.text())
-                        self.assertEqual(queued.request.post_data_json["search_profile_id"], "fixture-search")
+                        self.assertEqual(queued.request.post_data_json["search_profile_id"], saved_search_id)
                         request_id = queued.request.post_data_json["request_id"]
                         operation_id = queued.json()["operation_id"]
                         self.assertTrue(operation_id)
@@ -181,6 +182,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         new_runs = [item for item in history_body["items"]
                                     if item["id"] not in before_ids]
                         self.assertTrue(new_runs, history_body)
+                        self.assertEqual({item["search_profile_id"] for item in new_runs}, {saved_search_id})
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == history_path):
                             page.get_by_role("button", name="Activity", exact=True).click()
@@ -203,7 +205,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             parsed = urlsplit(response.url)
                             query = parse_qs(parsed.query, keep_blank_values=True)
                             return (parsed.path == "/jobs" and query.get("profile_id") == ["fixture"]
-                                    and query.get("search_profile_id") == ["fixture-search"]
+                                    and query.get("search_profile_id") == [saved_search_id]
                                     and query.get("q", [""]) == [""] and query.get("sort") == ["score"])
 
                         with page.expect_response(reopened_saved_jobs, timeout=7000) as reopened:
@@ -371,7 +373,7 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         "ascii_256": "B" * 256,
         "mixed_256": "C" * 128 + "\U0001f680" * 128,
     }
-    saved_search_id = "\U0001f680" * 128
+    saved_search_id = " " + "\U0001f680" * 126 + " "
     receipt = {
         "outcome": "NOT_COMPLETED",
         "fixture_admitted": False,

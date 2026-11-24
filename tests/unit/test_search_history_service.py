@@ -1,4 +1,7 @@
 """Durable, profile-scoped discovery search history service."""
+import base64
+import hashlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -177,6 +180,31 @@ class SearchHistoryServiceTests(unittest.TestCase):
         with self.assertRaises(NoResultFound):
             list_search_history(self.store, "missing-profile")
 
+    def test_previous_cursor_formats_remain_readable_and_scope_mismatches_fail(self):
+        search_id = "fixture-search"
+        for index in range(2):
+            record_search_history(self.store, self._run(
+                run_id=f"legacy-{index}", search_profile_id=search_id,
+                finished_at=f"2026-10-09T10:0{index + 1}:00Z",
+            ))
+        newest = max(self._audit_rows(), key=lambda row: row["timestamp"])
+        for scope in (None, search_id):
+            fields = {"profile_id": "fixture", "timestamp": newest["timestamp"], "id": newest["id"]}
+            if scope is not None:
+                fields["search_scope"] = hashlib.sha256(scope.encode()).hexdigest()
+            cursor = base64.urlsafe_b64encode(
+                json.dumps(fields, sort_keys=True, separators=(",", ":")).encode(),
+            ).decode().rstrip("=")
+            with self.subTest(scope=scope):
+                second = list_search_history(self.store, "fixture", cursor=cursor, search_profile_id=scope)
+                self.assertEqual([run["run_id"] for run in second["runs"]], ["legacy-0"])
+                for invalid in (cursor + "!", "x" * 513):
+                    with self.assertRaisesRegex(ValueError, "CURSOR_INVALID"):
+                        list_search_history(self.store, "fixture", cursor=invalid, search_profile_id=scope)
+                with self.assertRaisesRegex(ValueError, "CURSOR_INVALID"):
+                    list_search_history(self.store, "other", cursor=cursor, search_profile_id=scope)
+                with self.assertRaisesRegex(ValueError, "CURSOR_INVALID"):
+                    list_search_history(self.store, "fixture", cursor=cursor, search_profile_id="another")
     def test_invalid_record_is_rejected_without_appending_a_partial_run(self):
         with self.assertRaisesRegex(ValueError, "SEARCH_HISTORY_STATUS_INVALID"):
             record_search_history(self.store, self._run(status=[]))

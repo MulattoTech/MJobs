@@ -43,6 +43,7 @@ type ApiSearchHistoryRecord = Omit<SearchHistoryRecord, 'errors' | 'error_detail
 };
 
 type PostingActivity = { new: number; unchanged: number; updated: number };
+const MAX_CURSOR_LENGTH = 512;
 
 function postingActivityOrUndefined(value: unknown, status: string, results: number | null,
   duplicates: number | null): PostingActivity | undefined {
@@ -82,8 +83,7 @@ function scopeMismatch(): SearchHistoryClientError {
 }
 
 function requireProfileId(value: string): string {
-  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 128 ||
-      value === '.' || value === '..' || /[\\/\u0000-\u001f\u007f]/.test(value)) {
+  if (!isHistoryId(value) || value === '.' || value === '..' || /[\\/]/.test(value)) {
     throw invalidRequest('Invalid profile identifier.');
   }
   return value;
@@ -98,12 +98,11 @@ function validatePageOptions(options: SearchHistoryPageOptions = {}): Required<P
     throw invalidRequest('Search history page size must be between 1 and 100.');
   }
   if (cursor !== undefined && cursor !== null &&
-      (typeof cursor !== 'string' || cursor.length === 0 || cursor.length > 1024 ||
+      (typeof cursor !== 'string' || cursor.length === 0 || cursor.length > MAX_CURSOR_LENGTH ||
         /[\u0000-\u001f\u007f]/.test(cursor))) {
     throw invalidRequest('Invalid search history page cursor.');
   }
-  if (search_profile_id !== undefined &&
-      (!nonemptyCodePointText(search_profile_id, 128) || search_profile_id !== search_profile_id.trim())) {
+  if (!optionalSearchProfileId(search_profile_id)) {
     throw invalidRequest('Invalid saved search identifier.');
   }
   return { limit, cursor, search_profile_id };
@@ -119,8 +118,14 @@ function nonemptyCodePointText(value: unknown, maxCodePoints: number): value is 
   return nonemptyText(value, maxCodePoints * 2) && Array.from(value).length <= maxCodePoints;
 }
 
+function isHistoryId(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= 256 &&
+    /[^\p{White_Space}]/u.test(value) && !/[\u0000-\u001f\u007f\ud800-\udfff]/u.test(value) &&
+    Array.from(value).length <= 128;
+}
+
 function optionalSearchProfileId(value: unknown): value is string | undefined {
-  return value === undefined || nonemptyCodePointText(value, 128);
+  return value === undefined || isHistoryId(value);
 }
 
 function timestampOrNull(value: unknown): value is string | null {
@@ -176,17 +181,21 @@ function normalizeResponse(
   profileId: string,
   limit: number,
   requestedCursor: string | null | undefined,
+  searchProfileId: string | undefined,
 ): SearchHistoryResponse {
   if (!isRecord(value)) throw invalidResponse();
   if (value.profile_id !== profileId) throw scopeMismatch();
   if (!Array.isArray(value.items) || value.items.length > limit) throw invalidResponse();
   if (!(value.next_cursor === null ||
       (typeof value.next_cursor === 'string' && value.next_cursor.length > 0 &&
-        value.next_cursor.length <= 1024 && !/[\u0000-\u001f\u007f]/.test(value.next_cursor)))) {
+        value.next_cursor.length <= MAX_CURSOR_LENGTH && !/[\u0000-\u001f\u007f]/.test(value.next_cursor)))) {
     throw invalidResponse();
   }
   if (typeof requestedCursor === 'string' && value.next_cursor === requestedCursor) throw invalidResponse();
   const items = value.items.map(item => normalizeRecord(item, profileId));
+  if (searchProfileId !== undefined && items.some(item => item.search_profile_id !== searchProfileId)) {
+    throw scopeMismatch();
+  }
   if (new Set(items.map(item => item.id)).size !== items.length) throw invalidResponse();
   return {
     profile_id: profileId,
@@ -243,7 +252,7 @@ export function createSearchHistoryClient(
         } catch {
           throw invalidResponse();
         }
-        return normalizeResponse(body, selectedProfile, limit, cursor);
+        return normalizeResponse(body, selectedProfile, limit, cursor, search_profile_id);
       }, fetchImpl);
     },
   };

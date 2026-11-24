@@ -109,6 +109,16 @@ class SearchHistoryEventTests(unittest.TestCase):
 
         self.assertNotIn("search_profile_id", record)
 
+    def test_terminal_saved_search_identity_is_preserved_verbatim(self):
+        for index, search_id in enumerate((" infra ", "infra", " " + "\U0001f680" * 126 + " ")):
+            with self.subTest(search_id=search_id):
+                operation = self._operation(id=f"id-{index}", params={"search_profile_id": search_id})
+                record = build_search_history_record(operation, self._metadata())
+                self.assertEqual(record["search_profile_id"], search_id)
+                record_search_history(self.store, record)
+                scoped = list_search_history(self.store, "fixture", search_profile_id=search_id)
+                self.assertEqual([run["run_id"] for run in scoped["runs"]], [record["run_id"]])
+
     def test_dead_lettered_operation_maps_to_failed_and_preserves_error(self):
         operation = self._operation(
             state="DEAD_LETTERED", error="SOURCE_UNAVAILABLE",

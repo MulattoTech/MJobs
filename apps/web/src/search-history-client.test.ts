@@ -207,15 +207,39 @@ describe('search history API client', () => {
     const client = createSearchHistoryClient({ fetchImpl });
 
     for (const options of [
-      { limit: 0 }, { limit: 101 }, { limit: 1.5 }, { cursor: '' }, { cursor: 'x'.repeat(1025) },
+      { limit: 0 }, { limit: 101 }, { limit: 1.5 }, { cursor: '' }, { cursor: 'x'.repeat(513) },
       { search_profile_id: '' }, { search_profile_id: 'x'.repeat(129) },
-      { search_profile_id: '\u{1f680}'.repeat(129) }, { search_profile_id: ' padded' },
+      { search_profile_id: '\u{1f680}'.repeat(129) }, { search_profile_id: '   ' },
       { search_profile_id: 'search\n7' }, { search_profile_id: 'search\u007f7' },
     ]) {
       await expect(client.loadHistory('profile-1', options))
         .rejects.toMatchObject({ kind: 'INVALID_REQUEST', retryable: false });
     }
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each([' infra ', 'infra', ' ' + '\u{1f680}'.repeat(126) + ' '])(
+    'uses the exact saved-search ID in the scoped request and response', async search_profile_id => {
+      const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
+        profile_id: 'profile-1', items: [{ ...record, search_profile_id }], next_cursor: null,
+      }));
+      const client = createSearchHistoryClient({ fetchImpl });
+      await expect(client.loadHistory('profile-1', { limit: 1, search_profile_id })).resolves.toMatchObject({
+        items: [{ search_profile_id }],
+      });
+      const [url] = fetchImpl.mock.calls[0];
+      expect(new URL(url, 'http://local.test').searchParams.get('search_profile_id')).toBe(search_profile_id);
+    },
+  );
+
+  it('rejects a scoped receipt with a different saved-search ID', async () => {
+    const client = createSearchHistoryClient({
+      fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+        profile_id: 'profile-1', items: [{ ...record, search_profile_id: 'infra' }], next_cursor: null,
+      })),
+    });
+    await expect(client.loadHistory('profile-1', { search_profile_id: ' infra ' }))
+      .rejects.toMatchObject({ kind: 'SCOPE_MISMATCH', retryable: false });
   });
 
   it('rejects foreign-profile, invalid-pagination, and malformed record responses', async () => {
