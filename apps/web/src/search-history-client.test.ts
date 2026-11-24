@@ -92,6 +92,61 @@ describe('search history API client', () => {
     expect(result.items[0].duplicates).toBeNull();
   });
 
+  it('carries authoritative posting activity, including measured zeros, separately from legacy rows', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
+      profile_id: 'profile-1',
+      items: [
+        { ...record, status: 'COMPLETED', errors: [], results: 0, new_jobs: 0, duplicates: 0,
+          posting_activity: { new: 0, unchanged: 0, updated: 0 } },
+        { ...record, id: 'legacy-run', status: 'COMPLETED', errors: [], results: 8, new_jobs: 2,
+          duplicates: 6 },
+      ],
+      next_cursor: null,
+    }));
+    const client = createSearchHistoryClient({ fetchImpl });
+
+    const result = await client.loadHistory('profile-1');
+
+    expect(result.items[0].posting_activity).toEqual({ new: 0, unchanged: 0, updated: 0 });
+    expect(result.items[1]).not.toHaveProperty('posting_activity');
+    expect(result.items[1].duplicates).toBe(6);
+  });
+
+  it.each([
+    ['missing key', { new: 1, unchanged: 1 }],
+    ['extra key', { new: 1, unchanged: 1, updated: 0, other: 0 }],
+    ['negative count', { new: -1, unchanged: 1, updated: 0 }],
+    ['fractional count', { new: 1.5, unchanged: 0, updated: 0 }],
+    ['unsafe count', { new: Number.MAX_SAFE_INTEGER + 1, unchanged: 0, updated: 0 }],
+    ['inconsistent total', { new: 1, unchanged: 1, updated: 1 }],
+    ['inconsistent unchanged count', { new: 2, unchanged: 7, updated: 3 }],
+    ['above backend counter limit', { new: 1_000_000_001, unchanged: 0, updated: 0 }],
+  ])('rejects malformed posting activity (%s)', async (_case, posting_activity) => {
+    const client = createSearchHistoryClient({
+      fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+        profile_id: 'profile-1',
+        items: [{ ...record, status: 'COMPLETED', errors: [], posting_activity }],
+        next_cursor: null,
+      })),
+    });
+
+    await expect(client.loadHistory('profile-1'))
+      .rejects.toMatchObject({ kind: 'INVALID_RESPONSE', retryable: false });
+  });
+
+  it.each(['FAILED', 'CANCELLED'])('rejects posting activity on %s runs', async status => {
+    const client = createSearchHistoryClient({
+      fetchImpl: vi.fn().mockResolvedValue(jsonResponse({
+        profile_id: 'profile-1',
+        items: [{ ...record, status, posting_activity: { new: 2, unchanged: 8, updated: 2 } }],
+        next_cursor: null,
+      })),
+    });
+
+    await expect(client.loadHistory('profile-1'))
+      .rejects.toMatchObject({ kind: 'INVALID_RESPONSE', retryable: false });
+  });
+
   it('preserves optional saved-search identity while legacy rows remain valid', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
       profile_id: 'profile-1',

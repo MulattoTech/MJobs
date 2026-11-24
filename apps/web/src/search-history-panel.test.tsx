@@ -147,6 +147,28 @@ describe('search history panel', () => {
     expect(html).toContain('<td>Unknown</td><td>0</td><td>Unknown</td>');
   });
 
+  it('shows authoritative posting activity and marks mixed legacy rows unavailable', () => {
+    const state: SearchHistoryPanelState = {
+      status: 'ready',
+      response: {
+        ...response,
+        items: [
+          { ...record, status: 'COMPLETED', errors: 0, results: 4, new_jobs: 1, duplicates: 2,
+            posting_activity: { new: 1, unchanged: 2, updated: 1 } },
+          { ...record, id: 'legacy-run', status: 'COMPLETED', results: 8, new_jobs: 2, duplicates: 6 },
+        ],
+      },
+    };
+    const html = renderToStaticMarkup(
+      <SearchHistoryPanelView profileId="profile-1" state={state} onRetry={() => {}} />,
+    );
+
+    expect(html).toContain('New 1 · Unchanged 2 · Updated 1');
+    expect(html).toContain('Unavailable (legacy run)');
+    expect(html).toContain('<th scope="col">Duplicates</th>');
+    expect(html).toContain('<td>6</td><td>Unavailable (legacy run)</td>');
+  });
+
   it('offers retry after a load error without exposing the thrown error or changing scope', () => {
     const state: SearchHistoryPanelState = { status: 'error' };
     const onRetry = vi.fn();

@@ -11,6 +11,7 @@ export type SearchHistoryRecord = {
   results: number | null;
   new_jobs: number | null;
   duplicates: number | null;
+  posting_activity?: { new: number; unchanged: number; updated: number };
   errors: number;
   status: 'COMPLETED' | 'FAILED' | 'CANCELLED';
   error_detail?: string | null;
@@ -159,6 +160,7 @@ export function SearchHistoryPanelView({
                   <th scope="col">Results</th>
                   <th scope="col">New jobs</th>
                   <th scope="col">Duplicates</th>
+                  <th scope="col">Posting activity</th>
                   <th scope="col">Errors</th>
                   <th scope="col">Filters and details</th>
                 </tr>
@@ -183,6 +185,9 @@ export function SearchHistoryPanelView({
                     <td>{count(item.results)}</td>
                     <td>{count(item.new_jobs)}</td>
                     <td>{count(item.duplicates)}</td>
+                    <td>{item.posting_activity
+                      ? <>New {item.posting_activity.new} · Unchanged {item.posting_activity.unchanged} · Updated {item.posting_activity.updated}</>
+                      : 'Unavailable (legacy run)'}</td>
                     <td>{count(item.errors)}</td>
                     <td>
                       <details>

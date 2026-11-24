@@ -42,6 +42,23 @@ type ApiSearchHistoryRecord = Omit<SearchHistoryRecord, 'errors' | 'error_detail
   errors: string[];
 };
 
+type PostingActivity = { new: number; unchanged: number; updated: number };
+
+function postingActivityOrUndefined(value: unknown, status: string, results: number | null,
+  duplicates: number | null): PostingActivity | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value) || Object.keys(value).length !== 3 ||
+      !nonnegativeCountOrNull(value.new) || value.new === null ||
+      !nonnegativeCountOrNull(value.unchanged) || value.unchanged === null ||
+      !nonnegativeCountOrNull(value.updated) || value.updated === null ||
+      status !== 'COMPLETED' || results === null || duplicates === null ||
+      value.new > 1_000_000_000 || value.unchanged > 1_000_000_000 || value.updated > 1_000_000_000 ||
+      value.new + value.unchanged + value.updated !== results || value.unchanged !== duplicates) {
+    throw invalidResponse();
+  }
+  return { new: value.new, unchanged: value.unchanged, updated: value.updated };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
@@ -133,6 +150,10 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
     throw invalidResponse();
   }
   const apiRecord = value as unknown as ApiSearchHistoryRecord;
+  const postingActivity = postingActivityOrUndefined(
+    value.posting_activity, String(value.status), value.results as number | null,
+    value.duplicates as number | null,
+  );
   return {
     id: apiRecord.id,
     profile_id: profileId,
@@ -148,6 +169,7 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
     status: apiRecord.status,
     error_detail: apiRecord.errors.length ? `${apiRecord.errors.length} recorded error${apiRecord.errors.length === 1 ? '' : 's'}.` : null,
     ...(apiRecord.search_profile_id === undefined ? {} : { search_profile_id: apiRecord.search_profile_id }),
+    ...(postingActivity === undefined ? {} : { posting_activity: postingActivity }),
   };
 }
 
