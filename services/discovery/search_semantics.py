@@ -390,8 +390,9 @@ _US_LOCATION = r"(?:the\s+)?(?:united states(?: of america)?|u\.?s\.?(?:a\.?)?)"
 _WORLDWIDE_LOCATION = r"(?:worldwide|globally|global|anywhere in the world)"
 _OTHER_COUNTRY = r"(?:canada|united kingdom|u\.?k\.?|australia|india|germany|france|mexico)"
 _COUNTRY_SCOPE_CUE = re.compile(
-    r"\b(?:only|specifically|particularly|approved|eligible|resident|residents|reside|"
-    r"applicant|applicants|candidate|candidates|state|states|except|excluding|within|across)\b",
+    r"^(?:only\s+(?:in|within|from|for)|within|across)\b"
+    r"|\b(?:specifically|particularly|except|excluding|reside|residents?|"
+    r"(?:approved|eligible)\s+(?:states?|locations?))\b",
     re.I,
 )
 _LOCATION_SCOPE = re.compile(
@@ -399,7 +400,8 @@ _LOCATION_SCOPE = re.compile(
 )
 _WORLDWIDE_WORK = re.compile(rf"\b(?:work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b", re.I)
 _REMOTE_TEXT_SCOPE = re.compile(
-    rf"\b(?:remote|work)\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+{_US_LOCATION}\b",
+    rf"\b(?:remote|work)\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
+    rf"(?P<country>{_US_LOCATION})\b",
     re.I,
 )
 _ALLOWED_STATES = re.compile(_STATE_LIST, re.I)
@@ -415,34 +417,31 @@ def _residence_scopes(text):
 
 
 def _country_scope_is_unambiguous(text, end, country_text):
-    """Accept a country scope only when its bounded continuation is non-geographic."""
+    """Accept a closed nationwide clause followed by no geographic qualifier."""
     tail = text[end:]
-    abbreviation = bool(re.fullmatch(r"u\.?s\.?(?:a\.?)?", country_text.strip(), re.I))
-    if tail.startswith(".,"):
-        # The country matcher stopped before U.S.'s final dot and its comma.
+    dotted_abbreviation = re.fullmatch(r"(?:the\s+)?u\.s(?:\.?a)?", country_text, re.I)
+    if dotted_abbreviation and re.match(r"\.\s*(?:[,(:]|only\b)", tail, re.I):
+        # U.S.'s last dot belongs to the abbreviation before a continuation.
         tail = tail[1:]
-    tail = tail.strip()
+    tail = tail.lstrip(" \t\r")
+    if only := re.match(r"only(?=\s*[.!?;\n]|\s*$)", tail, re.I):
+        tail = tail[only.end():].lstrip(" \t\r")
+
     if not tail:
         return True
-    if re.fullmatch(r"only[.!?]*", tail, re.I):
+    if tail[0] not in ".!?;\n":
+        return False
+    continuation = tail[1:].lstrip()
+    if not continuation:
         return True
 
-    sentence_boundary = tail.startswith(".")
-    continuation = tail[1:].strip() if sentence_boundary else tail
-    if not continuation and sentence_boundary:
-        return True
-    first_sentence = re.split(r"[.!?;\n]", continuation, maxsplit=1)[0].strip()
-    if not first_sentence or _COUNTRY_SCOPE_CUE.search(first_sentence):
-        return False
-    if _STATE_TOKENS.search(first_sentence) or re.search(
-            rf"\b(?:{_US_LOCATION}|{_OTHER_COUNTRY})\b", first_sentence, re.I):
-        return False
-
-    # A period after United States is a clear boundary. U.S. may have consumed
-    # its abbreviation dot, so require an unmistakable unrelated sentence.
-    if sentence_boundary or abbreviation:
-        return first_sentence[0].isupper()
-    return False
+    first_sentence = re.split(r"[!?;\n]|\.(?=\s|$)", continuation, maxsplit=1)[0]
+    return bool(
+        first_sentence and first_sentence[0].isupper()
+        and not _COUNTRY_SCOPE_CUE.search(first_sentence)
+        and not _STATE_TOKENS.search(first_sentence)
+        and not re.search(rf"\b(?:{_US_LOCATION}|{_OTHER_COUNTRY})\b", first_sentence, re.I)
+    )
 
 
 def _declared_residence_states(text):
@@ -480,8 +479,8 @@ def _remote_residence_status(job, state, arrangement):
     location_states = _location_scope_states(location)
     if location_states and state not in location_states:
         return "EXCLUDED"
-    scope = _remote_scope_text(location)
-    if re.fullmatch(_OTHER_COUNTRY, scope, re.I):
+    location_scope = _remote_scope_text(location)
+    if re.fullmatch(_OTHER_COUNTRY, location_scope, re.I):
         return "EXCLUDED"
 
     expressly_eligible = False
@@ -503,28 +502,20 @@ def _remote_residence_status(job, state, arrangement):
                 return "EXCLUDED"
             else:
                 return "UNKNOWN"
-    if expressly_eligible:
-        return "ELIGIBLE"
-
+    remote_country_eligible = False
     for match in _REMOTE_TEXT_SCOPE.finditer(description):
-        country_scope = re.search(rf"{_US_LOCATION}$", match.group(), re.I)
-        if country_scope and not _country_scope_is_unambiguous(
-                description, match.end(), country_scope.group()):
+        if not _country_scope_is_unambiguous(description, match.end(), match["country"]):
             return "UNKNOWN"
+        remote_country_eligible = True
 
-    if re.fullmatch(rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", scope, re.I):
+    if expressly_eligible or re.fullmatch(
+            rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", location_scope, re.I):
         return "ELIGIBLE"
     if location_states:
         return "ELIGIBLE"
     if job.get("remote_type") == "REMOTE_COUNTRY":
         return "EXCLUDED"
-    for match in _REMOTE_TEXT_SCOPE.finditer(description):
-        country_scope = re.search(rf"{_US_LOCATION}$", match.group(), re.I)
-        if country_scope and _country_scope_is_unambiguous(
-                description, match.end(), country_scope.group()):
-            return "ELIGIBLE"
-        return "UNKNOWN"
-    return "ELIGIBLE" if _WORLDWIDE_WORK.search(description) else "UNKNOWN"
+    return "ELIGIBLE" if remote_country_eligible or _WORLDWIDE_WORK.search(description) else "UNKNOWN"
 
 
 def normalize_title(value):
