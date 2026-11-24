@@ -6,6 +6,9 @@ from email.utils import parsedate_to_datetime
 from math import asin, cos, radians, sin, sqrt
 import re
 
+from services.company_discovery.capabilities import feed_capabilities
+from services.discovery.sources.contract import SourceCapability
+
 REMOTE_TYPES = {
     "REMOTE_WORLDWIDE",
     "REMOTE_US",
@@ -1137,8 +1140,8 @@ def evaluate_search(criteria, job, at=None):
     arrangement = remote_type
     provider = attrs.get("provider")
     inferred_workplace = provider == "greenhouse" or (
-        (provider, attrs.get("collection_strategy")) in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON"))
-        and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])
+        provider in ("rss", "json_feed") and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])
+        and feed_capabilities(attrs.get("collection_strategy")).supports(SourceCapability.REMOTE_METADATA)
     )
     if (remote_type == "HYBRID" and provider == "lever"
             and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE"):

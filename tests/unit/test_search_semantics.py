@@ -185,7 +185,8 @@ class SearchSemanticsTests(unittest.TestCase):
 
     def test_legacy_employer_feed_reclassifies_only_text_inferred_arrangements(self):
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
-        for provider, strategy in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON")):
+        for provider, strategy in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON"),
+                                   ("rss", "PUBLIC_JSON"), ("rss", "FEED")):
             attributes = {"provider": provider, "collection_strategy": strategy, "source_id": "fixture-feed",
                           "source_endpoint": "https://employer.example.test/jobs", "remote_indicated": True}
             for location, description, matched in (
@@ -194,7 +195,7 @@ class SearchSemanticsTests(unittest.TestCase):
                 ("Remote, United States", "On-site attendance is required.", False),
                 ("Austin, TX", "On-site role.", False),
             ):
-                with self.subTest(provider=provider, description=description):
+                with self.subTest(provider=provider, strategy=strategy, description=description):
                     result = evaluate_search(criteria, {
                         "location": location, "description": description,
                         "remote_type": "HYBRID", "attributes": attributes,
