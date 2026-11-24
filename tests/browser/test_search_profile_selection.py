@@ -85,14 +85,6 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                         if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
-                        elif (parsed.path == "/jobs"
-                              and parse_qs(parsed.query).get("search_profile_id") == ["python-search"]):
-                            # Exercise the frontend contract even when the backend has yet to emit the additive field.
-                            response = route.fetch()
-                            body = response.json()
-                            for row in body["jobs"]:
-                                row["search_evidence"].setdefault("work_arrangement", "REMOTE")
-                            route.fulfill(response=response, json=body)
                         else:
                             route.continue_()
 
@@ -111,8 +103,10 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                             response.url.startswith(origin + "/jobs?")
                             and "search_profile_id=python-search" in response.url) as python_response:
                         search.select_option("python-search")
-                    self.assertEqual([job["title"] for job in python_response.value.json()["jobs"]],
-                                     ["Python Developer"])
+                    python_jobs = python_response.value.json()["jobs"]
+                    self.assertEqual([job["title"] for job in python_jobs], ["Python Developer"])
+                    self.assertEqual(python_jobs[0]["remote_type"], "HYBRID")
+                    self.assertEqual(python_jobs[0]["search_evidence"]["work_arrangement"], "REMOTE")
                     python_card = page.locator(".job-card").filter(has_text="Python Developer")
                     detail = page.locator(".job-detail")
                     expect(python_card).to_contain_text("Remote, United States · REMOTE")
