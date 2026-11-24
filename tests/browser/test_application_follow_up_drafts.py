@@ -1,4 +1,4 @@
-"""Connected local follow-up drafts are copy-only and survive browser reload."""
+"""Local follow-up drafts are copy-only and refresh after durable tracking changes."""
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
@@ -29,7 +29,7 @@ ROOT = Path(os.environ.get(
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
-    def test_interval_candidates_copy_only_and_reload_are_local_read_only(self):
+    def test_interval_copy_only_reload_and_durable_status_refresh(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-follow-up-browser-") as directory:
             root = Path(directory)
             database = root / "follow-up-browser.db"
@@ -144,6 +144,42 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
                         self.assertTrue(requests)
                         self.assertTrue(all(method in {"GET", "HEAD"} for method, _ in requests),
                                         requests)
+                        self.assertFalse(any(
+                            any(term in url.lower() for term in ("/send", "/submit", "/apply"))
+                            for _, url in requests))
+                        # Only a local manual tracking write follows the read-only
+                        # draft/copy journey above. Its durable result must invalidate
+                        # the existing draft without a reload or threshold change.
+                        before_status_change = len(requests)
+                        status_url = (
+                            f"{origin}/profiles/fixture/applications/{eligible}/tracking/status"
+                        )
+                        page.get_by_label("Manual application status", exact=True).select_option("REJECTED")
+                        with page.expect_response(
+                            lambda response: response.url == status_url
+                            and response.request.method == "PUT"
+                        ) as status_response:
+                            page.get_by_role("button", name="Update status", exact=True).click()
+                        self.assertEqual(status_response.value.status, 200)
+                        self.assertEqual(status_response.value.json()["status"], "REJECTED")
+                        expect(follow_up).to_contain_text(
+                            "No reported applications have been quiet for 7 days or more.")
+                        expect(follow_up).not_to_contain_text(jobs[0]["title"])
+                        self.assertEqual(follow_up.locator("article button").count(), 0)
+                        expect(follow_up.get_by_label(
+                            "Quiet days before follow-up")).to_have_value("7")
+                        self.assertTrue(any(
+                            method == "GET" and "/application-follow-up-drafts?" in url
+                            for method, url in requests[before_status_change:]
+                        ), "The durable status change must trigger a new follow-up GET")
+                        writes = [(method, url) for method, url in requests
+                                  if method not in {"GET", "HEAD"}]
+                        self.assertEqual(writes, [("PUT", status_url)])
+                        readback = page.request.get(
+                            f"{origin}/profiles/fixture/applications/{eligible}/tracking")
+                        self.assertEqual(readback.status, 200)
+                        self.assertEqual(readback.json()["status"], "REJECTED")
+                        self.assertEqual(external_requests, [])
                         self.assertFalse(any(
                             any(term in url.lower() for term in ("/send", "/submit", "/apply"))
                             for _, url in requests))
