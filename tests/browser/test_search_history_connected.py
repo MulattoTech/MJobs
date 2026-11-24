@@ -6,7 +6,7 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select
@@ -148,6 +148,12 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             exact=True)).to_be_visible()
                         expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(1)
                         expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/jobs" and
+                                parse_qs(urlsplit(response.url).query).get("q") == ["Data Engineer"]):
+                            page.get_by_label("Search jobs", exact=True).fill("Data Engineer")
+                        page.get_by_label("Sort", exact=True).select_option("company")
+                        expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(0)
                         with store.engine.connect() as connection:
                             operation = connection.execute(select(m.operations).where(
                                 m.operations.c.id == operation_id)).mappings().one()
@@ -193,6 +199,26 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                                         "Errors", "Filters and details"):
                             expect(table.get_by_role("columnheader", name=heading, exact=True)).to_be_visible()
 
+                        def reopened_saved_jobs(response):
+                            parsed = urlsplit(response.url)
+                            query = parse_qs(parsed.query, keep_blank_values=True)
+                            return (parsed.path == "/jobs" and query.get("profile_id") == ["fixture"]
+                                    and query.get("search_profile_id") == ["fixture-search"]
+                                    and query.get("q", [""]) == [""] and query.get("sort") == ["score"])
+
+                        with page.expect_response(reopened_saved_jobs, timeout=7000) as reopened:
+                            table.get_by_role("button", name="Review jobs", exact=True).click()
+                            expect(page.get_by_label("Search jobs", exact=True)).to_have_value("")
+                            expect(page.get_by_label("Sort", exact=True)).to_have_value("score")
+                        self.assertEqual(reopened.value.status, 200)
+                        self.assertEqual([job["title"] for job in reopened.value.json()["jobs"]],
+                                         ["Python Developer"])
+                        expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(1)
+
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == history_path):
+                            page.get_by_role("button", name="Activity", exact=True).click()
+                        expect(table).to_be_visible()
                         self.assertTrue(all(item["profile_id"] == "fixture" for item in new_runs))
 
                         required_fields = {

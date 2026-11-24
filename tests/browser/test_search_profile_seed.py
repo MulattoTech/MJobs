@@ -228,6 +228,51 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("button", name="Save search", exact=True)).to_be_visible()
                     self.assertTrue(include_titles.evaluate("field => field.validity.valueMissing"))
 
+                    residence_id = "api-residence-remote"
+                    residence_url = f"{origin}/search-profiles/{residence_id}"
+                    created = page.request.put(origin + "/search-profiles", data={
+                        "id": residence_id, "profile_id": profile_id, "name": "Remote arrangement only",
+                        "include_titles": ["Network Engineer"], "remote": "ANY",
+                        "work_arrangements": ["REMOTE"], "remote_residence_state": "OK",
+                    })
+                    self.assertEqual(created.status, 200)
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    residence_card = page.locator(".document").filter(
+                        has=page.get_by_text("Remote arrangement only", exact=True))
+                    residence_card.get_by_role("button", name="Edit search", exact=True).click()
+                    remote_preference = page.get_by_role("combobox", name="Remote preference", exact=True)
+                    expect(remote_preference).to_have_value("ANY")
+                    page.get_by_label("Search name", exact=True).fill("Renamed remote arrangement")
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT" and
+                            urlsplit(response.url).path == "/search-profiles") as renamed_residence:
+                        page.get_by_role("button", name="Update search", exact=True).click()
+                    self.assertEqual(renamed_residence.value.status, 200)
+                    after_rename = page.request.get(residence_url).json()["criteria"]
+                    self.assertEqual(after_rename["remote_residence_state"], "OK")
+                    self.assertEqual(after_rename["remote"], "ANY")
+                    self.assertEqual(after_rename["work_arrangements"], ["REMOTE"])
+
+                    page.locator(".document").filter(
+                        has=page.get_by_text("Renamed remote arrangement", exact=True)
+                    ).get_by_role("button", name="Edit search", exact=True).click()
+                    residence_field = page.get_by_label("Remote work eligible state")
+                    expect(residence_field).to_have_value("OK")
+                    remote_preference.select_option("EXCLUDED")
+                    page.get_by_role("checkbox", name="Remote", exact=True).uncheck()
+                    page.get_by_role("checkbox", name="On-site", exact=True).check()
+                    expect(residence_field).to_have_count(0)
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT" and
+                            urlsplit(response.url).path == "/search-profiles") as saved_onsite:
+                        page.get_by_role("button", name="Update search", exact=True).click()
+                    self.assertEqual(saved_onsite.value.status, 200)
+                    after_onsite = page.request.get(residence_url).json()["criteria"]
+                    self.assertIsNone(after_onsite["remote_residence_state"])
+                    self.assertEqual(after_onsite["remote"], "EXCLUDED")
+                    self.assertEqual(after_onsite["work_arrangements"], ["ONSITE"])
+
                     self.assertEqual(external, [])
                     self.assertFalse(any("/collect" in urlsplit(url).path for _, url in requests))
                     self.assertEqual(store.count("worker_operations"), 0)

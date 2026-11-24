@@ -717,8 +717,7 @@ function App() {
     const canonicalWindow=criteria.date_window&&criteria.date_window!=='ANY'?criteria.date_window as DateWindow:'';
     setDateWindow(canonicalWindow||legacyDateWindow(filters?.posted_within_days));setDateStart(utcDateInput(criteria.date_start));setDateEnd(utcDateInput(criteria.date_end));
     if(filters){setQ(filters.q);setTitle(filters.title||'');setCompany(filters.company||'');setLocationText(filters.location||'');setSalaryMin(filters.salary_min||'');setSalaryMax(filters.salary_max||'');setSalaryPeriod((filters.salary_period||'YEAR') as SalaryPeriod);setSalaryPolicy((filters.salary_policy||'DEFAULT') as SalaryPolicy);setMinMatchScore(filters.min_match_score||'');setExperienceLevel((filters.experience_level||'') as ExperienceLevel|'');setEmploymentType((filters.employment_type||'') as EmploymentType|'');setSkillId(filters.skill||'');setEducationRequirement((filters.education_requirement||'') as EducationRequirement|'');setClearanceLevel((filters.clearance_level||'') as ClearanceLevel|'');setApplicationLinkStatus((filters.application_link_status||'') as ApplicationLinkStatusFilter);setApplicationPipelineStatus((filters.application_pipeline_status||'') as ApplicationPipelineStatusFilterValue);setApplicationCapability((filters.application_capability||'') as ApplicationCapabilityFilterValue);setAtsProvider((filters.ats_provider||'') as 'greenhouse'|'lever'|'mock-ats'|'');setJobSourceId(filters.job_source_id||'');setRemote(filters.remote_type);setProvider(filters.provider);setSort(filters.sort);}
-    else if(!id){setQ('');setTitle('');setCompany('');setLocationText('');setSalaryMin('');setSalaryMax('');setSalaryPeriod('YEAR');setSalaryPolicy('DEFAULT');setMinMatchScore('');setExperienceLevel('');setEmploymentType('');setSkillId('');setEducationRequirement('');setClearanceLevel('');setApplicationLinkStatus('');setApplicationPipelineStatus('');setApplicationCapability('');setAtsProvider('');setJobSourceId('');setRemote('');setProvider('');setSort('score');}
-    else {setSalaryPeriod('YEAR');setSalaryPolicy('DEFAULT');setSalaryMin('');setSalaryMax('');setApplicationPipelineStatus('');setApplicationCapability('');}
+    else {setQ('');setTitle('');setCompany('');setLocationText('');setSalaryMin('');setSalaryMax('');setSalaryPeriod('YEAR');setSalaryPolicy('DEFAULT');setMinMatchScore('');setExperienceLevel('');setEmploymentType('');setSkillId('');setEducationRequirement('');setClearanceLevel('');setApplicationLinkStatus('');setApplicationPipelineStatus('');setApplicationCapability('');setAtsProvider('');setJobSourceId('');setRemote('');setProvider('');setSort('score');}
   }
   async function collectSavedSearch(search:SearchProfile,sourceId:string) {
     const activeProfile=profileRef.current;
@@ -1729,6 +1728,10 @@ function App() {
     {id:'run-first-search',label:'Run first search',description:'Run your saved search on one enabled source. Results are filtered and matched using your profile.',complete:firstRunSearchComplete,action:'search',actionLabel:'Run saved search'},
   ];
   const activeSavedSearch=searchProfiles.find(search=>search.id===selectedSearchProfileId&&search.profile_id===profileId);
+  const hasRemoteSearchArrangement=searchWorkArrangements.includes('REMOTE');
+  const canUseSearchResidenceState=searchRemote!=='EXCLUDED'
+    && (!searchWorkArrangements.length||hasRemoteSearchArrangement)
+    && (searchRemote==='REQUIRED'||hasRemoteSearchArrangement||!!searchRemoteResidenceState);
   const currentSearchReceiptLookup:SearchReceiptLookup=searchReceiptLookupState?.profileId===profileId&&searchReceiptLookupState.searchProfileId===selectedSearchProfileId
     ?searchReceiptLookupState.lookup:{status:'loading'};
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
@@ -1992,7 +1995,7 @@ function App() {
             const selected=searchProfiles.find(search=>search.id===editingSearchId&&search.profile_id===profileId);
             const schedule=savedSearchScheduleValue(selected?.scheduler||selected?.criteria.scheduler);
             const scheduler=savedSearchSchedulerPayload(schedule);
-            const residenceState=searchRemote==='REQUIRED'?searchRemoteResidenceState.trim().toUpperCase()||null:null;
+            const residenceState=canUseSearchResidenceState?searchRemoteResidenceState.trim().toUpperCase()||null:null;
             const employmentTypes=selected&&searchEmployment===(selected.criteria.employment_types[0]||'')
               ?selected.criteria.employment_types:searchEmployment?[searchEmployment]:[];
             const states=searchStates.split(/[\n,]+/).map(value=>value.trim().toUpperCase()).filter(Boolean);
@@ -2011,7 +2014,7 @@ function App() {
               <label>Employment type<select value={searchEmployment} onChange={e=>setSearchEmployment(e.target.value)}><option value="">Any</option><option value="FULL_TIME">Full-time</option><option value="PART_TIME">Part-time</option><option value="CONTRACT">Contract</option><option value="CONTRACT_TO_HIRE">Contract-to-hire</option><option value="TEMPORARY">Temporary</option><option value="INTERNSHIP">Internship</option><option value="OTHER">Other</option></select></label>
             </div>
             <label>Include titles<textarea required={!editingSearchId} value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
-            {searchRemote==='REQUIRED'&&<label>Remote work must allow this US state<input aria-label="Remote work eligible state" value={searchRemoteResidenceState} maxLength={2} onChange={e=>setSearchRemoteResidenceState(e.target.value.toUpperCase())} placeholder="OK"/><span className="muted">Leave blank when eligibility is unknown.</span></label>}
+            {canUseSearchResidenceState&&<label>Remote work must allow this US state<input aria-label="Remote work eligible state" value={searchRemoteResidenceState} maxLength={2} onChange={e=>setSearchRemoteResidenceState(e.target.value.toUpperCase())} placeholder="OK"/><span className="muted">Leave blank when eligibility is unknown.</span></label>}
             <label>Allowed states<textarea aria-label="Allowed states" value={searchStates} onChange={e=>setSearchStates(e.target.value)} placeholder="OK\nTX"/></label>
             <label>Allowed cities<textarea aria-label="Allowed cities" value={searchCities} onChange={e=>setSearchCities(e.target.value)} placeholder="Durant\nDenison\nSherman"/></label>
             <fieldset><legend>Work arrangement</legend>{(['REMOTE','HYBRID','ONSITE'] as const).map(value=><label key={value}><input type="checkbox" checked={searchWorkArrangements.includes(value)} onChange={e=>setSearchWorkArrangements(current=>e.target.checked?[...current,value]:current.filter(item=>item!==value))}/>{value==='REMOTE'?'Remote':value==='HYBRID'?'Hybrid':'On-site'}</label>)}</fieldset>
