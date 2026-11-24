@@ -683,19 +683,47 @@ def test_opt_in_diagnostics_report_success_without_changing_receipt():
     assert 'stop_code' not in observed
 
 
-def test_v2_client_cleanup_failure_does_not_report_corroborated():
+@pytest.mark.parametrize('reject', [False, True], ids=['linked-proof', 'native-mismatch'])
+@pytest.mark.parametrize('cleanup_fails', [False, True], ids=['clean-close', 'failed-close'])
+def test_v2_diagnostic_is_published_only_after_client_cleanup(reject, cleanup_fails):
     values, policy = v2_inputs()
+    responses = pages()
+    if reject:
+        responses[NATIVE] = httpx.Response(200,
+            json={'id': 123, 'title': 'Unrelated role', 'absolute_url': EMPLOYER},
+            request=httpx.Request('GET', NATIVE))
+    options = dict(responses=responses, verification_policy=policy, pending_sha256='c' * 64)
+    baseline = resolve_with_real_rate_gate(values, **options)
     diagnostic = {'stop_code': 'STALE', 'owner_marker': 'retained'}
+    snapshots = []
+    failure = PublicFetchError('CLIENT_CLEANUP_FAILED')
+    close = subject.BudgetedPublicClient.close
 
-    def fail_close(_client):
-        raise PublicFetchError('CLIENT_CLEANUP_FAILED')
+    def observe_close(client):
+        snapshots.append(dict(diagnostic))
+        close(client)
+        if cleanup_fails and len(snapshots) == 1:
+            raise failure
 
-    with patch.object(subject.BudgetedPublicClient, 'close', fail_close):
-        with pytest.raises(PublicFetchError, match='^CLIENT_CLEANUP_FAILED$'):
-            resolve_with_real_rate_gate(values, verification_policy=policy,
-                pending_sha256='c' * 64, diagnostic=diagnostic)
+    with patch.object(subject.BudgetedPublicClient, 'close', observe_close):
+        if cleanup_fails:
+            with pytest.raises(PublicFetchError) as raised:
+                resolve_with_real_rate_gate(values, diagnostic=diagnostic, **options)
+            assert raised.value is failure
+            assert diagnostic == {'owner_marker': 'retained'}
+        else:
+            observed = resolve_with_real_rate_gate(values, diagnostic=diagnostic, **options)
+            assert observed == baseline
+            if reject:
+                assert observed is None
+                expected_code = 'NATIVE_JOB_MISMATCH'
+            else:
+                assert subject.validate_v2_observations(observed, v2_binding(values, policy),
+                    subject.extract_bootstrap_hint(values[0], values[1]))
+                expected_code = 'CORROBORATED'
+            assert diagnostic == {'owner_marker': 'retained', 'stop_code': expected_code}
 
-    assert diagnostic == {'owner_marker': 'retained'}
+    assert snapshots == [{'owner_marker': 'retained'}] * (1 if reject else 2)
 
 
 def test_opt_in_diagnostics_clear_stale_outcome_on_propagated_cancellation():
