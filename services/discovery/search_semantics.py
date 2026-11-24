@@ -387,6 +387,9 @@ _STATE_EXCLUSIONS = (
         re.I,
     ),
 )
+_OPEN_ONLY_TO = re.compile(
+    r"\b(?:open|available)\s+only\s+to\s+(?P<scope>[^.;\n]+)", re.I,
+)
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
     r"(?:(?:may|can)\s+apply|are\s+eligible)\b",
@@ -502,6 +505,23 @@ def _remote_residence_status(job, state, arrangement):
     if _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY.search(text):
         return "UNKNOWN"
 
+    expressly_eligible = False
+    for policy in _OPEN_ONLY_TO.finditer(text):
+        scope = policy["scope"].strip()
+        states = re.fullmatch(
+            rf"(?P<states>{_STATE_LIST})\s+residents?(?:\s+only)?|"
+            rf"residents?\s+of\s+(?P<states_of>{_STATE_LIST})(?:\s+only)?",
+            scope, re.I,
+        )
+        if not states:
+            return "UNKNOWN"
+        allowed_states = _stated_us_states(states["states"] or states["states_of"])
+        if not allowed_states:
+            return "UNKNOWN"
+        if state not in allowed_states:
+            return "EXCLUDED"
+        expressly_eligible = True
+
     location_states = _location_scope_states(location)
     if location_states and state not in location_states:
         return "EXCLUDED"
@@ -509,7 +529,6 @@ def _remote_residence_status(job, state, arrangement):
     if re.fullmatch(_OTHER_COUNTRY, location_scope, re.I):
         return "EXCLUDED"
 
-    expressly_eligible = False
     for text in (location, description):
         for states in _declared_residence_states(text):
             if state not in states:
@@ -939,7 +958,13 @@ def evaluate_search(criteria, job, at=None):
     remote_type = str(job.get("remote_type") or "UNKNOWN")
     arrangements = set(criteria.get("work_arrangements") or [])
     arrangement = remote_type
-    if remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
+    if remote_type == "HYBRID" and attrs.get("remote_indicated"):
+        current_location = classify_location(job.get("location"), job.get("description"))
+        if current_location["remote_type"].startswith("REMOTE"):
+            arrangement = "REMOTE"
+        elif current_location["remote_type"] == "ONSITE":
+            arrangement = "ONSITE"
+    elif remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
         arrangement = "HYBRID" if _REQUIRED_ONSITE.search(description) else "REMOTE"
     remote_preference = criteria.get("remote", "ANY")
     if remote_preference == "REQUIRED" and arrangement != "REMOTE":

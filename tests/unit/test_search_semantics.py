@@ -101,6 +101,10 @@ class SearchSemanticsTests(unittest.TestCase):
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, US", "Applicants must reside in the United States. Collaboration hours overlap the Pacific time zone.",
              True, None),
+            ("Remote, United States", "This position is open only to California residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Remote within the United States. This position is open only to California residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, US", "Applicants must reside in OK, TX.", True, None),
             ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
             ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
@@ -273,6 +277,37 @@ class SearchSemanticsTests(unittest.TestCase):
                 result = evaluate_search(criteria, job)
                 self.assertEqual(result["remote_residence"]["status"], expected_status)
                 self.assertEqual(result["matched"], expected_match, result["reasons"])
+
+    def test_explicit_resident_only_policy_supports_only_named_states(self):
+        for state, expected_status, expected_match in (
+            ("OK", "EXCLUDED", False),
+            ("CA", "ELIGIBLE", True),
+        ):
+            with self.subTest(state=state):
+                location = "Remote, United States"
+                description = "This position is open only to California residents."
+                attributes = classify_location(location, description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, job)
+                self.assertEqual(result["remote_residence"]["status"], expected_status)
+                self.assertEqual(result["matched"], expected_match, result["reasons"])
+
+    def test_legacy_hybrid_type_is_reclassified_from_remote_evidence(self):
+        location = "Remote, United States"
+        description = "Maintain our hybrid cloud infrastructure."
+        legacy_job = {"location": location, "description": description, "remote_type": "HYBRID",
+                      "attributes": {"remote_indicated": True}}
+        self.assertTrue(evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"},
+                                       legacy_job)["matched"])
+
+        genuine_hybrid = {**legacy_job, "description": "Hybrid work schedule with two remote days."}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, genuine_hybrid)["matched"])
+        self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, genuine_hybrid)["matched"])
+        onsite = {**legacy_job, "location": "Sherman, TX", "description": "On-site role."}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, onsite)["matched"])
+        self.assertTrue(evaluate_search({"work_arrangements": ["ONSITE"], "states": ["TX"],
+                                         "cities": ["Sherman"]}, onsite)["matched"])
 
     def test_employment_type_normalization(self):
         cases = {
