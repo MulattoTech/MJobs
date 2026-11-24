@@ -1991,8 +1991,10 @@ function App() {
         <section className="panel">
           <div className="toolbar"><div><h2 data-first-run-anchor="configure-desired-jobs">Scheduled search profiles</h2><p>Profiles are data-driven. The scheduler evaluates each enabled source independently and queues durable discovery work when it is due.</p></div><span className="tag">{searchProfiles.length} saved</span></div>
           {!profileId?<p className="muted">Select or create a career profile before adding a scheduled search.</p>:<form onSubmit={e=>{e.preventDefault();void action(editingSearchId?'Updating search profile':'Saving search profile',async()=>{
-            const titles=searchTitles.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
             const selected=searchProfiles.find(search=>search.id===editingSearchId&&search.profile_id===profileId);
+            const existingTitles=selected?.criteria.include_titles;
+            const titles=existingTitles&&searchTitles===existingTitles.join('\n')
+              ?existingTitles:searchTitles.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
             const schedule=savedSearchScheduleValue(selected?.scheduler||selected?.criteria.scheduler);
             const scheduler=savedSearchSchedulerPayload(schedule);
             const residenceState=canUseSearchResidenceState?searchRemoteResidenceState.trim().toUpperCase()||null:null;
