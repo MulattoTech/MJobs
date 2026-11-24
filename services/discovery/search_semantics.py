@@ -53,13 +53,18 @@ def normalize_us_state(value):
 _LOCATION_ARRANGEMENT_SUFFIX = re.compile(
     r"\s*\(\s*(?:hybrid|on[- ]?site|onsite|remote)\s*\)\s*$", re.I,
 )
+_US_ZIP = r"[0-9]{5}(?:-[0-9]{4})?"
+_LOCATION_CITY_STATE = re.compile(
+    rf"(?P<city>[^\W\d_][\w. '’\-]*?)[ \t]+(?P<state>[A-Z]{{2}})(?:[ \t]+{_US_ZIP})?",
+)
 
 
 def _normalize_location_state(value):
     text = str(value or "").strip()
     if suffix := _LOCATION_ARRANGEMENT_SUFFIX.search(text):
         text = text[:suffix.start()].strip()
-    return normalize_us_state(text)
+    text = re.sub(rf"[ \t]+{_US_ZIP}$", "", text)
+    return None if re.search(r"\d", text) else normalize_us_state(text)
 
 def _fold(value):
     return str(value or "").casefold()
@@ -282,7 +287,7 @@ _HYBRID_WORK_CONTEXT = re.compile(
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
-_HYBRID_NONREQUIREMENT = re.compile(
+_ARRANGEMENT_PREFIX_NONREQUIREMENT = re.compile(
     r"\b(?:no|not|without(?:\s+(?:a|any))?|"
     r"(?:(?:does|do)\s+not|doesn['’]t|don['’]t)\s+(?:require|have)(?:\s+(?:an?|any))?|"
     r"is\s+not\s+required|isn['’]t\s+required)\s*$"
@@ -294,14 +299,27 @@ _HYBRID_TRAILING_NONREQUIREMENT = re.compile(
     r"(?:(?:is|are)[ \t]+not|isn['’]t|aren['’]t)[ \t]+(?:required|mandatory|expected)\b",
     re.I,
 )
+_ONSITE_NONREQUIREMENT = re.compile(
+    r"\b(?:no[ \t]+(?:occasional|regular|weekly|monthly)|never|no[ \t]+longer)[ \t]*$",
+    re.I,
+)
 
 
 def _has_affirmative_hybrid_work_context(text):
     text = str(text or "")
     for match in _HYBRID_WORK_CONTEXT.finditer(text):
         clause_prefix = re.split(r"[.!?;\n,]", text[:match.start()])[-1]
-        if (not _HYBRID_NONREQUIREMENT.search(clause_prefix)
+        if (not _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix)
                 and not _HYBRID_TRAILING_NONREQUIREMENT.match(text, match.end())):
+            return True
+    return False
+
+
+def _requires_onsite(text):
+    for match in _REQUIRED_ONSITE.finditer(text):
+        clause_prefix = re.split(r"[.!?;\r\n,]", text[:match.start()])[-1]
+        if (not _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix)
+                and not _ONSITE_NONREQUIREMENT.search(clause_prefix)):
             return True
     return False
 
@@ -314,7 +332,7 @@ def classify_location(location_text, description=""):
     hybrid_indicated = bool(
         re.search(r"\bhybrid\b", location, re.I)
         or _has_affirmative_hybrid_work_context(description)
-        or (remote_indicated and _REQUIRED_ONSITE.search(combined))
+        or (remote_indicated and _requires_onsite(combined))
     )
     onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
 
@@ -338,6 +356,12 @@ def classify_location(location_text, description=""):
         # A state beside the city is stronger evidence than a code-like word
         # or an unrelated state mentioned in the job description.
         state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
+        if state is None:
+            city_state = _LOCATION_CITY_STATE.fullmatch(_LOCATION_ARRANGEMENT_SUFFIX.sub("", first))
+            if (city_state and city_state["state"] in US_STATES
+                    and not re.search(r"\b(remote|hybrid|onsite|on-site)\b", city_state["city"], re.I)):
+                city = city_state["city"][:200]
+                state = city_state["state"]
 
     restricted_states = set()
     if remote_indicated:
@@ -451,6 +475,7 @@ _RESIDENCE_REQUIREMENT = re.compile(
 _US_LOCATION = r"(?:the\s+)?(?:united states(?: of america)?|u\.?s\.?(?:a\.?)?)"
 _WORLDWIDE_LOCATION = r"(?:worldwide|globally|global|anywhere in the world)"
 _OTHER_COUNTRY = r"(?:canada|united kingdom|u\.?k\.?|australia|india|germany|france|mexico)"
+_NON_US_RESIDENCE_ADJECTIVE = r"(?:canadian|british|australian|indian|german|french|mexican|european)"
 _OPEN_ONLY_RESIDENCE_CUE = re.compile(
     r"\b(?:local\s+residents?|residents?\s+(?:of|in|within))\b"
     r"|\b(?:approved|eligible)\s+(?:states?|locations?|regions?)\b"
@@ -459,6 +484,7 @@ _OPEN_ONLY_RESIDENCE_CUE = re.compile(
     r"|^(?:applicants?|candidates?)\s+(?:(?:currently\s+)?(?:based|located|living|residing)\s+)?(?:in|from)\s+"
     r"(?:europe|european union|eu|emea|asia|asian|africa|african|south america|latin america|latam|apac|oceania)\b"
     r"|^(?:european|asian|african|south american|latin american|oceania)\s+(?:applicants?|candidates?)\b"
+    rf"|^(?:{_OTHER_COUNTRY}|{_NON_US_RESIDENCE_ADJECTIVE})\s+residents?\b"
     rf"|{_STATE_LIST}\s+residents?\b"
     rf"|^(?:{_STATE_LIST}|{_US_LOCATION}|{_OTHER_COUNTRY})(?:\s+(?:applicants?|candidates?|only))?$",
     re.I,
@@ -1068,10 +1094,10 @@ def evaluate_search(criteria, job, at=None):
         if current_location["remote_type"] == "ONSITE":
             arrangement = "ONSITE"
         elif (current_location["remote_type"] != "HYBRID"
-                and not _REQUIRED_ONSITE.search(f"{job.get('location') or ''} {job.get('description') or ''}")):
+                and not _requires_onsite(f"{job.get('location') or ''} {job.get('description') or ''}")):
             arrangement = "REMOTE"
     elif remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
-        arrangement = "HYBRID" if _REQUIRED_ONSITE.search(description) else "REMOTE"
+        arrangement = "HYBRID" if _requires_onsite(description) else "REMOTE"
     elif remote_type == "HYBRID" and attrs.get("provider") == "lever":
         # Historical Lever HYBRID rows lack workplaceType provenance; preserve the structured possibility.
         pass

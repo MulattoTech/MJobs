@@ -28,6 +28,81 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertEqual(classify_location("Hybrid - Austin, TX")["remote_type"], "HYBRID")
         self.assertEqual(classify_location("Austin, TX", "On-site role")["remote_type"], "ONSITE")
 
+    def test_unpunctuated_city_state_uses_a_terminal_postal_code(self):
+        description = "On-site role."
+        for location, city, state in (
+            ("Austin TX", "Austin", "TX"),
+            ("Austin TX 78701", "Austin", "TX"),
+            ("Austin TX 78701-1234 (On-site)", "Austin", "TX"),
+            ("Round Rock TX (Hybrid)", "Round Rock", "TX"),
+            ("Austin TX 78701 extra", "Austin TX 78701 extra", None),
+            ("Austin TX 7870", "Austin TX 7870", None),
+            ("Austin, TX 7870 (On-site)", "Austin", None),
+            ("Seattle", "Seattle", None),
+            ("Remote, United States", None, None),
+        ):
+            with self.subTest(location=location):
+                attrs = classify_location(location, description)
+                self.assertEqual((attrs["city"], attrs["state"]), (city, state))
+                criteria = {"states": ["TX"], "cities": ["Austin", "Round Rock"],
+                            "work_arrangements": ["ONSITE", "HYBRID"]}
+                for attributes in (attrs, {}):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": attrs["remote_type"], "attributes": attributes,
+                    })
+                    self.assertEqual(result["matched"], state == "TX")
+
+    def test_onsite_negation_does_not_override_remote_or_a_separate_requirement(self):
+        location = "Remote, United States"
+        for description, expected_arrangement, expected_status in (
+            ("No on-site attendance is required.", "REMOTE_US", "ELIGIBLE"),
+            ("No regular on-site attendance is required.", "REMOTE_US", "ELIGIBLE"),
+            ("On-site attendance is not required.", "REMOTE_US", "ELIGIBLE"),
+            ("The position never requires on-site work.", "REMOTE_US", "ELIGIBLE"),
+            ("On-site attendance is required.", "HYBRID", "EXCLUDED"),
+            ("No travel is required. On-site attendance is required.", "HYBRID", "EXCLUDED"),
+            ("No on-site attendance is required. The role is hybrid.", "HYBRID", "EXCLUDED"),
+        ):
+            with self.subTest(description=description, stage="classify"):
+                self.assertEqual(classify_location(location, description)["remote_type"], expected_arrangement)
+            for remote_type, attrs in (
+                ("REMOTE_US", {"remote_indicated": True}),
+                ("HYBRID", {"remote_indicated": True, "provider": "greenhouse"}),
+            ):
+                # The evaluator also encounters pre-classified provider records.
+                if remote_type == "REMOTE_US" and description.endswith("The role is hybrid."):
+                    continue
+                with self.subTest(description=description, remote_type=remote_type):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attrs,
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], expected_status)
+                    self.assertEqual(result["matched"], expected_status == "ELIGIBLE")
+
+    def test_exclusive_country_residence_does_not_confirm_us_state_eligibility(self):
+        location = "Remote Worldwide"
+        for description, status in (
+            ("Only Canadian residents may apply.", "UNKNOWN"),
+            ("Only Canada residents are eligible.", "UNKNOWN"),
+            ("This position is open only to Canadian residents.", "UNKNOWN"),
+            ("Only residents of Canada may apply.", "UNKNOWN"),
+            ("Only European residents may apply.", "UNKNOWN"),
+            ("Canadian residents may apply.", "ELIGIBLE"),
+            ("Only U.S. residents may apply.", "ELIGIBLE"),
+            ("Only medical residents may apply.", "ELIGIBLE"),
+            ("Only candidates in good standing may apply.", "ELIGIBLE"),
+        ):
+            with self.subTest(description=description):
+                attrs = classify_location(location, description)
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+                    "location": location, "description": description,
+                    "remote_type": attrs["remote_type"], "attributes": attrs,
+                })
+                self.assertEqual(result["remote_residence"]["status"], status)
+                self.assertEqual(result["matched"], status == "ELIGIBLE")
+
     def test_worldwide_scope_requires_affirmative_whole_clause_evidence(self):
         for description in ("Employees cannot work worldwide.",
                             "Employees can't work worldwide.",
