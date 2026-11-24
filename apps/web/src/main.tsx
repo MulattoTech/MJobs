@@ -433,7 +433,7 @@ function App() {
   const [documentArchiveError,setDocumentArchiveError]=useState('');
   const [resumes,setResumes]=useState<Resume[]>([]);
   const [sourceProvider,setSourceProvider]=useState('greenhouse'); const [leverRegion,setLeverRegion]=useState('global'); const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
-  const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchProfilesLoadedFor,setSearchProfilesLoadedFor]=useState(''); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,SavedSearchScheduleValue>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchCollectionSourceIds,setSearchCollectionSourceIds]=useState<Record<string,string>>({}); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchOptionalSkills,setSearchOptionalSkills]=useState<string[]>([]); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState('all'); const [searchRemoteResidenceState,setSearchRemoteResidenceState]=useState(''); const [searchStates,setSearchStates]=useState<string[]>([]); const [searchCities,setSearchCities]=useState<string[]>([]); const [searchWorkArrangements,setSearchWorkArrangements]=useState<string[]>([]); const [editingSearchId,setEditingSearchId]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
+  const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchProfilesLoadedFor,setSearchProfilesLoadedFor]=useState(''); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,SavedSearchScheduleValue>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchCollectionSourceIds,setSearchCollectionSourceIds]=useState<Record<string,string>>({}); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchOptionalSkills,setSearchOptionalSkills]=useState<string[]>([]); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState('all'); const [searchRemoteResidenceState,setSearchRemoteResidenceState]=useState(''); const [searchStates,setSearchStates]=useState(''); const [searchCities,setSearchCities]=useState(''); const [searchWorkArrangements,setSearchWorkArrangements]=useState<string[]>([]); const [editingSearchId,setEditingSearchId]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
   const [firstRunAcknowledgements,setFirstRunAcknowledgements]=useState<Record<string,string[]>>({});
   const [firstRunSearchComplete,setFirstRunSearchComplete]=useState(false);
   const [firstRunSourceId,setFirstRunSourceId]=useState('');
@@ -558,6 +558,7 @@ function App() {
   }
   const queryRef = useRef({q,title,company,locationText,salaryMin,salaryMax,salaryPeriod,salaryPolicy,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,dateWindow,dateStart,dateEnd,atsProvider,jobSourceId,sort,remote,provider,showDismissed,showBlacklisted,searchProfileId:selectedSearchProfileId}); queryRef.current={q,title,company,locationText,salaryMin,salaryMax,salaryPeriod,salaryPolicy,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,dateWindow,dateStart,dateEnd,atsProvider,jobSourceId,sort,remote,provider,showDismissed,showBlacklisted,searchProfileId:selectedSearchProfileId};
   const searchSelectionHydratedProfile = useRef('');
+  const initialSearchSelection = useRef(true);
   useEffect(()=>{
     if(typeof window==='undefined')return;
     const next=salarySearchUrl(window.location.href,{min:salaryMin,max:salaryMax,period:salaryPeriod,policy:salaryPolicy});
@@ -738,8 +739,8 @@ function App() {
     setSearchSource('all');
     setSearchOptionalSkills([]);
     setSearchRemoteResidenceState(seed.remoteResidenceState||'');
-    setSearchStates(seed.states||[]);
-    setSearchCities(seed.cities||[]);
+    setSearchStates((seed.states||[]).join('\n'));
+    setSearchCities((seed.cities||[]).join('\n'));
     setSearchWorkArrangements(seed.workArrangements||[]);
     setEditingSearchId('');
     setNotice('Example loaded into the form. Review or edit it, then save when ready.');
@@ -753,8 +754,8 @@ function App() {
     setSearchEmployment(search.criteria.employment_types[0]||'');
     setSearchSource(search.source_ids.length===0?'all':search.source_ids.length===1?search.source_ids[0]:'preserve');
     setSearchRemoteResidenceState(search.criteria.remote_residence_state||'');
-    setSearchStates(search.criteria.states||[]);
-    setSearchCities(search.criteria.cities||[]);
+    setSearchStates((search.criteria.states||[]).join('\n'));
+    setSearchCities((search.criteria.cities||[]).join('\n'));
     setSearchWorkArrangements(search.criteria.work_arrangements||[]);
     setNotice(`Editing ${search.name}. Save to update this search.`);
   }
@@ -912,7 +913,9 @@ function App() {
     const stored=localStorage.getItem(key);
     const restored=stored?searchProfiles.find(search=>search.id===stored&&search.profile_id===profileId)?.id||'':'';
     if(stored&&!restored)localStorage.removeItem(key);
-    selectSearchProfile(restored);
+    const shouldApplySelection=!!restored||!initialSearchSelection.current;
+    initialSearchSelection.current=false;
+    if(shouldApplySelection)selectSearchProfile(restored);
   },[profileId,searchProfilesLoadedFor,searchProfiles]);
   useEffect(()=>{
     setNotificationReadError(false);
@@ -1343,6 +1346,7 @@ function App() {
   }
   function switchProfile(id:string) {
     if(id===profileId)return;
+    initialSearchSelection.current=false;
     profileRef.current=id;sourceReportRequest.current=null;
     setShowDismissed(false);setShowBlacklisted(false);
     ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
@@ -1354,7 +1358,7 @@ function App() {
     jobDispositionRequestIds.current.clear();applicationStatusRequestIds.current.clear();setSelectedApp(null);setAnswerExportText(null);applicationRestoreProfile.current='';setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalSourceUrl('');setExternalOrigin('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setAnswerDrafts([]);
     setApps([]);setDocs([]);setResumes([]);setOps([]);setCompanySources([]);
     setDiscoveryRequests([]);setSearchProfiles([]);clearSearchScheduleDrafts();setActiveOp('');
-    setSearchName('');setSearchTitles('');setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchSource('all');setSearchOptionalSkills([]);setSearchRemoteResidenceState('');setSearchStates([]);setSearchCities([]);setSearchWorkArrangements([]);setEditingSearchId('');
+    setSearchName('');setSearchTitles('');setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchSource('all');setSearchOptionalSkills([]);setSearchRemoteResidenceState('');setSearchStates('');setSearchCities('');setSearchWorkArrangements([]);setEditingSearchId('');
     setEditor(newProfile());setError('');setNotice('');setProfileId(id);
   }
   async function prepareJobRoute(job:Job, routeMode:'DEFAULT'|'THIS_ROUTE'='DEFAULT', routeId?:string) {
@@ -1984,10 +1988,14 @@ function App() {
             const schedule=savedSearchScheduleValue(selected?.scheduler||selected?.criteria.scheduler);
             const scheduler=savedSearchSchedulerPayload(schedule);
             const residenceState=searchRemote==='REQUIRED'?searchRemoteResidenceState.trim().toUpperCase()||null:null;
-            const savedCriteria={...(selected?.criteria||{}),include_titles:titles,optional_skills:searchOptionalSkills,remote:searchRemote,employment_types:searchEmployment?[searchEmployment]:[],remote_residence_state:residenceState,states:searchStates,cities:searchCities,work_arrangements:searchWorkArrangements,scheduler};
+            const employmentTypes=selected&&searchEmployment===(selected.criteria.employment_types[0]||'')
+              ?selected.criteria.employment_types:searchEmployment?[searchEmployment]:[];
+            const states=searchStates.split(/[\n,]+/).map(value=>value.trim().toUpperCase()).filter(Boolean);
+            const cities=searchCities.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
+            const savedCriteria={...(selected?.criteria||{}),include_titles:titles,optional_skills:searchOptionalSkills,remote:searchRemote,employment_types:employmentTypes,remote_residence_state:residenceState,states,cities,work_arrangements:searchWorkArrangements,scheduler};
             const sourceIds=searchSource==='all'?[]:searchSource==='preserve'?selected?.source_ids||[]:[searchSource];
             await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:selected?.id||crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:selected?.enabled??true,...savedCriteria,remote_residence_state:residenceState,source_ids:sourceIds,scheduler})});
-            setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchRemoteResidenceState('');setSearchStates([]);setSearchCities([]);setSearchWorkArrangements([]);setSearchSource('all');setEditingSearchId('');setNotice(selected?`Updated ${searchName}.`:'Search saved. Its schedule is off until you enable it on the saved search.');
+            setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchRemoteResidenceState('');setSearchStates('');setSearchCities('');setSearchWorkArrangements([]);setSearchSource('all');setEditingSearchId('');setNotice(selected?`Updated ${searchName}.`:'Search saved. Its schedule is off until you enable it on the saved search.');
           });}}>
             <SearchProfileSeed disabled={!!busy} onApply={applySearchProfileSeed}/>
             <TechnologySkillSeed values={searchOptionalSkills} disabled={!!busy} onChange={setSearchOptionalSkills}/>
@@ -1999,10 +2007,10 @@ function App() {
             </div>
             <label>Include titles<textarea required value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
             {searchRemote==='REQUIRED'&&<label>Remote work must allow this US state<input aria-label="Remote work eligible state" value={searchRemoteResidenceState} maxLength={2} onChange={e=>setSearchRemoteResidenceState(e.target.value.toUpperCase())} placeholder="OK"/><span className="muted">Leave blank when eligibility is unknown.</span></label>}
-            <label>Allowed states<textarea aria-label="Allowed states" value={searchStates.join('\n')} onChange={e=>setSearchStates(e.target.value.split(/[\n,]+/).map(value=>value.trim().toUpperCase()).filter(Boolean))} placeholder="OK\nTX"/></label>
-            <label>Allowed cities<textarea aria-label="Allowed cities" value={searchCities.join('\n')} onChange={e=>setSearchCities(e.target.value.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean))} placeholder="Durant\nDenison\nSherman"/></label>
+            <label>Allowed states<textarea aria-label="Allowed states" value={searchStates} onChange={e=>setSearchStates(e.target.value)} placeholder="OK\nTX"/></label>
+            <label>Allowed cities<textarea aria-label="Allowed cities" value={searchCities} onChange={e=>setSearchCities(e.target.value)} placeholder="Durant\nDenison\nSherman"/></label>
             <fieldset><legend>Work arrangement</legend>{(['REMOTE','HYBRID','ONSITE'] as const).map(value=><label key={value}><input type="checkbox" checked={searchWorkArrangements.includes(value)} onChange={e=>setSearchWorkArrangements(current=>e.target.checked?[...current,value]:current.filter(item=>item!==value))}/>{value==='REMOTE'?'Remote':value==='HYBRID'?'Hybrid':'On-site'}</label>)}</fieldset>
-            <button disabled={!!busy}>{editingSearchId?'Update search':'Save search'}</button>{editingSearchId&&<button type="button" className="quiet" disabled={!!busy} onClick={()=>{setEditingSearchId('');setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchRemoteResidenceState('');setSearchStates([]);setSearchCities([]);setSearchWorkArrangements([]);setSearchSource('all');}}>Cancel editing</button>}
+            <button disabled={!!busy}>{editingSearchId?'Update search':'Save search'}</button>{editingSearchId&&<button type="button" className="quiet" disabled={!!busy} onClick={()=>{setEditingSearchId('');setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchRemoteResidenceState('');setSearchStates('');setSearchCities('');setSearchWorkArrangements([]);setSearchSource('all');}}>Cancel editing</button>}
             {sources.length===0&&<p className="muted">No sources enrolled yet. Save this search now and add sources next; scheduled discovery stays off.</p>}
           </form>}
           {searchProfiles.map(search=>{
@@ -2021,7 +2029,7 @@ function App() {
             {(search.criteria.remote_residence_state||search.criteria.cities?.length||search.criteria.states?.length)&&<p className="muted">{search.criteria.remote_residence_state?`Remote eligibility: ${search.criteria.remote_residence_state}`:''}{search.criteria.cities?.length?` · Cities: ${search.criteria.cities.join(', ')}`:''}{search.criteria.states?.length?` · States: ${search.criteria.states.join(', ')}`:''}</p>}
             {(search.criteria.optional_skills?.length||0)>0&&<p className="muted">Optional technology preferences: {displayTechnologySkillPreferences(search.criteria.optional_skills).join(', ')}</p>}
             <p className="muted">{search.source_ids.length?(search.source_ids.length+' selected source(s)'):'All enabled sources'} · updated {stamp(search.updated_at)}</p>
-            {collectionSources.length>1&&<label>Collection source for {search.name}<select aria-label={`Collection source for ${search.name}`} value={selectedCollectionSourceId} disabled={!!busy||!search.enabled||search.profile_id!==profileId} onChange={event=>setSearchCollectionSourceIds(current=>({...current,[search.id]:event.currentTarget.value}))}><option value="">Choose a source</option>{collectionSources.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}</select></label>}
+            {collectionSources.length>1&&<label>Collection source for {search.name}<select aria-label={`Collection source for ${search.name}`} value={selectedCollectionSourceId} disabled={!!busy||!search.enabled||search.profile_id!==profileId} onChange={event=>{const sourceId=event.currentTarget.value;setSearchCollectionSourceIds(current=>({...current,[search.id]:sourceId}));}}><option value="">Choose a source</option>{collectionSources.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}</select></label>}
             {collectionUnavailableMessage&&<p className="muted" role="status">{collectionUnavailableMessage}</p>}
             <button type="button" disabled={!!busy||!profileId||!search.enabled||search.profile_id!==profileId||!collectionSource} onClick={()=>{if(collectionSource)void collectSavedSearch(search,collectionSource.id);}}>{collectionSource?`Collect ${search.name} from ${collectionSource.name}`:'Collect for this search'}</button>
             <button type="button" className="quiet" disabled={!!busy} onClick={()=>editSavedSearch(search)}>Edit search</button>

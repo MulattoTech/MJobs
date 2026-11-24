@@ -12,6 +12,8 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
+from services.discovery.search_profiles import save_search_profile
+from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -118,13 +120,34 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
 
                     page.get_by_role("button", name="Sources", exact=True).click()
                     page.get_by_role("button", name=f"Use {local_name}", exact=True).click()
-                    expect(page.get_by_label("Allowed cities")).to_have_value("Durant\nDenison\nSherman")
+                    states = page.get_by_label("Allowed states")
+                    cities = page.get_by_label("Allowed cities")
+                    expect(cities).to_have_value("Durant\nDenison\nSherman")
+                    states.fill("OK")
+                    states.press("End")
+                    states.press("Enter")
+                    state_draft = states.input_value()
+                    states.press_sequentially("tx")
+                    cities.press("Control+End")
+                    cities.press("Enter")
+                    cities.press_sequentially("Oklahoma ")
+                    city_draft = cities.input_value()
+                    cities.press_sequentially("City")
                     page.get_by_role("button", name="Save search", exact=True).click()
                     expect(page.get_by_role("region", name=f"Schedule “{local_name}”")).to_be_visible()
 
+                    save_search_profile(store, {
+                        "id": saved["id"], "profile_id": profile_id, "name": remote_name,
+                        "employment_types": ["FULL_TIME", "CONTRACT"],
+                    })
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
                     remote_card = page.locator(".document").filter(
                         has=page.get_by_text(remote_name, exact=True))
                     remote_card.get_by_role("button", name="Edit search", exact=True).click()
+                    expect(page.get_by_role("combobox", name="Employment type", exact=True)).to_have_value("FULL_TIME")
+                    renamed = "Remote infrastructure reviewed"
+                    page.get_by_label("Search name", exact=True).fill(renamed)
                     page.get_by_label("Remote work eligible state").fill("TX")
                     with page.expect_response(lambda response:
                             response.request.method == "PUT" and
@@ -134,17 +157,40 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
 
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Sources", exact=True).click()
-                    expect(remote_schedule).to_be_visible()
+                    expect(page.get_by_role("region", name=f"Schedule “{renamed}”")).to_be_visible()
                     readback = page.request.get(origin + "/search-profiles", params={"profile_id": profile_id})
                     self.assertEqual(readback.status, 200, readback.text())
                     profiles = {row["name"]: row for row in readback.json()["search_profiles"]}
-                    self.assertEqual(profiles[remote_name]["criteria"]["remote_residence_state"], "TX")
+                    self.assertEqual(profiles[renamed]["criteria"]["remote_residence_state"], "TX")
+                    with self.subTest("unedited employment list"):
+                        self.assertEqual(profiles[renamed]["criteria"]["employment_types"],
+                                         ["FULL_TIME", "CONTRACT"])
                     local = profiles[local_name]["criteria"]
                     self.assertIsNone(local["remote_residence_state"])
-                    self.assertEqual(local["states"], ["OK", "TX"])
-                    self.assertEqual(local["cities"], ["Durant", "Denison", "Sherman"])
+                    with self.subTest("geographic drafts and readback"):
+                        self.assertEqual((state_draft, city_draft), ("OK\n", "Durant\nDenison\nSherman\nOklahoma "))
+                        self.assertEqual(local["states"], ["OK", "TX"])
+                        self.assertEqual(local["cities"], ["Durant", "Denison", "Sherman", "Oklahoma City"])
                     self.assertCountEqual(local["work_arrangements"], ["ONSITE", "HYBRID"])
                     self.assertFalse(local["scheduler"]["enabled"])
+
+                    first_source = configure_source(store, "fixture-board-one")
+                    second_source = configure_source(store, "fixture-board-two")
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    local_card = page.locator(".document").filter(has=page.get_by_text(local_name, exact=True))
+                    picker = local_card.get_by_label(f"Collection source for {local_name}")
+                    expect(local_card.get_by_role("button", name="Collect for this search")).to_be_disabled()
+                    page_errors = []
+                    page.on("pageerror", lambda error: page_errors.append(str(error)))
+                    for source_id, name in ((first_source, "fixture-board-one"),
+                                            (second_source, "fixture-board-two")):
+                        picker.select_option(source_id)
+                        expect(picker).to_have_value(source_id)
+                        expect(local_card.get_by_role("button", name=f"Collect {local_name} from {name}")).to_be_enabled()
+                    picker.select_option("")
+                    expect(local_card.get_by_role("button", name="Collect for this search")).to_be_disabled()
+                    self.assertEqual(page_errors, [])
 
                     self.assertEqual(external, [])
                     self.assertFalse(any("/collect" in urlsplit(url).path for _, url in requests))

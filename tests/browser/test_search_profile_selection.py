@@ -4,7 +4,7 @@ import tempfile
 import threading
 import time
 import unittest
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
@@ -140,6 +140,24 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     page.get_by_label("Active profile", exact=True).select_option("fixture")
                     fixture_search = page.get_by_label("Saved search profile", exact=True).last
                     expect(fixture_search).to_have_value("")
+
+                    page.goto(origin + "/?salary_min=25&salary_period=HOUR", wait_until="domcontentloaded")
+                    fixture_search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(fixture_search.locator("option", has_text="Python remote")).to_have_count(1)
+                    expect(fixture_search).to_have_value("")
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("HOUR")
+                    hourly_minimum = page.get_by_label("Minimum hourly salary (USD)", exact=True)
+                    expect(hourly_minimum).to_have_value("25")
+                    self.assertEqual(parse_qs(urlsplit(page.url).query).get("salary_min"), ["25"])
+
+                    fixture_search.select_option("python-search")
+                    page.get_by_label("Salary unit", exact=True).select_option("HOUR")
+                    hourly_minimum.fill("25")
+                    expect(hourly_minimum).to_have_value("25")
+                    fixture_search.select_option("")
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("YEAR")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
+                    expect(page).to_have_url(origin + "/")
 
                     self.assertEqual(external, [])
                     context.close()
