@@ -282,6 +282,21 @@ _HYBRID_WORK_CONTEXT = re.compile(
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
+_HYBRID_NONREQUIREMENT = re.compile(
+    r"\b(?:no|not|without(?:\s+(?:a|any))?|does\s+not\s+require|doesn't\s+require|"
+    r"do\s+not\s+require|don't\s+require|is\s+not\s+required|isn't\s+required)\s*$"
+    r"|\bno\s+(?:need|requirement|expectation)\s+for\s*$",
+    re.I,
+)
+
+
+def _has_affirmative_hybrid_work_context(text):
+    text = str(text or "")
+    for match in _HYBRID_WORK_CONTEXT.finditer(text):
+        clause_prefix = re.split(r"[.!?;\n,]", text[:match.start()])[-1]
+        if not _HYBRID_NONREQUIREMENT.search(clause_prefix):
+            return True
+    return False
 
 
 def classify_location(location_text, description=""):
@@ -291,7 +306,7 @@ def classify_location(location_text, description=""):
     remote_indicated = bool(re.search(r"\bremote\b", folded))
     hybrid_indicated = bool(
         re.search(r"\bhybrid\b", location, re.I)
-        or _HYBRID_WORK_CONTEXT.search(description or "")
+        or _has_affirmative_hybrid_work_context(description)
         or (remote_indicated and _REQUIRED_ONSITE.search(combined))
     )
     onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
@@ -462,16 +477,16 @@ _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
 _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
-_WORLDWIDE_WORK = re.compile(rf"\b(?:work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b", re.I)
-_WORLDWIDE_NEGATION = re.compile(
-    r"\b(?:not|cannot|can\s+not|can't|do\s+not|don't|does\s+not|doesn't|never|"
-    r"unable\s+to|not\s+allowed\s+to|not\s+permitted\s+to|are\s+not\s+able\s+to|aren't\s+able\s+to)\b"
-    r"[^.!?;\n,]*$",
-    re.I,
-)
-_WORLDWIDE_TRAILING_NEGATION = re.compile(
-    r"^\s*(?:(?:is|are)\s+)?(?:not|never|prohibited|forbidden|disallowed)\b"
-    r"|^\s*(?:isn't|aren't)\s+(?:currently\s+)?(?:allowed|permitted|possible|available|supported|offered)\b",
+_WORLDWIDE_CLAUSE_END = r"(?=[ \t]*(?:[.!?;\n]|$))"
+_WORLDWIDE_WORK = re.compile(
+    rf"\b(?:employees?|staff|team members?|workers?|applicants?|candidates?)\s+"
+    rf"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?"
+    rf"work\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}"
+    rf"|\b(?:this|the|a)\s+(?:role|position|job|opportunity|opening)\s+"
+    rf"(?:(?:is|remains|will be)\s+(?:(?:fully\s+)?remote|available|open)|"
+    rf"(?:can|may)\s+be\s+(?:worked|performed))\s+(?:from\s+)?"
+    rf"{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}"
+    rf"|(?:^|[.!?;\n])\s*remote\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}",
     re.I,
 )
 _REMOTE_TEXT_SCOPE = re.compile(
@@ -484,18 +499,7 @@ _RESIDENCE_STATES = re.compile(rf"{_STATE_LIST}(?=\s*(?:[.;:\n]|$))", re.I)
 
 
 def _has_affirmative_worldwide_work(text):
-    text = str(text or "").replace("\u2019", "'")
-    for match in _WORLDWIDE_WORK.finditer(text):
-        clause_start = max(
-            (boundary.end() for boundary in re.finditer(r"[.!?;\n,]", text[:match.start()])),
-            default=0,
-        )
-        clause_end_match = re.search(r"[.!?;\n,]", text[match.end():])
-        clause_end = match.end() + clause_end_match.start() if clause_end_match else len(text)
-        if (not _WORLDWIDE_NEGATION.search(text[clause_start:match.start()])
-                and not _WORLDWIDE_TRAILING_NEGATION.match(text[match.end():clause_end])):
-            return True
-    return False
+    return bool(_WORLDWIDE_WORK.search(str(text or "")))
 
 
 def _stated_us_states(value):
