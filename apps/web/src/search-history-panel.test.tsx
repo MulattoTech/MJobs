@@ -153,9 +153,10 @@ describe('search history panel', () => {
       response: {
         ...response,
         items: [
-          { ...record, status: 'COMPLETED', errors: 0, results: 4, new_jobs: 1, duplicates: 2,
-            posting_activity: { new: 1, unchanged: 2, updated: 1 } },
+          { ...record, status: 'COMPLETED', errors: 0, results: 3, new_jobs: 1, duplicates: 2,
+            posting_activity: { new: 1, unchanged: 2, updated: 0 } },
           { ...record, id: 'legacy-run', status: 'COMPLETED', results: 8, new_jobs: 2, duplicates: 6 },
+          { ...record, id: 'failed-run', status: 'FAILED', results: 5, new_jobs: 2, duplicates: 3 },
         ],
       },
     };
@@ -163,10 +164,16 @@ describe('search history panel', () => {
       <SearchHistoryPanelView profileId="profile-1" state={state} onRetry={() => {}} />,
     );
 
-    expect(html).toContain('New 1 · Unchanged 2 · Updated 1');
+    expect(html).toContain('New 1 · Unchanged 2 · Updated 0');
     expect(html).toContain('Unavailable (legacy run)');
-    expect(html).toContain('<th scope="col">Duplicates</th>');
-    expect(html).toContain('<td>6</td><td>Unavailable (legacy run)</td>');
+    expect(html).toContain('<th scope="col">Legacy duplicates</th>');
+    const bodyRows = html.match(/<tbody>(.*?)<\/tbody>/s)?.[1];
+    const rows = [...(bodyRows ?? '').matchAll(/<tr>(.*?)<\/tr>/gs)].map(match => match[1]);
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toContain('<td>1</td><td>—</td><td>New 1 · Unchanged 2 · Updated 0</td>');
+    expect(rows[1]).toContain('<td>2</td><td>6</td><td>Unavailable (legacy run)</td>');
+    expect(rows[2]).toContain('<td>3</td><td>Unavailable (legacy run)</td>');
+    expect(rows[2]).toContain('FAILED');
   });
 
   it('offers retry after a load error without exposing the thrown error or changing scope', () => {

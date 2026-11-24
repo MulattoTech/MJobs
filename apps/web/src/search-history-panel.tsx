@@ -159,7 +159,7 @@ export function SearchHistoryPanelView({
                   <th scope="col">Run status</th>
                   <th scope="col">Results</th>
                   <th scope="col">New jobs</th>
-                  <th scope="col">Duplicates</th>
+                  <th scope="col">Legacy duplicates</th>
                   <th scope="col">Posting activity</th>
                   <th scope="col">Errors</th>
                   <th scope="col">Filters and details</th>
@@ -184,7 +184,7 @@ export function SearchHistoryPanelView({
                     <td>{item.status}</td>
                     <td>{count(item.results)}</td>
                     <td>{count(item.new_jobs)}</td>
-                    <td>{count(item.duplicates)}</td>
+                    <td>{item.posting_activity ? '—' : count(item.duplicates)}</td>
                     <td>{item.posting_activity
                       ? <>New {item.posting_activity.new} · Unchanged {item.posting_activity.unchanged} · Updated {item.posting_activity.updated}</>
                       : 'Unavailable (legacy run)'}</td>
