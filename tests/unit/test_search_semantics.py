@@ -30,10 +30,16 @@ class SearchSemanticsTests(unittest.TestCase):
 
     def test_worldwide_scope_requires_affirmative_whole_clause_evidence(self):
         for description in ("Employees cannot work worldwide.",
+                            "Employees can't work worldwide.",
+                            "Employees can\u2019t work worldwide.",
                             "Employees do not work worldwide.",
                             "Employees cannot work worldwide. This role supports Linux.",
                             "This role supports Linux; employees cannot work worldwide.",
                             "Work worldwide is not permitted.",
+                            "Remote worldwide isn't allowed.",
+                            "Remote worldwide isn\u2019t allowed.",
+                            "Remote worldwide isn't possible.",
+                            "Remote worldwide isn\u2019t possible.",
                             "Work worldwide is prohibited."):
             with self.subTest(description=description):
                 attributes = classify_location("Remote", description)
@@ -44,13 +50,15 @@ class SearchSemanticsTests(unittest.TestCase):
                 self.assertFalse(result["matched"])
                 self.assertEqual(result["remote_residence"]["status"], "UNKNOWN")
 
-        description = "Employees cannot work worldwide. Remote within the United States."
-        attributes = classify_location("Remote", description)
-        self.assertEqual(attributes["remote_type"], "REMOTE_US")
-        job = {"location": "Remote", "description": description,
-               "attributes": attributes, "remote_type": attributes["remote_type"]}
-        self.assertTrue(evaluate_search(
-            {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
+        for restriction in ("Employees cannot work worldwide.", "Employees can\u2019t work worldwide."):
+            with self.subTest(restriction=restriction):
+                description = f"{restriction} Remote within the United States."
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_US")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search(
+                    {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
 
         for description in ("Work worldwide.", "Employees may work worldwide.",
                             "Remote worldwide."):

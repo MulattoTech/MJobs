@@ -470,8 +470,8 @@ _WORLDWIDE_NEGATION = re.compile(
     re.I,
 )
 _WORLDWIDE_TRAILING_NEGATION = re.compile(
-    r"^\s*(?:(?:is|are|isn't|aren't)\s+)?(?:not|never|prohibited|forbidden|disallowed)\b"
-    r"|^\s*(?:(?:is|are|isn't|aren't)\s+)?not\s+(?:allowed|permitted)\b",
+    r"^\s*(?:(?:is|are)\s+)?(?:not|never|prohibited|forbidden|disallowed)\b"
+    r"|^\s*(?:isn't|aren't)\s+(?:currently\s+)?(?:allowed|permitted|possible|available|supported|offered)\b",
     re.I,
 )
 _REMOTE_TEXT_SCOPE = re.compile(
@@ -484,7 +484,7 @@ _RESIDENCE_STATES = re.compile(rf"{_STATE_LIST}(?=\s*(?:[.;:\n]|$))", re.I)
 
 
 def _has_affirmative_worldwide_work(text):
-    text = str(text or "")
+    text = str(text or "").replace("\u2019", "'")
     for match in _WORLDWIDE_WORK.finditer(text):
         clause_start = max(
             (boundary.end() for boundary in re.finditer(r"[.!?;\n,]", text[:match.start()])),
