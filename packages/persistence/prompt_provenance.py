@@ -14,6 +14,7 @@ _PARSER_TEMPLATES = {
     "remoteok": "services.discovery.sources.remoteok.RemoteOK.normalize",
     "wwr": "services.discovery.sources.wwr.WeWorkRemotely.normalize",
     "arbeitnow": "services.discovery.sources.arbeitnow.Arbeitnow.normalize",
+    "usajobs": "services.discovery.sources.usajobs.USAJobs.normalize",
 }
 
 

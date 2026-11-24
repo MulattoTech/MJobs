@@ -11,7 +11,7 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
+  "current_milestone": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
   "current_objective": "Complete protected test-matrix publication and guarded final delivery; then resume remaining literal P0/P1 criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -2872,12 +2872,137 @@
       ],
       "timestamp": "2026-11-13T14:39:58.971617+00:00",
       "binding_note": "This actual milestone was recorded after successful exact-byte application and both stock generators. It does not claim later validator, protected acceptance or actual view outcomes."
+    },
+    {
+      "milestone_id": "MJ-REF-039-FULL-CRITERION-20261120-d9b89794",
+      "timestamp": "2026-11-20T07:22:00Z",
+      "current_phase": "MJ-REF-039 acceptance recording prepared for protected review; production readiness remains separate.",
+      "requirements": [
+        "MJ-REF-039"
+      ],
+      "source_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+      "source_tree": "f8f543fcb1b46211953f65ce421ccda2937867db",
+      "completed_steps": [
+        "Protected PR1045 merged under explicit user approval; its actual merge tree equals the reviewed feature tree.",
+        "Fresh actual-merge execution passed 30 Python/API/browser tests plus 28 subtests, 20 frontend tests and frontend typecheck/build.",
+        "Integration owner reviewed all five literal #415 criteria and native MJobs source/provenance; the scoped reference record pins concept-only Resume Matcher inspiration and its primary Apache-2.0 license.",
+        "Recorded only MJ-REF-039 NOT_RUN to PASS in the candidate reference matrix and regenerated index/dashboard: reference20 PASS/4 PARTIAL/35 NOT_RUN of59. All366 original results preserved.",
+        "This is an acceptance-record candidate. Protected-main canonical publication and this candidate's hosted checks remain pending."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-20-job-comparison-acceptance.json"
+      ],
+      "files_modified": [
+        "docs/reference/REFERENCE_PROJECTS.json",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "outputs/job-platform-implementation-state.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/agent_handoffs/MJ-REF-039.json"
+      ],
+      "tests_completed": [
+        "Actual merged d9e3bf11: 30 Python/API/browser tests plus28 subtests PASS; zero failures/skips; 20 frontend tests PASS.",
+        "Fresh merged-source frontend typecheck/build PASS; imported module identity and tracked-clean/whitespace checks PASS.",
+        "Approved source head abe15feb: all15 hosted check records and all5 required gates PASS before protected merge.",
+        "Acceptance candidate reference provenance, catalogue, progress journal and generated dashboard freshness PASS."
+      ],
+      "tests_remaining": [
+        "Final candidate policy/integrity verification and independent recording-diff review.",
+        "Exact published acceptance-record head's required hosted checks and separately authorized protected merge.",
+        "Production image/guarded rollout and authenticated public workflow verification remain separate."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local built UI/API with disposable synthetic SQLite data and Chromium; no live external provider or employer submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Source-bound feature acceptance does not qualify upstream scoring accuracy; seeded saved scores are preserved.",
+        "Original MJ-REQ-112 and MJ-REQ-136 remain unchanged; automation-confidence acceptance remains unresolved for136.",
+        "Historical exhaustive source-similarity audit was not performed; the provenance conclusion is a scoped native-source review.",
+        "Main remains188/366 original PASS and19/59 reference PASS until protected acceptance-record integration.",
+        "Full-spec release_readiness remains UNKNOWN; production is not deployed by this recording."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+        "evidence_path": "docs/evidence/2026-11-20-job-comparison-acceptance.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REF-039-RECORDING-VERIFIED-20261120-d9b89794",
+      "timestamp": "2026-11-20T07:27:20Z",
+      "current_phase": "MJ-REF-039 full-criterion acceptance and accurate latest-milestone reporting verified locally; protected recording integration pending.",
+      "requirements": [
+        "MJ-REF-039"
+      ],
+      "source_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+      "source_tree": "f8f543fcb1b46211953f65ce421ccda2937867db",
+      "completed_steps": [
+        "Protected PR1045 merged under explicit user approval; its actual merge tree equals the reviewed feature tree.",
+        "Fresh actual-merge execution passed 30 Python/API/browser tests plus 28 subtests, 20 frontend tests and frontend typecheck/build.",
+        "Integration owner reviewed all five literal #415 criteria and native MJobs source/provenance; the scoped reference record pins concept-only Resume Matcher inspiration and its primary Apache-2.0 license.",
+        "Recorded only MJ-REF-039 NOT_RUN to PASS in the candidate reference matrix and regenerated index/dashboard: reference20 PASS/4 PARTIAL/35 NOT_RUN of59. All366 original results preserved.",
+        "This is an acceptance-record candidate. Protected-main canonical publication and this candidate's hosted checks remain pending.",
+        "Reproduced and repaired the stale dashboard milestone pointer with a one-line change under the existing journal lock; independent AI review found no blocker.",
+        "Recorded this verified milestone through the repaired stock CLI; the prior candidate entry is retained without editing history."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-20-job-comparison-acceptance.json"
+      ],
+      "files_modified": [
+        "docs/reference/REFERENCE_PROJECTS.json",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "outputs/job-platform-implementation-state.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/agent_handoffs/MJ-REF-039.json",
+        "tools/verification/progress.py",
+        "tests/unit/test_progress_dashboard.py"
+      ],
+      "tests_completed": [
+        "Actual merged d9e3bf11: 30 Python/API/browser tests plus28 subtests PASS; zero failures/skips; 20 frontend tests PASS.",
+        "Fresh merged-source frontend typecheck/build PASS; imported module identity and tracked-clean/whitespace checks PASS.",
+        "Approved source head abe15feb: all15 hosted check records and all5 required gates PASS before protected merge.",
+        "Acceptance candidate reference provenance, catalogue, progress journal and generated dashboard freshness PASS.",
+        "Progress reporting regression failed before repair; after repair45 tests and37 subtests passed,7 POSIX-only cases skipped on Windows; Ruff E9,F and provenance PASS.",
+        "Independent AI review found no blocking acceptance-record or progress-fix finding; declared interface prerequisites were assessed without promoting original112."
+      ],
+      "tests_remaining": [
+        "Final refreshed candidate policy/integrity verification and exact published-head hosted checks.",
+        "Separately authorized protected acceptance-record merge.",
+        "Production image preparation, original-key retention, guarded rollout and authenticated public workflow verification remain separate."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local built UI/API with disposable synthetic SQLite data and Chromium; no live external provider or employer submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Source-bound feature acceptance does not qualify upstream scoring accuracy; seeded saved scores are preserved.",
+        "Original MJ-REQ-112 and MJ-REQ-136 remain unchanged; automation-confidence acceptance remains unresolved for136.",
+        "Historical exhaustive source-similarity audit was not performed; the provenance conclusion is a scoped native-source review.",
+        "Main remains188/366 original PASS and19/59 reference PASS until protected acceptance-record integration.",
+        "Full-spec release_readiness remains UNKNOWN; production is not deployed by this recording.",
+        "Seven POSIX symlink/directory durability cases were skipped on Windows; hosted Linux verification is separate."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+        "evidence_path": "docs/evidence/2026-11-20-job-comparison-acceptance.json"
+      }
     }
   ],
-  "current_phase": "N02 source delivery is protected-integrated; this scoped canonical candidate awaits its own validation, protected acceptance publication and actual post-refresh view comparison.",
+  "current_phase": "MJ-REF-039 full-criterion acceptance and accurate latest-milestone reporting verified locally; protected recording integration pending.",
   "last_safe_checkpoint": {
-    "evidence_path": "docs/evidence/2026-11-13-ntfy-delivery.json",
-    "git_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
+    "git_commit": "d9e3bf11aa135a58bc1aa786edddae8cec478f66",
+    "evidence_path": "docs/evidence/2026-11-20-job-comparison-acceptance.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

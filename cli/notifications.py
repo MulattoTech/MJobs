@@ -75,7 +75,7 @@ def main(argv=None):
             for signum in (signal.SIGINT, signal.SIGTERM):
                 previous[signum] = signal.signal(signum, lambda *_args: stopped.set())
         try:
-            provider = create_provider(config)
+            provider = create_provider(config, cancellation_event=stopped)
             while not stopped.is_set():
                 _print(run_once(store, config, journal, provider))
                 if args.once:

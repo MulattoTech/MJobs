@@ -1,24 +1,37 @@
 """Explicit fictional local ATS/aggregator fixtures, never production job data."""
-from contextlib import contextmanager
-from datetime import datetime, timezone
-from html import escape
 import hashlib
 import json
-from pathlib import Path
+import re
 import socket
 import threading
 import time
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from html import escape
+from pathlib import Path
 from urllib.parse import quote
 
+import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.datastructures import UploadFile
-import uvicorn
+
+
+# These are the two explicitly fictional personas used by the spine and public
+# first-run UI journeys. Keep each name/email paired; neither field is an open
+# allowlist. This accepted domain is part of the native contract digest below.
+_NATIVE_SYNTHETIC_PERSONAS = (
+    ("Alex Fixture", "alex@example.test"),
+    ("Synthetic Onboarding Applicant", "onboarding@example.invalid"),
+)
 
 
 def create_mock_app(receipt_file=None, *, scenario="baseline"):
-    if not isinstance(scenario, str) or scenario not in {"baseline", "coverage"}:
+    scenarios = {"baseline", "coverage", "native-greenhouse", "native-lever"}
+    if not isinstance(scenario, str) or scenario not in scenarios:
         raise ValueError("Unknown fictional fixture scenario")
+    native_provider = (scenario.removeprefix("native-")
+                      if scenario.startswith("native-") else None)
     app = FastAPI(title="MJobs fictional mock ATS")
     receipts = json.loads(Path(receipt_file).read_text(encoding="utf-8")) if receipt_file and Path(receipt_file).exists() else {}
     request_counts = {"review": 0, "submit": 0}
@@ -32,7 +45,10 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
                  "description": "<p>Required: Python and SQL. Responsibilities: Build and support Python and SQL systems.</p>", "skills": ["Python", "SQL"],
                  "location": "United States", "remote_type": "REMOTE", "salary_min": 80000,
                  "salary_max": 110000, "salary_currency": "USD", "salary_period": "YEAR",
-                 "application_url": origin + "/ats/apply/" + key} for key in ("A", "B")]
+                 "application_url": (
+                     origin + f"/ats/native/{native_provider}/B" if key == "B" and native_provider
+                     else origin + "/ats/apply/" + key
+                 )} for key in ("A", "B")]
 
     @app.get("/health")
     def health():
@@ -81,6 +97,9 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
     def questions(requisition: str):
         if requisition not in ("A", "B"):
             return HTMLResponse("Question metadata is unavailable", status_code=404)
+        return question_schema(requisition)
+
+    def question_schema(requisition):
         return {
             "provider": "mock-ats", "tenant": "example", "requisition": requisition,
             "revision": 1,
@@ -244,7 +263,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
             return None
         return form["application_id"]
 
-    def publish_receipt(requisition, application_id, request_url):
+    def publish_receipt(requisition, application_id, request_url, *, native_binding=None):
         """Preserve one durable fictional receipt for a bound application identity."""
         reference_number = "MOCK-" + application_id[:16]
         confirmation_text = (
@@ -252,8 +271,14 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
         )
         with lock:
             existing = receipts.get(application_id)
-            if existing is not None and existing.get("requisition") != requisition:
-                return validation_error("Application identity belongs to another fictional requisition", status_code=409)
+            if existing is not None:
+                if not isinstance(existing, dict) or existing.get("requisition") != requisition:
+                    return validation_error("Application identity belongs to another fictional requisition", status_code=409)
+                if existing.get("native_provider") and native_binding is None:
+                    return validation_error("Application identity is bound to a native fixture receipt", status_code=409)
+                if native_binding is not None and any(
+                        existing.get(key) != value for key, value in native_binding.items()):
+                    return validation_error("Application identity has conflicting native fixture bindings", status_code=409)
             if existing is None:
                 receipts[application_id] = {
                     "application_id": application_id, "requisition": requisition,
@@ -262,6 +287,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
                     "confirmation_url": str(request_url),
                     "confirmation_text": confirmation_text,
                     "reference_number": reference_number, "submission_count": 1,
+                    **(native_binding or {}),
                 }
                 if receipt_file:
                     path = Path(receipt_file)
@@ -280,6 +306,97 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
         return (f'<h1 data-confirmation="{reference_html}">Thank you for applying.</h1>'
                 f'<p>Application received.</p><p>Application reference: '
                 f'{reference_html}</p>')
+
+    def native_contract(provider, requisition):
+        version = "native-form-v1"
+        questions = question_schema(requisition)["questions"]
+        payload = {
+            "provider": provider,
+            "requisition": requisition,
+            "template_version": version,
+            "questions": questions,
+            "fields": ["name", "email", "country", "remote", "resume",
+                       "cover_letter", "fixture_question"],
+            "synthetic_personas": _NATIVE_SYNTHETIC_PERSONAS,
+        }
+        digest = hashlib.sha256(json.dumps(
+            payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        return version, questions, digest
+
+    def native_route_enabled(provider, requisition):
+        return (native_provider == provider and provider in {"greenhouse", "lever"}
+                and requisition in {"A", "B"})
+
+    @app.get("/ats/native/{provider}/{requisition}", response_class=HTMLResponse)
+    def native_application(provider: str, requisition: str):
+        if not native_route_enabled(provider, requisition):
+            return HTMLResponse("Native fictional application is unavailable", status_code=404)
+        return f'''<!doctype html><html><body><h1>Fictional {escape(provider)} application</h1>
+        <form action="/ats/native/{escape(provider)}/{escape(requisition)}/submit" method="post" enctype="multipart/form-data">
+          <input aria-label="Name" name="name" required>
+          <input aria-label="Email" name="email" type="email" required>
+          <input aria-label="Country" name="country" type="text" required>
+          <input aria-label="Remote role" name="remote" type="text" required>
+          <input aria-label="Resume" name="resume" type="file" accept=".pdf,application/pdf" required>
+          <input aria-label="Cover letter" name="cover_letter" type="file" accept=".pdf,application/pdf" required>
+          <textarea aria-label="Approved fixture answer" name="fixture_question" required></textarea>
+          <button type="submit">Submit owned fixture</button>
+        </form></body></html>'''
+
+    @app.get("/ats/native/{provider}/{requisition}/questions")
+    def native_questions(provider: str, requisition: str):
+        if not native_route_enabled(provider, requisition):
+            return HTMLResponse("Question metadata is unavailable", status_code=404)
+        version, _questions, digest = native_contract(provider, requisition)
+        return {**question_schema(requisition), "template_version": version,
+                "contract_sha256": digest}
+
+    @app.post("/ats/native/{provider}/{requisition}/submit", response_class=HTMLResponse)
+    async def native_submit(provider: str, requisition: str, request: Request):
+        if not native_route_enabled(provider, requisition):
+            return validation_error("Native fictional application is unavailable", status_code=404)
+        form = await request.form()
+        try:
+            required = ("name", "email", "country", "remote", "fixture_question",
+                        "application_id", "request_id", "contract_sha256", "review_sha256")
+            values = {key: form.get(key) for key in required}
+            if (not all(isinstance(value, str) and value for value in values.values())
+                    or (values["name"], values["email"]) not in _NATIVE_SYNTHETIC_PERSONAS
+                    or values["country"] != "United States"
+                    or values["remote"] != "yes"
+                    or values["fixture_question"] != "Controlled fictional test application."):
+                return validation_error("Native fixture fields do not match the approved synthetic profile")
+            if (not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", values["application_id"])
+                    or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", values["request_id"])):
+                return validation_error("Invalid native fixture identity")
+            if not re.fullmatch(r"[0-9a-f]{64}", values["review_sha256"]):
+                return validation_error("Invalid reviewed fixture binding digest")
+            _version, _questions, expected_contract = native_contract(provider, requisition)
+            if values["contract_sha256"] != expected_contract:
+                return validation_error("Native fixture contract is stale", status_code=409)
+
+            file_hashes = {}
+            for field in ("resume", "cover_letter"):
+                uploaded = form.get(field)
+                if not isinstance(uploaded, UploadFile):
+                    return validation_error("Both PDF documents are required")
+                contents = await uploaded.read(2_000_001)
+                if len(contents) > 2_000_000 or not contents.startswith(b"%PDF-"):
+                    return validation_error("Invalid PDF document")
+                file_hashes[f"{field}_sha256"] = hashlib.sha256(contents).hexdigest()
+
+            native_binding = {
+                "native_provider": provider,
+                "request_id": values["request_id"],
+                "contract_sha256": expected_contract,
+                "review_sha256": values["review_sha256"],
+                **file_hashes,
+            }
+            return publish_receipt(
+                requisition, values["application_id"], request.url,
+                native_binding=native_binding)
+        finally:
+            await form.close()
 
     @app.post("/ats/review/{requisition}", response_class=HTMLResponse)
     async def review(requisition: str, request: Request):
@@ -377,4 +494,7 @@ def fixture_server(receipt_file=None, *, scenario="baseline"):
 
 if __name__ == "__main__":
     import os
-    uvicorn.run(create_mock_app(os.environ.get("MOCK_RECEIPT_FILE")), host="0.0.0.0", port=8090)
+    uvicorn.run(create_mock_app(
+        os.environ.get("MOCK_RECEIPT_FILE"),
+        scenario=os.environ.get("MJOBS_MOCK_SCENARIO", "baseline")),
+        host="0.0.0.0", port=8090)

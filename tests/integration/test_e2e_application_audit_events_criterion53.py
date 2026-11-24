@@ -1,8 +1,9 @@
 """Criterion 53: confirmation reconciliation remains visible in Activity."""
 
-from pathlib import Path
+import json
 import tempfile
 import unittest
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -105,6 +106,7 @@ class ApplicationAuditEventsCriterion53Tests(unittest.TestCase):
                     "subject": "Historical details not recorded",
                     "company": "",
                     "timestamp": result["checked_at"],
+                    "application_id": fixture_application,
                 })
                 self.assertEqual(
                     [(row["timestamp"], row["id"]) for row in events],
@@ -115,7 +117,7 @@ class ApplicationAuditEventsCriterion53Tests(unittest.TestCase):
                 )
                 self.assertEqual(
                     set(event),
-                    {"id", "type", "summary", "subject", "company", "timestamp"},
+                    {"id", "type", "summary", "subject", "company", "timestamp", "application_id"},
                 )
 
                 other = client.get("/profiles/other-profile/audit-history")
@@ -133,13 +135,23 @@ class ApplicationAuditEventsCriterion53Tests(unittest.TestCase):
                     "other-private@example.invalid",
                     private_request_id,
                     origin,
-                    fixture_application,
                     other_application,
                     ACTION,
                     "route_identity",
                     "provider_receipt_verified",
                 ):
                     self.assertNotIn(private, response.text)
+                # Only the validated attribution field may expose the owned ID;
+                # labels and summaries remain free of internal identifiers.
+                self.assertEqual(
+                    {row["application_id"] for row in events if "application_id" in row},
+                    {fixture_application},
+                )
+                without_attribution = [
+                    {key: value for key, value in row.items() if key != "application_id"}
+                    for row in events
+                ]
+                self.assertNotIn(fixture_application, json.dumps(without_attribution))
 
                 for malformed_status, private_marker in (
                     (["criterion53-list-secret"], "criterion53-list-secret"),
@@ -153,6 +165,7 @@ class ApplicationAuditEventsCriterion53Tests(unittest.TestCase):
                             ).values(payload={
                                 "schema_version": 1,
                                 "result": {"status": malformed_status},
+                                "application_id": other_application,
                             }))
                         malformed_response = client.get("/profiles/fixture/audit-history")
                         self.assertEqual(
@@ -168,6 +181,10 @@ class ApplicationAuditEventsCriterion53Tests(unittest.TestCase):
                             "Application confirmation checked",
                         )
                         self.assertNotIn(private_marker, malformed_response.text)
+                        self.assertEqual(
+                            malformed_events[0]["application_id"], fixture_application,
+                        )
+                        self.assertNotIn(other_application, malformed_response.text)
             finally:
                 client.close()
                 reopened.engine.dispose()

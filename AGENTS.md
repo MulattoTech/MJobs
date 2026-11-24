@@ -8,6 +8,10 @@
 3. Before writing, inspect `git status`, current `main`, open issues, and the **small** `planning/REQUIREMENT_INDEX.json`. Read only the affected issue/spec/code/tests. Do **not** load the giant historical journals or master prompt by default.
 4. New implementation starts only on user authorization. Use focused, short-lived pull requests and required hosted checks; main is the sole publication history. Publication capacity defaults to 32 concurrently OPEN development PRs, including drafts, with a soft warning at capacity; integration remains serialized under one integration owner. Follow [PR publication policy](docs/PR_PUBLICATION_POLICY.md) and `planning/PR_QUEUE.json`; authenticated dependency automation is excluded, unknown classification counts conservatively. Native auto-merge may wait for passing gates, but no automated check is a human review. Never reset someone else's work, force-push, or delete unmerged or dirty work without a verified recovery copy.
 
+## PR backlog hygiene and native automatic integration
+- Use [agent PR triage](docs/runbooks/AGENT_PR_TRIAGE.md): open a small, focused PR; preserve tests and independent review; the integration owner may apply `agent:automerge` only after the PR has been reviewed for scope and readiness. Native GitHub required checks and branch protections remain mandatory. Never bypass them to meet throughput goals.
+- Apply `agent:hold` to security-sensitive, destructive, incomplete or dependent PRs until issues are resolved; do not rely on a green CI badge alone as product acceptance. The daily read-only triage labels stale, failed, conflicted and review-needed PRs; it never deletes unique work. Reconcile backlog before opening duplicate branches.
+
 ## Delivery
 - Favor the highest unblocked, meaningful issue. Priorities are `priority:P0` through `priority:P6`; each GitHub issue also has one `category:*` and `area:*`. P0 protects data, safety, and truth; P1 completes core user workflows. The broader order is in `docs/spec/EXECUTION_KERNEL.source.md`.
 - Implement a usable, coherent slice; run targeted tests plus affected integration/browser checks. Do not submit bookkeeping-only work in lieu of needed functionality.
@@ -15,6 +19,8 @@
 - Keep `planning/CAPABILITY_MATRIX.json` (366 original requirements) and `planning/REFERENCE_GAP_MATRIX.json` (59 additive items) as separate acceptance authorities. Regenerate `planning/REQUIREMENT_INDEX.json` with `python tools/mjobs_reconcile_planning.py --apply`. Refresh the dashboard only when acceptance changes.
 - Never invent qualifications, career history, job data, successful tests, or submission outcomes. Real external application submission stays **OFF** without explicit authorization and user-facing gates. Never bypass CAPTCHA, MFA, access controls, anti-bot or rate limits, nor leak credentials or private applicant data.
 - Protect this workstation: no unrelated process termination, driver/BIOS/firmware/network configuration changes, global package upgrades, or host reboot for MJobs development.
+- Temporary local Docker test stacks must use the bounded, disposable [fixture guard](docs/runbooks/EPHEMERAL_FIXTURES.md) (`python -m tools.dev_fixture_guard run ...`) or a separately reviewed equivalent. Never leave ad-hoc `docker compose up -d` test projects indefinitely. Default to 0 containers for unit tests, 2 for DB/Redis-only integration, and the full guarded fixture only for E2E. Isolate each fixture with ownership labels, one-hour TTL, per-service CPU limits, no restarts, and verified cleanup. Do not apply fixture cleanup to personal/production/cloudflared services, unlabelled fixtures, or other projects; never run broad Docker prune commands.
+
 
 ## Checks from repository root
 ```powershell

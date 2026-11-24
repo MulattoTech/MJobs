@@ -33,6 +33,7 @@ class ManualAuthHostTests(unittest.TestCase):
         self.assertEqual(args[1], "http://127.0.0.1:8123/ats/login/job_1")
         self.assertTrue(args[2].allowed(args[1]))
         self.assertIn("check", kwargs)
+        self.assertEqual(kwargs["application_root"], self.root / "app1")
 
     def test_invalid_input_never_starts_browser(self):
         changes = [{"schema": True}, {"schema": 2}, {"application_id": "../app1"},
@@ -62,6 +63,7 @@ class ManualAuthHostTests(unittest.TestCase):
                     **self.payload, "debug_capture": enabled}).encode())
                 self.assertEqual(result, 0)
                 self.assertIs(browser.call_args.kwargs.get("debug_capture", False), enabled)
+                self.assertEqual(browser.call_args.kwargs["application_root"], self.root / "app1")
 
     def test_escaped_profile_is_rejected(self):
         from services.applications import manual_auth_host as host
@@ -89,7 +91,8 @@ class ManualAuthHostTests(unittest.TestCase):
     def test_budget_is_checked_before_browser_and_on_every_poll(self):
         from services.applications import manual_auth_host as host
         checks = []
-        def browser(*args, check):
+        def browser(*args, check, application_root):
+            self.assertEqual(application_root, self.root / "app1")
             checks.append(check())
             checks.append(check())
             return "MANUAL_AUTH_WINDOW_CLOSED"

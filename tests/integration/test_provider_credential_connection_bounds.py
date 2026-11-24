@@ -78,10 +78,14 @@ class ProbeServer:
         self.thread = threading.Thread(target=self.server.serve_forever,
                                        kwargs={"poll_interval": .01})
 
-    def client_factory(self, **kwargs):
+    @staticmethod
+    def assert_client_options(**kwargs):
         assert kwargs["trust_env"] is False
         assert kwargs["follow_redirects"] is False
         assert kwargs["timeout"].read <= 8
+
+    def client_factory(self, **kwargs):
+        self.assert_client_options(**kwargs)
 
         def route(request):
             self.origins.append(str(request.url))
@@ -126,19 +130,40 @@ def test_actual_header_trickle_cannot_extend_default_eight_second_cap():
         assert_clean(result, server)
 
 
-def test_unused_trickling_body_is_closed_without_download_for_all_statuses():
-    for provider in ("openai", "anthropic"):
-        for status, expected in ((200, None), (401, "CREDENTIAL_REJECTED"),
-                                 (403, "CREDENTIAL_REJECTED"),
-                                 (302, "CREDENTIAL_PROVIDER_UNAVAILABLE"),
-                                 (503, "CREDENTIAL_PROVIDER_UNAVAILABLE")):
-            with ProbeServer(status=status) as server:
-                start = time.monotonic()
-                result = PROBE(provider, SECRET, client_factory=server.client_factory)
-                assert result == {"status": "CONNECTED" if expected is None else "FAILED",
-                                  "code": expected}
-                assert time.monotonic() - start < 1
-                assert_clean(result, server)
+@pytest.mark.parametrize("provider,status,expected,setup_delay", [
+    pytest.param(provider, status, expected, 0, id=f"{provider}-{status}")
+    for provider in ("openai", "anthropic")
+    for status, expected in ((200, None), (401, "CREDENTIAL_REJECTED"),
+                             (403, "CREDENTIAL_REJECTED"),
+                             (302, "CREDENTIAL_PROVIDER_UNAVAILABLE"),
+                             (503, "CREDENTIAL_PROVIDER_UNAVAILABLE"))
+] + [pytest.param("openai", 200, None, 1.1, id="openai-200-slow-client-setup")])
+def test_unused_trickling_body_is_closed_without_download_for_all_statuses(
+        provider, status, expected, setup_delay):
+    with ProbeServer(status=status) as server, ExitStack() as controls:
+        # This oracle measures unread-body closure; the separate default-cap and
+        # API tests retain the complete production budget, including client setup.
+        def prepare_client(**kwargs):
+            if setup_delay:
+                time.sleep(setup_delay)
+            return server.client_factory(**kwargs)
+
+        prepared = prepare_client(
+            trust_env=False, timeout=httpx.Timeout(8.0), follow_redirects=False)
+        controls.callback(prepared.close)
+
+        def client_factory(**kwargs):
+            server.assert_client_options(**kwargs)
+            prepared.timeout = kwargs["timeout"]
+            return prepared
+
+        start = time.monotonic()
+        result = PROBE(provider, SECRET, client_factory=client_factory)
+        elapsed = time.monotonic() - start
+        assert result == {"status": "CONNECTED" if expected is None else "FAILED",
+                          "code": expected}
+        assert elapsed < 1, f"Unread-body probe took {elapsed:.3f}s"
+        assert_clean(result, server)
 
 
 def test_direct_cancellation_interrupts_headers_without_affecting_another_probe():

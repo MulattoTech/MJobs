@@ -56,6 +56,10 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const isId = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value);
+// Form keys use the backend's 100-character contract, separate from receipt IDs.
+const isFieldKey = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= 100
+  && /^[A-Za-z0-9_]/.test(value) && !/[^A-Za-z0-9_.:\[\]-]/.test(value);
 const isFingerprint = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Fa-f0-9]{64}$/.test(value);
 const isSource = (value: unknown): value is ApplicationRehearsalField['source'] =>
@@ -94,7 +98,7 @@ function parseSnapshot(value: unknown, profileId: string, applicationId: string)
   const fields: ApplicationRehearsalField[] = [];
   let totalValueCharacters = 0;
   for (const item of value.fields) {
-    if (!isRecord(item) || !isId(item.key) || typeof item.label !== 'string' || item.label.length > 500
+    if (!isRecord(item) || !isFieldKey(item.key) || typeof item.label !== 'string' || item.label.length > 500
         || typeof item.type !== 'string' || item.type.length > 80 || typeof item.required !== 'boolean'
         || !isFieldValue(item.value) || !isSource(item.source)
         || item.reason_code !== null && (typeof item.reason_code !== 'string' || item.reason_code.length > 128)

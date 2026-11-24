@@ -188,7 +188,7 @@ class MissionControl:
                 "milestone": state["milestone"],
                 "release_readiness": state["release"],
                 "checkpoint_current": checkpoint_current,
-                "areas": sorted(areas, key=lambda x: (x["accepted_percent"], x["name"])),
+                "areas": sorted(areas, key=lambda x: (-x["accepted_percent"], x["name"])),
                 "priorities": sorted(priorities, key=lambda x: x["name"]),
                 "git": {
                     "local_main_sha": local_main,

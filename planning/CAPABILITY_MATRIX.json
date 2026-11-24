@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-13T13:54:32.089277+00:00",
+  "timestamp": "2026-11-21T00:18:06.243466+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1024,11 +1024,12 @@
     },
     {
       "requirement_id": "MJ-REQ-078",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json",
+        "docs/evidence/2026-11-21-req078-110-literal-acceptance.json"
       ],
-      "note": "PARTIAL: source confidence and <0.75 review status are exposed and tested; full confidence calibration and review resolution remain open.",
+      "note": "Original criterion satisfied: sourced company discovery confidence scores and COMPANY_SOURCE_REVIEW_REQUIRED for low confidence are implemented and verified. Numeric tiers were examples. Statistical score calibration and full operator review workflow are separate from this literal criterion (MJ-REQ-081, MJ-REQ-196). This matrix update is staged in an unmerged acceptance proposal; source/CI identity and acceptance evidence are in docs/evidence/2026-11-21-req078-110-literal-acceptance.json.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"
@@ -1466,16 +1467,17 @@
     },
     {
       "requirement_id": "MJ-REQ-110",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-06-ai-cost-controls.json",
         "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
         "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
         "docs/evidence/2026-10-13-ai-job-input-freshness.json",
         "docs/evidence/2026-10-13-grounded-ai-candidates.json",
-        "docs/evidence/2026-10-13-profile-ai-credentials.json"
+        "docs/evidence/2026-10-13-profile-ai-credentials.json",
+        "docs/evidence/2026-11-21-req078-110-literal-acceptance.json"
       ],
-      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL. Job-input freshness now fences durable evaluation, publication, review and actual document generation at 57798a83650d35d98bfa8f4f360d3c46f30b57fd; legacy provenance stays UNKNOWN. Local SQLite/PostgreSQL, migration/recovery and connected browser proof passes. Hosted checks pending; parent remains PARTIAL. Current grounded profile-wide AI candidate selection and frozen per-skill explanations verified at 3fc521236daf622f3c6b776f4abc8e5de513633f; unknown coverage excluded even at zero threshold, no private evidence added to provider prompts. SQLite/PostgreSQL/Redis/browser and full units/frontend/build pass. Whole requirement remains PARTIAL; new hosted gates pending. Profile-bound durable OpenAI scoring now connects saved encrypted credentials, fixed destination, credential-rotation fences and truthful UI history; synthetic SQLite/PostgreSQL/process/browser and restored Compose evidence PASS. Live inference and complete umbrella acceptance remain PARTIAL.",
+      "note": "Original criterion satisfied: configurable deterministic candidate funnel dedupes/filters/scores before bounded paid-AI admission, with separately capped reviewed documents, persisted profile policy and currentness fences. Funnel sizes were examples. Live paid-provider billing provenance and global spend budgets remain out of scope and unverified under MJ-REF-015. This matrix update is staged in an unmerged acceptance proposal; source/CI identity in docs/evidence/2026-11-21-req078-110-literal-acceptance.json.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
@@ -3933,18 +3935,23 @@
     },
     {
       "requirement_id": "MJ-REQ-017.F06",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-usajobs-source.json"
+      ],
+      "note": "Issue #316 scoped acceptance PASS at candidate source tree f2819931: exact DISCOVERY and manual-only APPLICATION_REDIRECT capabilities; deterministic fixtures/contracts; bounded read-only public API observation at e9594dd8 with unchanged adapter and verified-TLS transport blobs; limitations and dated evidence recorded; no anti-bot or access-control circumvention. The post-email-merge candidate inherits the executed F06 backend/UI checks by exact relevant input-blob equivalence to a1bfd71c. Hosted checks, protected integration, deployment, and parent MJ-REQ-017 completion remain separate and unclaimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-017.F07",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-14-arbeitnow-acceptance.json"
+      ],
+      "note": "Accepted by the MJobs integration owner on 2026-11-14 for the five scoped optional Arbeitnow adapter criteria. Protected PR #1019 merged at 268c5c9f from exact head 786d0a46 with 15/15 checks; bounded latest-page live GET normalized 300 records without persistence or submission. Limitations remain; parent MJ-REQ-017 stays PARTIAL and no deployment/broad provider coverage is claimed.",
       "priority": "P6",
       "area": "core_search_model",
       "category": "major-feature"
@@ -4385,9 +4392,14 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N04",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/NOTIFICATIONS.md",
+        "planning/agent_handoffs/MJ-REQ-204.N04.json",
+        "tests/unit/test_slack_provider.py",
+        "tests/integration/test_notification_delivery.py"
+      ],
+      "note": "Scoped child acceptance candidate: Slack source PR 1043 head 852c6d02e246055a69fc47837a28faff5eb1c1f0 (tree df877a7bcffef0d6f1d613f2f643950c45baca3e) is byte-tree identical to protected merge 02a291ebced34144498a5b1d6cfebdcdad106583 (same tree). All 15 exact-head hosted checks succeeded. Local Slack contract suite passed 170 with 2 PostgreSQL-only skips on executable-equivalent source; combined notification regression on Email batch source ae8c6309d921bab1c08ee9628e3f7072ee8eacc3 passed 199 with 2 skips. Native Luna static result was recorded as GitHub COMMENT 5913040193; the superseded AO run was not converted into approval. Live read-only criterion is NOT_APPLICABLE: official Slack incoming-webhook documentation describes POST message publication and supplies no webhook receipt/readback query; no live Slack request was made. Limitations and exact evidence are recorded in docs/NOTIFICATIONS.md and the N04 handoff. Parent MJ-REQ-204 and all sibling rows remain unchanged; issue #365 remains open. Candidate is not reported as integrated acceptance until this PR's protected integration.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"
