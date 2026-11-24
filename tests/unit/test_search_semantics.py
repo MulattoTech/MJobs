@@ -67,12 +67,24 @@ class SearchSemanticsTests(unittest.TestCase):
             ("Remote, US", "Applicants must reside in the United States. This role supports Linux.", True, None),
             ("Remote, US", "Applicants must reside in the United States, specifically in California. Linux support experience required.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S.", True, None),
+            ("Remote, US", "Applicants must reside in the US.", True, None),
             ("Remote, US", "Applicants must reside in the U.S., specifically in California.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, US", "Applicants must reside in the U.S. This role supports Linux.", True, None),
             ("Remote, US", "Applicants must reside in the US, specifically in California.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, US", "Applicants must reside in the US. This role supports Linux.", True, None),
+            ("Remote, US", "Applicants must reside in the U.S. only in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S. (California only).",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the u.s., specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States or Canada.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the US approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
             ("Remote, US", "Applicants must reside in OK, TX.", True, None),
             ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
             ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
@@ -112,16 +124,26 @@ class SearchSemanticsTests(unittest.TestCase):
     def test_remote_scope_fallback_requires_unqualified_us_geography(self):
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
         rows = (
-            ("United States", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
-            ("US", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
-            ("U.S.", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("US", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
+            ("US", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
             ("United States", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
             ("US", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
             ("U.S.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country} only in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country} (California only).", False, "UNKNOWN"),
+            ("u.s.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country}. California residents only.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country} or Canada.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country} approved states.", False, "UNKNOWN"),
             ("United States", "This role is remote within the {country} only.", True, "ELIGIBLE"),
         )
         for country, template, matched, status in rows:
             description = template.format(country=country)
+            description = description.replace("U.S.. ", "U.S. ")
             with self.subTest(country=country, description=description):
                 attributes = classify_location("Remote, US", description)
                 result = evaluate_search(criteria, {"location": "Remote, US", "description": description,
