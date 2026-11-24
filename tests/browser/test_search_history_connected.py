@@ -371,6 +371,7 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         "ascii_256": "B" * 256,
         "mixed_256": "C" * 128 + "\U0001f680" * 128,
     }
+    saved_search_id = "\U0001f680" * 128
     receipt = {
         "outcome": "NOT_COMPLETED",
         "fixture_admitted": False,
@@ -417,6 +418,10 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         store.save_profile(dict(PROFILE))
         store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
                             "email": "other@example.test"})
+        save_search_profile(store, {
+            "id": saved_search_id, "profile_id": "fixture", "name": "Unicode ID receipt search",
+            "include_titles": ["Synthetic title"],
+        })
 
         expected = {"fixture": {}, "other": {}}
         fixture_labels = [("fixture", name, label) for name, label in labels.items()]
@@ -432,7 +437,8 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
                 details["posting_activity"] = {"new": 1, "unchanged": 1, "updated": 1}
             run = build_search_history_record({
                 "id": f"mj236-{name}", "kind": "DISCOVER", "entity_id": profile_id,
-                "state": "COMPLETED", "attempt_count": 1, "params": {},
+                "state": "COMPLETED", "attempt_count": 1,
+                "params": {"search_profile_id": saved_search_id} if name == "ascii_201" else {},
                 "started_at": "2026-11-14T00:00:00Z",
                 "updated_at": "2026-11-14T00:00:01Z",
             }, details)
@@ -524,6 +530,18 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         page.reload(wait_until="domcontentloaded")
         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
 
+        def is_scoped_history(response):
+            parsed = urlsplit(response.url)
+            query = parse_qs(parsed.query)
+            return (parsed.path == "/profiles/fixture/search-history"
+                    and query.get("search_profile_id") == [saved_search_id]
+                    and query.get("limit") == ["1"])
+
+        with page.expect_response(is_scoped_history) as scoped:
+            page.get_by_label("Saved search profile", exact=True).last.select_option(saved_search_id)
+        assert scoped.value.status == 200
+        assert scoped.value.json()["items"] == [expected["fixture"]["mj236-ascii_201:1"]]
+
         def verify_history(response, profile_id, phase):
             assert response.request.method == "GET"
             assert response.url == f"{origin}/profiles/{profile_id}/search-history?limit=50"
@@ -564,7 +582,9 @@ def test_backend_valid_source_labels_survive_api_history_readback_and_reload(rec
         with page.expect_response(lambda response:
                 response.url == history_url and response.request.method == "GET") as initial:
             page.get_by_role("button", name="Activity", exact=True).click()
-        verify_history(initial.value, "fixture", "initial_readback")
+        initial_table = verify_history(initial.value, "fixture", "initial_readback")
+        saved_search_cell = initial_table.get_by_role("cell").filter(has_text="Unicode ID receipt search")
+        expect(saved_search_cell.get_by_role("button", name="Review jobs", exact=True)).to_be_visible()
 
         page.reload(wait_until="domcontentloaded")
         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")

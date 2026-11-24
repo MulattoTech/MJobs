@@ -103,9 +103,7 @@ function validatePageOptions(options: SearchHistoryPageOptions = {}): Required<P
     throw invalidRequest('Invalid search history page cursor.');
   }
   if (search_profile_id !== undefined &&
-      (typeof search_profile_id !== 'string' || !search_profile_id.trim() ||
-       search_profile_id !== search_profile_id.trim() || search_profile_id.length > 128 ||
-       /[\u0000-\u001f\u007f]/.test(search_profile_id))) {
+      (!nonemptyCodePointText(search_profile_id, 128) || search_profile_id !== search_profile_id.trim())) {
     throw invalidRequest('Invalid saved search identifier.');
   }
   return { limit, cursor, search_profile_id };
@@ -116,13 +114,13 @@ function nonemptyText(value: unknown, maxLength: number): value is string {
     !/[\u0000-\u001f\u007f]/.test(value);
 }
 
-function optionalSearchProfileId(value: unknown): value is string | undefined {
-  return value === undefined || nonemptyText(value, 128);
+function nonemptyCodePointText(value: unknown, maxCodePoints: number): value is string {
+  // A Unicode code point uses at most two UTF-16 code units.
+  return nonemptyText(value, maxCodePoints * 2) && Array.from(value).length <= maxCodePoints;
 }
 
-function sourceText(value: unknown): value is string {
-  // Persistence allows 256 Unicode code points: at most 512 UTF-16 code units.
-  return nonemptyText(value, 512) && Array.from(value).length <= 256;
+function optionalSearchProfileId(value: unknown): value is string | undefined {
+  return value === undefined || nonemptyCodePointText(value, 128);
 }
 
 function timestampOrNull(value: unknown): value is string | null {
@@ -138,7 +136,7 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
   if (!isRecord(value) ||
       !nonemptyText(value.id, 128) ||
       value.profile_id !== profileId ||
-      !sourceText(value.source) ||
+      !nonemptyCodePointText(value.source, 256) ||
       typeof value.query !== 'string' || value.query.length > 2000 || /[\u0000-\u001f\u007f]/.test(value.query) ||
       !(value.filters === null || isRecord(value.filters)) ||
       !timestampOrNull(value.started_at) || !timestampOrNull(value.finished_at) ||
