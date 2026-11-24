@@ -448,7 +448,11 @@ def _remote_residence_status(job, state, arrangement):
         for scope in _residence_scopes(text):
             if _RESIDENCE_STATES.match(scope):
                 continue
-            if re.match(rf"{_US_LOCATION}\b", scope, re.I):
+            country_scope = re.match(rf"{_US_LOCATION}\b", scope, re.I)
+            if country_scope:
+                qualifier = scope[country_scope.end():].strip()
+                if qualifier and not re.fullmatch(r"(?:only\s*)?[.;:!?]*", qualifier, re.I):
+                    return "UNKNOWN"
                 expressly_eligible = True
             elif re.match(rf"{_OTHER_COUNTRY}\b", scope, re.I):
                 return "EXCLUDED"

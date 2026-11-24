@@ -66,6 +66,44 @@ class SettingsTransferTests(unittest.TestCase):
         self.assertNotIn("credentials", repr(exported).lower())
         self.assertNotIn("password", repr(exported).lower())
 
+    def test_remote_residence_state_and_null_round_trip_through_settings_transfer(self):
+        for index, state in enumerate(("OK", None)):
+            search_id = f"residence-search-{index}"
+            name = f"Residence {index}"
+            self.add_search(search_id=search_id, name=name)
+            save_search_profile(self.store, {
+                "id": search_id,
+                "profile_id": "fixture",
+                "name": name,
+                "enabled": False,
+                "source_ids": [self.source_id],
+                "remote_residence_state": state,
+            })
+
+        exported = export_settings(self.store, "fixture")
+        criteria_by_name = {
+            search["name"]: search["criteria"]
+            for search in exported["settings"]["search_profiles"]
+        }
+        self.assertEqual(criteria_by_name["Residence 0"]["remote_residence_state"], "OK")
+        self.assertIsNone(criteria_by_name["Residence 1"]["remote_residence_state"])
+
+        import_settings(self.store, "fixture", exported)
+
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+
+    def test_legacy_settings_without_remote_residence_state_remain_absent(self):
+        self.add_search()
+        legacy = export_settings(self.store, "fixture")
+        legacy["schema_version"] = 1
+        original = copy.deepcopy(legacy)
+
+        import_settings(self.store, "fixture", legacy)
+
+        self.assertEqual(legacy, original)
+        criteria = export_settings(self.store, "fixture")["settings"]["search_profiles"][0]["criteria"]
+        self.assertNotIn("remote_residence_state", criteria)
+
     def test_import_replaces_only_target_profile_settings_and_survives_store_reopen(self):
         self.add_search()
         other_profile = dict(PROFILE)
