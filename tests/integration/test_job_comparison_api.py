@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import event, select
 
 from apps.api.job_comparison import create_job_comparison_router
 from packages.persistence import models as m
@@ -17,6 +17,77 @@ from tests.integration.test_spine import PROFILE
 
 
 class JobComparisonApiTests(unittest.TestCase):
+    def test_comparison_membership_excludes_closed_jobs_before_result_limit(self):
+        from apps.api.main import create_app
+
+        ids = ["job-one", "job-two"]
+        with TestClient(create_app(self.store, "http://127.0.0.1:1", Path(self.directory.name),
+                                   operation_mode="FIXTURE")) as client:
+            params = {"profile_id": "fixture", "search_profile_id": "selected-search", "limit": 1}
+            self.assertEqual(len(client.get("/jobs", params=params).json()["jobs"]), 1)
+            checkouts = []
+
+            def record_checkout(*_):
+                checkouts.append(True)
+
+            event.listen(self.store.engine, "checkout", record_checkout)
+            try:
+                result = client.post(self._url(), json={"job_ids": ids})
+            finally:
+                event.remove(self.store.engine, "checkout", record_checkout)
+            self.assertEqual(result.status_code, 200, result.text)
+            self.assertEqual(len(checkouts), 1, "Membership and scoring provenance share one checkout")
+            with self.store.engine.begin() as connection:
+                connection.execute(m.jobs.update().where(m.jobs.c.id == "job-two").values(
+                    attributes={"status": "CLOSED"},
+                ))
+            self.assertEqual([row["id"] for row in client.get("/jobs", params=params).json()["jobs"]], ["job-one"])
+            before = self._snapshot()
+            result = client.post(self._url(), json={"job_ids": ids})
+            self.assertEqual(result.status_code, 409, result.text)
+            self.assertEqual(result.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+            self.assertEqual(self._snapshot(), before)
+
+    def test_current_scored_job_without_display_route_is_not_a_comparison_member(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.routes.delete().where(m.routes.c.job_id == "job-two"))
+        before = self._snapshot()
+        response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+        self.assertEqual(self.service_calls, [])
+        self.assertEqual(self._snapshot(), before)
+
+    def test_duplicate_current_scores_remain_stale_context(self):
+        with self.store.engine.begin() as connection:
+            duplicate = dict(connection.execute(select(m.matches).where(
+                m.matches.c.id == "match-job-two",
+            )).mappings().one())
+            connection.execute(m.matches.insert().values(**{**duplicate, "id": "duplicate-match"}))
+        response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_STALE_CONTEXT")
+        self.assertEqual(self.service_calls, [])
+
+    def test_comparison_uses_persisted_visibility_opt_in(self):
+        from services.tracking.jobs import set_job_disposition
+
+        ids = ["job-one", "job-two"]
+        set_job_disposition(self.store, "fixture", "job-two", disposition="HIDDEN", request_id="comparison-hide")
+        hidden = self.client.post(self._url(), json={"job_ids": ids})
+        self.assertEqual(hidden.status_code, 409, hidden.text)
+        self.assertEqual(hidden.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+        self.assertEqual(self.service_calls, [])
+        with self.store.engine.begin() as connection:
+            connection.execute(m.search_profiles.update().where(
+                m.search_profiles.c.id == "selected-search",
+            ).values(criteria={"job_filters": {
+                "q": "", "remote_type": "", "provider": "", "sort": "score", "include_dismissed": True,
+            }}))
+        restored = self.client.post(self._url(), json={"job_ids": ids})
+        self.assertEqual(restored.status_code, 200, restored.text)
+        self.assertEqual(restored.json()["job_ids"], ids)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-job-comparison-")
         self.addCleanup(self.directory.cleanup)
@@ -70,6 +141,10 @@ class JobComparisonApiTests(unittest.TestCase):
                         "source_type": "fixture_source",
                         "requirement_source_ref": f"fixture:{job_id}:requirements",
                     },
+                ))
+                connection.execute(m.routes.insert().values(
+                    id=f"route-{job_id}", job_id=job_id, company_id="company", provider="fixture",
+                    tenant="comparison-fixture", requisition=job_id, url=f"https://jobs.example.test/{job_id}",
                 ))
             for ordinal, job_id in enumerate(("job-one", "job-two", "job-stale"), start=1):
                 connection.execute(m.matches.insert().values(
@@ -232,12 +307,6 @@ class JobComparisonApiTests(unittest.TestCase):
                     id=f"match-{job_id}", job_id=job_id, profile_id="fixture",
                     profile_version=self.profile["version"], score=99.0, missing=[], components={},
                 ))
-            for job_id in ("job-one", "job-two"):
-                connection.execute(m.routes.insert().values(
-                    id=f"route-{job_id}", job_id=job_id, company_id="company",
-                    provider="fixture", tenant="comparison-fixture", requisition=job_id,
-                    url=f"https://jobs.example.test/{job_id}",
-                ))
         for minimum, expected in (("72", 409), ("70", 200)):
             with self.subTest(minimum=minimum):
                 with self.store.engine.begin() as connection:
@@ -267,15 +336,6 @@ class JobComparisonApiTests(unittest.TestCase):
                 connection.execute(m.jobs.update().where(m.jobs.c.id == job_id).values(
                     attributes=attributes,
                 ))
-                route_id = f"route-{job_id}"
-                if connection.execute(select(m.routes.c.id).where(
-                    m.routes.c.id == route_id,
-                )).scalar_one_or_none() is None:
-                    connection.execute(m.routes.insert().values(
-                        id=route_id, job_id=job_id, company_id="company",
-                        provider="fixture", tenant="comparison-fixture", requisition=job_id,
-                        url=f"https://jobs.example.test/{job_id}",
-                    ))
             connection.execute(m.search_profiles.update().where(
                 m.search_profiles.c.id == "selected-search",
             ).values(criteria={"job_filters": {

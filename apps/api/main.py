@@ -7,7 +7,7 @@ import re
 import threading
 from contextlib import asynccontextmanager
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from time import monotonic
 from typing import Literal, Annotated
@@ -1804,7 +1804,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, str(error)) from None
 
     @app.get("/jobs")
-    def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),
+    def jobs(request: Request, profile_id: str | None = None, q: str = Query(default="", max_length=200),
              title: str = Query(default="", max_length=200),
              company: str = Query(default="", max_length=200),
              location: str = Query(default="", max_length=200),
@@ -1836,6 +1836,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              date_start: str | None = Query(default=None, max_length=64),
              date_end: str | None = Query(default=None, max_length=64),
              override_saved_match_score: bool = False,
+             override_saved_job_filters: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
              include_blacklisted: bool = False,
@@ -1868,15 +1869,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             if not clearance_level or clearance_level not in CLEARANCE_LEVELS:
                 raise HTTPException(422, "Clearance requirement is not supported")
         if job_source_id is not None:
-            job_source_id = job_source_id.strip()
-            if not job_source_id:
-                job_source_id = None
-            else:
-                with store.engine.connect() as connection:
-                    known_source = connection.execute(select(m.job_sources.c.id).where(
-                        m.job_sources.c.id == job_source_id)).scalar_one_or_none()
-                if known_source is None:
-                    raise HTTPException(422, "Job source is not configured")
+            job_source_id = job_source_id.strip() or None
         if (application_pipeline_status is not None
                 and application_pipeline_status not in {"", *PIPELINE_STATUSES, "NOT_TRACKED"}):
             raise HTTPException(422, "Application pipeline status is not supported")
@@ -1885,133 +1878,55 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
-        saved_score = ((search_profile["criteria"].get("job_filters") or {}).get("min_match_score", "")
-                       if search_profile else "")
-        if override_saved_match_score:
-            effective_match_score = min_match_score
-        elif saved_score:
-            effective_match_score = max(min_match_score or 0, int(saved_score))
-        else:
-            effective_match_score = min_match_score
-        saved_posted_within = ((search_profile["criteria"].get("job_filters") or {}).get("posted_within_days", "")
-                               if search_profile else "")
-        saved_application_link_status = ((search_profile["criteria"].get("job_filters") or {}).get("application_link_status")
-                                         if search_profile else None)
-        effective_application_link_status = (application_link_status if application_link_status is not None
-                                             else saved_application_link_status)
-        if effective_application_link_status == "":
-            effective_application_link_status = None
-        saved_application_pipeline_status = (
-            (search_profile["criteria"].get("job_filters") or {}).get("application_pipeline_status")
-            if search_profile else None
-        )
-        effective_application_pipeline_status = (
-            application_pipeline_status if application_pipeline_status is not None
-            else saved_application_pipeline_status
-        )
-        if effective_application_pipeline_status == "":
-            effective_application_pipeline_status = None
-        if effective_application_pipeline_status is not None and not profile_id:
-            raise HTTPException(422, "Application pipeline filtering requires a career profile")
-        saved_application_capability = (
-            (search_profile["criteria"].get("job_filters") or {}).get("application_capability")
-            if search_profile else None
-        )
-        effective_application_capability = (
-            application_capability if application_capability is not None else saved_application_capability
-        )
-        if effective_application_capability == "":
-            effective_application_capability = None
-        saved_date_window = search_profile["criteria"].get("date_window", "ANY") if search_profile else "ANY"
-        explicit_date_filter = explicit_date_window or posted_within_days is not None
+        from services.discovery.jobs_query_policy import resolve_jobs_query
+
+        explicit = request.query_params
+        fields = {
+            "q": q, "title": title, "company": company, "location": location,
+            "remote_type": remote_type, "provider": provider, "ats_provider": ats_provider,
+            "salary_min": salary_min, "salary_max": salary_max, "salary_period": salary_period,
+            "salary_known_only": salary_known_only, "salary_unknown_allowed": salary_unknown_allowed,
+            "min_match_score": min_match_score, "experience_level": experience_level,
+            "employment_type": employment_type, "skill": skill_id,
+            "education_requirement": education_requirement, "clearance_level": clearance_level,
+            "job_source_id": job_source_id, "application_link_status": application_link_status,
+            "application_pipeline_status": application_pipeline_status,
+            "application_capability": application_capability,
+        }
+        overrides = {key: value for key, value in fields.items() if key in explicit}
+        # Jobs is also a direct API: visibility opt-ins must be explicit on
+        # each request. The saved-view UI supplies them when it restores them.
+        overrides.update(include_dismissed=include_dismissed, include_blacklisted=include_blacklisted)
+        if "skill" in overrides:
+            overrides["skill_id"] = overrides.pop("skill")
+        date_overrides = {}
         if explicit_date_window:
-            effective_date_window = date_window
+            date_overrides = {"date_window": date_window, "date_start": date_start, "date_end": date_end}
         elif posted_within_days is not None:
-            effective_date_window = "ANY"
-        else:
-            effective_date_window = saved_date_window
-        if effective_date_window == "ANY" and not explicit_date_window:
-            effective_posted_within = posted_within_days if posted_within_days is not None else (
-                int(saved_posted_within) if saved_posted_within else None)
-        else:
-            effective_posted_within = None
-        query_time = datetime.now(timezone.utc)
-        if effective_date_window == "CUSTOM":
-            if explicit_date_window:
-                posted_after, posted_before = parsed_date_start, parsed_date_end
-            else:
-                posted_after = parse_utc_date_bound(search_profile["criteria"].get("date_start"))
-                posted_before = parse_utc_date_bound(search_profile["criteria"].get("date_end"))
-        elif effective_date_window == "TODAY":
-            posted_after = query_time.replace(hour=0, minute=0, second=0, microsecond=0)
-            posted_before = query_time
-        elif effective_date_window in {"LAST_HOUR", "LAST_24_HOURS", "LAST_3_DAYS",
-                                       "LAST_7_DAYS", "LAST_30_DAYS"}:
-            delta = {
-                "LAST_HOUR": timedelta(hours=1), "LAST_24_HOURS": timedelta(days=1),
-                "LAST_3_DAYS": timedelta(days=3), "LAST_7_DAYS": timedelta(days=7),
-                "LAST_30_DAYS": timedelta(days=30),
-            }[effective_date_window]
-            posted_after, posted_before = query_time - delta, query_time
-        elif effective_posted_within is not None:
-            posted_after, posted_before = query_time - timedelta(days=effective_posted_within), query_time
-        else:
-            posted_after = posted_before = None
+            date_overrides = {"posted_within_days": posted_within_days}
+        try:
+            options, _ = resolve_jobs_query(
+                store, profile_id, search_profile["criteria"] if search_profile else None,
+                overrides=overrides, date_overrides=date_overrides,
+                replace_saved_facets=override_saved_job_filters,
+                override_saved_score=override_saved_match_score,
+                at=datetime.now(timezone.utc),
+            )
+        except LookupError:
+            raise HTTPException(404, "Career profile not found") from None
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        if options["application_pipeline_status"] is not None and not profile_id:
+            raise HTTPException(422, "Application pipeline filtering requires a career profile")
+        if options["salary_min"] is not None and options["salary_max"] is not None \
+                and options["salary_min"] > options["salary_max"]:
+            raise HTTPException(422, "Minimum USD salary cannot exceed maximum for the selected pay period")
+        if options["salary_known_only"] and options["salary_unknown_allowed"]:
+            raise HTTPException(422, "Known-only salary and unknown-allowed salary are mutually exclusive")
         result_limit = 500 if sort == "application_priority" else limit
         database_sort = "score" if sort == "application_priority" else sort
-        excluded_company_ids = []
-        if profile_id and not include_blacklisted:
-            from services.matching.company_preferences import list_company_preferences
-            try:
-                excluded_company_ids = [
-                    item["company_id"]
-                    for item in list_company_preferences(store, profile_id)
-                    if item["status"] == "BLACKLISTED"
-                ]
-            except LookupError:
-                raise HTTPException(404, "Career profile not found") from None
-        visibility_filter = None
-        if profile_id and not include_dismissed:
-            from itertools import islice
-            from services.tracking.jobs import list_job_tracking
-
-            def visibility_filter(candidates):
-                # Read append-only tracking in bounded batches without consuming
-                # the result limit on dismissed jobs or scanning the full catalogue.
-                while batch := list(islice(candidates, 100)):
-                    tracking = list_job_tracking(store, profile_id, [row["id"] for row in batch])
-                    for row in batch:
-                        row["tracking"] = tracking[row["id"]]
-                        if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED"):
-                            yield row
-
-        effective_search_criteria = search_profile["criteria"] if search_profile else None
-        if effective_search_criteria is not None and explicit_date_filter:
-            effective_search_criteria = {
-                **effective_search_criteria,
-                "date_window": "ANY",
-                "date_start": None,
-                "date_end": None,
-            }
-        rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
-                          title=title, company=company, location=location, ats_provider=ats_provider,
-                          salary_min=salary_min, salary_max=salary_max,
-                          salary_period=salary_period, salary_known_only=salary_known_only,
-                          salary_unknown_allowed=salary_unknown_allowed,
-                          min_match_score=effective_match_score, experience_level=experience_level,
-                          employment_type=employment_type,
-                          skill_id=skill_id,
-                          education_requirement=education_requirement,
-                          clearance_level=clearance_level,
-                          job_source_id=job_source_id,
-                          application_link_status=effective_application_link_status,
-                          application_pipeline_status=effective_application_pipeline_status,
-                          application_capability=effective_application_capability,
-                          posted_after=posted_after, posted_before=posted_before,
-                          exclude_company_ids=excluded_company_ids,
-                          search_criteria=effective_search_criteria,
-                          row_filter=visibility_filter, exclude_closed=search_profile is not None)
-        if profile_id and include_dismissed:
+        rows = store.jobs(profile_id=profile_id, sort=database_sort, limit=result_limit, **options)
+        if profile_id and "row_filter" not in options:
             from services.tracking.jobs import list_job_tracking
             tracking = list_job_tracking(store, profile_id, [row["id"] for row in rows])
             for row in rows:

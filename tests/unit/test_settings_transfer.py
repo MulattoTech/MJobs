@@ -104,6 +104,29 @@ class SettingsTransferTests(unittest.TestCase):
         criteria = export_settings(self.store, "fixture")["settings"]["search_profiles"][0]["criteria"]
         self.assertNotIn("remote_residence_state", criteria)
 
+    def test_saved_arrangement_basis_round_trips_and_legacy_stays_absent(self):
+        filters = {"q": "", "remote_type": "HYBRID", "provider": "", "sort": "score"}
+        for name, basis in (("Legacy", None), ("Stored", "STORED"), ("Evaluated", "EVALUATED")):
+            payload = {**filters, **({"arrangement_basis": basis} if basis else {})}
+            save_search_profile(self.store, {
+                "id": name, "profile_id": "fixture", "name": name,
+                "enabled": False, "job_filters": payload,
+            })
+        exported = export_settings(self.store, "fixture")
+        import_settings(self.store, "fixture", exported)
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+        saved = {row["name"]: row["criteria"]["job_filters"]
+                 for row in list_search_profiles(self.store, "fixture")}
+        self.assertNotIn("arrangement_basis", saved["Legacy"])
+        self.assertEqual(saved["Stored"]["arrangement_basis"], "STORED")
+        self.assertEqual(saved["Evaluated"]["arrangement_basis"], "EVALUATED")
+
+        invalid = copy.deepcopy(exported)
+        invalid["settings"]["search_profiles"][0]["criteria"]["job_filters"]["arrangement_basis"] = "OTHER"
+        with self.assertRaises(ValueError):
+            import_settings(self.store, "fixture", invalid)
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+
     def test_import_replaces_only_target_profile_settings_and_survives_store_reopen(self):
         self.add_search()
         other_profile = dict(PROFILE)

@@ -65,7 +65,7 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
             server = uvicorn.Server(uvicorn.Config(
                 create_app(store, "http://127.0.0.1:1", root,
                            "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
-                log_level="error"))
+                log_level="error", timeout_graceful_shutdown=3))
             thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
             try:
                 thread.start()
@@ -197,6 +197,48 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     python_card.click()
                     expect(detail).to_contain_text("Remote, United States · HYBRID")
                     expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    page.get_by_label("Saved search name", exact=True).fill("Stored hybrid snapshot")
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/search-profiles"
+                            and response.request.method == "PUT") as saved_snapshot:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_snapshot.value.status, 200)
+                    self.assertEqual(saved_snapshot.value.request.post_data_json["job_filters"]["arrangement_basis"],
+                                     "STORED")
+                    snapshot_option = search.locator("option", has_text="Stored hybrid snapshot")
+                    expect(snapshot_option).to_have_count(1)
+                    snapshot_id = snapshot_option.get_attribute("value")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(search).to_have_value(snapshot_id)
+                    expect(work_location).to_have_value("HYBRID")
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    search.select_option("python-search")
+                    work_location.select_option("REMOTE")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    page.get_by_label("Saved search name", exact=True).fill("Evaluated remote snapshot")
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/search-profiles"
+                            and response.request.method == "PUT") as saved_evaluated:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_evaluated.value.status, 200)
+                    self.assertEqual(saved_evaluated.value.request.post_data_json["job_filters"]["arrangement_basis"],
+                                     "EVALUATED")
+                    evaluated_option = search.locator("option", has_text="Evaluated remote snapshot")
+                    expect(evaluated_option).to_have_count(1)
+                    evaluated_id = evaluated_option.get_attribute("value")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(search).to_have_value(evaluated_id)
+                    expect(work_location).to_have_value("REMOTE")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+                    search.select_option("")
                     work_location.select_option("")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 

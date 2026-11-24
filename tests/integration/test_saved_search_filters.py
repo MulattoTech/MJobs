@@ -20,6 +20,41 @@ from tests.integration.test_spine import PROFILE
 
 
 class SavedSearchFiltersApiTests(unittest.TestCase):
+    def test_all_jobs_snapshot_retains_stored_arrangement(self):
+        with self.store.engine.begin() as connection:
+            for title, description, stored in (
+                ("Data Engineer", "This role is hybrid.", "REMOTE_US"),
+                ("Python Developer", "Maintain our hybrid cloud infrastructure.", "HYBRID"),
+            ):
+                connection.execute(update(m.jobs).where(m.jobs.c.title == title).values(
+                    location="Remote, United States", description=description, remote_type=stored,
+                    attributes={"provider": "greenhouse", "remote_indicated": True},
+                ))
+        filters = {"q": "", "remote_type": "HYBRID", "provider": "", "sort": "title"}
+        saved = self.client.put("/search-profiles", json={
+            "id": "hybrid-snapshot", "profile_id": "fixture", "name": "Hybrid snapshot",
+            "enabled": False, "job_filters": filters,
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        params = {"profile_id": "fixture", "remote_type": "HYBRID", "sort": "title", "limit": 1}
+        origin = self.client.get("/jobs", params=params).json()["jobs"]
+        restored = self.client.get("/jobs", params={"profile_id": "fixture", "sort": "title", "limit": 1,
+                                                   "search_profile_id": "hybrid-snapshot"})
+        self.assertEqual(restored.status_code, 200, restored.text)
+        self.assertEqual([row["id"] for row in restored.json()["jobs"]], [row["id"] for row in origin])
+        self.assertNotIn("work_arrangement", restored.json()["jobs"][0]["search_evidence"])
+
+        saved = self.client.put("/search-profiles", json={
+            "id": "evaluated-snapshot", "profile_id": "fixture", "name": "Evaluated snapshot",
+            "enabled": False, "job_filters": {**filters, "arrangement_basis": "EVALUATED"},
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        evaluated = self.client.get("/jobs", params={"profile_id": "fixture", "sort": "title", "limit": 1,
+                                                    "search_profile_id": "evaluated-snapshot"})
+        self.assertEqual(evaluated.status_code, 200, evaluated.text)
+        self.assertEqual([row["title"] for row in evaluated.json()["jobs"]], ["Data Engineer"])
+        self.assertEqual(evaluated.json()["jobs"][0]["search_evidence"]["work_arrangement"], "HYBRID")
+
     def test_saved_search_work_location_facets_use_evaluated_arrangement_before_limit(self):
         with self.store.engine.begin() as connection:
             for title, description, stored, posted_at in (

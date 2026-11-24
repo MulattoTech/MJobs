@@ -55,13 +55,18 @@ def _clean_job_filters(value):
     optional = {"title", "company", "location", "salary_min", "salary_max", "salary_period", "salary_policy", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
                 "clearance_level", "ats_provider", "job_source_id", "application_link_status", "application_pipeline_status",
-                "application_capability", "include_dismissed", "include_blacklisted"}
+                "application_capability", "include_dismissed", "include_blacklisted", "arrangement_basis"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
         raise ValueError("Saved Jobs query must be text up to 200 characters")
     cleaned = {"q": query}
+    if "arrangement_basis" in value:
+        basis = value["arrangement_basis"]
+        if basis not in ("STORED", "EVALUATED"):
+            raise ValueError("Saved Jobs arrangement basis is invalid")
+        cleaned["arrangement_basis"] = basis
     # These are Jobs viewing preferences, not discovery or application policy.
     # Preserve legacy readback shapes; an absent preference does not opt in.
     for key in ("include_dismissed", "include_blacklisted"):
@@ -341,6 +346,9 @@ def save_search_profile(store, data):
                 if job_filters is None:
                     criteria.pop("job_filters", None)
                 else:
+                    previous_filters = criteria.get("job_filters") or {}
+                    if "arrangement_basis" in previous_filters and "arrangement_basis" not in job_filters:
+                        job_filters["arrangement_basis"] = previous_filters["arrangement_basis"]
                     criteria["job_filters"] = job_filters
         else:
             criteria = new_criteria

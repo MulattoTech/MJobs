@@ -70,6 +70,11 @@ class JobComparisonApiRecoveryTests(unittest.TestCase):
                         "source_ref": f"fixture:{job_id}",
                     },
                 ))
+                connection.execute(m.routes.insert().values(
+                    id=f"route-{job_id}", job_id=job_id, company_id="company",
+                    provider="fixture", tenant="comparison-fixture", requisition=job_id,
+                    url=f"https://synthetic.example/{job_id}",
+                ))
             current_matches = [
                 ("current-one", 68.0), ("current-two", 74.0),
                 *[(job_id, 60.0 + index)
