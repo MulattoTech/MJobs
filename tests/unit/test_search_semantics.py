@@ -32,10 +32,14 @@ class SearchSemanticsTests(unittest.TestCase):
         description = "On-site role."
         for location, city, state in (
             ("Austin TX", "Austin", "TX"),
+            ("Austin tx", "Austin", "TX"),
             ("Austin TX 78701", "Austin", "TX"),
+            ("Austin tX 78701 (On-site)", "Austin", "TX"),
             ("Austin TX 78701-1234 (On-site)", "Austin", "TX"),
+            ("Austin Tx 78701-1234 (On-site)", "Austin", "TX"),
             ("Round Rock TX (Hybrid)", "Round Rock", "TX"),
             ("Austin TX 78701 extra", "Austin TX 78701 extra", None),
+            ("Austin tx 78701 extra", "Austin tx 78701 extra", None),
             ("Austin TX 7870", "Austin TX 7870", None),
             ("Austin, TX 7870 (On-site)", "Austin", None),
             ("Seattle", "Seattle", None),
@@ -164,6 +168,41 @@ class SearchSemanticsTests(unittest.TestCase):
         states = classify_location("Remote", "Fully remote if you reside in one of the following states: Oklahoma, Texas.")
         self.assertEqual((states["remote_type"], states["remote_regions"]),
                          ("REMOTE_SPECIFIC_STATES", ["OK", "TX"]))
+
+    def test_us_work_scope_requires_affirmative_role_evidence(self):
+        location = "Remote"
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description, expected in (
+            ("Employees cannot work in the United States.", "UNKNOWN"),
+            ("Employees can\u2019t work in the United States.", "UNKNOWN"),
+            ("Employees aren't allowed to work in the United States.", "UNKNOWN"),
+            ("This role is not remote within the United States.", "UNKNOWN"),
+            ("Work in the United States is not allowed.", "UNKNOWN"),
+            ("Our customers work in the United States.", "UNKNOWN"),
+            ("Our clients' staff can work in the United States.", "UNKNOWN"),
+            ("Applicants aren't required to reside in the United States.", "UNKNOWN"),
+            ("Work in the United States.", "ELIGIBLE"),
+            ("Our employees can work in the United States.", "ELIGIBLE"),
+            ("Applicants must reside in the United States.", "ELIGIBLE"),
+            ("Employees cannot work worldwide. This role is remote within the United States.", "ELIGIBLE"),
+            ("No office visits are required. Employees may work in the U.S.", "ELIGIBLE"),
+        ):
+            attrs = classify_location(location, description)
+            eligible = expected == "ELIGIBLE"
+            with self.subTest(description=description, stage="classify"):
+                self.assertEqual(attrs["remote_type"], "REMOTE_US" if eligible else "UNKNOWN")
+                self.assertEqual(attrs["country"], "US" if eligible else None)
+            for remote_type, attrs_for_run in (
+                (attrs["remote_type"], attrs),
+                ("REMOTE_US", {"provider": "greenhouse", "country": "US", "remote_indicated": True}),
+            ):
+                with self.subTest(description=description, remote_type=remote_type):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attrs_for_run,
+                    })
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": expected})
+                    self.assertEqual(result["matched"], eligible)
 
     def test_remote_residence_requires_supported_eligibility(self):
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}

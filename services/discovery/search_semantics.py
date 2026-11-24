@@ -55,7 +55,7 @@ _LOCATION_ARRANGEMENT_SUFFIX = re.compile(
 )
 _US_ZIP = r"[0-9]{5}(?:-[0-9]{4})?"
 _LOCATION_CITY_STATE = re.compile(
-    rf"(?P<city>[^\W\d_][\w. '’\-]*?)[ \t]+(?P<state>[A-Z]{{2}})(?:[ \t]+{_US_ZIP})?",
+    rf"(?P<city>[^\W\d_][\w. '’\-]*?)[ \t]+(?P<state>[A-Za-z]{{2}})(?:[ \t]+{_US_ZIP})?",
 )
 
 
@@ -337,7 +337,9 @@ def classify_location(location_text, description=""):
     onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
 
     country = None
-    if re.search(r"\b(united states|u.?s.?a?|us)\b", folded):
+    country_location = location if remote_indicated else combined
+    if (re.search(r"\b(united states|u.?s.?a?|us)\b", country_location, re.I)
+            or (remote_indicated and _has_affirmative_us_country_evidence(description or ""))):
         country = "US"
     elif "canada" in folded:
         country = "CA"
@@ -358,10 +360,10 @@ def classify_location(location_text, description=""):
         state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
         if state is None:
             city_state = _LOCATION_CITY_STATE.fullmatch(_LOCATION_ARRANGEMENT_SUFFIX.sub("", first))
-            if (city_state and city_state["state"] in US_STATES
+            if (city_state and (code := city_state["state"].upper()) in US_STATES
                     and not re.search(r"\b(remote|hybrid|onsite|on-site)\b", city_state["city"], re.I)):
                 city = city_state["city"][:200]
-                state = city_state["state"]
+                state = code
 
     restricted_states = set()
     if remote_indicated:
@@ -472,7 +474,12 @@ _RESIDENCE_REQUIREMENT = re.compile(
     r"(?:one\s+of\s+the\s+following\s+states\s*:\s*)?",
     re.I,
 )
+_RESIDENCE_NEGATION = re.compile(
+    r"\b(?:not|never|isn['’]t|aren['’]t|wasn['’]t|weren['’]t)[ \t]+(?:currently[ \t]+)?$",
+    re.I,
+)
 _US_LOCATION = r"(?:the\s+)?(?:united states(?: of america)?|u\.?s\.?(?:a\.?)?)"
+_US_LOCATION_PREFIX = re.compile(rf"{_US_LOCATION}\b", re.I)
 _WORLDWIDE_LOCATION = r"(?:worldwide|globally|global|anywhere in the world)"
 _OTHER_COUNTRY = r"(?:canada|united kingdom|u\.?k\.?|australia|india|germany|france|mexico)"
 _NON_US_RESIDENCE_ADJECTIVE = r"(?:canadian|british|australian|indian|german|french|mexican|european)"
@@ -510,18 +517,21 @@ _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
 _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
-_WORLDWIDE_WORK = re.compile(
+_AFFIRMATIVE_WORK_CLAUSE = (
     r"(?:^|[.!?;\r\n])[ \t]*(?:"
     r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|workers?|applicants?|candidates?)\s+"
     r"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?work"
     r"|(?:this|the|a)\s+(?:role|position|job|opportunity|opening)\s+"
     r"(?:(?:is|remains|will be)\s+(?:(?:fully\s+)?remote|available|open)|"
     r"(?:can|may)\s+be\s+(?:worked|performed))"
-    rf"|work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b(?=[ \t]*(?:[.!?;\r\n]|$))",
+    r"|work|(?:fully\s+)?remote)"
+)
+_WORLDWIDE_WORK = re.compile(
+    rf"{_AFFIRMATIVE_WORK_CLAUSE}\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
 )
 _REMOTE_TEXT_SCOPE = re.compile(
-    rf"\b(?:remote|work)\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
+    rf"{_AFFIRMATIVE_WORK_CLAUSE}\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
     rf"(?P<country>{_US_LOCATION})\b",
     re.I,
 )
@@ -538,7 +548,9 @@ def _stated_us_states(value):
 
 
 def _residence_scopes(text):
-    return (text[match.end():] for match in _RESIDENCE_REQUIREMENT.finditer(text))
+    for match in _RESIDENCE_REQUIREMENT.finditer(text):
+        if not _RESIDENCE_NEGATION.search(text[:match.start()]):
+            yield text[match.end():]
 
 
 def _country_scope_is_unambiguous(text, end, country_text):
@@ -566,6 +578,23 @@ def _country_scope_is_unambiguous(text, end, country_text):
         and not _COUNTRY_SCOPE_CUE.search(first_sentence)
         and not _STATE_TOKENS.search(first_sentence)
         and not re.search(rf"\b(?:{_US_LOCATION}|{_OTHER_COUNTRY})\b", first_sentence, re.I)
+    )
+
+
+def _remote_us_work_scope(text):
+    status = None
+    for match in _REMOTE_TEXT_SCOPE.finditer(text):
+        if not _country_scope_is_unambiguous(text, match.end(), match["country"]):
+            return "UNKNOWN"
+        status = "ELIGIBLE"
+    return status
+
+
+def _has_affirmative_us_country_evidence(text):
+    return _remote_us_work_scope(text) == "ELIGIBLE" or any(
+        _country_scope_is_unambiguous(scope, country.end(), country.group())
+        for scope in _residence_scopes(text)
+        if (country := _US_LOCATION_PREFIX.match(scope))
     )
 
 
@@ -664,7 +693,7 @@ def _remote_residence_status(job, state, arrangement):
         for scope in _residence_scopes(text):
             if _RESIDENCE_STATES.match(scope):
                 continue
-            country_scope = re.match(rf"{_US_LOCATION}\b", scope, re.I)
+            country_scope = _US_LOCATION_PREFIX.match(scope)
             if country_scope:
                 if not _country_scope_is_unambiguous(
                         scope, country_scope.end(), country_scope.group()):
@@ -674,11 +703,9 @@ def _remote_residence_status(job, state, arrangement):
                 return "EXCLUDED"
             else:
                 return "UNKNOWN"
-    remote_country_eligible = False
-    for match in _REMOTE_TEXT_SCOPE.finditer(description):
-        if not _country_scope_is_unambiguous(description, match.end(), match["country"]):
-            return "UNKNOWN"
-        remote_country_eligible = True
+    remote_us_scope = _remote_us_work_scope(description)
+    if remote_us_scope == "UNKNOWN":
+        return "UNKNOWN"
 
     if expressly_eligible or re.fullmatch(
             rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", location_scope, re.I):
@@ -687,7 +714,7 @@ def _remote_residence_status(job, state, arrangement):
         return "ELIGIBLE"
     if job.get("remote_type") == "REMOTE_COUNTRY":
         return "EXCLUDED"
-    return "ELIGIBLE" if remote_country_eligible or _has_affirmative_worldwide_work(description) else "UNKNOWN"
+    return "ELIGIBLE" if remote_us_scope == "ELIGIBLE" or _has_affirmative_worldwide_work(description) else "UNKNOWN"
 
 
 def normalize_title(value):
