@@ -192,6 +192,42 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
                     expect(local_card.get_by_role("button", name="Collect for this search")).to_be_disabled()
                     self.assertEqual(page_errors, [])
 
+                    page.get_by_role("button", name="Jobs 0", exact=True).click()
+                    saved_search = page.get_by_label("Saved search profile", exact=True).last
+                    saved_search.select_option("")
+                    page.get_by_label("Saved search name", exact=True).fill("Any title filters")
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT" and
+                            urlsplit(response.url).path == "/search-profiles") as saved_any:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_any.value.status, 200)
+                    any_option = saved_search.locator("option", has_text="Any title filters")
+                    expect(any_option).to_have_count(1)
+                    any_search_id = any_option.get_attribute("value")
+                    any_url = f"{origin}/search-profiles/{any_search_id}"
+                    any_before = page.request.get(any_url).json()
+                    self.assertEqual(any_before["criteria"]["include_titles"], [])
+
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    any_card = page.locator(".document").filter(
+                        has=page.get_by_text("Any title filters", exact=True))
+                    any_card.get_by_role("button", name="Edit search", exact=True).click()
+                    include_titles = page.get_by_label("Include titles", exact=True)
+                    expect(include_titles).to_have_value("")
+                    page.get_by_label("Search name", exact=True).fill("Renamed any title filters")
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT" and
+                            urlsplit(response.url).path == "/search-profiles", timeout=5000) as renamed_any:
+                        page.get_by_role("button", name="Update search", exact=True).click()
+                    self.assertEqual(renamed_any.value.status, 200)
+                    any_after = page.request.get(any_url).json()
+                    self.assertEqual(any_after["name"], "Renamed any title filters")
+                    self.assertEqual(any_after["criteria"]["include_titles"], [])
+                    self.assertEqual(any_after["criteria"]["job_filters"], any_before["criteria"]["job_filters"])
+                    self.assertEqual(any_after["enabled"], any_before["enabled"])
+                    expect(page.get_by_role("button", name="Save search", exact=True)).to_be_visible()
+                    self.assertTrue(include_titles.evaluate("field => field.validity.valueMissing"))
+
                     self.assertEqual(external, [])
                     self.assertFalse(any("/collect" in urlsplit(url).path for _, url in requests))
                     self.assertEqual(store.count("worker_operations"), 0)

@@ -20,6 +20,9 @@ from packages.persistence.store import Store, identity, upsert
 from services.company_discovery.sources import register_ats_tenant
 from services.discovery.pipeline import discover
 from services.discovery.scheduler import schedule_due_sources
+from services.discovery.search_history import record_search_history
+from services.discovery.search_history_events import build_search_history_record
+from services.discovery.search_profiles import save_search_profile
 from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
@@ -29,6 +32,129 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class SavedSearchFiltersBrowserTests(unittest.TestCase):
+    def test_saved_search_receipt_refreshes_on_terminal_collection_in_its_own_scope(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-saved-search-receipt-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                                "email": "other@example.test"})
+            source = "fixture-receipt-board"
+            source_id = configure_source(store, source)
+            for search_id, profile_id, name in (
+                ("receipt-search", "fixture", "Receipt search"),
+                ("other-search", "other", "Other receipt search"),
+            ):
+                save_search_profile(store, {
+                    "id": search_id, "profile_id": profile_id, "name": name, "enabled": True,
+                    "include_titles": ["Synthetic title"], "source_ids": [source_id],
+                })
+
+            def finish_collection(operation_id, state, error):
+                # Finish an operation queued by the real API without contacting any board.
+                finished_at = datetime.now(timezone.utc).isoformat()
+                outcome = {"state": state, "error": error, "attempt_count": 1,
+                           "last_attempt_at": finished_at, "updated_at": finished_at}
+                with store.engine.begin() as connection:
+                    operation = connection.execute(select(m.operations).where(
+                        m.operations.c.id == operation_id)).mappings().one()
+                    self.assertEqual(operation["state"], "QUEUED")
+                    self.assertEqual(operation["entity_id"], "fixture")
+                    self.assertEqual(operation["params"]["search_profile_id"], "receipt-search")
+                    receipt = build_search_history_record(
+                        {**operation, **outcome},
+                        {"source": source, "results": 0} if state == "COMPLETED" else {"source": source},
+                    )
+                    self.assertIsNotNone(receipt)
+                    record_search_history(store, receipt, connection=connection)
+                    connection.execute(update(m.operations).where(
+                        m.operations.c.id == operation_id).values(**outcome))
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
+                log_level="error", timeout_graceful_shutdown=3))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            try:
+                thread.start()
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("Isolated saved-search receipt API did not start")
+                    time.sleep(0.02)
+
+                external = []
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context()
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route("**/*", local_only)
+                    page = context.new_page()
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.evaluate("""() => {
+                        localStorage.setItem('mjobs-profile', 'fixture');
+                        localStorage.setItem('mjobs-search-profile:fixture', 'receipt-search');
+                        localStorage.setItem('mjobs-search-profile:other', 'other-search');
+                    }""")
+                    page.reload(wait_until="domcontentloaded")
+                    empty = page.get_by_role("region", name="Empty jobs for Receipt search")
+                    expect(empty).to_contain_text("No completed collection has been recorded")
+
+                    def collect():
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == f"/sources/{source_id}/collect"
+                                and response.request.method == "POST") as queued:
+                            page.get_by_role("button", name=f"Collect Receipt search from {source}",
+                                             exact=True).click()
+                        self.assertEqual(queued.value.status, 202)
+                        return queued.value.json()["operation_id"]
+
+                    for state, error, message in (
+                        ("FAILED", "Fixture collection failed", "failed. Review Activity"),
+                        ("CANCELLED", "Fixture collection cancelled", "was cancelled"),
+                        ("COMPLETED", None, "completed with zero results"),
+                    ):
+                        with self.subTest(state=state):
+                            finish_collection(collect(), state, error)
+                            if error:
+                                expect(page.get_by_text(f"{state}: {error}", exact=True)).to_be_visible()
+                                page.get_by_role("button", name="Jobs 0", exact=True).click()
+                            expect(empty).to_contain_text(message)
+
+                    operation_id = collect()
+                    active_profile = page.get_by_label("Active profile", exact=True)
+                    expect(active_profile).to_be_disabled()
+                    finish_collection(operation_id, "FAILED", "Fixture collection failed before switch")
+                    expect(page.get_by_text("FAILED: Fixture collection failed before switch",
+                                            exact=True)).to_be_visible()
+                    active_profile.select_option("other")
+                    page.get_by_role("button", name="Jobs 0", exact=True).click()
+                    other_empty = page.get_by_role("region", name="Empty jobs for Other receipt search")
+                    expect(other_empty).to_contain_text("No completed collection has been recorded")
+                    active_profile.select_option("fixture")
+                    expect(empty).to_contain_text("failed. Review Activity")
+                    self.assertEqual(external, [])
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=15)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), "Isolated saved-search receipt API did not stop")
+
     def test_saved_priority_and_visibility_choices_restore_and_clear_without_policy_changes(self):
         from services.matching.company_preferences import get_company_preference, set_company_preference
         from services.tracking.jobs import read_job_tracking, set_job_disposition

@@ -325,6 +325,7 @@ function App() {
   editorRef.current = editor;
   const [jobs,setJobs] = useState<Job[]>([]);
   const [searchReceiptLookupState,setSearchReceiptLookupState]=useState<{profileId:string;searchProfileId:string;lookup:SearchReceiptLookup}|null>(null);
+  const [searchReceiptRevision,setSearchReceiptRevision]=useState(0);
   const [viewsRevision,setViewsRevision] = useState(0);
   const [showDismissed,setShowDismissed] = useState(false);
   const [showBlacklisted,setShowBlacklisted] = useState(false);
@@ -726,9 +727,12 @@ function App() {
     const source=sourceForSearchCollection(currentSearch,sources,activeProfile,sourceId);
     if(!source) {setError('This saved search is paused or the selected source is not enabled and allowed by this search.');return;}
     selectSearchProfile(currentSearch.id);
+    const isCurrentSelection=()=>profileRef.current===activeProfile&&queryRef.current.searchProfileId===currentSearch.id;
     await action(`Collecting ${source.name} for ${currentSearch.name}`,async()=>{
-      await queue(`/sources/${encodeURIComponent(source.id)}/collect`,withSavedSearchCollectionScope(request(),currentSearch.id));
-      setTab('Jobs');
+      await queue(`/sources/${encodeURIComponent(source.id)}/collect`,withSavedSearchCollectionScope(request(),currentSearch.id),()=>{
+        if(isCurrentSelection())setSearchReceiptRevision(current=>current+1);
+      });
+      if(isCurrentSelection())setTab('Jobs');
     });
   }
   function applySearchProfileSeed(seed:SearchProfileSeedDraft) {
@@ -962,7 +966,7 @@ function App() {
         setSearchReceiptLookupState({profileId,searchProfileId:selected.id,lookup:{status:'unavailable'}});
     });
     return()=>{if(sequence===searchReceiptSequence.current)searchReceiptSequence.current+=1;};
-  },[profileId,selectedSearchProfileId,searchProfiles]);
+  },[profileId,selectedSearchProfileId,searchProfiles,searchReceiptRevision]);
   async function action(label:string, fn:()=>Promise<void>) {
     if(busy)return;setBusy(label);setError('');setNotice('');
     try {await fn();await refresh(profileRef.current);await loadJobs(profileRef.current);}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy('');setActiveOp('');}
@@ -1014,17 +1018,18 @@ function App() {
     setDocumentArchive([]);setDocumentArchiveError('');setDocumentArchiveLoading(false);
     if(tab==='Profile'&&profileId)void loadDocumentArchive(profileId);
   },[tab,profileId]);
-  async function queue(path:string, body:unknown) {
+  async function queue(path:string, body:unknown, onTerminal?:()=>void) {
     const result=await api<{operation_id:string;application_id?:string}>(path,{method:'POST',body:JSON.stringify(body)});
-    return waitForOperation(result);
+    return waitForOperation(result,onTerminal);
   }
-  async function waitForOperation<T extends {operation_id:string}>(result:T) {
+  async function waitForOperation<T extends {operation_id:string}>(result:T,onTerminal?:()=>void) {
     setActiveOp(result.operation_id);
     const deadline=Date.now()+210000;
     while(Date.now()<deadline) {
       const operation=await api<Operation>('/operations/'+result.operation_id);
       setOps(current=>[operation,...current.filter(item=>item.id!==operation.id)]);
       if(terminal.has(operation.state)) {
+        onTerminal?.();
         if(operation.state!=='COMPLETED')throw new Error(`${operation.state}: ${operation.error||'Review Activity for details'}`);
         setNotice('Completed. Your workspace has been updated.');return result;
       }
@@ -2005,7 +2010,7 @@ function App() {
               <label>Remote preference<select value={searchRemote} onChange={e=>setSearchRemote(e.target.value as 'ANY'|'REQUIRED'|'EXCLUDED')}><option value="ANY">Any</option><option value="REQUIRED">Remote required</option><option value="EXCLUDED">Exclude remote</option></select></label>
               <label>Employment type<select value={searchEmployment} onChange={e=>setSearchEmployment(e.target.value)}><option value="">Any</option><option value="FULL_TIME">Full-time</option><option value="PART_TIME">Part-time</option><option value="CONTRACT">Contract</option><option value="CONTRACT_TO_HIRE">Contract-to-hire</option><option value="TEMPORARY">Temporary</option><option value="INTERNSHIP">Internship</option><option value="OTHER">Other</option></select></label>
             </div>
-            <label>Include titles<textarea required value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
+            <label>Include titles<textarea required={!editingSearchId} value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
             {searchRemote==='REQUIRED'&&<label>Remote work must allow this US state<input aria-label="Remote work eligible state" value={searchRemoteResidenceState} maxLength={2} onChange={e=>setSearchRemoteResidenceState(e.target.value.toUpperCase())} placeholder="OK"/><span className="muted">Leave blank when eligibility is unknown.</span></label>}
             <label>Allowed states<textarea aria-label="Allowed states" value={searchStates} onChange={e=>setSearchStates(e.target.value)} placeholder="OK\nTX"/></label>
             <label>Allowed cities<textarea aria-label="Allowed cities" value={searchCities} onChange={e=>setSearchCities(e.target.value)} placeholder="Durant\nDenison\nSherman"/></label>
