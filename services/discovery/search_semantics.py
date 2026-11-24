@@ -388,7 +388,7 @@ _STATE_EXCLUSIONS = (
     ),
 )
 _OPEN_ONLY_TO = re.compile(
-    r"\b(?:open|available)\s+only\s+to\s+(?P<scope>[^.;\n]+)", re.I,
+    r"\b(?:open|available)\s+only\s+to\s+(?P<scope>.+?)(?=[!?;\n]|\.(?=\s|$)|$)", re.I,
 )
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
@@ -404,6 +404,15 @@ _RESIDENCE_REQUIREMENT = re.compile(
 _US_LOCATION = r"(?:the\s+)?(?:united states(?: of america)?|u\.?s\.?(?:a\.?)?)"
 _WORLDWIDE_LOCATION = r"(?:worldwide|globally|global|anywhere in the world)"
 _OTHER_COUNTRY = r"(?:canada|united kingdom|u\.?k\.?|australia|india|germany|france|mexico)"
+_OPEN_ONLY_RESIDENCE_CUE = re.compile(
+    r"\b(?:local\s+residents?|residents?\s+(?:of|in|within))\b"
+    r"|\b(?:approved|eligible)\s+(?:states?|locations?|regions?)\b"
+    r"|^(?:applicants?|candidates?)\s+(?:currently\s+)?(?:based|located|living|residing)\s+(?:in|within)\b"
+    rf"|^(?:applicants?|candidates?)\s+(?:in|within)\s+(?:{_STATE_LIST}|{_US_LOCATION}|{_OTHER_COUNTRY})\b"
+    rf"|{_STATE_LIST}\s+residents?\b"
+    rf"|^(?:{_STATE_LIST}|{_US_LOCATION}|{_OTHER_COUNTRY})(?:\s+(?:applicants?|candidates?|only))?$",
+    re.I,
+)
 _COUNTRY_SCOPE_CUE = re.compile(
     r"^(?:only\s+(?:in|within|from|for)|within|across)\b"
     r"|\b(?:specifically|particularly|except|excluding|reside|residents?|"
@@ -514,7 +523,9 @@ def _remote_residence_status(job, state, arrangement):
             scope, re.I,
         )
         if not states:
-            return "UNKNOWN"
+            if _OPEN_ONLY_RESIDENCE_CUE.search(scope):
+                return "UNKNOWN"
+            continue
         allowed_states = _stated_us_states(states["states"] or states["states_of"])
         if not allowed_states:
             return "UNKNOWN"
