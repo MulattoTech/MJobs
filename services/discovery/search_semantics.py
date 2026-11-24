@@ -454,8 +454,9 @@ _NON_POSITIONAL_ELIGIBILITY_SUBJECT = re.compile(
     r"(?:(?:is|are|was|were|will[ \t]+be)[ \t]+)?$",
     re.I,
 )
+_POSTING_CLAUSE_START = r"(?:^|[.!?;\r\n])[ \t]*(?:(?:[-*\u2022]|\d{1,3}[.)])[ \t]+)?"
 _STANDALONE_STATE_RESIDENTS_ONLY = re.compile(
-    rf"(?:^|[.!?;\r\n])\s*(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[ \t]*(?:[.!?;\r\n]|$))",
+    rf"{_POSTING_CLAUSE_START}(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
 )
 _APPLICANT_ALLOWED_STATES = re.compile(
@@ -517,11 +518,12 @@ _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
 _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
+_WORKFORCE_SUBJECT = r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|workers?|applicants?|candidates?)"
+_ROLE_SUBJECT = r"(?:this|the|a)\s+(?:role|position|job|opportunity|opening)"
 _AFFIRMATIVE_WORK_CLAUSE = (
-    r"(?:^|[.!?;\r\n])[ \t]*(?:"
-    r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|workers?|applicants?|candidates?)\s+"
+    rf"{_POSTING_CLAUSE_START}(?:{_WORKFORCE_SUBJECT}\s+"
     r"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?work"
-    r"|(?:this|the|a)\s+(?:role|position|job|opportunity|opening)\s+"
+    rf"|{_ROLE_SUBJECT}\s+"
     r"(?:(?:is|remains|will be)\s+(?:(?:fully\s+)?remote|available|open)|"
     r"(?:can|may)\s+be\s+(?:worked|performed))"
     r"|work|(?:fully\s+)?remote)"
@@ -530,9 +532,21 @@ _WORLDWIDE_WORK = re.compile(
     rf"{_AFFIRMATIVE_WORK_CLAUSE}\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
 )
+_WORK_LOCATION_LINK = r"\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
 _REMOTE_TEXT_SCOPE = re.compile(
-    rf"{_AFFIRMATIVE_WORK_CLAUSE}\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
-    rf"(?P<country>{_US_LOCATION})\b",
+    rf"{_AFFIRMATIVE_WORK_CLAUSE}{_WORK_LOCATION_LINK}(?P<country>{_US_LOCATION})\b",
+    re.I,
+)
+_US_WORK_DENIAL = re.compile(
+    rf"{_POSTING_CLAUSE_START}(?:{_WORKFORCE_SUBJECT}\s+"
+    r"(?:cannot|can\s+not|can['’]t|(?:may|must|could)\s+not|"
+    r"(?:are\s+not|aren['’]t)\s+(?:allowed|permitted|able)\s+to)\s+work"
+    rf"|{_ROLE_SUBJECT}\s+(?:(?:is\s+not|isn['’]t)\s+(?:(?:fully\s+)?remote|available|open)|"
+    r"(?:cannot|can\s+not|can['’]t|may\s+not)\s+be\s+(?:worked|performed)))"
+    rf"{_WORK_LOCATION_LINK}{_US_LOCATION}(?=[ \t]*(?:{_RESIDENT_SCOPE_END}))"
+    rf"|{_AFFIRMATIVE_WORK_CLAUSE}{_WORK_LOCATION_LINK}{_US_LOCATION}\s+"
+    r"(?:(?:is|are)\s+not|isn['’]t|aren['’]t)\s+(?:allowed|permitted|possible|available)"
+    rf"(?=[ \t]*(?:{_RESIDENT_SCOPE_END}))",
     re.I,
 )
 _ALLOWED_STATES = re.compile(_STATE_LIST, re.I)
@@ -611,11 +625,15 @@ def _remote_scope_text(location):
     return re.sub(r"\s*\(remote\)\s*$", "", text, flags=re.I).strip(" ()")
 
 
-def _location_scope_states(location):
+def _location_scope_states(location, *, eligibility_field=False):
     if _LOCATION_SCOPE.match(location):
         scope = _remote_scope_text(location)
-        if scope != "CA" and _ALLOWED_STATES.fullmatch(scope):
-            return _stated_us_states(scope)
+    elif eligibility_field:
+        scope = location
+    else:
+        return set()
+    if scope != "CA" and _ALLOWED_STATES.fullmatch(scope):
+        return _stated_us_states(scope)
     return set()
 
 
@@ -626,6 +644,8 @@ def _remote_residence_status(job, state, arrangement):
     location = str(job.get("location") or "").strip()
     description = str(job.get("description") or "")
     text = f"{location}\n{description}"
+    if _US_WORK_DENIAL.search(description):
+        return "EXCLUDED"
     if any(state in _stated_us_states(exclusion["states"])
            for pattern in _STATE_EXCLUSIONS for exclusion in pattern.finditer(text)):
         return "EXCLUDED"
@@ -678,7 +698,10 @@ def _remote_residence_status(job, state, arrangement):
             return "EXCLUDED"
         expressly_eligible = True
 
-    location_states = _location_scope_states(location)
+    attrs = job.get("attributes") or {}
+    remotive_eligibility = (attrs.get("provider") == "remotive" and job.get("remote_type") == "REMOTE"
+                            and attrs.get("remote_indicated") is True)
+    location_states = _location_scope_states(location, eligibility_field=remotive_eligibility)
     if location_states and state not in location_states:
         return "EXCLUDED"
     location_scope = _remote_scope_text(location)
@@ -1112,11 +1135,16 @@ def evaluate_search(criteria, job, at=None):
     remote_type = str(job.get("remote_type") or "UNKNOWN")
     arrangements = set(criteria.get("work_arrangements") or [])
     arrangement = remote_type
-    if (remote_type == "HYBRID" and attrs.get("provider") == "lever"
+    provider = attrs.get("provider")
+    inferred_workplace = provider == "greenhouse" or (
+        (provider, attrs.get("collection_strategy")) in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON"))
+        and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])
+    )
+    if (remote_type == "HYBRID" and provider == "lever"
             and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE"):
         # The normalized Lever workplaceType is a structured provider declaration.
         pass
-    elif remote_type == "HYBRID" and attrs.get("provider") == "greenhouse" and attrs.get("remote_indicated") is True:
+    elif remote_type == "HYBRID" and inferred_workplace and attrs.get("remote_indicated") is True:
         current_location = classify_location(job.get("location"), job.get("description"))
         if current_location["remote_type"] == "ONSITE":
             arrangement = "ONSITE"
@@ -1125,7 +1153,7 @@ def evaluate_search(criteria, job, at=None):
             arrangement = "REMOTE"
     elif remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
         arrangement = "HYBRID" if _requires_onsite(description) else "REMOTE"
-    elif remote_type == "HYBRID" and attrs.get("provider") == "lever":
+    elif remote_type == "HYBRID" and provider == "lever":
         # Historical Lever HYBRID rows lack workplaceType provenance; preserve the structured possibility.
         pass
     remote_preference = criteria.get("remote", "ANY")

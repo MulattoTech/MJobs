@@ -107,6 +107,112 @@ class SearchSemanticsTests(unittest.TestCase):
                 self.assertEqual(result["remote_residence"]["status"], status)
                 self.assertEqual(result["matched"], status == "ELIGIBLE")
 
+    def test_explicit_us_denial_overrides_broad_location_evidence(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description, status in (
+            ("Employees cannot work in the United States.", "EXCLUDED"),
+            ("Employees aren\u2019t allowed to work in the U.S.", "EXCLUDED"),
+            ("- Employees cannot work in the United States.", "EXCLUDED"),
+            ("This role is not remote within the United States.", "EXCLUDED"),
+            ("The position isn't available in the United States.", "EXCLUDED"),
+            ("Work in the United States is not allowed.", "EXCLUDED"),
+            ("Our customers cannot work in the United States.", "ELIGIBLE"),
+            ("Applicants aren't required to reside in the United States.", "ELIGIBLE"),
+            ("Employees cannot work worldwide. Remote within the United States.", "ELIGIBLE"),
+            ("Employees cannot work in the United States on Tuesdays. "
+             "Employees may work in the United States.", "ELIGIBLE"),
+        ):
+            for location in ("Remote Worldwide", "Remote, United States"):
+                with self.subTest(location=location, description=description):
+                    attrs = classify_location(location, description)
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description, "attributes": attrs,
+                        "remote_type": attrs["remote_type"],
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], status == "ELIGIBLE")
+
+    def test_residence_only_clauses_allow_normalized_posting_list_markers(self):
+        from services.discovery.sources.greenhouse import Greenhouse
+
+        job = Greenhouse("fixture-board").normalize({
+            "id": 42, "title": "Network Administrator", "location": {"name": "Remote, United States"},
+            "content": "<ul><li>California residents only.</li><li>Maintain Linux systems.</li></ul>",
+        })
+        self.assertEqual(job["description"], "- California residents only.\n- Maintain Linux systems.")
+        for description in (job["description"], "Requirements:\n* California residents only.",
+                            "Requirements:\n\u2022 California residents only.", "1) California residents only."):
+            for state, status in (("OK", "EXCLUDED"), ("CA", "ELIGIBLE")):
+                with self.subTest(description=description, state=state):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state},
+                                             {**job, "description": description})
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], state == "CA")
+        ordinary = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+            **job, "description": "- California residents only pay state taxes on taxable income.",
+        })
+        self.assertTrue(ordinary["matched"])
+
+    def test_remotive_candidate_location_resolves_complete_state_scopes(self):
+        from services.discovery.sources.remotive import Remotive
+
+        adapter = Remotive()
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for index, (location, status) in enumerate((
+            ("Oklahoma", "ELIGIBLE"),
+            ("Oklahoma, Texas", "ELIGIBLE"),
+            ("TX and AR", "EXCLUDED"),
+            ("CA", "UNKNOWN"),
+            ("Oklahoma City", "UNKNOWN"),
+            ("Oklahoma or approved regions", "UNKNOWN"),
+            ("Remote", "UNKNOWN"),
+        ), 1):
+            with self.subTest(location=location):
+                job = adapter.normalize({
+                    "id": index, "title": "Network Administrator", "description": "Maintain Linux systems.",
+                    "candidate_required_location": location,
+                })
+                self.assertEqual(job["location"], location)
+                self.assertEqual(job["remote_type"], "REMOTE")
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["remote_residence"]["status"], status)
+                self.assertEqual(result["matched"], status == "ELIGIBLE")
+        unproven = evaluate_search(criteria, {
+            "location": "Oklahoma", "description": "", "remote_type": "REMOTE",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        })
+        self.assertEqual(unproven["remote_residence"]["status"], "UNKNOWN")
+
+    def test_legacy_employer_feed_reclassifies_only_text_inferred_arrangements(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for provider, strategy in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON")):
+            attributes = {"provider": provider, "collection_strategy": strategy, "source_id": "fixture-feed",
+                          "source_endpoint": "https://employer.example.test/jobs", "remote_indicated": True}
+            for location, description, matched in (
+                ("Remote, United States", "Maintain our hybrid cloud infrastructure.", True),
+                ("Remote, United States", "This role is hybrid.", False),
+                ("Remote, United States", "On-site attendance is required.", False),
+                ("Austin, TX", "On-site role.", False),
+            ):
+                with self.subTest(provider=provider, description=description):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": "HYBRID", "attributes": attributes,
+                    })
+                    self.assertEqual(result["matched"], matched)
+        declared = evaluate_search(criteria, {
+            "location": "Remote, United States", "description": "Maintain our hybrid cloud infrastructure.",
+            "remote_type": "HYBRID", "attributes": {
+                "provider": "lever", "workplace_type_authority": "LEVER_WORKPLACE_TYPE", "remote_indicated": True,
+            },
+        })
+        self.assertFalse(declared["matched"])
+        unproven = evaluate_search(criteria, {
+            "location": "Remote, United States", "description": "Maintain our hybrid cloud infrastructure.",
+            "remote_type": "HYBRID", "attributes": {"provider": "rss", "remote_indicated": True},
+        })
+        self.assertFalse(unproven["matched"])
+
     def test_worldwide_scope_requires_affirmative_whole_clause_evidence(self):
         for description in ("Employees cannot work worldwide.",
                             "Employees can't work worldwide.",
@@ -173,11 +279,11 @@ class SearchSemanticsTests(unittest.TestCase):
         location = "Remote"
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
         for description, expected in (
-            ("Employees cannot work in the United States.", "UNKNOWN"),
-            ("Employees can\u2019t work in the United States.", "UNKNOWN"),
-            ("Employees aren't allowed to work in the United States.", "UNKNOWN"),
-            ("This role is not remote within the United States.", "UNKNOWN"),
-            ("Work in the United States is not allowed.", "UNKNOWN"),
+            ("Employees cannot work in the United States.", "EXCLUDED"),
+            ("Employees can\u2019t work in the United States.", "EXCLUDED"),
+            ("Employees aren't allowed to work in the United States.", "EXCLUDED"),
+            ("This role is not remote within the United States.", "EXCLUDED"),
+            ("Work in the United States is not allowed.", "EXCLUDED"),
             ("Our customers work in the United States.", "UNKNOWN"),
             ("Our clients' staff can work in the United States.", "UNKNOWN"),
             ("Applicants aren't required to reside in the United States.", "UNKNOWN"),
