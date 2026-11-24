@@ -274,6 +274,7 @@ _REQUIRED_ONSITE = re.compile(
 )
 _HYBRID_WORK_CONTEXT = re.compile(
     r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|onsite)\b"
+    r"|\b(?:role|position)\s+(?:is|will be|remains)\s+hybrid\b"
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
@@ -389,6 +390,9 @@ _STATE_EXCLUSIONS = (
 )
 _OPEN_ONLY_TO = re.compile(
     r"\b(?:open|available)\s+only\s+to\s+(?P<scope>.+?)(?=[!?;\n]|\.(?=\s|$)|$)", re.I,
+)
+_OPEN_TO_ONLY = re.compile(
+    r"\b(?:open|available)\s+to\s+(?P<scope>[^.;\n]+?)\s+only\b", re.I,
 )
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
@@ -515,7 +519,8 @@ def _remote_residence_status(job, state, arrangement):
         return "UNKNOWN"
 
     expressly_eligible = False
-    for policy in _OPEN_ONLY_TO.finditer(text):
+    policies = (*_OPEN_ONLY_TO.finditer(text), *_OPEN_TO_ONLY.finditer(text))
+    for policy in policies:
         scope = policy["scope"].strip()
         states = re.fullmatch(
             rf"(?P<states>{_STATE_LIST})\s+residents?(?:\s+only)?|"

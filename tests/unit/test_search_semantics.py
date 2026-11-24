@@ -103,6 +103,10 @@ class SearchSemanticsTests(unittest.TestCase):
              True, None),
             ("Remote, United States", "This position is open only to California residents.",
              False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to California residents only.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to Oklahoma residents only.", True, None),
+            ("Remote, United States", "This position is open to candidates with Linux experience only.", True, None),
             ("Remote, United States", "Remote within the United States. This position is open only to California residents.",
              False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "Training benefits are available only to employees who complete onboarding.",
@@ -317,9 +321,13 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertTrue(evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"},
                                        legacy_job)["matched"])
 
-        genuine_hybrid = {**legacy_job, "description": "Hybrid work schedule with two remote days."}
-        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, genuine_hybrid)["matched"])
-        self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, genuine_hybrid)["matched"])
+        for description in ("Hybrid work schedule with two remote days.", "This role is hybrid.",
+                            "The position is hybrid; two days onsite and three remote."):
+            with self.subTest(description=description):
+                genuine_hybrid = {**legacy_job, "description": description}
+                self.assertEqual(classify_location(location, description)["remote_type"], "HYBRID")
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, genuine_hybrid)["matched"])
+                self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, genuine_hybrid)["matched"])
         onsite = {**legacy_job, "location": "Sherman, TX", "description": "On-site role."}
         self.assertFalse(evaluate_search({"remote": "REQUIRED"}, onsite)["matched"])
         self.assertTrue(evaluate_search({"work_arrangements": ["ONSITE"], "states": ["TX"],
