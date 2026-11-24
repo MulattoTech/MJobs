@@ -275,7 +275,10 @@ _REQUIRED_ONSITE = re.compile(
 _HYBRID_WORK_CONTEXT = re.compile(
     r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|onsite)\b"
     r"|\b(?:role|position|(?:work\s+)?schedule|work\s+arrangement)\s+"
-    r"(?:is|will be|remains)\s+hybrid(?=[ \t]*(?:[.!?;,\n]|$))"
+    r"(?:is|will be|remains)\s+hybrid(?=[ \t]*(?:[.!?;,:\n(]|$))"
+    r"|\b(?:role|position)\s*\(\s*hybrid\s*\)"
+    r"|(?:^|[.!?;\n])\s*hybrid\s*\((?=[^)]*\b(?:\d+|one|two|three|four|five)\s+days?\b)[^)]*\)"
+    r"|\b(?:\d+|one|two|three|four|five)\s+days?\b[^.!?;\n]*\(\s*hybrid\s*\)"
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
@@ -412,6 +415,7 @@ _APPLICANT_ALLOWED_STATES = re.compile(
     r"(?:(?:may|can)\s+apply|are\s+eligible)\b",
     re.I,
 )
+_ONLY_RESIDENTS_APPLY = re.compile(r"\bonly\s+(?P<scope>.+?)\s+(?:may|can)\s+apply\b", re.I)
 _RESIDENCE_REQUIREMENT = re.compile(
     r"\b(?:must|required\s+to|may\s+only|can\s+only|if\s+you)\s+(?:currently\s+)?"
     r"(?:reside|live|be\s+(?:located|based))\s+(?:in|within)\s*:?\s*"
@@ -540,6 +544,23 @@ def _remote_residence_status(job, state, arrangement):
         states = re.fullmatch(
             rf"(?P<states>{_STATE_LIST})\s+residents?(?:\s+only)?|"
             rf"residents?\s+of\s+(?P<states_of>{_STATE_LIST})(?:\s+only)?",
+            scope, re.I,
+        )
+        if not states:
+            if _OPEN_ONLY_RESIDENCE_CUE.search(scope):
+                return "UNKNOWN"
+            continue
+        allowed_states = _stated_us_states(states["states"] or states["states_of"])
+        if not allowed_states:
+            return "UNKNOWN"
+        if state not in allowed_states:
+            return "EXCLUDED"
+        expressly_eligible = True
+    for policy in _ONLY_RESIDENTS_APPLY.finditer(text):
+        scope = policy["scope"].strip()
+        states = re.fullmatch(
+            rf"(?P<states>{_STATE_LIST})\s+residents?|"
+            rf"residents?\s+of\s+(?P<states_of>{_STATE_LIST})",
             scope, re.I,
         )
         if not states:

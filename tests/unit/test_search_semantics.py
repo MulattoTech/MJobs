@@ -108,6 +108,12 @@ class SearchSemanticsTests(unittest.TestCase):
             ("Remote, United States", "This position is open to Oklahoma residents only.", True, None),
             ("Remote, United States", "This position is open to California residents only, with training provided.",
              False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents may apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only residents of California may apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only Oklahoma residents may apply.", True, None),
+            ("Remote, United States", "Only candidates with Linux experience may apply.", True, None),
             ("Remote, United States", "This position is open to California residents! "
              "Training benefits are available to current employees only.", True, None),
             ("Remote, United States", "California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
@@ -351,6 +357,11 @@ class SearchSemanticsTests(unittest.TestCase):
                 self.assertTrue(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
 
         for description in ("Hybrid work schedule with two remote days.", "This role is hybrid.",
+                            "This role is hybrid (three days per week in the office).",
+                            "Hybrid (three days per week in the office).",
+                            "This role (hybrid) includes three days per week onsite.",
+                            "Three days per week in office (hybrid).",
+                            "The work schedule is hybrid: three days in the office.",
                             "The work schedule is hybrid.",
                             "The position is hybrid; two days onsite and three remote."):
             with self.subTest(description=description):
