@@ -576,9 +576,9 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                     verification_policy_sha256=canonical_digest(checked_policy),
                     origin_policies=[tracker.origin_policies[key] for key in sorted(tracker.origin_policies)])
             receipt['sha256'] = canonical_digest(receipt)
-            if type(diagnostic) is dict:
-                diagnostic['stop_code'] = 'CORROBORATED'
-            return receipt
+        if type(diagnostic) is dict:
+            diagnostic['stop_code'] = 'CORROBORATED'
+        return receipt
     except (PublicFetchError, ValueError, KeyError, TypeError, AttributeError, RecursionError) as error:
         if tracker.cancelled is not None:
             raise tracker.cancelled

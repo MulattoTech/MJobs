@@ -671,6 +671,21 @@ def test_opt_in_diagnostics_report_success_without_changing_receipt():
     assert 'stop_code' not in observed
 
 
+def test_v2_client_cleanup_failure_does_not_report_corroborated():
+    values, policy = v2_inputs()
+    diagnostic = {'stop_code': 'STALE', 'owner_marker': 'retained'}
+
+    def fail_close(_client):
+        raise PublicFetchError('CLIENT_CLEANUP_FAILED')
+
+    with patch.object(subject.BudgetedPublicClient, 'close', fail_close):
+        with pytest.raises(PublicFetchError, match='^CLIENT_CLEANUP_FAILED$'):
+            resolve_with_real_rate_gate(values, verification_policy=policy,
+                pending_sha256='c' * 64, diagnostic=diagnostic)
+
+    assert diagnostic == {'owner_marker': 'retained'}
+
+
 def test_opt_in_diagnostics_clear_stale_outcome_on_propagated_cancellation():
     diagnostic = {'stop_code': 'CORROBORATED', 'owner_marker': 'retained'}
 
