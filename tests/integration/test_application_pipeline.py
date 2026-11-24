@@ -186,6 +186,58 @@ class ApplicationPipelineTests(unittest.TestCase):
         self.assertEqual(detail.json()["state"], application_before_reopen["state"])
         self.assertIsNone(detail.json()["confirmation"])
 
+    def test_pipeline_workbench_honors_clear_after_reopen_without_losing_history(self):
+        workbench_url = "/profiles/fixture/pipeline-workbench"
+
+        def item():
+            response = self.client.get(workbench_url)
+            self.assertEqual(response.status_code, 200, response.text)
+            return next(row for row in response.json()["items"]
+                        if row["application_id"] == self.application_id)
+
+        original = self.store.application(self.application_id)
+        initial = item()
+        self.assertNotEqual(initial["stage"], "TRACKING")
+        applied = self.client.put(self.url + "/status", json={
+            "status": "INTERVIEW", "request_id": "workbench-interview"})
+        self.assertEqual(applied.status_code, 200, applied.text)
+        self.assertEqual(item()["stage"], "TRACKING")
+        self.assertEqual(item()["tracking_status"], "INTERVIEW")
+        note = self.client.post(self.url + "/notes", json={
+            "text": "Synthetic note retained", "request_id": "workbench-clear-note"})
+        self.assertEqual(note.status_code, 201, note.text)
+        clear = {"status": None, "request_id": "workbench-clear"}
+        self.assertEqual(self.client.put(
+            f"/profiles/other/applications/{self.application_id}/tracking/status",
+            json=clear).status_code, 404)
+        cleared = self.client.put(self.url + "/status", json=clear)
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        self.assertEqual(self.client.put(self.url + "/status", json=clear).json(), cleared.json())
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                            operation_mode="FIXTURE"))
+        reopened = item()
+        for key in ("stage", "next_action", "can_prepare"):
+            self.assertEqual(reopened[key], initial[key], key)
+        self.assertIsNone(reopened["tracking_status"])
+        self.assertEqual(reopened["tracking_attribution"], "USER_REPORTED")
+        self.assertNotEqual(reopened["fingerprint"], initial["fingerprint"])
+        self.assertEqual(self.client.get(self.url).json(), cleared.json())
+        self.assertEqual(self.store.application(self.application_id), original)
+        other = self.client.get("/profiles/other/pipeline-workbench")
+        self.assertEqual(other.status_code, 200, other.text)
+        self.assertFalse(any(row["application_id"] == self.application_id
+                             for row in other.json()["items"]))
+        retracked = self.client.put(self.url + "/status", json={
+            "status": "OFFER", "request_id": "workbench-retrack"})
+        self.assertEqual(retracked.status_code, 200, retracked.text)
+        self.assertEqual(item()["tracking_status"], "OFFER")
+        self.assertEqual(item()["stage"], "TRACKING")
+
     def test_unknown_dynamic_required_field_review_survives_reopen_and_detail_read(self):
         from services.applications.mock_adapter import apply_mock
         from services.applications.preflight import latest_preflight

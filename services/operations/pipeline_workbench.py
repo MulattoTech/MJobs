@@ -201,7 +201,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
 
     mode = str(workspace or "UNBOUND").upper()
     match_by_job = {row["job_id"]: row for row in match_rows}
-    tracking_by_entity: dict[str, tuple[int, str, str]] = {}
+    tracking_by_entity: dict[str, tuple[int, str | None, str]] = {}
     for row in audit_rows:
         entity = row["entity_id"]
         payload = row.get("payload")
@@ -210,10 +210,17 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         status = payload.get("status")
         attribution = payload.get("attribution")
         sequence = payload.get("sequence", 0)
-        if (not isinstance(status, str) or not isinstance(attribution, str)
+        # An explicit null is a durable clear event, not a malformed stage.
+        # A missing field must not be allowed to clear an existing stage.
+        if ("status" not in payload or (status is not None and not isinstance(status, str))
+                or not isinstance(attribution, str)
                 or type(sequence) is not int or sequence < 0):
             continue
-        if (status not in PIPELINE_STATUSES
+        # Only numbered events can represent a clear; the zero fallback is
+        # for legacy string stages. The writer assigns every clear a positive sequence.
+        if status is None and sequence == 0:
+            continue
+        if ((status is not None and status not in PIPELINE_STATUSES)
                 or attribution not in {"USER_REPORTED", "EXTERNAL_USER_REPORTED",
                                        "USER_REPORTED_EMAIL"}):
             continue
@@ -271,14 +278,17 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
 
         entity = identity("application-tracking", profile_id, app["id"]) if app else None
         tracking = tracking_by_entity.get(entity) if entity else None
+        # Retain the clear's sequence and attribution in the fingerprint, but
+        # derive readiness from the actual current stage and existing guards.
+        has_tracking_stage = tracking is not None and tracking[1] is not None
         can_prepare = bool(
             score_state == "CURRENT" and approved_fact_ids and route and not route_blocker
             and mode in {"FIXTURE", "PERSONAL"}
-            and not active and not discovery_active and not tracking
+            and not active and not discovery_active and not has_tracking_stage
             and (not app or app["state"] in _PREPARABLE_STATES)
             and not (prepare_op and prepare_op["state"] in {"FAILED", "BLOCKED", "DEAD_LETTERED"})
         )
-        if tracking:
+        if has_tracking_stage:
             stage, next_action = "TRACKING", "OPEN_APPLICATION"
         elif active and active["kind"] == "PREPARE":
             stage, next_action = "PREPARING", "WAIT_FOR_OPERATION"
