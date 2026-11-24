@@ -106,6 +106,12 @@ class SearchSemanticsTests(unittest.TestCase):
             ("Remote, United States", "This position is open to California residents only.",
              False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "This position is open to Oklahoma residents only.", True, None),
+            ("Remote, United States", "This position is open to California residents only, with training provided.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to California residents! "
+             "Training benefits are available to current employees only.", True, None),
+            ("Remote, United States", "Training is open to new employees! "
+             "This position is available to California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "This position is open to candidates with Linux experience only.", True, None),
             ("Remote, United States", "Remote within the United States. This position is open only to California residents.",
              False, "REMOTE_RESIDENCE_EXCLUDED"),
@@ -315,13 +321,23 @@ class SearchSemanticsTests(unittest.TestCase):
 
     def test_legacy_hybrid_type_is_reclassified_from_remote_evidence(self):
         location = "Remote, United States"
-        description = "Maintain our hybrid cloud infrastructure."
-        legacy_job = {"location": location, "description": description, "remote_type": "HYBRID",
+        legacy_job = {"location": location, "remote_type": "HYBRID",
                       "attributes": {"remote_indicated": True}}
-        self.assertTrue(evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"},
-                                       legacy_job)["matched"])
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description in ("Maintain our hybrid cloud infrastructure.",
+                            "Maintain our hybrid model for cloud deployment.",
+                            "This role is hybrid cloud engineering."):
+            classified = classify_location(location, description)
+            fresh_job = {"location": location, "description": description,
+                         "remote_type": classified["remote_type"], "attributes": classified}
+            with self.subTest(description=description, collected="fresh"):
+                self.assertEqual(classified["remote_type"], "REMOTE_US")
+                self.assertTrue(evaluate_search(criteria, fresh_job)["matched"])
+            with self.subTest(description=description, collected="legacy"):
+                self.assertTrue(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
 
         for description in ("Hybrid work schedule with two remote days.", "This role is hybrid.",
+                            "The work schedule is hybrid.",
                             "The position is hybrid; two days onsite and three remote."):
             with self.subTest(description=description):
                 genuine_hybrid = {**legacy_job, "description": description}

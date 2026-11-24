@@ -274,7 +274,8 @@ _REQUIRED_ONSITE = re.compile(
 )
 _HYBRID_WORK_CONTEXT = re.compile(
     r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|onsite)\b"
-    r"|\b(?:role|position)\s+(?:is|will be|remains)\s+hybrid\b"
+    r"|\b(?:role|position|(?:work\s+)?schedule|work\s+arrangement)\s+"
+    r"(?:is|will be|remains)\s+hybrid(?=[ \t]*(?:[.!?;,\n]|$))"
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
@@ -388,11 +389,13 @@ _STATE_EXCLUSIONS = (
         re.I,
     ),
 )
+_RESIDENT_SCOPE_END = r"[!?;\n]|\.(?=\s|$)|$"
+_RESIDENT_SCOPE = rf"(?:(?!{_RESIDENT_SCOPE_END}).)+?"
 _OPEN_ONLY_TO = re.compile(
-    r"\b(?:open|available)\s+only\s+to\s+(?P<scope>.+?)(?=[!?;\n]|\.(?=\s|$)|$)", re.I,
-)
-_OPEN_TO_ONLY = re.compile(
-    r"\b(?:open|available)\s+to\s+(?P<scope>[^.;\n]+?)\s+only\b", re.I,
+    r"\b(?:open|available)[ \t]+"
+    rf"(?:only[ \t]+to[ \t]+(?P<leading_scope>{_RESIDENT_SCOPE})(?={_RESIDENT_SCOPE_END})|"
+    rf"to[ \t]+(?P<trailing_scope>{_RESIDENT_SCOPE})[ \t]+only\b)",
+    re.I,
 )
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
@@ -519,9 +522,8 @@ def _remote_residence_status(job, state, arrangement):
         return "UNKNOWN"
 
     expressly_eligible = False
-    policies = (*_OPEN_ONLY_TO.finditer(text), *_OPEN_TO_ONLY.finditer(text))
-    for policy in policies:
-        scope = policy["scope"].strip()
+    for policy in _OPEN_ONLY_TO.finditer(text):
+        scope = (policy["leading_scope"] or policy["trailing_scope"]).strip()
         states = re.fullmatch(
             rf"(?P<states>{_STATE_LIST})\s+residents?(?:\s+only)?|"
             rf"residents?\s+of\s+(?P<states_of>{_STATE_LIST})(?:\s+only)?",
