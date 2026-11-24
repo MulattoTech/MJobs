@@ -397,11 +397,15 @@ _OPEN_ONLY_TO = re.compile(
     rf"to[ \t]+(?P<trailing_scope>{_RESIDENT_SCOPE})[ \t]+only\b)",
     re.I,
 )
-_NON_POSITIONAL_ELIGIBILITY_CONTEXT = re.compile(
-    r"\b(?:benefits?|training|insurance|coverage|leave|reimbursement|compensation)\b", re.I,
+_NON_POSITIONAL_ELIGIBILITY_SUBJECT = re.compile(
+    r"\b(?:benefits?|training|insurance|coverage|leave|reimbursement|compensation)"
+    r"(?:[ \t]+(?:plans?|programs?|options?|polic(?:y|ies)))?[ \t]+"
+    r"(?:(?:is|are|was|were|will[ \t]+be)[ \t]+)?$",
+    re.I,
 )
 _STANDALONE_STATE_RESIDENTS_ONLY = re.compile(
-    rf"(?:^|[.!?;\n])\s*(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[.!?;\n]|$)", re.I,
+    rf"(?:^|[.!?;\r\n])\s*(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[ \t]*(?:[.!?;\r\n]|$))",
+    re.I,
 )
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
@@ -530,7 +534,7 @@ def _remote_residence_status(job, state, arrangement):
     expressly_eligible = False
     for policy in _OPEN_ONLY_TO.finditer(text):
         sentence_prefix = re.split(r"[.!?;\n]", text[:policy.start()])[-1]
-        if _NON_POSITIONAL_ELIGIBILITY_CONTEXT.search(sentence_prefix):
+        if _NON_POSITIONAL_ELIGIBILITY_SUBJECT.search(sentence_prefix):
             continue
         scope = (policy["leading_scope"] or policy["trailing_scope"]).strip()
         states = re.fullmatch(
