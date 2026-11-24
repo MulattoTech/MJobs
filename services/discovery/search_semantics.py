@@ -261,7 +261,7 @@ _REQUIRED_ONSITE = re.compile(
     re.I,
 )
 _HYBRID_WORK_CONTEXT = re.compile(
-    r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|model|onsite)\b"
+    r"\bhybrid\s+(?:work(?:place| arrangement)?|schedule|arrangement|role|position|onsite)\b"
     r"|(?:^|[.!?;\n])\s*hybrid(?:\s*[-–—:]\s*|[.!?;\n]|$)",
     re.I,
 )
@@ -412,6 +412,10 @@ def _residence_scopes(text):
 def _geographic_clause_tail(text, end):
     """Return only the remainder of the current sentence after a country name."""
     tail = text[end:]
+    # The country expression can stop before the abbreviation's final dot in
+    # "U.S., specifically ..."; that dot is not a sentence boundary here.
+    if tail.startswith(".,"):
+        tail = tail[1:]
     boundary = re.search(r"[.!?;\n]", tail)
     return tail[:boundary.start()] if boundary else tail
 

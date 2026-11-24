@@ -67,6 +67,12 @@ class SearchSemanticsTests(unittest.TestCase):
             ("Remote, US", "Applicants must reside in the United States. This role supports Linux.", True, None),
             ("Remote, US", "Applicants must reside in the United States, specifically in California. Linux support experience required.",
              False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S., specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S. This role supports Linux.", True, None),
+            ("Remote, US", "Applicants must reside in the US, specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the US. This role supports Linux.", True, None),
             ("Remote, US", "Applicants must reside in OK, TX.", True, None),
             ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
             ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
@@ -105,12 +111,18 @@ class SearchSemanticsTests(unittest.TestCase):
 
     def test_remote_scope_fallback_requires_unqualified_us_geography(self):
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
-        for description, matched, status in (
-            ("This role is remote within the United States. Linux support experience required.", True, "ELIGIBLE"),
-            ("This role is remote within the United States only.", True, "ELIGIBLE"),
-            ("This role is remote within the United States, specifically in California.", False, "UNKNOWN"),
-        ):
-            with self.subTest(description=description):
+        rows = (
+            ("United States", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
+            ("US", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country}. Linux support experience required.", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("US", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country} only.", True, "ELIGIBLE"),
+        )
+        for country, template, matched, status in rows:
+            description = template.format(country=country)
+            with self.subTest(country=country, description=description):
                 attributes = classify_location("Remote, US", description)
                 result = evaluate_search(criteria, {"location": "Remote, US", "description": description,
                                                    "attributes": attributes, "remote_type": attributes["remote_type"]})
@@ -118,11 +130,15 @@ class SearchSemanticsTests(unittest.TestCase):
                 self.assertEqual(result["matched"], matched, result["reasons"])
 
     def test_technical_hybrid_cloud_does_not_override_remote_arrangement(self):
-        attributes = classify_location("Remote, United States", "Maintain our hybrid cloud infrastructure.")
-        self.assertEqual(attributes["remote_type"], "REMOTE_US")
-        job = {"location": "Remote, United States", "description": "Maintain our hybrid cloud infrastructure.",
-               "attributes": attributes, "remote_type": attributes["remote_type"]}
-        self.assertTrue(evaluate_search({"remote": "REQUIRED"}, job)["matched"])
+        technical_phrases = ("Maintain our hybrid cloud infrastructure.",
+                             "Use a hybrid model for cloud deployment.")
+        for description in technical_phrases:
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, United States", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_US")
+                job = {"location": "Remote, United States", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search({"remote": "REQUIRED"}, job)["matched"])
         self.assertEqual(classify_location("Remote, United States", "Hybrid work schedule with three remote days.")["remote_type"], "HYBRID")
 
     def test_hybrid_with_remote_days_is_kept_in_cross_border_local_search(self):
