@@ -283,9 +283,15 @@ _HYBRID_WORK_CONTEXT = re.compile(
     re.I,
 )
 _HYBRID_NONREQUIREMENT = re.compile(
-    r"\b(?:no|not|without(?:\s+(?:a|any))?|does\s+not\s+require|doesn't\s+require|"
-    r"do\s+not\s+require|don't\s+require|is\s+not\s+required|isn't\s+required)\s*$"
+    r"\b(?:no|not|without(?:\s+(?:a|any))?|"
+    r"(?:(?:does|do)\s+not|doesn['’]t|don['’]t)\s+(?:require|have)(?:\s+(?:an?|any))?|"
+    r"is\s+not\s+required|isn['’]t\s+required)\s*$"
     r"|\bno\s+(?:need|requirement|expectation)\s+for\s*$",
+    re.I,
+)
+_HYBRID_TRAILING_NONREQUIREMENT = re.compile(
+    r"[ \t]+(?:(?:schedule|requirement|arrangement)[ \t]+)?"
+    r"(?:(?:is|are)[ \t]+not|isn['’]t|aren['’]t)[ \t]+(?:required|mandatory|expected)\b",
     re.I,
 )
 
@@ -294,7 +300,8 @@ def _has_affirmative_hybrid_work_context(text):
     text = str(text or "")
     for match in _HYBRID_WORK_CONTEXT.finditer(text):
         clause_prefix = re.split(r"[.!?;\n,]", text[:match.start()])[-1]
-        if not _HYBRID_NONREQUIREMENT.search(clause_prefix):
+        if (not _HYBRID_NONREQUIREMENT.search(clause_prefix)
+                and not _HYBRID_TRAILING_NONREQUIREMENT.match(text, match.end())):
             return True
     return False
 
@@ -477,16 +484,14 @@ _EXPLICIT_APPLICANT_TIMEZONE_ELIGIBILITY = re.compile(
 _LOCATION_SCOPE = re.compile(
     r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
 )
-_WORLDWIDE_CLAUSE_END = r"(?=[ \t]*(?:[.!?;\n]|$))"
 _WORLDWIDE_WORK = re.compile(
-    rf"\b(?:employees?|staff|team members?|workers?|applicants?|candidates?)\s+"
-    rf"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?"
-    rf"work\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}"
-    rf"|\b(?:this|the|a)\s+(?:role|position|job|opportunity|opening)\s+"
-    rf"(?:(?:is|remains|will be)\s+(?:(?:fully\s+)?remote|available|open)|"
-    rf"(?:can|may)\s+be\s+(?:worked|performed))\s+(?:from\s+)?"
-    rf"{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}"
-    rf"|(?:^|[.!?;\n])\s*remote\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b{_WORLDWIDE_CLAUSE_END}",
+    r"(?:^|[.!?;\r\n])[ \t]*(?:"
+    r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|workers?|applicants?|candidates?)\s+"
+    r"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?work"
+    r"|(?:this|the|a)\s+(?:role|position|job|opportunity|opening)\s+"
+    r"(?:(?:is|remains|will be)\s+(?:(?:fully\s+)?remote|available|open)|"
+    r"(?:can|may)\s+be\s+(?:worked|performed))"
+    rf"|work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
 )
 _REMOTE_TEXT_SCOPE = re.compile(

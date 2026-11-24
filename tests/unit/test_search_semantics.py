@@ -36,7 +36,8 @@ class SearchSemanticsTests(unittest.TestCase):
                             "Employees aren't allowed to work worldwide.",
                             "Employees aren\u2019t allowed to work worldwide.",
                             "Our customers work worldwide.",
-                            "Work worldwide.",
+                            "Our customers' employees can work worldwide.",
+                            "Our clients\u2019 staff can work worldwide.",
                             "Employees do not work worldwide.",
                             "Employees cannot work worldwide. This role supports Linux.",
                             "This role supports Linux; employees cannot work worldwide.",
@@ -66,7 +67,9 @@ class SearchSemanticsTests(unittest.TestCase):
                 self.assertTrue(evaluate_search(
                     {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
 
-        for description in ("Employees may work worldwide.",
+        for description in ("Work worldwide.",
+                            "Employees may work worldwide.",
+                            "Our employees can work worldwide.",
                             "Employees are allowed to work worldwide.",
                             "This role is remote worldwide.",
                             "This position can be worked worldwide."):
@@ -460,10 +463,25 @@ class SearchSemanticsTests(unittest.TestCase):
         legacy_remote = {**legacy_job, "description": description}
         self.assertTrue(evaluate_search(criteria, legacy_remote)["matched"])
 
-        description = "Fully remote role with no hybrid work requirement. This role is hybrid."
-        attributes = classify_location(location, description)
-        self.assertEqual(attributes["remote_type"], "HYBRID")
-        self.assertFalse(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
+        for description in ("Hybrid work is not required.",
+                            "This position does not have a hybrid work requirement."):
+            attributes = classify_location(location, description)
+            fresh = {"location": location, "description": description,
+                     "remote_type": attributes["remote_type"], "attributes": attributes}
+            for kind, job in (("fresh", fresh), ("stored", {**legacy_job, "description": description})):
+                with self.subTest(description=description, kind=kind):
+                    result = evaluate_search(criteria, job)
+                    self.assertTrue(result["matched"])
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": "ELIGIBLE"})
+                    if kind == "fresh":
+                        self.assertEqual(attributes["remote_type"], "REMOTE_US")
+
+        for description in ("Fully remote role with no hybrid work requirement. This role is hybrid.",
+                            "Hybrid work is not required. This role is hybrid (three days per week in the office)."):
+            with self.subTest(description=description):
+                attributes = classify_location(location, description)
+                self.assertEqual(attributes["remote_type"], "HYBRID")
+                self.assertFalse(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
         onsite = {**legacy_job, "location": "Sherman, TX", "description": "On-site role."}
         self.assertFalse(evaluate_search({"remote": "REQUIRED"}, onsite)["matched"])
         self.assertTrue(evaluate_search({"work_arrangements": ["ONSITE"], "states": ["TX"],
