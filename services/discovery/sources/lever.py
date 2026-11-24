@@ -180,5 +180,7 @@ class Lever(Greenhouse):
             reported_posted_at=None,remote_regions=facts['remote_regions'],remote_indicated=facts['remote_indicated'],
             country=facts['country'],state=facts['state'],city=facts['city'],
             submission_capability='MANUAL_ONLY',fictional=False,application_url_status='PROVIDER_SUPPLIED')
+        if workplace in {'remote','hybrid','on-site'}:
+            attrs['workplace_type_authority'] = 'LEVER_WORKPLACE_TYPE'
         return dict(requisition=identifier,title=title,description=description,skills=skills['labels'],
                     location=location,remote_type=facts['remote_type'],application_url=url,attributes=attrs)

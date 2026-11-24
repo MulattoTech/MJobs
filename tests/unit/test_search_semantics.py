@@ -110,6 +110,11 @@ class SearchSemanticsTests(unittest.TestCase):
              False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "This position is open to California residents! "
              "Training benefits are available to current employees only.", True, None),
+            ("Remote, United States", "California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Remote in the United States. California residents only.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Benefits are available to California residents only.", True, None),
+            ("Remote, United States", "Oklahoma residents only.", True, None),
             ("Remote, United States", "Training is open to new employees! "
              "This position is available to California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
             ("Remote, United States", "This position is open to candidates with Linux experience only.", True, None),
@@ -182,7 +187,7 @@ class SearchSemanticsTests(unittest.TestCase):
             ("U.S.", "This role is remote within the {country} only in California.", False, "UNKNOWN"),
             ("U.S.", "This role is remote within the {country} (California only).", False, "UNKNOWN"),
             ("u.s.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
-            ("United States", "This role is remote within the {country}. California residents only.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country}. California residents only.", False, "EXCLUDED"),
             ("United States", "This role is remote within the {country} or Canada.", False, "UNKNOWN"),
             ("United States", "This role is remote within the {country} approved states.", False, "UNKNOWN"),
             ("United States", "This role is remote within the {country} only.", True, "ELIGIBLE"),
@@ -322,7 +327,7 @@ class SearchSemanticsTests(unittest.TestCase):
     def test_legacy_hybrid_type_is_reclassified_from_remote_evidence(self):
         location = "Remote, United States"
         legacy_job = {"location": location, "remote_type": "HYBRID",
-                      "attributes": {"remote_indicated": True}}
+                      "attributes": {"provider": "greenhouse", "remote_indicated": True}}
         criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
         for description in ("Maintain our hybrid cloud infrastructure.",
                             "Maintain our hybrid model for cloud deployment.",
@@ -348,6 +353,32 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertFalse(evaluate_search({"remote": "REQUIRED"}, onsite)["matched"])
         self.assertTrue(evaluate_search({"work_arrangements": ["ONSITE"], "states": ["TX"],
                                          "cities": ["Sherman"]}, onsite)["matched"])
+
+    def test_provider_authority_and_legacy_remote_flags_remain_distinct(self):
+        lever = {"location": "Remote, United States", "description": "Maintain hybrid cloud infrastructure.",
+                 "remote_type": "HYBRID", "attributes": {"provider": "lever",
+                 "workplace_type_authority": "LEVER_WORKPLACE_TYPE", "remote_indicated": True}}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, lever)["matched"])
+        self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, lever)["matched"])
+
+        # Old Lever rows without authority remain ambiguous: keep their declared possibility.
+        old_lever = {**lever, "attributes": {"provider": "lever", "remote_indicated": True}}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, old_lever)["matched"])
+
+        greenhouse = {"location": "Remote", "description": "Maintain hybrid cloud infrastructure.",
+                     "remote_type": "HYBRID", "attributes": {"provider": "greenhouse",
+                     "remote_indicated": True}}
+        self.assertTrue(evaluate_search({"remote": "REQUIRED"}, greenhouse)["matched"])
+        residence = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, greenhouse)
+        self.assertFalse(residence["matched"])
+        self.assertEqual(residence["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
+
+        greenhouse_flag_only = {**greenhouse, "location": "Unknown"}
+        self.assertTrue(evaluate_search({"remote": "REQUIRED"}, greenhouse_flag_only)["matched"])
+        unknown_residence = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"},
+                                            greenhouse_flag_only)
+        self.assertFalse(unknown_residence["matched"])
+        self.assertEqual(unknown_residence["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
 
     def test_employment_type_normalization(self):
         cases = {

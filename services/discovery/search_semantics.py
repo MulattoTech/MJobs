@@ -397,6 +397,12 @@ _OPEN_ONLY_TO = re.compile(
     rf"to[ \t]+(?P<trailing_scope>{_RESIDENT_SCOPE})[ \t]+only\b)",
     re.I,
 )
+_NON_POSITIONAL_ELIGIBILITY_CONTEXT = re.compile(
+    r"\b(?:benefits?|training|insurance|coverage|leave|reimbursement|compensation)\b", re.I,
+)
+_STANDALONE_STATE_RESIDENTS_ONLY = re.compile(
+    rf"(?:^|[.!?;\n])\s*(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[.!?;\n]|$)", re.I,
+)
 _APPLICANT_ALLOWED_STATES = re.compile(
     rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
     r"(?:(?:may|can)\s+apply|are\s+eligible)\b",
@@ -523,6 +529,9 @@ def _remote_residence_status(job, state, arrangement):
 
     expressly_eligible = False
     for policy in _OPEN_ONLY_TO.finditer(text):
+        sentence_prefix = re.split(r"[.!?;\n]", text[:policy.start()])[-1]
+        if _NON_POSITIONAL_ELIGIBILITY_CONTEXT.search(sentence_prefix):
+            continue
         scope = (policy["leading_scope"] or policy["trailing_scope"]).strip()
         states = re.fullmatch(
             rf"(?P<states>{_STATE_LIST})\s+residents?(?:\s+only)?|"
@@ -534,6 +543,13 @@ def _remote_residence_status(job, state, arrangement):
                 return "UNKNOWN"
             continue
         allowed_states = _stated_us_states(states["states"] or states["states_of"])
+        if not allowed_states:
+            return "UNKNOWN"
+        if state not in allowed_states:
+            return "EXCLUDED"
+        expressly_eligible = True
+    for policy in _STANDALONE_STATE_RESIDENTS_ONLY.finditer(text):
+        allowed_states = _stated_us_states(policy["states"])
         if not allowed_states:
             return "UNKNOWN"
         if state not in allowed_states:
@@ -976,14 +992,22 @@ def evaluate_search(criteria, job, at=None):
     remote_type = str(job.get("remote_type") or "UNKNOWN")
     arrangements = set(criteria.get("work_arrangements") or [])
     arrangement = remote_type
-    if remote_type == "HYBRID" and attrs.get("remote_indicated"):
+    if (remote_type == "HYBRID" and attrs.get("provider") == "lever"
+            and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE"):
+        # The normalized Lever workplaceType is a structured provider declaration.
+        pass
+    elif remote_type == "HYBRID" and attrs.get("provider") == "greenhouse" and attrs.get("remote_indicated") is True:
         current_location = classify_location(job.get("location"), job.get("description"))
-        if current_location["remote_type"].startswith("REMOTE"):
-            arrangement = "REMOTE"
-        elif current_location["remote_type"] == "ONSITE":
+        if current_location["remote_type"] == "ONSITE":
             arrangement = "ONSITE"
+        elif (current_location["remote_type"] != "HYBRID"
+                and not _REQUIRED_ONSITE.search(f"{job.get('location') or ''} {job.get('description') or ''}")):
+            arrangement = "REMOTE"
     elif remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
         arrangement = "HYBRID" if _REQUIRED_ONSITE.search(description) else "REMOTE"
+    elif remote_type == "HYBRID" and attrs.get("provider") == "lever":
+        # Historical Lever HYBRID rows lack workplaceType provenance; preserve the structured possibility.
+        pass
     remote_preference = criteria.get("remote", "ANY")
     if remote_preference == "REQUIRED" and arrangement != "REMOTE":
         reasons.append("REMOTE_REQUIRED")
