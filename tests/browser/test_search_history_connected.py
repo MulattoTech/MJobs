@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
+import httpx
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select
 import uvicorn
@@ -17,7 +18,10 @@ from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.scheduler import schedule_due_search_profiles
 from services.discovery.search_profiles import save_search_profile
+from services.discovery.sources.collect import configure_source
+from services.discovery.sources.greenhouse import Greenhouse
 from services.documents.durable_comparison import queue_comparison
 from services.documents.generate import prepare
 from services.documents.history import application_documents
@@ -31,6 +35,135 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class SearchHistoryConnectedBrowserTests(unittest.TestCase):
+    def test_review_jobs_refreshes_the_already_selected_search_after_background_collection(self):
+        search_id = "scheduled-search"
+        title = "Scheduled Linux Administrator"
+        tenant = "scheduled-fixture"
+        with tempfile.TemporaryDirectory(prefix="mjobs-history-scheduled-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'history.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            source_id = configure_source(store, tenant)
+            save_search_profile(store, {
+                "id": search_id, "profile_id": "fixture", "name": "Scheduled fixture search",
+                "include_titles": [title], "source_ids": [source_id],
+                "scheduler": {"enabled": True, "interval_seconds": 600},
+            })
+
+            def fixture_response(request):
+                self.assertEqual(request.method, "GET")
+                self.assertEqual(request.url.host, "boards-api.greenhouse.io")
+                base = f"/v1/boards/{tenant}"
+                if request.url.path == base:
+                    return httpx.Response(200, json={"name": "Scheduled Fixture Employer"})
+                self.assertEqual(request.url.path, f"{base}/jobs")
+                return httpx.Response(200, json={"jobs": [{
+                    "id": 42, "title": title, "location": {"name": "Remote, United States"},
+                    "content": "<p>Maintain Linux systems.</p>",
+                    "absolute_url": f"https://boards.greenhouse.io/{tenant}/jobs/42",
+                }]})
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            history_path = "/profiles/fixture/search-history"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
+                log_level="error", timeout_graceful_shutdown=3,
+            ))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            unexpected = []
+
+            def scoped(response, path):
+                parsed = urlsplit(response.url)
+                query = parse_qs(parsed.query)
+                return parsed.path == path and query.get("search_profile_id") == [search_id]
+
+            def guarded_browser_request(route):
+                request = route.request
+                if urlsplit(request.url).netloc != urlsplit(origin).netloc or request.method != "GET":
+                    unexpected.append((request.method, request.url))
+                    route.abort()
+                else:
+                    route.continue_()
+
+            try:
+                thread.start()
+                from time import monotonic, sleep
+                deadline = monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or monotonic() > deadline:
+                        self.fail("Isolated scheduled-search browser API did not start")
+                    sleep(0.02)
+
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context()
+                    context.route("**/*", guarded_browser_request)
+                    page = context.new_page()
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.evaluate("""id => {
+                        localStorage.setItem('mjobs-profile', 'fixture');
+                        localStorage.setItem('mjobs-search-profile:fixture', id);
+                    }""", search_id)
+                    with page.expect_response(lambda response: scoped(response, "/jobs")) as old_jobs, \
+                            page.expect_response(lambda response: scoped(response, history_path)) as old_receipt:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual(old_jobs.value.json()["jobs"], [])
+                    self.assertEqual(old_receipt.value.json()["items"], [])
+                    choice = page.get_by_label("Saved search profile", exact=True)
+                    expect(choice).to_have_value(search_id)
+                    expect(page.get_by_role("region", name="Empty jobs for Scheduled fixture search")).to_contain_text(
+                        "No completed collection has been recorded",
+                    )
+
+                    scheduled = schedule_due_search_profiles(store)["scheduled"]
+                    self.assertEqual([entry["search_profile_id"] for entry in scheduled], [search_id])
+                    op_id = scheduled[0]["operation_id"]
+                    with patch.dict(os.environ, {
+                        "MJOBS_DATABASE_URL": store.url, "MJOBS_OUTPUT_DIR": str(root),
+                        "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1", "MJOBS_OPERATION_MODE": "FIXTURE",
+                    }), patch("services.discovery.sources.greenhouse.Greenhouse", side_effect=lambda tenant, **kwargs:
+                              Greenhouse(tenant, **{**kwargs, "transport": httpx.MockTransport(fixture_response)})):
+                        result = execute_operation(op_id)
+                    self.assertEqual(result["status"], "COMPLETED", result)
+                    expect(page.locator(".job-card").filter(has_text=title)).to_have_count(0)
+                    page.get_by_role("button", name="Activity", exact=True).click()
+                    row = page.get_by_role("table", name="Saved search runs for profile fixture").get_by_role(
+                        "row", name="Scheduled fixture search", exact=False,
+                    )
+
+                    jobs_responses = []
+
+                    def observe_jobs(response):
+                        if scoped(response, "/jobs"):
+                            jobs_responses.append(response)
+
+                    page.on("response", observe_jobs)
+                    with page.expect_response(lambda response: scoped(response, history_path), timeout=5000) as receipt:
+                        row.get_by_role("button", name="Review jobs", exact=True).click()
+                    expect(choice).to_have_value(search_id)
+                    expect(page.locator(".job-card").filter(has_text=title)).to_have_count(1)
+                    self.assertEqual(len(jobs_responses), 1)
+                    self.assertEqual([job["title"] for job in jobs_responses[0].json()["jobs"]], [title])
+                    query = parse_qs(urlsplit(jobs_responses[0].url).query)
+                    self.assertEqual(query["profile_id"], ["fixture"])
+                    self.assertEqual(query["include_blacklisted"], ["false"])
+                    self.assertNotIn("include_dismissed", query)
+                    self.assertEqual([(item["id"], item["search_profile_id"]) for item in receipt.value.json()["items"]],
+                                     [(f"{op_id}:1", search_id)])
+                    self.assertEqual(unexpected, [])
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=15)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), "Isolated scheduled-search browser API did not stop")
+
     def test_completed_fixture_search_history_is_durable_and_profile_scoped(self):
         saved_search_id = " fixture-search "
         with tempfile.TemporaryDirectory(prefix="mjobs-search-history-browser-") as directory:
