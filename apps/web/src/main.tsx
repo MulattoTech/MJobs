@@ -2009,16 +2009,15 @@ function App() {
             const existingTitles=selected?.criteria.include_titles;
             const titles=existingTitles&&searchTitles===existingTitles.join('\n')
               ?existingTitles:searchTitles.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
-            const schedule=savedSearchScheduleValue(selected?.scheduler||selected?.criteria.scheduler);
-            const scheduler=savedSearchSchedulerPayload(schedule);
             const residenceState=canUseSearchResidenceState?searchRemoteResidenceState.trim().toUpperCase()||null:null;
             const employmentTypes=selected&&searchEmployment===(selected.criteria.employment_types[0]||'')
               ?selected.criteria.employment_types:searchEmployment?[searchEmployment]:[];
             const states=searchStates.split(/[\n,]+/).map(value=>value.trim().toUpperCase()).filter(Boolean);
             const cities=searchCities.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
-            const savedCriteria={...(selected?.criteria||{}),include_titles:titles,optional_skills:searchOptionalSkills,remote:searchRemote,employment_types:employmentTypes,remote_residence_state:residenceState,states,cities,work_arrangements:searchWorkArrangements,scheduler};
+            const savedCriteria={include_titles:titles,optional_skills:searchOptionalSkills,remote:searchRemote,employment_types:employmentTypes,remote_residence_state:residenceState,states,cities,work_arrangements:searchWorkArrangements};
+            const creationDefaults=selected?{}:{enabled:true,scheduler:savedSearchSchedulerPayload(savedSearchScheduleValue())};
             const sourceIds=searchSource==='all'?[]:searchSource==='preserve'?selected?.source_ids||[]:[searchSource];
-            await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:selected?.id||crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:selected?.enabled??true,...savedCriteria,remote_residence_state:residenceState,source_ids:sourceIds,scheduler})});
+            await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:selected?.id||crypto.randomUUID(),profile_id:profileId,name:searchName,...savedCriteria,source_ids:sourceIds,...creationDefaults})});
             setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setSearchRemote('ANY');setSearchEmployment('FULL_TIME');setSearchRemoteResidenceState('');setSearchStates('');setSearchCities('');setSearchWorkArrangements([]);setSearchSource('all');setEditingSearchId('');setNotice(selected?`Updated ${searchName}.`:'Search saved. Its schedule is off until you enable it on the saved search.');
           });}}>
             <SearchProfileSeed disabled={!!busy} onApply={applySearchProfileSeed}/>
@@ -2061,7 +2060,7 @@ function App() {
             </>}
             <button type="button" className="quiet" disabled={!!busy} onClick={()=>editSavedSearch(search)}>Edit search</button>
             {!viewOnly&&<>
-            <button type="button" className="quiet" disabled={!!busy} onClick={()=>void action(search.enabled?'Pausing search':'Resuming search',async()=>{await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:search.id,profile_id:search.profile_id,name:search.name,enabled:!search.enabled,...search.criteria,remote_residence_state:search.criteria.remote_residence_state||null,source_ids:search.source_ids,scheduler:savedSearchSchedulerPayload(savedSchedule)})});})}>{search.enabled?'Pause search':'Resume search'}</button>
+            <button type="button" className="quiet" disabled={!!busy} onClick={()=>void action(search.enabled?'Pausing search':'Resuming search',async()=>{await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:search.id,profile_id:search.profile_id,name:search.name,enabled:!search.enabled})});})}>{search.enabled?'Pause search':'Resume search'}</button>
             <SavedSearchSchedule searchName={search.name} enabled={schedule.enabled} interval={schedule.interval} window={schedule.window} disabled={!!busy} onChange={next=>updateSearchScheduleDraft(search.id,savedSchedule,next)}/>
             {searchScheduleDrafts[search.id]&&<button type="button" disabled={!!busy||!!schedule.window&&!isValidSavedSearchScheduleWindow(schedule.window)} onClick={()=>void action('Saving saved-search schedule',async()=>{
               const latestSchedule=searchScheduleDraftsRef.current[search.id]||schedule;
