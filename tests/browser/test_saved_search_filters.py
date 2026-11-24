@@ -179,6 +179,26 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(python_card).to_be_visible()
                     expect(hidden_card).to_be_visible()
                     page.get_by_label("Active profile", exact=True).select_option("fixture")
+
+                    # Returning restores this profile's own last selected search.
+                    expect(searches).to_have_value(saved_id)
+                    expect(dismissed).to_be_checked()
+                    expect(blacklisted).to_be_checked()
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("application_priority")
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_be_visible()
+
+                    # An explicit All jobs selection also survives a profile round-trip.
+                    searches.select_option("")
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    page.get_by_label("Active profile", exact=True).select_option("other")
+                    expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(0)
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_be_visible()
+                    page.get_by_label("Active profile", exact=True).select_option("fixture")
+                    expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(1)
+                    expect(searches).to_have_value("")
                     expect(dismissed).not_to_be_checked()
                     expect(blacklisted).not_to_be_checked()
                     expect(python_card).to_have_count(0)
