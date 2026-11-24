@@ -1,4 +1,12 @@
+from pathlib import Path
+import tempfile
 import unittest
+
+import httpx
+from sqlalchemy import select, update
+
+from packages.persistence import models as m
+from packages.persistence.store import Store
 
 from services.discovery.search_semantics import (
     classify_location,
@@ -10,9 +18,155 @@ from services.discovery.search_semantics import (
     parse_education_requirement,
     parse_salary,
 )
+from services.discovery.sources.collect import collect_source, configure_source
 
 
 class SearchSemanticsTests(unittest.TestCase):
+    def test_collected_arrangements_preserve_role_attendance_and_provider_authority(self):
+        location = "Remote, United States"
+        remote = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Implicit attendance", "<ul><li>Requires on-site attendance every week.</li></ul>", "HYBRID"),
+            ("Passive equipment", "Equipment on-site visits are required for servicing.", "REMOTE_US"),
+            ("Passive attendance", "On-site attendance is required.", "HYBRID"),
+            ("Active equipment", "The equipment requires on-site installation.", "REMOTE_US"),
+            ("Explicit schedule", "This role is hybrid.", "HYBRID"),
+            ("Technical work", "Maintain our hybrid cloud infrastructure.", "REMOTE_US"),
+        )
+        greenhouse_jobs = [
+            {"id": i, "title": title, "content": description, "location": {"name": location},
+             "absolute_url": f"https://job-boards.greenhouse.io/contract/jobs/{i}"}
+            for i, (title, description, _) in enumerate(cases, 1)
+        ]
+        location_cases = (
+            ("Worldwide denial", "Remote Worldwide", "Employees cannot work worldwide."),
+            ("Exclusive region", "Remote Worldwide", "This role is available only in europe."),
+            ("State-only role", "NY", "On-site role."),
+        )
+        greenhouse_jobs.extend(
+            {"id": i, "title": title, "content": description, "location": {"name": place},
+             "absolute_url": f"https://job-boards.greenhouse.io/contract/jobs/{i}"}
+            for i, (title, place, description) in enumerate(location_cases, len(cases) + 1)
+        )
+        lever_jobs = []
+        for i, (workplace, description) in enumerate((
+            ("hybrid", "This role is fully remote."),
+            ("remote", "On-site attendance is required."),
+        ), 1):
+            identifier = f"00000000-0000-0000-0000-{i:012d}"
+            lever_jobs.append({
+                "id": identifier, "text": f"Declared {workplace}", "description": description,
+                "categories": {"location": location}, "workplaceType": workplace,
+                "hostedUrl": f"https://jobs.lever.co/contract/{identifier}",
+            })
+
+        with tempfile.TemporaryDirectory() as directory:
+            url = f"sqlite:///{(Path(directory) / 'contract.db').as_posix()}"
+            store = Store(url)
+            try:
+                store.migrate()
+                for provider, tenant, host, payload in (
+                    ("greenhouse", "contract", "boards-api.greenhouse.io",
+                     {"jobs": greenhouse_jobs, "meta": {"total": len(greenhouse_jobs)}}),
+                    ("lever", "global:contract", "api.lever.co", lever_jobs),
+                ):
+                    def serve(request):
+                        self.assertEqual((request.method, request.url.host), ("GET", host))
+                        return httpx.Response(200, json=payload)
+
+                    source = configure_source(store, tenant, provider=provider)
+                    collect_source(store, source, None, refresh_matches=False, transport=httpx.MockTransport(serve))
+            finally:
+                store.engine.dispose()
+
+            reopened = Store(url)
+            try:
+                with reopened.engine.connect() as connection:
+                    rows = {row["title"]: dict(row) for row in connection.execute(select(m.jobs)).mappings()}
+                for title, _, stored in cases:
+                    with self.subTest(title=title, stage="fresh"):
+                        self.assertEqual(rows[title]["remote_type"], stored)
+                        evidence = evaluate_search(remote, rows[title])
+                        self.assertEqual(evidence["matched"], stored == "REMOTE_US")
+                        self.assertEqual(evidence["work_arrangement"], "REMOTE" if stored == "REMOTE_US" else "HYBRID")
+                self.assertTrue(rows["Implicit attendance"]["description"].startswith("- Requires on-site"))
+                for title, stale_type, arrangement in (
+                    ("Explicit schedule", "REMOTE_US", "HYBRID"),
+                    ("Implicit attendance", "REMOTE_US", "HYBRID"),
+                    ("Passive equipment", "HYBRID", "REMOTE"),
+                    ("Technical work", "HYBRID", "REMOTE"),
+                ):
+                    with reopened.engine.begin() as connection:
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == rows[title]["id"])
+                                           .values(remote_type=stale_type))
+                    with self.subTest(title=title, stage="persisted legacy"):
+                        job = reopened.job(rows[title]["id"])
+                        evidence = evaluate_search(remote, job)
+                        self.assertEqual(evidence["work_arrangement"], arrangement)
+                        self.assertEqual(evidence["matched"], arrangement == "REMOTE")
+                for title, arrangement in (("Declared hybrid", "HYBRID"), ("Declared remote", "REMOTE")):
+                    with self.subTest(title=title):
+                        self.assertEqual(rows[title]["attributes"]["workplace_type_authority"], "LEVER_WORKPLACE_TYPE")
+                        self.assertEqual(evaluate_search(remote, rows[title])["work_arrangement"], arrangement)
+                region_only = {**rows["Passive equipment"], "location": "United States", "remote_type": "REMOTE_US"}
+                self.assertEqual(evaluate_search({}, region_only)["work_arrangement"], "REMOTE")
+                for title in ("Worldwide denial", "Exclusive region"):
+                    with self.subTest(title=title, stage="persisted geography"):
+                        result = evaluate_search(remote, rows[title])
+                        self.assertFalse(result["matched"])
+                        self.assertEqual(result["remote_residence"]["status"], "UNKNOWN")
+                local = rows["State-only role"]
+                self.assertEqual((local["attributes"]["state"], local["attributes"]["city"]), ("NY", None))
+                self.assertTrue(evaluate_search({"states": ["NY"], "work_arrangements": ["ONSITE"]}, local)["matched"])
+            finally:
+                reopened.engine.dispose()
+
+    def test_remote_scope_respects_role_denials_and_exclusive_places(self):
+        for description, state, status in (
+            ("Employees cannot work worldwide.", "OK", "UNKNOWN"),
+            ("Employees can’t work anywhere in the world.", "OK", "UNKNOWN"),
+            ("Work worldwide isn’t allowed.", "OK", "UNKNOWN"),
+            ("Employees cannot work worldwide. Employees can work in the United States.", "OK", "ELIGIBLE"),
+            ("Employees cannot work in the United States. Employees can work worldwide.", "OK", "EXCLUDED"),
+            ("Our customers cannot work worldwide.", "OK", "ELIGIBLE"),
+            ("This role is available only in europe.", "OK", "UNKNOWN"),
+            ("This role is available only in toronto.", "OK", "UNKNOWN"),
+            ("This role is available only in CA.", "CA", "UNKNOWN"),
+            ("This role is available only in california.", "CA", "ELIGIBLE"),
+            ("This role is available only in california.", "OK", "EXCLUDED"),
+            ("This position is open only in the U.S.", "OK", "ELIGIBLE"),
+            ("Benefits are only available in europe.", "OK", "ELIGIBLE"),
+        ):
+            with self.subTest(description=description, state=state):
+                location = "Remote Worldwide"
+                attrs = classify_location(location, description)
+                if status == "UNKNOWN" and "world" in description:
+                    self.assertNotEqual(attrs["remote_type"], "REMOTE_WORLDWIDE")
+                for remote_type, attributes in (
+                    (attrs["remote_type"], attrs),
+                    ("REMOTE_WORLDWIDE", {"provider": "greenhouse", "remote_indicated": True}),
+                ):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attributes,
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], status == "ELIGIBLE")
+
+    def test_state_only_local_scope_matches_without_creating_a_city(self):
+        for location, state in (("On-site - NY", "NY"), ("NY", "NY"), ("On-site - TX", "TX")):
+            description = "On-site role."
+            parsed = classify_location(location, description)
+            with self.subTest(location=location, stage="fresh"):
+                self.assertEqual((parsed["state"], parsed["city"]), (state, None))
+            for attrs in (parsed, {}, {"city": state}):
+                with self.subTest(location=location, attributes=attrs):
+                    job = {"location": location, "description": description, "remote_type": "ONSITE",
+                           "attributes": attrs}
+                    local = {"work_arrangements": ["ONSITE"], "states": ["NY"]}
+                    self.assertEqual(evaluate_search(local, job)["matched"], state == "NY")
+                    self.assertFalse(evaluate_search({**local, "states": [state], "cities": [state]}, job)["matched"])
+
     def test_remote_classification_preserves_restrictions(self):
         result = classify_location(
             "Remote - United States",

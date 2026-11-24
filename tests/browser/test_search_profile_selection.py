@@ -79,12 +79,16 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
+                    deferred_detail = []
+                    held_detail_path = None
 
                     def local_only(route):
                         parsed = urlsplit(route.request.url)
                         if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif parsed.path == held_detail_path and route.request.method == "GET":
+                            deferred_detail.append(route)
                         else:
                             route.continue_()
 
@@ -120,6 +124,19 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(detail).not_to_contain_text("Remote, United States · HYBRID")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 
+                    detail.get_by_role("button", name="Hide job", exact=True).click()
+                    expect(python_card).to_have_count(0)
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    detail.get_by_role("button", name="Restore hidden job", exact=True).click()
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+
+                    held_detail_path = f"/jobs/{python_jobs[0]['id']}"
+                    python_card.click()
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "search_profile_id=data-search" in response.url) as data_response:
@@ -128,6 +145,15 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                                      ["Data Engineer"])
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(0)
+                    self.assertEqual(len(deferred_detail), 1)
+                    with page.expect_response(lambda response: urlsplit(response.url).path == held_detail_path):
+                        deferred_detail.pop().continue_()
+                    held_detail_path = None
+                    expect(detail.get_by_role("heading", name="A closer look.")).to_be_visible()
+                    recently_viewed = page.get_by_role("region", name="Recently viewed jobs")
+                    recently_viewed.get_by_role("button", name="Python Developer", exact=False).click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
@@ -156,6 +182,8 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(isolated_search.locator("option", has_text="Python remote")).to_have_count(0)
                     isolated_search.select_option("other-search")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    expect(python_card).not_to_contain_text("Remote eligibility confirmed")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")

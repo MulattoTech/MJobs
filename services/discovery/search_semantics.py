@@ -56,6 +56,7 @@ def normalize_us_state(value):
 _LOCATION_ARRANGEMENT_SUFFIX = re.compile(
     r"\s*\(\s*(?:hybrid|on[- ]?site|onsite|remote)\s*\)\s*$", re.I,
 )
+_LOCAL_ARRANGEMENT_PREFIX = re.compile(r"^(?:hybrid|on[- ]?site)\s*[-–—:]\s*", re.I)
 _US_ZIP = r"[0-9]{5}(?:-[0-9]{4})?"
 _LOCATION_CITY_STATE = re.compile(
     rf"(?P<city>[^\W\d_][\w. '’\-]*?)[ \t]+(?P<state>[A-Za-z]{{2}})(?:[ \t]+{_US_ZIP})?",
@@ -273,12 +274,16 @@ def _date_window_bounds(criteria, at):
     raise ValueError("Date window is invalid")
 
 
+_POSTING_LIST_MARKER = r"(?:(?:[-*\u2022]|\d{1,3}[.)])[ \t]+)?"
+_POSTING_CLAUSE_START = rf"(?:^|[.!?;\r\n])[ \t]*{_POSTING_LIST_MARKER}"
+_ATTENDANCE_FREQUENCY = r"(?:occasional|regular|weekly|monthly)"
 _REQUIRED_ONSITE = re.compile(
-    r"\b(?:requires|requiring)\s+(?:(?:occasional|regular|weekly|monthly)\s+|"
+    rf"\b(?P<active>requires?|requiring)\s+(?:{_ATTENDANCE_FREQUENCY}\s+|"
     r"(?:\d{1,2}|one|two|three|four|five)\s+days?\s+(?:(?:per|a)\s+(?:week|month|quarter)\s+)?)?"
-    r"on[- ]?site\b(?=[ \t]*(?:attendance|work|visits?|presence|days?\b|"
+    r"on[- ]?site\b(?=[ \t]*(?:(?:attendance|work|visits?|presence|days?)\b|"
     r"at\s+(?:(?:the|a)\s+)?(?:office|workplace|client\s+site|work\s+site)\b|[.!?;,\n]|$))"
-    r"|\bon[- ]?site\s+(?:attendance|work|visits?)\s+(?:is|are|may\s+be)\s+required\b",
+    rf"|\b(?:{_ATTENDANCE_FREQUENCY}\s+)?on[- ]?site\s+(?:attendance|work|visits?)\s+"
+    r"(?:is|are|may\s+be)\s+required\b",
     re.I,
 )
 _HYBRID_WORK_CONTEXT = re.compile(
@@ -308,8 +313,13 @@ _ONSITE_NONREQUIREMENT = re.compile(
     re.I,
 )
 _ONSITE_REQUIREMENT_SUBJECT = re.compile(
-    r"\b(?:(?:(?:this|the|a)\s+)?(?:role|position|job)|"
+    r"(?:(?:(?:this|the|a)\s+)?(?:role|position|job|work\s+schedule)|"
     r"(?:(?:our|the|all)\s+)?(?:employees?|staff|workers?|candidates?|applicants?)|you|we)\s*$",
+    re.I,
+)
+_ONSITE_ROLE_CONTEXT = re.compile(
+    r"\bon[- ]?site\s+(?:role|position|job|schedule)\b"
+    r"|\b(?:role|position|job|schedule)\s+(?:is|will be|remains)\s+(?:fully\s+)?on[- ]?site\b",
     re.I,
 )
 
@@ -325,29 +335,39 @@ def _has_affirmative_hybrid_work_context(text):
 
 
 def _requires_onsite(text):
+    text = str(text or "")
     for match in _REQUIRED_ONSITE.finditer(text):
-        clause_prefix = re.split(r"[.!?;\r\n,]", text[:match.start()])[-1]
-        if _ONSITE_NONREQUIREMENT.search(clause_prefix.rstrip()):
+        clause_prefix = re.split(r"[.!?;\r\n,]", text[:match.start()])[-1].lstrip()
+        clause_prefix = re.sub(rf"^{_POSTING_LIST_MARKER}", "", clause_prefix)
+        if (_ONSITE_NONREQUIREMENT.search(clause_prefix)
+                or _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix)):
             continue
-        if match.group().casefold().startswith(("requires", "requiring")):
-            if not _ONSITE_REQUIREMENT_SUBJECT.search(clause_prefix):
-                continue
-        if not _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix):
+        # A posting clause can state attendance without repeating the role as
+        # its subject. Modifiers such as "equipment" change what is required.
+        if not clause_prefix or (match["active"] and _ONSITE_REQUIREMENT_SUBJECT.fullmatch(clause_prefix)):
             return True
     return False
 
 
+def _text_work_arrangement(location, description):
+    remote = bool(re.search(r"\bremote\b", f"{location} {description}", re.I))
+    attendance = _requires_onsite(description)
+    if (re.search(r"\bhybrid\b", location, re.I)
+            or _has_affirmative_hybrid_work_context(description) or (remote and attendance)):
+        return "HYBRID", remote
+    if remote:
+        return "REMOTE", remote
+    if attendance or re.search(r"\bon[- ]?site\b", location, re.I) or _ONSITE_ROLE_CONTEXT.search(description):
+        return "ONSITE", remote
+    return "UNKNOWN", remote
+
+
 def classify_location(location_text, description=""):
     location = str(location_text or "").strip() or "Unknown"
-    combined = f"{location} {description or ''}"
+    description = str(description or "")
+    combined = f"{location} {description}"
     folded = combined.casefold()
-    remote_indicated = bool(re.search(r"\bremote\b", folded))
-    hybrid_indicated = bool(
-        re.search(r"\bhybrid\b", location, re.I)
-        or _has_affirmative_hybrid_work_context(description)
-        or (remote_indicated and _requires_onsite(combined))
-    )
-    onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
+    arrangement, remote_indicated = _text_work_arrangement(location, description)
 
     country = None
     country_location = location if remote_indicated else combined
@@ -363,23 +383,22 @@ def classify_location(location_text, description=""):
     city = None
     state = None
     if parts:
-        arrangement_state = re.fullmatch(
-            r"(?:on[- ]?site|onsite|hybrid)\s*[-–—:]\s*(?P<state>[A-Za-z]{2})", parts[0], re.I,
-        )
-        if arrangement_state and arrangement_state["state"].upper() in US_STATES:
-            state = arrangement_state["state"].upper()
-            country = country or "US"
-        first = re.sub(r"^(?:hybrid|on[- ]?site)\s*[-–—:]\s*", "", parts[0], flags=re.I)
+        first = _LOCAL_ARRANGEMENT_PREFIX.sub("", parts[0])
         if re.fullmatch(r"hybrid|on[- ]?site", first, re.I) and len(parts) > 2:
             first = parts[1]
-        if state is None and not re.search(r"\b(remote|hybrid|onsite|on-site)\b", first, re.I):
-            city = first[:200]
         # A state beside the city is stronger evidence than a code-like word
         # or an unrelated state mentioned in the job description.
+        state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
+        first_name = _LOCATION_ARRANGEMENT_SUFFIX.sub("", first)
+        if not remote_indicated and state is None and re.fullmatch(r"[A-Za-z]{2}", first_name):
+            code = first_name.upper()
+            if code in US_STATES and (code != "CA" or country == "US") and country in {None, "US"}:
+                state = code
+                country = "US"
+        elif not re.search(r"\b(remote|hybrid|onsite|on-site)\b", first, re.I):
+            city = first[:200]
         if state is None:
-            state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
-        if state is None:
-            city_state = _LOCATION_CITY_STATE.fullmatch(_LOCATION_ARRANGEMENT_SUFFIX.sub("", first))
+            city_state = _LOCATION_CITY_STATE.fullmatch(first_name)
             if (city_state and (code := city_state["state"].upper()) in US_STATES
                     and not re.search(r"\b(remote|hybrid|onsite|on-site)\b", city_state["city"], re.I)):
                 city = city_state["city"][:200]
@@ -396,14 +415,14 @@ def classify_location(location_text, description=""):
         state = min(restricted_states)
 
     remote_regions = []
-    if hybrid_indicated:
+    if arrangement == "HYBRID":
         remote_type = "HYBRID"
     elif restricted_states:
         remote_type = "REMOTE_SPECIFIC_STATES"
         remote_regions = sorted(restricted_states)
-    elif onsite_indicated and not remote_indicated:
+    elif arrangement == "ONSITE":
         remote_type = "ONSITE"
-    elif remote_indicated and (
+    elif remote_indicated and not _WORLDWIDE_WORK_DENIAL.search(description) and (
         re.fullmatch(_WORLDWIDE_LOCATION, _remote_scope_text(location), re.I)
         or _has_affirmative_worldwide_work(description)
     ):
@@ -474,7 +493,6 @@ _NON_POSITIONAL_ELIGIBILITY_SUBJECT = re.compile(
     r"(?:(?:is|are|was|were|will[ \t]+be)[ \t]+)?$",
     re.I,
 )
-_POSTING_CLAUSE_START = r"(?:^|[.!?;\r\n])[ \t]*(?:(?:[-*\u2022]|\d{1,3}[.)])[ \t]+)?"
 _STANDALONE_STATE_RESIDENTS_ONLY = re.compile(
     rf"{_POSTING_CLAUSE_START}(?P<states>{_STATE_LIST})\s+residents?\s+only(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
@@ -542,7 +560,7 @@ _WORKFORCE_SUBJECT = r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|
 _ROLE_SUBJECT = r"(?:this|the|a)\s+(?:role|position|job|opportunity|opening)"
 _ROLE_OPEN_ONLY_IN_PLACE = re.compile(
     rf"{_POSTING_CLAUSE_START}{_ROLE_SUBJECT}\s+(?:(?:is|will be|remains)\s+)?"
-    r"(?:open|available)\s+only\s+(?:in|within)\s+(?P<place>[^.!?;\r\n]+)",
+    rf"(?:open|available)\s+only\s+(?:in|within)\s+(?P<place>{_RESIDENT_SCOPE})(?={_RESIDENT_SCOPE_END})",
     re.I,
 )
 _AFFIRMATIVE_WORK_CLAUSE = (
@@ -553,8 +571,9 @@ _AFFIRMATIVE_WORK_CLAUSE = (
     r"(?:can|may)\s+be\s+(?:worked|performed))"
     r"|work|(?:fully\s+)?remote)"
 )
+_WORLDWIDE_WORK_SCOPE = rf"\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b"
 _WORLDWIDE_WORK = re.compile(
-    rf"{_AFFIRMATIVE_WORK_CLAUSE}\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b(?=[ \t]*(?:[.!?;\r\n]|$))",
+    rf"{_AFFIRMATIVE_WORK_CLAUSE}{_WORLDWIDE_WORK_SCOPE}(?=[ \t]*(?:[.!?;\r\n]|$))",
     re.I,
 )
 _WORK_LOCATION_LINK = r"\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+"
@@ -562,18 +581,28 @@ _REMOTE_TEXT_SCOPE = re.compile(
     rf"{_AFFIRMATIVE_WORK_CLAUSE}{_WORK_LOCATION_LINK}(?P<country>{_US_LOCATION})\b",
     re.I,
 )
-_US_WORK_DENIAL = re.compile(
+_NEGATIVE_WORK_CLAUSE = (
     rf"{_POSTING_CLAUSE_START}(?:{_WORKFORCE_SUBJECT}\s+"
     r"(?:cannot|can\s+not|can['’]t|(?:may|must|could)\s+not|"
     r"(?:are\s+not|aren['’]t)\s+(?:allowed|permitted|able)\s+to)\s+work"
     rf"|{_ROLE_SUBJECT}\s+(?:(?:is\s+not|isn['’]t)\s+(?:(?:fully\s+)?remote|available|open)|"
     r"(?:cannot|can\s+not|can['’]t|may\s+not)\s+be\s+(?:worked|performed)))"
-    rf"{_WORK_LOCATION_LINK}{_US_LOCATION}(?=[ \t]*(?:{_RESIDENT_SCOPE_END}))"
-    rf"|{_AFFIRMATIVE_WORK_CLAUSE}{_WORK_LOCATION_LINK}{_US_LOCATION}\s+"
-    r"(?:(?:is|are)\s+not|isn['’]t|aren['’]t)\s+(?:allowed|permitted|possible|available)"
-    rf"(?=[ \t]*(?:{_RESIDENT_SCOPE_END}))",
-    re.I,
 )
+
+
+def _work_denial_pattern(scope):
+    end = rf"(?=[ \t]*(?:{_RESIDENT_SCOPE_END}))"
+    return re.compile(
+        rf"{_NEGATIVE_WORK_CLAUSE}{scope}{end}"
+        rf"|(?:{_AFFIRMATIVE_WORK_CLAUSE}|{_POSTING_CLAUSE_START}working){scope}\s+"
+        r"(?:(?:is|are)\s+not|isn['’]t|aren['’]t)\s+(?:allowed|permitted|possible|available)"
+        rf"{end}",
+        re.I,
+    )
+
+
+_US_WORK_DENIAL = _work_denial_pattern(rf"{_WORK_LOCATION_LINK}{_US_LOCATION}")
+_WORLDWIDE_WORK_DENIAL = _work_denial_pattern(_WORLDWIDE_WORK_SCOPE)
 _ALLOWED_STATES = re.compile(_STATE_LIST, re.I)
 _RESIDENCE_STATES = re.compile(rf"{_STATE_LIST}(?=\s*(?:[.;:\n]|$))", re.I)
 
@@ -657,7 +686,7 @@ def _location_scope_states(location, *, eligibility_field=False):
         scope = location
     else:
         return set()
-    if scope != "CA" and _ALLOWED_STATES.fullmatch(scope):
+    if scope.upper() != "CA" and _ALLOWED_STATES.fullmatch(scope):
         return _stated_us_states(scope)
     return set()
 
@@ -671,6 +700,7 @@ def _remote_residence_status(job, state, arrangement):
     text = f"{location}\n{description}"
     if _US_WORK_DENIAL.search(description):
         return "EXCLUDED"
+    worldwide_denied = bool(_WORLDWIDE_WORK_DENIAL.search(description))
     if any(state in _stated_us_states(exclusion["states"])
            for pattern in _STATE_EXCLUSIONS for exclusion in pattern.finditer(text)):
         return "EXCLUDED"
@@ -680,7 +710,7 @@ def _remote_residence_status(job, state, arrangement):
     expressly_eligible = False
     for policy in _ROLE_OPEN_ONLY_IN_PLACE.finditer(text):
         place = policy["place"].strip()
-        if re.fullmatch(_STATE_LIST, place, re.I):
+        if place.upper() != "CA" and _ALLOWED_STATES.fullmatch(place):
             allowed_states = _stated_us_states(place)
             if not allowed_states:
                 return "UNKNOWN"
@@ -689,9 +719,9 @@ def _remote_residence_status(job, state, arrangement):
             expressly_eligible = True
         elif re.fullmatch(_US_LOCATION, place, re.I):
             expressly_eligible = True
-        elif (re.fullmatch(rf"(?:{_OTHER_COUNTRY}|{_NON_US_RESIDENCE_ADJECTIVE})", place, re.I)
-              or re.match(r"(?i)^(?:the\s+)?(?:province|territory|city|state|region|country)\s+of\b", place)
-              or (place and place[0].isupper())):
+        else:
+            # The role expressly limits where the work can be done. An
+            # unresolved place cannot inherit broad location evidence.
             return "UNKNOWN"
 
     for policy in _OPEN_ONLY_TO.finditer(text):
@@ -771,14 +801,15 @@ def _remote_residence_status(job, state, arrangement):
     if remote_us_scope == "UNKNOWN":
         return "UNKNOWN"
 
-    if expressly_eligible or re.fullmatch(
-            rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", location_scope, re.I):
-        return "ELIGIBLE"
-    if location_states:
+    if (expressly_eligible or location_states
+            or re.fullmatch(rf"{_US_LOCATION}(?:\s+only)?", location_scope, re.I)
+            or (not worldwide_denied and re.fullmatch(_WORLDWIDE_LOCATION, location_scope, re.I))):
         return "ELIGIBLE"
     if job.get("remote_type") == "REMOTE_COUNTRY":
         return "EXCLUDED"
-    return "ELIGIBLE" if remote_us_scope == "ELIGIBLE" or _has_affirmative_worldwide_work(description) else "UNKNOWN"
+    if remote_us_scope == "ELIGIBLE" or (not worldwide_denied and _has_affirmative_worldwide_work(description)):
+        return "ELIGIBLE"
+    return "UNKNOWN"
 
 
 def normalize_title(value):
@@ -1132,6 +1163,31 @@ def _haversine_miles(lat1, lon1, lat2, lon2):
     value = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     return 3958.7613 * 2 * asin(sqrt(value))
 
+def _job_work_arrangement(job, attrs):
+    remote_type = str(job.get("remote_type") or "UNKNOWN")
+    provider = attrs.get("provider")
+    remote = remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated"))
+    if provider == "lever" and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE":
+        return "REMOTE" if remote else remote_type
+
+    inferred = provider == "greenhouse" or (
+        provider in ("rss", "json_feed") and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])
+        and feed_capabilities(attrs.get("collection_strategy")).supports(SourceCapability.REMOTE_METADATA)
+    )
+    legacy_hybrid = remote_type == "HYBRID" and attrs.get("remote_indicated") is True
+    if inferred and (remote or legacy_hybrid):
+        current, _ = _text_work_arrangement(str(job.get("location") or ""), str(job.get("description") or ""))
+        if current in {"HYBRID", "ONSITE"}:
+            return current
+        if legacy_hybrid:
+            return "REMOTE"
+    if remote:
+        return "HYBRID" if _requires_onsite(job.get("description")) else "REMOTE"
+    # Without a supported inference origin, a historical HYBRID may be a
+    # structured declaration whose authority marker was never stored.
+    return remote_type
+
+
 def evaluate_search(criteria, job, at=None):
     attrs = dict(job.get("attributes") or {})
     at = parse_timestamp(at) or datetime.now(timezone.utc)
@@ -1173,30 +1229,8 @@ def evaluate_search(criteria, job, at=None):
     if any(_fold(value) in company for value in criteria.get("company_exclude", [])):
         reasons.append("COMPANY_EXCLUDED")
 
-    remote_type = str(job.get("remote_type") or "UNKNOWN")
     arrangements = set(criteria.get("work_arrangements") or [])
-    arrangement = remote_type
-    provider = attrs.get("provider")
-    inferred_workplace = provider == "greenhouse" or (
-        provider in ("rss", "json_feed") and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])
-        and feed_capabilities(attrs.get("collection_strategy")).supports(SourceCapability.REMOTE_METADATA)
-    )
-    if (remote_type == "HYBRID" and provider == "lever"
-            and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE"):
-        # The normalized Lever workplaceType is a structured provider declaration.
-        pass
-    elif remote_type == "HYBRID" and inferred_workplace and attrs.get("remote_indicated") is True:
-        current_location = classify_location(job.get("location"), job.get("description"))
-        if current_location["remote_type"] == "ONSITE":
-            arrangement = "ONSITE"
-        elif (current_location["remote_type"] != "HYBRID"
-                and not _requires_onsite(f"{job.get('location') or ''} {job.get('description') or ''}")):
-            arrangement = "REMOTE"
-    elif remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
-        arrangement = "HYBRID" if _requires_onsite(description) else "REMOTE"
-    elif remote_type == "HYBRID" and provider == "lever":
-        # Historical Lever HYBRID rows lack workplaceType provenance; preserve the structured possibility.
-        pass
+    arrangement = _job_work_arrangement(job, attrs)
     remote_preference = criteria.get("remote", "ANY")
     if remote_preference == "REQUIRED" and arrangement != "REMOTE":
         reasons.append("REMOTE_REQUIRED")
@@ -1208,11 +1242,13 @@ def evaluate_search(criteria, job, at=None):
     local_geo = {}
     if arrangement in {"HYBRID", "ONSITE"} and (criteria.get("states") or criteria.get("cities")):
         reported_location = classify_location(job.get("location"))
-        if reported_location["city"] and reported_location["state"] and reported_location["country"] in {None, "US"}:
+        if reported_location["state"] and reported_location["country"] in {None, "US"}:
             local_geo = reported_location
     for key, job_key in (("countries", "country"), ("states", "state"), ("cities", "city")):
         allowed = {_fold(v) for v in criteria.get(key, [])}
         observed = local_geo.get(job_key) or attrs.get(job_key)
+        if job_key == "city" and local_geo and not local_geo["city"] and _fold(observed) == _fold(local_geo["state"]):
+            observed = None
         if allowed and _fold(observed) not in allowed:
             reasons.append(key.upper() + "_MISMATCH")
 
