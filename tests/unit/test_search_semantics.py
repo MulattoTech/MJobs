@@ -85,6 +85,89 @@ class SearchSemanticsTests(unittest.TestCase):
                     self.assertEqual(result["remote_residence"]["status"], expected_status)
                     self.assertEqual(result["matched"], expected_status == "ELIGIBLE")
 
+    def test_role_open_only_in_place_does_not_confirm_unrelated_us_residence(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description in (
+            "This role is open only in Canada.",
+            "This position is available only in Canada.",
+            "This role is available only in Toronto.",
+        ):
+            with self.subTest(description=description):
+                attrs = classify_location("Remote, United States", description)
+                result = evaluate_search(criteria, {
+                    "location": "Remote, United States", "description": description,
+                    "remote_type": attrs["remote_type"], "attributes": attrs,
+                })
+                self.assertFalse(result["matched"])
+                self.assertEqual(result["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
+
+        state_limited = evaluate_search(criteria, {
+            "location": "Remote, United States",
+            "description": "This role is open only in California.",
+            "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True},
+        })
+        self.assertEqual(state_limited["remote_residence"]["status"], "EXCLUDED")
+
+        benefits = evaluate_search(criteria, {
+            "location": "Remote, United States",
+            "description": "Benefits are available only in Canada.",
+            "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True},
+        })
+        self.assertTrue(benefits["matched"])
+        self.assertEqual(benefits["remote_residence"]["status"], "ELIGIBLE")
+
+    def test_equipment_onsite_installation_is_not_employee_attendance(self):
+        location = "Remote, United States"
+        description = "Equipment requires on-site installation."
+        attrs = classify_location(location, description)
+        self.assertEqual(attrs["remote_type"], "REMOTE_US")
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        fresh = evaluate_search(criteria, {
+            "location": location, "description": description,
+            "remote_type": attrs["remote_type"], "attributes": attrs,
+        })
+        self.assertTrue(fresh["matched"])
+        self.assertEqual(fresh["work_arrangement"], "REMOTE")
+
+        legacy = evaluate_search(criteria, {
+            "location": location, "description": description, "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        })
+        self.assertTrue(legacy["matched"])
+        self.assertEqual(legacy["work_arrangement"], "REMOTE")
+
+    def test_onsite_state_only_location_does_not_invent_city(self):
+        attrs = classify_location("On-site - NY")
+        self.assertEqual(attrs["remote_type"], "ONSITE")
+        self.assertEqual(attrs["state"], "NY")
+        self.assertIsNone(attrs["city"])
+        self.assertTrue(evaluate_search({"states": ["NY"], "work_arrangements": ["ONSITE"]}, {
+            "location": "On-site - NY", "remote_type": attrs["remote_type"], "attributes": attrs,
+        })["matched"])
+        self.assertFalse(evaluate_search({"cities": ["NY"], "work_arrangements": ["ONSITE"]}, {
+            "location": "On-site - NY", "remote_type": attrs["remote_type"], "attributes": attrs,
+        })["matched"])
+
+    def test_search_evidence_reports_evaluated_arrangement_without_mutating_row(self):
+        legacy = {
+            "id": "legacy", "location": "Remote, United States",
+            "description": "Maintain hybrid cloud infrastructure.", "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        }
+        hybrid = {
+            "id": "hybrid", "location": "Remote, United States",
+            "description": "This role is hybrid.", "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        }
+        results = filter_jobs([legacy, hybrid], {"work_arrangements": ["REMOTE", "HYBRID"]})
+        by_id = {row["id"]: row for row in results}
+        self.assertEqual(by_id["legacy"]["search_evidence"]["work_arrangement"], "REMOTE")
+        self.assertEqual(by_id["hybrid"]["search_evidence"]["work_arrangement"], "HYBRID")
+        self.assertEqual(by_id["legacy"]["remote_type"], "HYBRID")
+        self.assertEqual(by_id["hybrid"]["remote_type"], "HYBRID")
+        self.assertEqual(legacy["remote_type"], "HYBRID")
+        self.assertEqual(hybrid["remote_type"], "HYBRID")
+
     def test_exclusive_country_residence_does_not_confirm_us_state_eligibility(self):
         location = "Remote Worldwide"
         for description, status in (

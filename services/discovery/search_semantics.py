@@ -276,7 +276,8 @@ def _date_window_bounds(criteria, at):
 _REQUIRED_ONSITE = re.compile(
     r"\b(?:requires|requiring)\s+(?:(?:occasional|regular|weekly|monthly)\s+|"
     r"(?:\d{1,2}|one|two|three|four|five)\s+days?\s+(?:(?:per|a)\s+(?:week|month|quarter)\s+)?)?"
-    r"on[- ]?site\b"
+    r"on[- ]?site\b(?=[ \t]*(?:attendance|work|visits?|presence|days?\b|"
+    r"at\s+(?:(?:the|a)\s+)?(?:office|workplace|client\s+site|work\s+site)\b|[.!?;,\n]|$))"
     r"|\bon[- ]?site\s+(?:attendance|work|visits?)\s+(?:is|are|may\s+be)\s+required\b",
     re.I,
 )
@@ -306,6 +307,11 @@ _ONSITE_NONREQUIREMENT = re.compile(
     r"\b(?:no[ \t]+(?:occasional|regular|weekly|monthly)|never|no[ \t]+longer)[ \t]*$",
     re.I,
 )
+_ONSITE_REQUIREMENT_SUBJECT = re.compile(
+    r"\b(?:(?:(?:this|the|a)\s+)?(?:role|position|job)|"
+    r"(?:(?:our|the|all)\s+)?(?:employees?|staff|workers?|candidates?|applicants?)|you|we)\s*$",
+    re.I,
+)
 
 
 def _has_affirmative_hybrid_work_context(text):
@@ -321,8 +327,12 @@ def _has_affirmative_hybrid_work_context(text):
 def _requires_onsite(text):
     for match in _REQUIRED_ONSITE.finditer(text):
         clause_prefix = re.split(r"[.!?;\r\n,]", text[:match.start()])[-1]
-        if (not _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix)
-                and not _ONSITE_NONREQUIREMENT.search(clause_prefix)):
+        if _ONSITE_NONREQUIREMENT.search(clause_prefix.rstrip()):
+            continue
+        if match.group().casefold().startswith(("requires", "requiring")):
+            if not _ONSITE_REQUIREMENT_SUBJECT.search(clause_prefix):
+                continue
+        if not _ARRANGEMENT_PREFIX_NONREQUIREMENT.search(clause_prefix):
             return True
     return False
 
@@ -353,14 +363,21 @@ def classify_location(location_text, description=""):
     city = None
     state = None
     if parts:
+        arrangement_state = re.fullmatch(
+            r"(?:on[- ]?site|onsite|hybrid)\s*[-–—:]\s*(?P<state>[A-Za-z]{2})", parts[0], re.I,
+        )
+        if arrangement_state and arrangement_state["state"].upper() in US_STATES:
+            state = arrangement_state["state"].upper()
+            country = country or "US"
         first = re.sub(r"^(?:hybrid|on[- ]?site)\s*[-–—:]\s*", "", parts[0], flags=re.I)
         if re.fullmatch(r"hybrid|on[- ]?site", first, re.I) and len(parts) > 2:
             first = parts[1]
-        if not re.search(r"\b(remote|hybrid|onsite|on-site)\b", first, re.I):
+        if state is None and not re.search(r"\b(remote|hybrid|onsite|on-site)\b", first, re.I):
             city = first[:200]
         # A state beside the city is stronger evidence than a code-like word
         # or an unrelated state mentioned in the job description.
-        state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
+        if state is None:
+            state = next((code for part in reversed(parts[1:]) if (code := _normalize_location_state(part))), None)
         if state is None:
             city_state = _LOCATION_CITY_STATE.fullmatch(_LOCATION_ARRANGEMENT_SUFFIX.sub("", first))
             if (city_state and (code := city_state["state"].upper()) in US_STATES
@@ -523,6 +540,11 @@ _LOCATION_SCOPE = re.compile(
 )
 _WORKFORCE_SUBJECT = r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|workers?|applicants?|candidates?)"
 _ROLE_SUBJECT = r"(?:this|the|a)\s+(?:role|position|job|opportunity|opening)"
+_ROLE_OPEN_ONLY_IN_PLACE = re.compile(
+    rf"{_POSTING_CLAUSE_START}{_ROLE_SUBJECT}\s+(?:(?:is|will be|remains)\s+)?"
+    r"(?:open|available)\s+only\s+(?:in|within)\s+(?P<place>[^.!?;\r\n]+)",
+    re.I,
+)
 _AFFIRMATIVE_WORK_CLAUSE = (
     rf"{_POSTING_CLAUSE_START}(?:{_WORKFORCE_SUBJECT}\s+"
     r"(?:(?:may|can|could)\s+|(?:are|remain)\s+(?:allowed|permitted|able)\s+to\s+)?work"
@@ -656,6 +678,22 @@ def _remote_residence_status(job, state, arrangement):
         return "UNKNOWN"
 
     expressly_eligible = False
+    for policy in _ROLE_OPEN_ONLY_IN_PLACE.finditer(text):
+        place = policy["place"].strip()
+        if re.fullmatch(_STATE_LIST, place, re.I):
+            allowed_states = _stated_us_states(place)
+            if not allowed_states:
+                return "UNKNOWN"
+            if state not in allowed_states:
+                return "EXCLUDED"
+            expressly_eligible = True
+        elif re.fullmatch(_US_LOCATION, place, re.I):
+            expressly_eligible = True
+        elif (re.fullmatch(rf"(?:{_OTHER_COUNTRY}|{_NON_US_RESIDENCE_ADJECTIVE})", place, re.I)
+              or re.match(r"(?i)^(?:the\s+)?(?:province|territory|city|state|region|country)\s+of\b", place)
+              or (place and place[0].isupper())):
+            return "UNKNOWN"
+
     for policy in _OPEN_ONLY_TO.finditer(text):
         sentence_prefix = re.split(r"[.!?;\n]", text[:policy.start()])[-1]
         if _NON_POSITIONAL_ELIGIBILITY_SUBJECT.search(sentence_prefix):
@@ -1257,7 +1295,8 @@ def evaluate_search(criteria, job, at=None):
 
     optional = [value for value in criteria.get("optional_keywords", []) if _contains(value, corpus, aliases)]
     optional_skills = sorted(set(criteria.get("optional_skills") or []) & job_skill_ids)
-    result = {"matched": not reasons, "reasons": reasons, "optional_matches": optional,
+    result = {"matched": not reasons, "work_arrangement": arrangement,
+              "reasons": reasons, "optional_matches": optional,
               "optional_skill_matches": optional_skills}
     if residence is not None:
         result["remote_residence"] = residence
