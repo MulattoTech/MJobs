@@ -20,6 +20,45 @@ from tests.integration.test_spine import PROFILE
 
 
 class SavedSearchFiltersApiTests(unittest.TestCase):
+    def test_saved_search_work_location_facets_use_evaluated_arrangement_before_limit(self):
+        with self.store.engine.begin() as connection:
+            for title, description, stored, posted_at in (
+                ("Data Engineer", "This role is hybrid.", "REMOTE_US", "2026-01-02T00:00:00Z"),
+                ("Python Developer", "Maintain our hybrid cloud infrastructure.", "HYBRID", "2026-01-01T00:00:00Z"),
+            ):
+                connection.execute(update(m.jobs).where(m.jobs.c.title == title).values(
+                    location="Remote, United States", description=description, remote_type=stored,
+                    attributes={"provider": "greenhouse", "remote_indicated": True, "reported_posted_at": posted_at},
+                ))
+        saved = self.client.put("/search-profiles", json={
+            "id": "work-location-facets", "profile_id": "fixture", "name": "Work location",
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+        for sort in ("title", "newest"):
+            params = {"profile_id": "fixture", "sort": sort, "limit": 1}
+            for facet, expected, stored, arrangement in (
+                ("REMOTE", "Python Developer", "HYBRID", "REMOTE"),
+                ("HYBRID", "Data Engineer", "REMOTE_US", "HYBRID"),
+            ):
+                with self.subTest(sort=sort, facet=facet):
+                    response = self.client.get("/jobs", params={
+                        **params, "remote_type": facet, "search_profile_id": "work-location-facets",
+                    })
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()["jobs"]
+                    self.assertEqual([row["title"] for row in rows], [expected])
+                    self.assertEqual(rows[0]["remote_type"], stored)
+                    self.assertEqual(rows[0]["search_evidence"]["work_arrangement"], arrangement)
+            for facet, expected in (("REMOTE", "Data Engineer"), ("HYBRID", "Python Developer"),
+                                    ("REMOTE_US", "Data Engineer")):
+                with self.subTest(sort=sort, facet=facet, scope="All jobs"):
+                    response = self.client.get("/jobs", params={**params, "remote_type": facet})
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()["jobs"]
+                    self.assertEqual([row["title"] for row in rows], [expected])
+                    self.assertNotIn("search_evidence", rows[0])
+
     def test_saved_search_excludes_closed_postings_before_limit_and_keeps_history(self):
         with self.store.engine.begin() as connection:
             earlier = connection.execute(select(m.jobs).where(m.jobs.c.title == "Data Engineer")).mappings().one()

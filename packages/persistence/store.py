@@ -770,6 +770,10 @@ class Store:
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
              application_capability=None, exclude_company_ids=None, job_ids=None, search_criteria=None,
              row_filter=None, exclude_closed=False):
+        # The general Work location facet follows the arrangement displayed
+        # in a saved search. Exact remote subtype filters still use source data.
+        scoped_arrangement = (remote_type if search_criteria is not None
+                              and remote_type in {"REMOTE", "HYBRID", "ONSITE", "UNKNOWN"} else None)
         if salary_period not in {"HOUR", "YEAR"}:
             raise ValueError("Salary period must be HOUR or YEAR")
         if type(salary_known_only) is not bool or (salary_unknown_allowed is not None and type(salary_unknown_allowed) is not bool):
@@ -1142,7 +1146,7 @@ class Store:
                 statement = statement.where(parsed_posted_at >= cutoff)
                 if upper_bound is not None:
                     statement = statement.where(parsed_posted_at <= upper_bound)
-            if remote_type:
+            if remote_type and scoped_arrangement is None:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))
                 else:
@@ -1193,6 +1197,7 @@ class Store:
                 if application_capability is not None or search_criteria is not None or row_filter is not None:
                     ordered_rows = self._select_job_rows(
                         connection, ordered_rows, application_capability, limit, search_criteria, row_filter,
+                        scoped_arrangement=scoped_arrangement,
                     )
                 else:
                     ordered_rows = ordered_rows[:limit]
@@ -1247,11 +1252,13 @@ class Store:
                     rows = (canonical_job_view(dict(row)) for row in result.mappings())
                     return self._select_job_rows(
                         connection, rows, application_capability, limit, search_criteria, row_filter,
+                        scoped_arrangement=scoped_arrangement,
                     )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     @staticmethod
-    def _select_job_rows(connection, rows, expected, limit, search_criteria=None, row_filter=None):
+    def _select_job_rows(connection, rows, expected, limit, search_criteria=None, row_filter=None,
+                         *, scoped_arrangement=None):
         """Apply semantic, capability and caller visibility filters before LIMIT."""
         if limit <= 0:
             return []
@@ -1270,7 +1277,8 @@ class Store:
                 result.pop("application_route_id", None)
                 if search_criteria is not None:
                     evidence = evaluate_search(search_criteria, result)
-                    if not evidence["matched"]:
+                    if not evidence["matched"] or (
+                            scoped_arrangement is not None and evidence["work_arrangement"] != scoped_arrangement):
                         continue
                     result["search_evidence"] = evidence
                 yield result

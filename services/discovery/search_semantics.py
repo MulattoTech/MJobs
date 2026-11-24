@@ -314,7 +314,8 @@ _ONSITE_NONREQUIREMENT = re.compile(
 )
 _ONSITE_REQUIREMENT_SUBJECT = re.compile(
     r"(?:(?:(?:this|the|a)\s+)?(?:role|position|job|work\s+schedule)|"
-    r"(?:(?:our|the|all)\s+)?(?:employees?|staff|workers?|candidates?|applicants?)|you|we)\s*$",
+    r"(?:(?:our|the|all)\s+)?(?:employees?|staff|workers?|candidates?|applicants?)|you|we)"
+    r"(?:\s+(?:also|still|currently|regularly|occasionally|typically))?\s*$",
     re.I,
 )
 _ONSITE_ROLE_CONTEXT = re.compile(
@@ -560,7 +561,8 @@ _WORKFORCE_SUBJECT = r"(?:(?:our|the|all)\s+)?(?:employees?|staff|team members?|
 _ROLE_SUBJECT = r"(?:this|the|a)\s+(?:role|position|job|opportunity|opening)"
 _ROLE_OPEN_ONLY_IN_PLACE = re.compile(
     rf"{_POSTING_CLAUSE_START}{_ROLE_SUBJECT}\s+(?:(?:is|will be|remains)\s+)?"
-    rf"(?:open|available)\s+only\s+(?:in|within)\s+(?P<place>{_RESIDENT_SCOPE})(?={_RESIDENT_SCOPE_END})",
+    r"(?:only\s+(?:open|available)|(?:open|available)\s+only)"
+    rf"\s+(?:in|within)\s+(?P<place>{_RESIDENT_SCOPE})(?={_RESIDENT_SCOPE_END})",
     re.I,
 )
 _AFFIRMATIVE_WORK_CLAUSE = (
@@ -1168,7 +1170,11 @@ def _job_work_arrangement(job, attrs):
     provider = attrs.get("provider")
     remote = remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated"))
     if provider == "lever" and attrs.get("workplace_type_authority") == "LEVER_WORKPLACE_TYPE":
-        return "REMOTE" if remote else remote_type
+        if not remote:
+            return remote_type
+        # The declaration remains stored. Mandatory role attendance rules out
+        # fully remote work in a saved search, even with a declared remote mode.
+        return "HYBRID" if _requires_onsite(job.get("description")) else "REMOTE"
 
     inferred = provider == "greenhouse" or (
         provider in ("rss", "json_feed") and isinstance(attrs.get("source_id"), str) and bool(attrs["source_id"])

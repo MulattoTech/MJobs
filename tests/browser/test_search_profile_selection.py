@@ -124,6 +124,21 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(detail).not_to_contain_text("Remote, United States · HYBRID")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 
+                    work_location = page.get_by_label("Work location", exact=True)
+                    for facet, matching in (("HYBRID", False), ("REMOTE", True)):
+                        with page.expect_response(lambda response:
+                                response.url.startswith(origin + "/jobs?")
+                                and parse_qs(urlsplit(response.url).query).get("remote_type") == [facet]
+                                and "search_profile_id=python-search" in response.url) as facet_response:
+                            work_location.select_option(facet)
+                        self.assertEqual(bool(facet_response.value.json()["jobs"]), matching)
+                        if matching:
+                            expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                        else:
+                            expect(python_card).to_have_count(0)
+                    work_location.select_option("")
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    python_card.click()
                     detail.get_by_role("button", name="Hide job", exact=True).click()
                     expect(python_card).to_have_count(0)
                     expect(detail).to_contain_text("Remote, United States · HYBRID")
@@ -171,9 +186,18 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(search).to_have_value("")
                     expect(python_card).to_contain_text("Remote, United States · HYBRID")
                     expect(python_card).not_to_contain_text("Remote eligibility confirmed")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "remote_type=REMOTE" in response.url) as all_remote_response:
+                        work_location.select_option("REMOTE")
+                    self.assertNotIn("Python Developer", [row["title"] for row in all_remote_response.value.json()["jobs"]])
+                    expect(python_card).to_have_count(0)
+                    work_location.select_option("HYBRID")
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
                     python_card.click()
                     expect(detail).to_contain_text("Remote, United States · HYBRID")
                     expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    work_location.select_option("")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 
                     page.get_by_label("Active profile", exact=True).select_option("other")

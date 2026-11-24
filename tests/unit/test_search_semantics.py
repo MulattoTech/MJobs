@@ -29,7 +29,10 @@ class SearchSemanticsTests(unittest.TestCase):
             ("Implicit attendance", "<ul><li>Requires on-site attendance every week.</li></ul>", "HYBRID"),
             ("Passive equipment", "Equipment on-site visits are required for servicing.", "REMOTE_US"),
             ("Passive attendance", "On-site attendance is required.", "HYBRID"),
+            ("Additional attendance", "This role also requires on-site attendance.", "HYBRID"),
+            ("Regular attendance", "The position regularly requires on-site work.", "HYBRID"),
             ("Active equipment", "The equipment requires on-site installation.", "REMOTE_US"),
+            ("Customer attendance", "Our customers also require on-site attendance.", "REMOTE_US"),
             ("Explicit schedule", "This role is hybrid.", "HYBRID"),
             ("Technical work", "Maintain our hybrid cloud infrastructure.", "REMOTE_US"),
         )
@@ -41,6 +44,11 @@ class SearchSemanticsTests(unittest.TestCase):
         location_cases = (
             ("Worldwide denial", "Remote Worldwide", "Employees cannot work worldwide."),
             ("Exclusive region", "Remote Worldwide", "This role is available only in europe."),
+            ("Leading country restriction", "Remote Worldwide", "This position is only available in Canada."),
+            ("Trailing country restriction", "Remote Worldwide", "This position is available only in Canada."),
+            ("Leading state restriction", "Remote Worldwide", "This position is only open within Oklahoma."),
+            ("Trailing state restriction", "Remote Worldwide", "This position is open only within Oklahoma."),
+            ("Unrelated availability", "Remote Worldwide", "Benefits are only available in Canada."),
             ("State-only role", "NY", "On-site role."),
         )
         greenhouse_jobs.extend(
@@ -49,13 +57,15 @@ class SearchSemanticsTests(unittest.TestCase):
             for i, (title, place, description) in enumerate(location_cases, len(cases) + 1)
         )
         lever_jobs = []
-        for i, (workplace, description) in enumerate((
-            ("hybrid", "This role is fully remote."),
-            ("remote", "On-site attendance is required."),
-        ), 1):
+        lever_cases = (
+            ("Declared hybrid", "hybrid", "This role is fully remote.", "HYBRID"),
+            ("Declared remote conflict", "remote", "On-site attendance is required.", "HYBRID"),
+            ("Declared remote", "remote", "Maintain our hybrid cloud infrastructure.", "REMOTE"),
+        )
+        for i, (title, workplace, description, _) in enumerate(lever_cases, 1):
             identifier = f"00000000-0000-0000-0000-{i:012d}"
             lever_jobs.append({
-                "id": identifier, "text": f"Declared {workplace}", "description": description,
+                "id": identifier, "text": title, "description": description,
                 "categories": {"location": location}, "workplaceType": workplace,
                 "hostedUrl": f"https://jobs.lever.co/contract/{identifier}",
             })
@@ -86,13 +96,16 @@ class SearchSemanticsTests(unittest.TestCase):
                 for title, _, stored in cases:
                     with self.subTest(title=title, stage="fresh"):
                         self.assertEqual(rows[title]["remote_type"], stored)
-                        evidence = evaluate_search(remote, rows[title])
-                        self.assertEqual(evidence["matched"], stored == "REMOTE_US")
-                        self.assertEqual(evidence["work_arrangement"], "REMOTE" if stored == "REMOTE_US" else "HYBRID")
+                        for state in ("OK", "TX"):
+                            evidence = evaluate_search({**remote, "remote_residence_state": state}, rows[title])
+                            self.assertEqual(evidence["matched"], stored == "REMOTE_US")
+                            self.assertEqual(evidence["work_arrangement"],
+                                             "REMOTE" if stored == "REMOTE_US" else "HYBRID")
                 self.assertTrue(rows["Implicit attendance"]["description"].startswith("- Requires on-site"))
                 for title, stale_type, arrangement in (
                     ("Explicit schedule", "REMOTE_US", "HYBRID"),
                     ("Implicit attendance", "REMOTE_US", "HYBRID"),
+                    ("Additional attendance", "REMOTE_US", "HYBRID"),
                     ("Passive equipment", "HYBRID", "REMOTE"),
                     ("Technical work", "HYBRID", "REMOTE"),
                 ):
@@ -104,17 +117,35 @@ class SearchSemanticsTests(unittest.TestCase):
                         evidence = evaluate_search(remote, job)
                         self.assertEqual(evidence["work_arrangement"], arrangement)
                         self.assertEqual(evidence["matched"], arrangement == "REMOTE")
-                for title, arrangement in (("Declared hybrid", "HYBRID"), ("Declared remote", "REMOTE")):
+                for title, workplace, _, arrangement in lever_cases:
                     with self.subTest(title=title):
-                        self.assertEqual(rows[title]["attributes"]["workplace_type_authority"], "LEVER_WORKPLACE_TYPE")
-                        self.assertEqual(evaluate_search(remote, rows[title])["work_arrangement"], arrangement)
+                        job = reopened.job(rows[title]["id"])
+                        self.assertEqual(job["attributes"]["workplace_type_authority"], "LEVER_WORKPLACE_TYPE")
+                        self.assertEqual(job["remote_type"], workplace.upper())
+                        expected = "ELIGIBLE" if arrangement == "REMOTE" else "EXCLUDED"
+                        for state in ("OK", "TX"):
+                            evidence = evaluate_search({**remote, "remote_residence_state": state}, job)
+                            self.assertEqual(evidence["work_arrangement"], arrangement)
+                            self.assertEqual(evidence["matched"], expected == "ELIGIBLE")
+                            self.assertEqual(evidence["remote_residence"]["status"], expected)
+                all_remote = {row["title"] for row in reopened.jobs(remote_type="REMOTE")}
+                self.assertIn("Declared remote conflict", all_remote)
                 region_only = {**rows["Passive equipment"], "location": "United States", "remote_type": "REMOTE_US"}
                 self.assertEqual(evaluate_search({}, region_only)["work_arrangement"], "REMOTE")
-                for title in ("Worldwide denial", "Exclusive region"):
-                    with self.subTest(title=title, stage="persisted geography"):
-                        result = evaluate_search(remote, rows[title])
-                        self.assertFalse(result["matched"])
-                        self.assertEqual(result["remote_residence"]["status"], "UNKNOWN")
+                for title, ok, tx in (
+                    ("Worldwide denial", "UNKNOWN", "UNKNOWN"),
+                    ("Exclusive region", "UNKNOWN", "UNKNOWN"),
+                    ("Leading country restriction", "UNKNOWN", "UNKNOWN"),
+                    ("Trailing country restriction", "UNKNOWN", "UNKNOWN"),
+                    ("Leading state restriction", "ELIGIBLE", "EXCLUDED"),
+                    ("Trailing state restriction", "ELIGIBLE", "EXCLUDED"),
+                    ("Unrelated availability", "ELIGIBLE", "ELIGIBLE"),
+                ):
+                    for state, expected in (("OK", ok), ("TX", tx)):
+                        with self.subTest(title=title, state=state, stage="persisted geography"):
+                            result = evaluate_search({**remote, "remote_residence_state": state}, rows[title])
+                            self.assertEqual(result["matched"], expected == "ELIGIBLE")
+                            self.assertEqual(result["remote_residence"]["status"], expected)
                 local = rows["State-only role"]
                 self.assertEqual((local["attributes"]["state"], local["attributes"]["city"]), ("NY", None))
                 self.assertTrue(evaluate_search({"states": ["NY"], "work_arrangements": ["ONSITE"]}, local)["matched"])
