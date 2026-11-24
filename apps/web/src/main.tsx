@@ -671,7 +671,8 @@ function App() {
     const sequence=++jobsSequence.current; const current=queryRef.current;
     const params = new URLSearchParams({q:current.q,sort:current.sort});
     const requestedSearchId=current.searchProfileId;
-    const selectedSearchProfileActive=searchProfiles.some(search=>search.id===requestedSearchId&&search.profile_id===id);
+    const selectedSearchProfile=searchProfiles.find(search=>search.id===requestedSearchId&&search.profile_id===id);
+    const selectedSearchProfileActive=!!selectedSearchProfile;
     if(current.title)params.set('title',current.title);if(current.company)params.set('company',current.company);
     if(current.locationText)params.set('location',current.locationText);
     applySalarySearchParams(params,{min:current.salaryMin,max:current.salaryMax,period:current.salaryPeriod,policy:current.salaryPolicy});
@@ -691,7 +692,8 @@ function App() {
     if(current.atsProvider)params.set('ats_provider',current.atsProvider);if(current.jobSourceId)params.set('job_source_id',current.jobSourceId);
     if(id)params.set('profile_id',id);if(current.remote)params.set('remote_type',current.remote);if(current.provider)params.set('provider',current.provider);
     if(selectedSearchProfileActive){params.set('search_profile_id',requestedSearchId);params.set('override_saved_match_score','true');params.set('override_saved_job_filters','true');}
-    if(current.showDismissed)params.set('include_dismissed','true');
+    if(current.showDismissed||selectedSearchProfile?.criteria.job_filters?.include_dismissed===true)
+      params.set('include_dismissed',String(current.showDismissed));
     params.set('include_blacklisted',String(current.showBlacklisted));
     const result=await api<{jobs:Job[]}>('/jobs?'+params);
     if(sequence===jobsSequence.current&&id===profileRef.current&&requestedSearchId===queryRef.current.searchProfileId) {

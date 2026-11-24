@@ -473,17 +473,17 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                 self.assertIs(saved["include_blacklisted"], True)
                 self.assertFalse(record["enabled"])
                 params = {"profile_id": "fixture", "search_profile_id": "saved-filter", "sort": saved["sort"]}
-                # Saved display preferences cannot change API defaults or eligibility.
-                self.assertEqual(client.get("/jobs", params=params).json()["jobs"], [])
+                self.assertEqual({row["id"] for row in client.get("/jobs", params=params).json()["jobs"]},
+                                 {row["id"] for row in jobs})
                 shown = client.get("/jobs", params={
                     **params, "include_dismissed": saved["include_dismissed"],
                     "include_blacklisted": saved["include_blacklisted"],
                 })
                 self.assertEqual(shown.status_code, 200, shown.text)
                 self.assertEqual({row["id"] for row in shown.json()["jobs"]}, {row["id"] for row in jobs})
-                hidden_again = client.get("/jobs", params={**params, "include_blacklisted": True})
+                hidden_again = client.get("/jobs", params={**params, "include_dismissed": False})
                 self.assertEqual([row["id"] for row in hidden_again.json()["jobs"]], [visible_job["id"]])
-                self.assertEqual(client.get("/jobs", params={**params, "include_dismissed": True}).json()["jobs"], [])
+                self.assertEqual(client.get("/jobs", params={**params, "include_blacklisted": False}).json()["jobs"], [])
                 ai_preview = client.get("/profiles/fixture/ai-cost-plan", params={
                     "search_profile_id": "saved-filter",
                 })

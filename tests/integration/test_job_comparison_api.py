@@ -70,23 +70,64 @@ class JobComparisonApiTests(unittest.TestCase):
         self.assertEqual(self.service_calls, [])
 
     def test_comparison_uses_persisted_visibility_opt_in(self):
+        from apps.api.main import create_app
+        from services.matching.company_preferences import set_company_preference
         from services.tracking.jobs import set_job_disposition
 
-        ids = ["job-one", "job-two"]
-        set_job_disposition(self.store, "fixture", "job-two", disposition="HIDDEN", request_id="comparison-hide")
-        hidden = self.client.post(self._url(), json={"job_ids": ids})
-        self.assertEqual(hidden.status_code, 409, hidden.text)
-        self.assertEqual(hidden.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
-        self.assertEqual(self.service_calls, [])
+        ids = ["job-one", "job-two", "job-unmatched"]
+        excluded = ["job-one", "job-unmatched"]
         with self.store.engine.begin() as connection:
-            connection.execute(m.search_profiles.update().where(
-                m.search_profiles.c.id == "selected-search",
-            ).values(criteria={"job_filters": {
-                "q": "", "remote_type": "", "provider": "", "sort": "score", "include_dismissed": True,
-            }}))
-        restored = self.client.post(self._url(), json={"job_ids": ids})
-        self.assertEqual(restored.status_code, 200, restored.text)
-        self.assertEqual(restored.json()["job_ids"], ids)
+            connection.execute(m.companies.insert().values(
+                id="visibility-company", name="Another Example Employer", domain="visibility.example.test",
+            ))
+            for table in (m.jobs, m.routes):
+                job_key = table.c.id if table is m.jobs else table.c.job_id
+                connection.execute(table.update().where(job_key == "job-two").values(company_id="visibility-company"))
+            match = dict(connection.execute(select(m.matches).where(
+                m.matches.c.id == "match-job-one",
+            )).mappings().one())
+            connection.execute(m.matches.insert().values(**{**match, "id": "visibility-match", "job_id": "job-unmatched"}))
+        with TestClient(create_app(self.store, "http://127.0.0.1:1", Path(self.directory.name),
+                                   operation_mode="FIXTURE")) as client:
+            def jobs(**params):
+                result = client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 1, **params})
+                self.assertEqual(result.status_code, 200, result.text)
+                return sorted(row["id"] for row in result.json()["jobs"])
+
+            set_job_disposition(self.store, "fixture", "job-two", "HIDDEN", "comparison-hide")
+            for flag, other_flag in (
+                ("include_dismissed", "include_blacklisted"),
+                ("include_blacklisted", "include_dismissed"),
+            ):
+                if flag == "include_blacklisted":
+                    set_job_disposition(self.store, "fixture", "job-two", "ACTIVE", "comparison-restore")
+                    set_company_preference(self.store, "fixture", "visibility-company", "BLACKLISTED",
+                                           "comparison-blacklist")
+                self.assertEqual(jobs(), excluded)
+                for saved in (None, False, True):
+                    with self.subTest(flag=flag, saved=saved):
+                        filters = {"q": "", "remote_type": "", "provider": "", "sort": "score"}
+                        if saved is not None:
+                            filters[flag] = saved
+                        response = client.put("/search-profiles", json={
+                            "id": "selected-search", "profile_id": "fixture", "name": "Visibility",
+                            "enabled": False, "job_filters": filters,
+                        })
+                        self.assertEqual(response.status_code, 200, response.text)
+                        scope = {"search_profile_id": "selected-search"}
+                        expected = ids if saved else excluded
+                        self.assertEqual(jobs(**scope), expected)
+                        self.assertEqual(jobs(**scope, **{flag: True}), ids)
+                        self.assertEqual(jobs(**scope, **{flag: False}), excluded)
+                        self.assertEqual(jobs(**scope, **{other_flag: True}), expected)
+                        self.assertEqual(jobs(**scope, override_saved_job_filters=True), expected)
+                        compared = client.post(self._url(), json={"job_ids": expected})
+                        self.assertEqual(compared.status_code, 200, compared.text)
+                        self.assertEqual(compared.json()["job_ids"], expected)
+                        if not saved:
+                            rejected = client.post(self._url(), json={"job_ids": ids})
+                            self.assertEqual(rejected.status_code, 409, rejected.text)
+                            self.assertEqual(rejected.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
 
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-job-comparison-")

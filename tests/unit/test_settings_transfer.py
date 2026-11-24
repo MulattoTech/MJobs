@@ -104,13 +104,14 @@ class SettingsTransferTests(unittest.TestCase):
         criteria = export_settings(self.store, "fixture")["settings"]["search_profiles"][0]["criteria"]
         self.assertNotIn("remote_residence_state", criteria)
 
-    def test_saved_arrangement_basis_round_trips_and_legacy_stays_absent(self):
+    def test_saved_arrangement_and_visibility_round_trip_and_legacy_stays_absent(self):
         filters = {"q": "", "remote_type": "HYBRID", "provider": "", "sort": "score"}
-        for name, basis in (("Legacy", None), ("Stored", "STORED"), ("Evaluated", "EVALUATED")):
-            payload = {**filters, **({"arrangement_basis": basis} if basis else {})}
+        for name, extra in (("Legacy", {}),
+                            ("Stored", {"arrangement_basis": "STORED", "include_dismissed": True}),
+                            ("Evaluated", {"arrangement_basis": "EVALUATED", "include_blacklisted": False})):
             save_search_profile(self.store, {
                 "id": name, "profile_id": "fixture", "name": name,
-                "enabled": False, "job_filters": payload,
+                "enabled": False, "job_filters": {**filters, **extra},
             })
         exported = export_settings(self.store, "fixture")
         import_settings(self.store, "fixture", exported)
@@ -118,8 +119,12 @@ class SettingsTransferTests(unittest.TestCase):
         saved = {row["name"]: row["criteria"]["job_filters"]
                  for row in list_search_profiles(self.store, "fixture")}
         self.assertNotIn("arrangement_basis", saved["Legacy"])
+        self.assertNotIn("include_dismissed", saved["Legacy"])
+        self.assertNotIn("include_blacklisted", saved["Legacy"])
         self.assertEqual(saved["Stored"]["arrangement_basis"], "STORED")
+        self.assertIs(saved["Stored"]["include_dismissed"], True)
         self.assertEqual(saved["Evaluated"]["arrangement_basis"], "EVALUATED")
+        self.assertIs(saved["Evaluated"]["include_blacklisted"], False)
 
         invalid = copy.deepcopy(exported)
         invalid["settings"]["search_profiles"][0]["criteria"]["job_filters"]["arrangement_basis"] = "OTHER"

@@ -191,7 +191,8 @@ class SelectedSearchAITests(SelectedSearchAIHarness):
         with self.store.engine.begin() as c:
             row=c.execute(select(m.search_profiles).where(m.search_profiles.c.id=='cloud')).mappings().one()
             criteria=copy.deepcopy(row['criteria'])
-            criteria['job_filters']={'q':'','remote_type':'','provider':'','sort':'score','min_match_score':'90'}
+            criteria['job_filters']={'q':'','remote_type':'','provider':'','sort':'score','min_match_score':'90',
+                                     'include_dismissed':True}
             c.execute(update(m.search_profiles).where(m.search_profiles.c.id=='cloud').values(criteria=criteria))
             # A stale shared score must not suppress the true selected-search winner.
             c.execute(update(m.matches).where(m.matches.c.job_id==self.cloud).values(score=0))
@@ -206,7 +207,8 @@ class SelectedSearchAITests(SelectedSearchAIHarness):
         with self.store.engine.begin() as c:
             row=c.execute(select(m.search_profiles).where(m.search_profiles.c.id=='cloud')).mappings().one()
             criteria=copy.deepcopy(row['criteria'])
-            criteria['job_filters']={'q':'','title':'Infrastructure','remote_type':'','provider':'','sort':'score'}
+            criteria['job_filters']={'q':'','title':'Infrastructure','remote_type':'','provider':'','sort':'score',
+                                     'include_blacklisted':True}
             c.execute(update(m.search_profiles).where(m.search_profiles.c.id=='cloud').values(criteria=criteria))
         self.assertEqual([row['job_id'] for row in self.preview('cloud')['candidates']],[self.systems])
         company=self.store.job(self.systems)['company_id']

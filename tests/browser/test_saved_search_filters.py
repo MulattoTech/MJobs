@@ -286,6 +286,30 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(python_card).to_be_visible()
                     expect(hidden_card).to_be_visible()
 
+                    def saved_jobs(response):
+                        parsed = urlsplit(response.url)
+                        return (parsed.path == "/jobs"
+                                and dict(parse_qsl(parsed.query)).get("search_profile_id") == saved_id)
+
+                    with page.expect_response(saved_jobs) as dismiss_off:
+                        dismissed.uncheck()
+                    flags = dict(parse_qsl(urlsplit(dismiss_off.value.url).query))
+                    self.assertEqual((flags.get("include_dismissed"), flags.get("include_blacklisted")),
+                                     ("false", "true"))
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_have_count(0)
+                    dismissed.check()
+                    expect(hidden_card).to_be_visible()
+                    with page.expect_response(saved_jobs) as blacklist_off:
+                        blacklisted.uncheck()
+                    flags = dict(parse_qsl(urlsplit(blacklist_off.value.url).query))
+                    self.assertEqual((flags.get("include_dismissed"), flags.get("include_blacklisted")),
+                                     ("true", "false"))
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    blacklisted.check()
+                    expect(hidden_card).to_be_visible()
+
                     # A reload restores the selected search and its explicit visibility
                     # opt-ins. Choosing All jobs must clear those opt-ins again.
                     page.reload(wait_until="domcontentloaded")

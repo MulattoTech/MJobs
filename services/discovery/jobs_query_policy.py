@@ -83,8 +83,9 @@ def resolve_jobs_query(store, profile_id: str | None, criteria: dict | None, *, 
     if not advisory:
         options["min_match_score"] = minimum
 
-    include_dismissed = options.pop("include_dismissed", filters.get("include_dismissed", False))
-    include_blacklisted = options.pop("include_blacklisted", filters.get("include_blacklisted", False))
+    saved_visibility = saved or {}
+    include_dismissed = options.pop("include_dismissed", saved_visibility.get("include_dismissed", False))
+    include_blacklisted = options.pop("include_blacklisted", saved_visibility.get("include_blacklisted", False))
     if advisory:
         include_dismissed = include_blacklisted = False
     # The existing visibility readers only need engine.connect(). On an owned

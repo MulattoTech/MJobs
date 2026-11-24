@@ -1838,8 +1838,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              override_saved_match_score: bool = False,
              override_saved_job_filters: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
-             include_dismissed: bool = False,
-             include_blacklisted: bool = False,
+             include_dismissed: bool | None = None,
+             include_blacklisted: bool | None = None,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
             raise HTTPException(422, "Minimum USD salary cannot exceed maximum for the selected pay period")
@@ -1892,11 +1892,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "job_source_id": job_source_id, "application_link_status": application_link_status,
             "application_pipeline_status": application_pipeline_status,
             "application_capability": application_capability,
+            "include_dismissed": include_dismissed, "include_blacklisted": include_blacklisted,
         }
         overrides = {key: value for key, value in fields.items() if key in explicit}
-        # Jobs is also a direct API: visibility opt-ins must be explicit on
-        # each request. The saved-view UI supplies them when it restores them.
-        overrides.update(include_dismissed=include_dismissed, include_blacklisted=include_blacklisted)
         if "skill" in overrides:
             overrides["skill_id"] = overrides.pop("skill")
         date_overrides = {}
