@@ -7,11 +7,13 @@ import unittest
 from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.discovery.search_profiles import save_search_profile
@@ -36,6 +38,15 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
                 discover(store, source_origin, "other")
+            with store.engine.begin() as connection:
+                legacy = connection.execute(select(m.jobs).where(
+                    m.jobs.c.title == "Python Developer",
+                )).mappings().one()
+                connection.execute(update(m.jobs).where(m.jobs.c.id == legacy["id"]).values(
+                    location="Remote, United States", remote_type="HYBRID",
+                    description="Maintain our hybrid cloud infrastructure.",
+                    attributes={**legacy["attributes"], "provider": "greenhouse", "remote_indicated": True},
+                ))
             for identifier, profile_id, name, title in (
                     ("python-search", "fixture", "Python remote", "Python Developer"),
                     ("data-search", "fixture", "Data remote", "Data Engineer"),
@@ -44,6 +55,7 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     "id": identifier, "profile_id": profile_id, "name": name,
                     "enabled": True, "include_titles": [title], "remote": "REQUIRED",
                     "employment_types": [], "source_ids": [],
+                    **({"remote_residence_state": "OK"} if identifier == "python-search" else {}),
                 })
             store.engine.dispose()
             store = Store(database_url)
@@ -69,9 +81,18 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     context = browser.new_context()
 
                     def local_only(route):
-                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                        parsed = urlsplit(route.request.url)
+                        if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif (parsed.path == "/jobs"
+                              and parse_qs(parsed.query).get("search_profile_id") == ["python-search"]):
+                            # Exercise the frontend contract even when the backend has yet to emit the additive field.
+                            response = route.fetch()
+                            body = response.json()
+                            for row in body["jobs"]:
+                                row["search_evidence"].setdefault("work_arrangement", "REMOTE")
+                            route.fulfill(response=response, json=body)
                         else:
                             route.continue_()
 
@@ -92,7 +113,17 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                         search.select_option("python-search")
                     self.assertEqual([job["title"] for job in python_response.value.json()["jobs"]],
                                      ["Python Developer"])
-                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    python_card = page.locator(".job-card").filter(has_text="Python Developer")
+                    detail = page.locator(".job-detail")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    expect(python_card).not_to_contain_text("HYBRID")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+                    expect(detail).not_to_contain_text("Remote, United States · HYBRID")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 
                     with page.expect_response(lambda response:
@@ -118,7 +149,11 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     page.reload(wait_until="domcontentloaded")
                     search = page.get_by_label("Saved search profile", exact=True).last
                     expect(search).to_have_value("")
-                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
+                    expect(python_card).not_to_contain_text("Remote eligibility confirmed")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
