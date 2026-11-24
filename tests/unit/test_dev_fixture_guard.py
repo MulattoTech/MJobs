@@ -13,6 +13,13 @@ class FixtureGuardTests(TestCase):
     TOKEN = "a" * 32
     LEASE = "9999999999"
 
+    def test_docker_output_preserves_utf8_diagnostics_on_windows(self):
+        result = Mock(returncode=0, stdout="migrate ✓\n")
+        with patch.object(guard.subprocess, "run", return_value=result) as run:
+            self.assertEqual(guard.docker("compose", "version"), "migrate ✓")
+        self.assertEqual(run.call_args.kwargs.get("encoding"), "utf-8")
+        self.assertEqual(run.call_args.kwargs.get("errors"), "replace")
+
     def labelled(self, **overrides):
         row = {
             guard.PROJECT_LABEL: self.PROJECT,
@@ -130,3 +137,9 @@ class FixtureGuardTests(TestCase):
                 cpu_values.append(float(line.split(":", 1)[1].strip()))
         self.assertEqual(len(cpu_values), len(guard.SERVICES))
         self.assertLessEqual(sum(cpu_values), 4.0)
+
+    def test_scheduler_probe_timeout_accounts_for_fixture_cpu_cap(self):
+        yaml = guard.OVERRIDE.read_text(encoding="utf-8")
+        scheduler = yaml.split("  scheduler:\n", 1)[1].split("  source-worker:\n", 1)[0]
+        self.assertIn("cpus: 0.20", scheduler)
+        self.assertRegex(scheduler, r"(?m)^      timeout: (?:1[0-9]|20)s$")

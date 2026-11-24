@@ -39,7 +39,7 @@ def docker(*args, env=None, timeout=90):
     try:
         result = subprocess.run(
             ["docker", *args], cwd=ROOT, env=env,
-            capture_output=True, text=True, timeout=timeout, check=False,
+            capture_output=True, encoding="utf-8", errors="replace", timeout=timeout, check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise RuntimeError("Docker command could not complete") from exc

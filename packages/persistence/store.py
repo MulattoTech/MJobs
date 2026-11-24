@@ -769,7 +769,7 @@ class Store:
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
              application_capability=None, exclude_company_ids=None, job_ids=None, search_criteria=None,
-             row_filter=None):
+             row_filter=None, exclude_closed=False):
         if salary_period not in {"HOUR", "YEAR"}:
             raise ValueError("Salary period must be HOUR or YEAR")
         if type(salary_known_only) is not bool or (salary_unknown_allowed is not None and type(salary_unknown_allowed) is not bool):
@@ -805,6 +805,10 @@ class Store:
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
             if job_ids is not None:
                 statement = statement.where(m.jobs.c.id.in_(job_ids))
+            if exclude_closed:
+                from services.discovery.lifecycle import job_has_no_known_closure
+
+                statement = statement.where(job_has_no_known_closure())
             excluded_companies = sorted({
                 value for value in (exclude_company_ids or [])
                 if isinstance(value, str) and value.strip()

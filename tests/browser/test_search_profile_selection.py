@@ -104,7 +104,20 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(0)
 
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=data-search" in response.url) as restored_data_response:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual([job["title"] for job in restored_data_response.value.json()["jobs"]],
+                                     ["Data Engineer"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(
+                        "data-search")
+
                     search.select_option("")
+                    expect(search).to_have_value("")
+                    page.reload(wait_until="domcontentloaded")
+                    search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(search).to_have_value("")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 
@@ -115,6 +128,18 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     isolated_search.select_option("other-search")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=other-search" in response.url) as other_restored:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual([job["title"] for job in other_restored.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(
+                        "other-search")
+
+                    page.get_by_label("Active profile", exact=True).select_option("fixture")
+                    fixture_search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(fixture_search).to_have_value("")
 
                     self.assertEqual(external, [])
                     context.close()

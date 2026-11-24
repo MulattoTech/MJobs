@@ -25,7 +25,7 @@ class SettingsTransferTests(unittest.TestCase):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def add_search(self, *, profile_id="fixture", search_id="search-original", name="Original"):
+    def add_search(self, *, profile_id="fixture", search_id="search-original", name="Original", window=None):
         save_search_profile(self.store, {
             "id": search_id,
             "profile_id": profile_id,
@@ -34,7 +34,8 @@ class SettingsTransferTests(unittest.TestCase):
             "include_titles": ["Systems Administrator"],
             "optional_keywords": ["Windows Server"],
             "source_ids": [self.source_id],
-            "scheduler": {"enabled": True, "interval_seconds": 1800},
+            "scheduler": {"enabled": True, "interval_seconds": 1800,
+                          **({"window": window} if window is not None else {})},
         })
 
     def test_export_has_versioned_allowlisted_profile_settings_and_no_owner_or_secrets(self):
@@ -85,6 +86,19 @@ class SettingsTransferTests(unittest.TestCase):
         self.store.engine.dispose()
         self.store = Store(f"sqlite:///{(Path(self.directory.name) / 'settings.db').as_posix()}")
         self.assertEqual([row["name"] for row in list_search_profiles(self.store, "fixture")], ["Imported"])
+
+    def test_scheduled_search_window_survives_export_import_round_trip(self):
+        window = {"time_zone": "America/Chicago", "start_local": "06:30", "end_local": "09:15"}
+        self.add_search(window=window)
+        exported = export_settings(self.store, "fixture")
+        self.assertEqual(exported["settings"]["automation_rules"][0], {
+            "kind": "scheduled_search", "search_profile_name": "Original",
+            "enabled": True, "interval_seconds": 1800, "window": window,
+        })
+
+        import_settings(self.store, "fixture", exported)
+
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
 
     def test_invalid_payload_never_partially_replaces_existing_settings(self):
         self.add_search()

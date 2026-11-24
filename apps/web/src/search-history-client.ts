@@ -23,6 +23,7 @@ export class SearchHistoryClientError extends Error {
 export type SearchHistoryPageOptions = {
   limit?: number;
   cursor?: string | null;
+  search_profile_id?: string;
 };
 
 export type SearchHistoryClientOptions = {
@@ -72,9 +73,10 @@ function requireProfileId(value: string): string {
 }
 
 function validatePageOptions(options: SearchHistoryPageOptions = {}): Required<Pick<SearchHistoryPageOptions, 'limit'>> &
-  Pick<SearchHistoryPageOptions, 'cursor'> {
+  Pick<SearchHistoryPageOptions, 'cursor' | 'search_profile_id'> {
   const limit = options.limit ?? 50;
   const cursor = options.cursor;
+  const search_profile_id = options.search_profile_id;
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
     throw invalidRequest('Search history page size must be between 1 and 100.');
   }
@@ -83,12 +85,22 @@ function validatePageOptions(options: SearchHistoryPageOptions = {}): Required<P
         /[\u0000-\u001f\u007f]/.test(cursor))) {
     throw invalidRequest('Invalid search history page cursor.');
   }
-  return { limit, cursor };
+  if (search_profile_id !== undefined &&
+      (typeof search_profile_id !== 'string' || !search_profile_id.trim() ||
+       search_profile_id !== search_profile_id.trim() || search_profile_id.length > 128 ||
+       /[\u0000-\u001f\u007f]/.test(search_profile_id))) {
+    throw invalidRequest('Invalid saved search identifier.');
+  }
+  return { limit, cursor, search_profile_id };
 }
 
 function nonemptyText(value: unknown, maxLength: number): value is string {
   return typeof value === 'string' && !!value.trim() && value.length <= maxLength &&
     !/[\u0000-\u001f\u007f]/.test(value);
+}
+
+function optionalSearchProfileId(value: unknown): value is string | undefined {
+  return value === undefined || nonemptyText(value, 128);
 }
 
 function timestampOrNull(value: unknown): value is string | null {
@@ -111,6 +123,7 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
       !nonnegativeCountOrNull(value.results) || !nonnegativeCountOrNull(value.new_jobs) ||
       !nonnegativeCountOrNull(value.duplicates) || !Array.isArray(value.errors) || value.errors.length > 100 ||
       !value.errors.every(error => typeof error === 'string' && !!error.trim() && error.length <= 1000) ||
+      !optionalSearchProfileId(value.search_profile_id) ||
       !['COMPLETED', 'FAILED', 'CANCELLED'].includes(String(value.status))) {
     throw invalidResponse();
   }
@@ -129,6 +142,7 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
     errors: apiRecord.errors.length,
     status: apiRecord.status,
     error_detail: apiRecord.errors.length ? `${apiRecord.errors.length} recorded error${apiRecord.errors.length === 1 ? '' : 's'}.` : null,
+    ...(apiRecord.search_profile_id === undefined ? {} : { search_profile_id: apiRecord.search_profile_id }),
   };
 }
 
@@ -183,9 +197,10 @@ export function createSearchHistoryClient(
     async loadHistory(profileId: string, page: SearchHistoryPageOptions = {}): Promise<SearchHistoryResponse> {
       return withRequestDeadline(async fetchImpl => {
         const selectedProfile = requireProfileId(profileId);
-        const { limit, cursor } = validatePageOptions(page);
+        const { limit, cursor, search_profile_id } = validatePageOptions(page);
         const query = new URLSearchParams({ limit: String(limit) });
         if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+        if (search_profile_id !== undefined) query.set('search_profile_id', search_profile_id);
         const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}/search-history?${query.toString()}`;
         let response: Response;
         try {

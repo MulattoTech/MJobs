@@ -36,6 +36,7 @@ class SearchHistoryApiTests(unittest.TestCase):
         self.older["errors"] = ["Synthetic fixture source timed out."]
         self.other = self._run("other-only", "other", "2026-10-08T11:00:00Z")
         self.lister_calls = []
+        self.search_profile_calls = []
         self.invalid_cursor = False
         self.scope_mismatch = None
         app = FastAPI()
@@ -75,8 +76,14 @@ class SearchHistoryApiTests(unittest.TestCase):
             "errors": [],
         }
 
-    def _list_history(self, store, profile_id, *, limit=50, cursor=None):
+    def _list_history(self, store, profile_id, *, limit=50, cursor=None, search_profile_id=None):
         self.lister_calls.append((store, profile_id, limit, cursor))
+        if search_profile_id is not None:
+            self.search_profile_calls.append((store, profile_id, search_profile_id))
+            runs = [run for run in (self.newest, self.older, self.other)
+                    if run["profile_id"] == profile_id
+                    and run.get("search_profile_id") == search_profile_id]
+            return {"profile_id": profile_id, "runs": runs[:limit], "next_cursor": None}
         if self.invalid_cursor:
             raise ValueError("SEARCH_HISTORY_CURSOR_INVALID")
         if self.scope_mismatch == "envelope":
@@ -191,6 +198,31 @@ class SearchHistoryApiTests(unittest.TestCase):
         response = self._get_without_network("/profiles/fixture/search-history?limit=1")
         self.assertEqual(response.status_code, 200, response.text)
         self.assertIsNone(response.json()["items"][0]["duplicates"])
+
+    def test_saved_search_identity_is_optional_in_api_projection(self):
+        self.newest["search_profile_id"] = "remote-it-ok"
+        response = self._get_without_network("/profiles/fixture/search-history?limit=1")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["items"][0]["search_profile_id"], "remote-it-ok")
+
+    def test_exact_saved_search_receipt_lookup_is_profile_scoped_and_before_limit(self):
+        self.newest["search_profile_id"] = "fixture-search"
+        latest = self._get_without_network(
+            "/profiles/fixture/search-history?limit=1&search_profile_id=fixture-search",
+        )
+        foreign = self._get_without_network(
+            "/profiles/other/search-history?limit=1&search_profile_id=fixture-search",
+        )
+
+        self.assertEqual(latest.status_code, 200, latest.text)
+        self.assertEqual([item["id"] for item in latest.json()["items"]], ["fixture-newest"])
+        self.assertEqual(latest.json()["items"][0]["search_profile_id"], "fixture-search")
+        self.assertEqual(foreign.status_code, 200, foreign.text)
+        self.assertEqual(foreign.json()["items"], [])
+        self.assertEqual(self.search_profile_calls, [
+            (self.store, "fixture", "fixture-search"),
+            (self.store, "other", "fixture-search"),
+        ])
 
     def test_invalid_cursor_and_service_scope_mismatch_fail_closed(self):
         before = self._snapshot()

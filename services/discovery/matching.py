@@ -9,7 +9,7 @@ from packages.persistence.store import identity, upsert
 from services.company_discovery.requests import record_discovery_requests
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 from services.discovery.requirement_parsers import CERTIFICATION_PATTERNS, parse_certifications
-from services.discovery.search_semantics import normalize_title, parse_salary
+from services.discovery.search_semantics import normalize_title, normalize_us_state, parse_salary
 from services.audit_history import record_job_discovered, record_match_scored
 from services.matching.skill_evidence import collect_positive_skill_evidence, EXPERIENCE_KINDS
 
@@ -41,24 +41,6 @@ _EDUCATION_AMBIGUITY = re.compile(
     r"not\s+yet\s+(?:earned|completed)|or\s+equivalent\s+experience)\b",
     re.I,
 )
-_US_STATE_NAMES = {
-    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
-    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
-    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
-    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
-    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
-    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
-    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
-    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
-    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
-    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
-    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
-    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
-    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
-}
-_STATE_CODES_BY_NAME = {name.casefold(): code for code, name in _US_STATE_NAMES.items()}
-
-
 def _country_code(value):
     normalized = re.sub(r"[^a-z0-9]+", " ", str(value or "").casefold()).strip()
     aliases = {
@@ -70,13 +52,6 @@ def _country_code(value):
     return aliases.get(normalized)
 
 
-def _state_code(value):
-    normalized = re.sub(r"[^a-z]+", " ", str(value or "").casefold()).strip()
-    if len(normalized) == 2 and normalized.upper() in _US_STATE_NAMES:
-        return normalized.upper()
-    return _STATE_CODES_BY_NAME.get(normalized)
-
-
 def _remote_location_fit_factor(job, profile):
     attributes = job.get("attributes") or {}
     remote_type = str(job.get("remote_type") or "UNKNOWN").upper()
@@ -85,7 +60,7 @@ def _remote_location_fit_factor(job, profile):
                if isinstance(value, str) and value.strip()] if isinstance(raw_regions, (list, tuple, set)) else []
     contact = profile.get("contact") or {}
     country = _country_code(contact.get("country")) if isinstance(contact, dict) else None
-    state = _state_code(contact.get("state")) if isinstance(contact, dict) else None
+    state = normalize_us_state(contact.get("state")) if isinstance(contact, dict) else None
 
     normalized_regions = set()
     unknown_region = False
@@ -95,7 +70,7 @@ def _remote_location_fit_factor(job, profile):
             normalized_regions.add("WORLDWIDE")
         elif code := _country_code(region):
             normalized_regions.add(code)
-        elif code := _state_code(region):
+        elif code := normalize_us_state(region):
             normalized_regions.add(f"US:{code}")
         else:
             unknown_region = True

@@ -14,6 +14,7 @@ export type SearchHistoryRecord = {
   errors: number;
   status: 'COMPLETED' | 'FAILED' | 'CANCELLED';
   error_detail?: string | null;
+  search_profile_id?: string;
 };
 
 export type SearchHistoryResponse = {
@@ -30,6 +31,8 @@ export type SearchHistoryPanelState =
 export type SearchHistoryPanelProps = {
   profileId: string;
   loadHistory: (profileId: string, page?: { limit?: number; cursor?: string | null }) => Promise<SearchHistoryResponse>;
+  searchProfiles?: Array<{ id: string; profile_id: string; name: string }>;
+  onReviewJobs?: (searchProfileId: string) => void;
 };
 
 type SearchHistoryPanelViewProps = {
@@ -39,6 +42,8 @@ type SearchHistoryPanelViewProps = {
   onLoadMore?: () => void;
   loadingMore?: boolean;
   loadMoreError?: boolean;
+  searchProfiles?: Array<{ id: string; profile_id: string; name: string }>;
+  onReviewJobs?: (searchProfileId: string) => void;
 };
 
 export async function loadProfileSearchHistory(
@@ -104,6 +109,7 @@ function safeErrorDetail(value: unknown): string | null {
 
 export function SearchHistoryPanelView({
   profileId, state, onRetry, onLoadMore = () => {}, loadingMore = false, loadMoreError = false,
+  searchProfiles = [], onReviewJobs,
 }: SearchHistoryPanelViewProps) {
   if (!profileId) {
     return <section aria-labelledby="search-history-heading">
@@ -145,6 +151,7 @@ export function SearchHistoryPanelView({
               <thead>
                 <tr>
                   <th scope="col">Source</th>
+                  <th scope="col">Saved search</th>
                   <th scope="col">Query</th>
                   <th scope="col">Started</th>
                   <th scope="col">Finished</th>
@@ -161,8 +168,14 @@ export function SearchHistoryPanelView({
                   const started = timestamp(item.started_at);
                   const finished = timestamp(item.finished_at);
                   const errorDetail = safeErrorDetail(item.error_detail);
+                  const savedSearch = item.search_profile_id
+                    ? searchProfiles.find(search => search.id === item.search_profile_id && search.profile_id === profileId)
+                    : undefined;
                   return <tr key={item.id}>
                     <td>{item.source || 'Unknown source'}</td>
+                    <td>{savedSearch
+                      ? <>{savedSearch.name}{onReviewJobs&&<><br/><button type="button" onClick={()=>onReviewJobs(savedSearch.id)}>Review jobs</button></>}</>
+                      : item.search_profile_id?'Saved search unavailable':'—'}</td>
                     <td>{item.query || 'No query recorded'}</td>
                     <td>{started.dateTime ? <time dateTime={started.dateTime}>{started.label}</time> : started.label}</td>
                     <td>{finished.dateTime ? <time dateTime={finished.dateTime}>{finished.label}</time> : finished.label}</td>
@@ -193,7 +206,7 @@ export function SearchHistoryPanelView({
   </section>;
 }
 
-export function SearchHistoryPanel({ profileId, loadHistory }: SearchHistoryPanelProps) {
+export function SearchHistoryPanel({ profileId, loadHistory, searchProfiles, onReviewJobs }: SearchHistoryPanelProps) {
   const [state, setState] = useState<SearchHistoryPanelState>({ status: profileId ? 'loading' : 'error' });
   const [retryVersion, setRetryVersion] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -255,5 +268,7 @@ export function SearchHistoryPanel({ profileId, loadHistory }: SearchHistoryPane
     onLoadMore={() => void loadMore()}
     loadingMore={loadingMore}
     loadMoreError={loadMoreError}
+    searchProfiles={searchProfiles}
+    onReviewJobs={onReviewJobs}
   />;
 }

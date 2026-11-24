@@ -28,6 +28,114 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertEqual(classify_location("Hybrid - Austin, TX")["remote_type"], "HYBRID")
         self.assertEqual(classify_location("Austin, TX", "On-site role")["remote_type"], "ONSITE")
 
+    def test_remote_classification_uses_geographic_statements_instead_of_code_like_words(self):
+        us = classify_location("Remote", "Work in the United States. We support IT and AI operations.")
+        self.assertEqual((us["remote_type"], us["remote_regions"]), ("REMOTE_US", ["US"]))
+        us_only = classify_location("Remote", "Work from anywhere in the US.")
+        self.assertEqual((us_only["remote_type"], us_only["remote_regions"]), ("REMOTE_US", ["US"]))
+        states = classify_location("Remote", "Fully remote if you reside in one of the following states: Oklahoma, Texas.")
+        self.assertEqual((states["remote_type"], states["remote_regions"]),
+                         ("REMOTE_SPECIFIC_STATES", ["OK", "TX"]))
+
+    def test_remote_residence_requires_supported_eligibility(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Remote, United States", "", True, None),
+            ("Remote, United States", "Open anywhere in the United States except Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Oklahoma residents are not eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants based in OK may not apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Not available to residents of Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants in OK aren't eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "This role is not open to Oklahoma residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "We are unable to hire in Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "No hiring in Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants residing in TX and AR can apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Candidates residing in OK or TX may apply.", True, None),
+            ("Remote, US", "Applicants must reside in Texas.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants must reside in OK, TX.", True, None),
+            ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
+            ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
+             True, None),
+            ("Remote, US", "Fully remote options if you reside in one of the following states: Texas, Arizona.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "We cannot hire in AK, OK, or TX.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants must reside in Canada.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote Canada", "", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote", "Work from anywhere.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Manage worldwide infrastructure.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Our company is based in the United States.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Applicants must reside in one of our approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in one of our approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, Arizona", "", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, Arizona", "Applicants must reside in Oklahoma or Texas.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Candidates must be based in Oklahoma City.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, Oklahoma", "", True, None),
+            ("Remote Worldwide", "", True, None),
+        )
+        for location, description, matched, reason in cases:
+            with self.subTest(location=location, description=description):
+                attributes = classify_location(location, description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["matched"], matched, result["reasons"])
+                if reason:
+                    self.assertIn(reason, result["reasons"])
+                else:
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": "ELIGIBLE"})
+
+    def test_hybrid_with_remote_days_is_kept_in_cross_border_local_search(self):
+        description = "Two remote days and three days in the office."
+        for location in ("Durant, OK", "Denison, TX", "Sherman, TX"):
+            with self.subTest(location=location):
+                attributes = classify_location(location, "Hybrid. " + description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, job)["matched"])
+                local_criteria = {"work_arrangements": ["HYBRID", "ONSITE"],
+                                  "states": ["OK", "TX"], "cities": ["Durant", "Denison", "Sherman"]}
+                self.assertTrue(evaluate_search(local_criteria, job)["matched"])
+
+    def test_occasional_required_onsite_work_is_not_fully_remote(self):
+        for description in ("The position requires occasional on-site work.",
+                            "This role requires 3 days per week on-site.",
+                            "Occasional on-site visits may be required."):
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, United States", description)
+                self.assertEqual(attributes["remote_type"], "HYBRID")
+                legacy_job = {"location": "Remote, United States", "description": description,
+                              "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True}}
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, legacy_job)["matched"])
+        optional = classify_location("Remote, United States", "The role does not require on-site work.")
+        self.assertEqual(optional["remote_type"], "REMOTE_US")
+
+    def test_texoma_search_includes_captured_and_older_local_jobs(self):
+        criteria = {"work_arrangements": ["HYBRID", "ONSITE"], "states": ["OK", "TX"],
+                    "cities": ["Durant", "Denison", "Sherman"]}
+        cases = (
+            ("Durant, OK", {"source_type": "MANUAL_USER_ENTRY"}, True),
+            ("Denison, TX", {"state": "IN", "city": "Denison"}, True),
+            ("Denison, IA", {"state": "TX", "city": "Denison"}, False),
+            ("Sherman", {}, False),
+        )
+        for location, attributes, expected in cases:
+            with self.subTest(location=location, attributes=attributes):
+                job = {"location": location, "remote_type": "ONSITE", "attributes": attributes}
+                self.assertEqual(evaluate_search(criteria, job)["matched"], expected)
+
     def test_employment_type_normalization(self):
         cases = {
             "Permanent full-time employee": "FULL_TIME",

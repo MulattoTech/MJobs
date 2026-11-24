@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+import httpx
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -15,12 +16,13 @@ from sqlalchemy import select, update
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
-from services.discovery.scheduler import schedule_due_sources
+from services.discovery.scheduler import schedule_due_search_profiles, schedule_due_sources
 from services.discovery.search_profiles import save_search_profile
-from services.discovery.sources.collect import configure_source
+from services.discovery.sources.collect import collect_source, configure_source
 from services.discovery.sources.contract import CollectionStrategy, SourceCapability
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
+from tests.integration.test_greenhouse import RAW
 from workers.dispatch import enqueue_operation
 from workers.tasks import execute_operation
 
@@ -204,6 +206,61 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertEqual(collect.call_args.args[1:3], (source_id, "fixture"))
         recalculate.assert_called_once()
         self.assertEqual(recalculate.call_args.args[1], second_profile)
+
+    def test_scheduled_search_history_counts_new_unchanged_and_updated_source_rows(self):
+        source_id = configure_source(self.store, "example", jitter_seconds=0)
+        search_id = "morning-proof"
+        save_search_profile(self.store, {
+            "id": search_id, "profile_id": "fixture", "name": "Morning discovery", "enabled": True,
+            "source_ids": [source_id], "scheduler": {"enabled": True, "interval_seconds": 300},
+        })
+        initial = {**RAW, "id": 1235, "internal_job_id": 5679, "title": "Platform Engineer",
+                   "absolute_url": "https://job-boards.greenhouse.io/example/jobs/1235"}
+        extra = {**initial, "id": 1236, "internal_job_id": 5680, "title": "Support Engineer",
+                 "absolute_url": "https://job-boards.greenhouse.io/example/jobs/1236"}
+        rows = [RAW, initial]
+
+        def respond(request):
+            self.assertEqual(request.method, "GET")
+            self.assertEqual(request.url.host, "boards-api.greenhouse.io")
+            data = {"jobs": rows} if request.url.path.endswith("/jobs") else {"name": "Example"}
+            return httpx.Response(200, json=data)
+
+        transport = httpx.MockTransport(respond)
+
+        def capture(*args, **kwargs):
+            return collect_source(*args, **kwargs, transport=transport)
+
+        tick = datetime.now(timezone.utc)
+        environment = {
+            "MJOBS_DATABASE_URL": self.store.url, "MJOBS_OPERATION_MODE": "PERSONAL",
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1", "MJOBS_OUTPUT_DIR": str(self.root),
+        }
+        with patch.dict(os.environ, environment), patch("workers.tasks.collect_source", side_effect=capture):
+            first, = schedule_due_search_profiles(self.store, tick)["scheduled"]
+            self.assertEqual(execute_operation(first["operation_id"])["status"], "COMPLETED")
+            # Set the fixture's persisted provider clock back so two scheduled
+            # reads can exercise the real cooldown check without waiting.
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id)
+                                   .values(last_attempt=(tick - timedelta(minutes=6)).isoformat()))
+            rows = [RAW, {**initial, "content": "<p>Updated description</p>"}, extra]
+            second, = schedule_due_search_profiles(self.store, tick + timedelta(minutes=6))["scheduled"]
+            self.assertEqual(execute_operation(second["operation_id"])["status"], "COMPLETED")
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="PERSONAL")) as client:
+                response = client.get("/profiles/fixture/search-history", params={"search_profile_id": search_id})
+                response.raise_for_status()
+                latest, original = response.json()["items"]
+                self.assertEqual(latest["posting_activity"], {"new": 1, "unchanged": 1, "updated": 1})
+                self.assertEqual(latest["duplicates"], 1)
+                self.assertEqual(original["posting_activity"], {"new": 2, "unchanged": 0, "updated": 0})
+                self.assertEqual(original["duplicates"], 0)
+        finally:
+            reopened.engine.dispose()
 
     def test_due_discovery_survives_store_restart_and_completes_once(self):
         source_id = configure_source(self.store, "restart-synthetic", jitter_seconds=0)

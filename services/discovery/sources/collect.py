@@ -293,21 +293,30 @@ def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_in
     return source_id
 
 
+def _posting_checksum(raw):
+    encoded = json.dumps(raw, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def persist_posting(connection, data):
     # Reserve the ID before comparing: a SELECT-before-upsert race could reparent
     # a posting when concurrent PostgreSQL collectors both initially see no row.
     insert = {'postgresql': postgres_insert, 'sqlite': sqlite_insert}[connection.dialect.name]
     # Both the ID and (source, native ID) identify a posting. An explicit conflict
     # target can still lose a concurrent race on the other unique constraint.
-    connection.execute(insert(m.postings).values(**data).on_conflict_do_nothing())
+    created = connection.execute(insert(m.postings).values(**data).on_conflict_do_nothing()
+                                 .returning(m.postings.c.id)).scalar_one_or_none() is not None
     previous = connection.execute(select(m.postings).where(m.postings.c.id == data['id']).with_for_update()).mappings().one_or_none()
     if previous is None or any(previous[key] != data[key] for key in ('job_id', 'source', 'source_job_id')):
         raise ValueError('POSTING_SOURCE_IDENTITY_CONFLICT')
     connection.execute(update(m.postings).where(m.postings.c.id == data['id']).values(
         **{key: data[key] for key in ('source_url', 'application_url', 'raw', 'fetched_at')}))
-    checksum = hashlib.sha256(json.dumps(data["raw"], sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    checksum = _posting_checksum(data["raw"])
     upsert(connection, m.posting_snapshots, {"id": identity(data["id"], checksum), "posting_id": data["id"],
         "raw": data["raw"], "sha256": checksum, "retrieved_at": data["fetched_at"]})
+    if created:
+        return "new"
+    return "unchanged" if _posting_checksum(previous["raw"]) == checksum else "updated"
 
 
 def _latest_valid_posted_dates(connection, posting_id):
@@ -670,6 +679,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             pending_candidates = []
             batch_postings = {}
             batch_identities = {}
+            posting_activity = {"new": 0, "unchanged": 0, "updated": 0}
             for company in ([batch.source_company] if batch.source_company else []) + [item.company for item, _ in normalized]:
                 company_id = company_identity(company)
                 previous_company = companies.get(company_id)
@@ -795,10 +805,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 if posting_id in batch_postings and batch_postings[posting_id] != raw_key:
                     raise SourceError('SOURCE_DUPLICATE_JOB_ID')
                 batch_postings[posting_id] = raw_key
-                persist_posting(connection, {"id": posting_id, "job_id": job_id,
+                activity = persist_posting(connection, {"id": posting_id, "job_id": job_id,
                     "source": batch.endpoint, "source_job_id": source_job_id,
                     "source_url": batch.endpoint, "application_url": url,
                     "raw": item.raw, "fetched_at": timestamp})
+                posting_activity[activity] += 1
                 pending_candidates.append((posting_id, company_sources[company_id], job_id, job))
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(**({"name": batch.source_company.name} if batch.source_company else {}),
                 last_success=timestamp, consecutive_failures=0, last_error=None, backoff_until=None,
@@ -831,7 +842,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
                     new_company_ids=new_companies,
                     **({'aggregator_bootstrap_candidates': bootstrap, **parent_lineage} if bootstrap else {}))
-            completion = {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]}
+            completion = {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"],
+                          "posting_activity": posting_activity}
             if collection_operation is not None:
                 from services.discovery.source_collection_receipts import build_native_inventory
                 completion['native_inventory'] = build_native_inventory(
@@ -841,6 +853,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     accepted=accepted, rejected=rejected)
             store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", completion)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
+                "posting_activity": posting_activity,
                 "strategy": strategy, "direct_application": direct_application,
                 "collection_result": ({
                     "code": collection_result.code,

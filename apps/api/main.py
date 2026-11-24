@@ -760,6 +760,7 @@ class SearchProfileInput(BaseModel):
     states: list[str] = Field(default_factory=list, max_length=100)
     cities: list[str] = Field(default_factory=list, max_length=100)
     remote_regions: list[str] = Field(default_factory=list, max_length=100)
+    remote_residence_state: str | None = Field(default=None, min_length=2, max_length=2)
     radius_miles: float | None = Field(default=None, ge=1, le=10000)
     radius_latitude: float | None = Field(default=None, ge=-90, le=90)
     radius_longitude: float | None = Field(default=None, ge=-180, le=180)
@@ -2009,7 +2010,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           posted_after=posted_after, posted_before=posted_before,
                           exclude_company_ids=excluded_company_ids,
                           search_criteria=effective_search_criteria,
-                          row_filter=visibility_filter)
+                          row_filter=visibility_filter, exclude_closed=search_profile is not None)
         if profile_id and include_dismissed:
             from services.tracking.jobs import list_job_tracking
             tracking = list_job_tracking(store, profile_id, [row["id"] for row in rows])

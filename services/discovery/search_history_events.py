@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from services.discovery.search_history import normalize_posting_activity
+
 
 _TERMINAL_STATUS = {
     "COMPLETED": "COMPLETED",
@@ -74,6 +76,9 @@ def build_search_history_record(
     run_id = f"{operation_id}:{attempt}"
     if len(run_id) > 128:
         return None
+    search_profile_id = _as_text(params.get("search_profile_id"))
+    if search_profile_id is not None and len(search_profile_id) > 128:
+        search_profile_id = None
 
     state = operation.get("state")
     status = _TERMINAL_STATUS.get(state) if isinstance(state, str) else None
@@ -126,7 +131,7 @@ def build_search_history_record(
             return None
         errors = [*errors, operation_error]
 
-    return {
+    record = {
         "run_id": run_id,
         "profile_id": profile_id,
         "source": source,
@@ -138,6 +143,16 @@ def build_search_history_record(
         **counts,
         "errors": [error.strip() for error in errors],
     }
+    if search_profile_id is not None:
+        record["search_profile_id"] = search_profile_id
+    if status == "COMPLETED" and details.get("posting_activity") is not None:
+        try:
+            activity = normalize_posting_activity(details["posting_activity"], counts["results"])
+        except ValueError:
+            return record
+        record["posting_activity"] = activity
+        record["duplicates"] = activity["unchanged"]
+    return record
 
 
 __all__ = ["build_search_history_record"]

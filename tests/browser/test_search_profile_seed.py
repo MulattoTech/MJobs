@@ -1,4 +1,4 @@
-"""Connected acceptance for the editable remote infrastructure saved-search example."""
+"""Connected acceptance for the editable remote and Texoma saved-search presets."""
 from pathlib import Path
 import tempfile
 import threading
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class SearchProfileSeedBrowserTests(unittest.TestCase):
-    def test_remote_infrastructure_example_saves_and_reloads_as_real_profile(self):
+    def test_job_finder_presets_save_and_reload_as_independent_searches(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-search-profile-seed-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'browser.db').as_posix()}"
@@ -74,44 +74,34 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
                     page.get_by_role("button", name="Sources", exact=True).click()
 
-                    # Test oracle: this button is absent before the search-profile seed is built.
-                    example_button = page.get_by_role(
-                        "button", name="Use remote IT infrastructure example", exact=True)
-                    expect(example_button).to_be_visible(timeout=500)
-                    example_button.click()
-                    expect(page.get_by_label("Search name", exact=True)).to_have_value(
-                        "Remote Infrastructure / SysAdmin")
-                    expected_titles = [
-                        "System Administrator", "Systems Administrator", "Windows Administrator",
-                        "IT Administrator", "Infrastructure Support", "Endpoint Administrator",
-                        "Microsoft 365 Administrator", "Systems Engineer",
-                        "Technical Support Engineer", "NOC Engineer",
-                    ]
-                    expect(page.get_by_role("textbox", name="Include titles", exact=True)).to_have_value(
-                        "\n".join(expected_titles))
+                    remote_name, local_name = "Remote IT / Infrastructure", "Texoma Local IT / Support"
+                    page.get_by_role("button", name=f"Use {remote_name}", exact=True).click()
+                    expect(page.get_by_label("Search name", exact=True)).to_have_value(remote_name)
+                    expect(page.get_by_label("Remote work eligible state")).to_have_value("OK")
                     expect(page.get_by_role("combobox", name="Remote preference", exact=True)).to_have_value("REQUIRED")
-                    expect(page.get_by_role("combobox", name="Employment type", exact=True)).to_have_value("FULL_TIME")
+                    expect(page.get_by_role("combobox", name="Employment type", exact=True)).to_have_value("")
 
                     expect(page.get_by_role("button", name="Save search", exact=True)).to_be_enabled()
                     page.get_by_role("button", name="Save search", exact=True).click()
-                    expect(page.get_by_role("region", name="Schedule “Remote Infrastructure / SysAdmin”")).to_be_visible()
-                    schedule = page.get_by_role("region", name="Schedule “Remote Infrastructure / SysAdmin”")
-                    expect(schedule.get_by_label("Enable scheduled discovery", exact=True)).not_to_be_checked()
+                    remote_schedule = page.get_by_role("region", name=f"Schedule “{remote_name}”")
+                    expect(remote_schedule).to_be_visible()
+                    expect(remote_schedule.get_by_label("Enable scheduled discovery", exact=True)).not_to_be_checked()
 
                     persisted = page.request.get(
                         origin + "/search-profiles", params={"profile_id": profile_id})
                     self.assertEqual(persisted.status, 200, persisted.text())
                     saved, = [row for row in persisted.json()["search_profiles"]
-                              if row["name"] == "Remote Infrastructure / SysAdmin"]
-                    self.assertEqual(saved["criteria"]["include_titles"], expected_titles)
+                              if row["name"] == remote_name]
+                    self.assertIn("Infrastructure Manager", saved["criteria"]["include_titles"])
                     self.assertEqual(saved["criteria"]["remote"], "REQUIRED")
-                    self.assertEqual(saved["criteria"]["employment_types"], ["FULL_TIME"])
+                    self.assertEqual(saved["criteria"]["remote_residence_state"], "OK")
+                    self.assertEqual(saved["criteria"]["employment_types"], [])
                     self.assertFalse(saved["criteria"]["scheduler"]["enabled"])
                     self.assertEqual(saved["source_ids"], [])
 
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Sources", exact=True).click()
-                    expect(page.get_by_role("region", name="Schedule “Remote Infrastructure / SysAdmin”")).to_be_visible()
+                    expect(remote_schedule).to_be_visible()
                     page.get_by_role("button", name="Jobs 0", exact=True).click()
                     # The onboarding wizard has its own saved-search selector above the Jobs controls.
                     saved_search = page.get_by_label("Saved search profile", exact=True).last
@@ -125,6 +115,37 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
                         parse_qs(urlsplit(url).query).get("search_profile_id") == [saved["id"]]
                         for method, url in requests
                     ), f"Selecting the saved seed should run discovery using its persisted search profile: {requests}")
+
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    page.get_by_role("button", name=f"Use {local_name}", exact=True).click()
+                    expect(page.get_by_label("Allowed cities")).to_have_value("Durant\nDenison\nSherman")
+                    page.get_by_role("button", name="Save search", exact=True).click()
+                    expect(page.get_by_role("region", name=f"Schedule “{local_name}”")).to_be_visible()
+
+                    remote_card = page.locator(".document").filter(
+                        has=page.get_by_text(remote_name, exact=True))
+                    remote_card.get_by_role("button", name="Edit search", exact=True).click()
+                    page.get_by_label("Remote work eligible state").fill("TX")
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT" and
+                            urlsplit(response.url).path == "/search-profiles") as edit:
+                        page.get_by_role("button", name="Update search", exact=True).click()
+                    self.assertEqual(edit.value.status, 200, edit.value.text())
+
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    expect(remote_schedule).to_be_visible()
+                    readback = page.request.get(origin + "/search-profiles", params={"profile_id": profile_id})
+                    self.assertEqual(readback.status, 200, readback.text())
+                    profiles = {row["name"]: row for row in readback.json()["search_profiles"]}
+                    self.assertEqual(profiles[remote_name]["criteria"]["remote_residence_state"], "TX")
+                    local = profiles[local_name]["criteria"]
+                    self.assertIsNone(local["remote_residence_state"])
+                    self.assertEqual(local["states"], ["OK", "TX"])
+                    self.assertEqual(local["cities"], ["Durant", "Denison", "Sherman"])
+                    self.assertCountEqual(local["work_arrangements"], ["ONSITE", "HYBRID"])
+                    self.assertFalse(local["scheduler"]["enabled"])
+
                     self.assertEqual(external, [])
                     self.assertFalse(any("/collect" in urlsplit(url).path for _, url in requests))
                     self.assertEqual(store.count("worker_operations"), 0)

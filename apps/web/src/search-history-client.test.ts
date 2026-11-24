@@ -63,6 +63,20 @@ describe('search history API client', () => {
     expect(parsed.searchParams.get('cursor')).toBe('cursor +/=');
   });
 
+  it('requests the latest receipt for an exact saved search without changing generic history URLs', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
+      profile_id: 'profile-1', items: [], next_cursor: null,
+    }));
+    const client = createSearchHistoryClient({ fetchImpl });
+
+    await client.loadHistory('profile-1', { limit: 1, search_profile_id: 'search 7' });
+
+    const [url] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    const parsed = new URL(url, 'http://local.test');
+    expect(parsed.searchParams.get('limit')).toBe('1');
+    expect(parsed.searchParams.get('search_profile_id')).toBe('search 7');
+  });
+
   it('preserves null metrics rather than coercing unmeasured results to zero', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
       profile_id: 'profile-1',
@@ -78,12 +92,30 @@ describe('search history API client', () => {
     expect(result.items[0].duplicates).toBeNull();
   });
 
+  it('preserves optional saved-search identity while legacy rows remain valid', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
+      profile_id: 'profile-1',
+      items: [
+        { ...record, search_profile_id: 'search-7' },
+        { ...record, id: 'legacy-run' },
+      ],
+      next_cursor: null,
+    }));
+    const client = createSearchHistoryClient({ fetchImpl });
+
+    const result = await client.loadHistory('profile-1');
+
+    expect(result.items[0].search_profile_id).toBe('search-7');
+    expect(result.items[1]).not.toHaveProperty('search_profile_id');
+  });
+
   it('rejects invalid page sizes and cursors before making a request', async () => {
     const fetchImpl = vi.fn();
     const client = createSearchHistoryClient({ fetchImpl });
 
     for (const options of [
       { limit: 0 }, { limit: 101 }, { limit: 1.5 }, { cursor: '' }, { cursor: 'x'.repeat(1025) },
+      { search_profile_id: '' }, { search_profile_id: 'x'.repeat(129) },
     ]) {
       await expect(client.loadHistory('profile-1', options))
         .rejects.toMatchObject({ kind: 'INVALID_REQUEST', retryable: false });

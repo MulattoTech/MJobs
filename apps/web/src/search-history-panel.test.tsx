@@ -100,6 +100,38 @@ describe('search history panel', () => {
     expect(html).not.toContain('<button');
   });
 
+  it('shows a matching saved search and review action only for a search in the current profile', () => {
+    const state: SearchHistoryPanelState = {
+      status: 'ready',
+      response: {
+        ...response,
+        items: [
+          { ...record, search_profile_id: 'search-1' },
+          { ...record, id: 'run-2', search_profile_id: 'foreign-search' },
+          { ...record, id: 'run-3' },
+        ],
+      },
+    };
+    const onReviewJobs = vi.fn();
+    const props = {
+      profileId: 'profile-1', state, onRetry: () => {}, onReviewJobs,
+      searchProfiles: [
+        { id: 'search-1', profile_id: 'profile-1', name: 'Remote IT / Infrastructure' },
+        { id: 'foreign-search', profile_id: 'profile-2', name: 'Private search' },
+      ],
+    };
+    const tree = SearchHistoryPanelView(props);
+    const html = renderToStaticMarkup(<SearchHistoryPanelView {...props} />);
+
+    expect(html).toContain('Remote IT / Infrastructure');
+    expect(html).toContain('Saved search unavailable');
+    expect(html).not.toContain('Private search');
+    const reviewButton = findButtons(tree).find(button => button.props.children === 'Review jobs');
+    expect(reviewButton).toBeDefined();
+    reviewButton?.props.onClick?.();
+    expect(onReviewJobs).toHaveBeenCalledExactlyOnceWith('search-1');
+  });
+
   it('shows unmeasured nullable counts as Unknown and preserves a measured zero', () => {
     const state: SearchHistoryPanelState = {
       status: 'ready',

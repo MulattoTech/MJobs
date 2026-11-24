@@ -57,7 +57,7 @@ def _scheduler_criteria(search_profile):
         # Admission, portable settings and execution share the same authority.
         # Legacy/malformed persisted JSON must not bypass the API validator.
         return None
-    return rule.interval_seconds if rule.enabled else None
+    return rule if rule.enabled else None
 
 
 def _has_saved_search_scheduler(search_profile):
@@ -78,10 +78,14 @@ def _bound_source_error(store, source):
 
 
 def schedule_due_search_profiles(store, at=None):
-    """Enqueue due saved-search discovery without performing provider I/O."""
+    """Enqueue due saved-search discovery, honoring cadence and optional local windows.
+
+    Windows gate eligible ticks; they do not promise an exact once-per-day run.
+    """
     at = at or datetime.now(timezone.utc)
-    if at.tzinfo is None:
+    if at.tzinfo is None or at.utcoffset() is None:
         raise ValueError("Scheduler time must be timezone-aware")
+    at = at.astimezone(timezone.utc)
 
     scheduled = []
     skipped = []
@@ -120,9 +124,9 @@ def schedule_due_search_profiles(store, at=None):
         }
         candidates = []
         for search_profile in profiles:
-            interval = _scheduler_criteria(search_profile)
+            rule = _scheduler_criteria(search_profile)
             # Missing, disabled, or malformed scheduler settings cannot create work.
-            if interval is None:
+            if rule is None:
                 continue
             source_ids = search_profile["source_ids"] or list(source_by_id)
             for source_id in source_ids:
@@ -137,7 +141,8 @@ def schedule_due_search_profiles(store, at=None):
                                     'reason': reason})
                     continue
                 previous = last_enqueued.get((search_profile["id"], source_id))
-                due_at = previous + timedelta(seconds=interval) if previous else datetime.min.replace(tzinfo=timezone.utc)
+                due_at = (previous + timedelta(seconds=rule.interval_seconds)
+                          if previous else datetime.min.replace(tzinfo=timezone.utc))
                 if due_at > at:
                     skipped.append({"source_id": source_id,
                                     "search_profile_id": search_profile["id"],
@@ -148,6 +153,11 @@ def schedule_due_search_profiles(store, at=None):
                     skipped.append({"source_id": source_id,
                                     "search_profile_id": search_profile["id"],
                                     "reason": "SOURCE_NOT_DUE", "due_at": source_minimum.isoformat()})
+                    continue
+                if rule.window is not None and not rule.window.includes(at):
+                    skipped.append({"source_id": source_id,
+                                    "search_profile_id": search_profile["id"],
+                                    "reason": "OUTSIDE_SCHEDULE_WINDOW"})
                     continue
                 candidates.append((due_at, search_profile["id"], source_id, search_profile))
 

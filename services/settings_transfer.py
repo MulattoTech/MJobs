@@ -127,8 +127,9 @@ def _validate_envelope(payload):
     by_name = {search["name"].casefold(): search for search in clean_searches}
     rule_names = set()
     for rule in automation:
-        if not isinstance(rule, dict) or set(rule) != {
-                "kind", "search_profile_name", "enabled", "interval_seconds"}:
+        rule_fields = {"kind", "search_profile_name", "enabled", "interval_seconds"}
+        if (not isinstance(rule, dict) or not rule_fields <= set(rule)
+                or set(rule) - rule_fields - {"window"}):
             raise ValueError("Automation rule has unsupported fields")
         name = rule["search_profile_name"]
         if (rule["kind"] != "scheduled_search" or not isinstance(name, str)
@@ -138,7 +139,10 @@ def _validate_envelope(payload):
         if folded in rule_names:
             raise ValueError("Automation rules contain a duplicate saved search")
         rule_names.add(folded)
-        scheduler = _clean_search_scheduler({key: rule[key] for key in ("enabled", "interval_seconds")})
+        scheduler_value = {key: rule[key] for key in ("enabled", "interval_seconds")}
+        if "window" in rule:
+            scheduler_value["window"] = rule["window"]
+        scheduler = _clean_search_scheduler(scheduler_value)
         search = by_name[folded]
         if "scheduler" in search and _clean_search_scheduler(search["scheduler"]) != scheduler:
             raise ValueError("Automation rule conflicts with saved search scheduler")

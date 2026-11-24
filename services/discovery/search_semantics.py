@@ -26,12 +26,28 @@ EXPERIENCE_LEVELS = {
 SALARY_PERIODS = {"HOUR", "YEAR", "UNKNOWN"}
 SALARY_SOURCES = {"EMPLOYER_PROVIDED", "SOURCE_PROVIDED", "ESTIMATED", "UNKNOWN"}
 DATE_WINDOWS = {"ANY", "LAST_HOUR", "TODAY", "LAST_24_HOURS", "LAST_3_DAYS", "LAST_7_DAYS", "LAST_30_DAYS", "CUSTOM"}
-US_STATES = {
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-    "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-    "VA","WA","WV","WI","WY","DC",
+US_STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
 }
+US_STATES = frozenset(US_STATE_NAMES)
+_STATE_CODES_BY_NAME = {name.casefold(): code for code, name in US_STATE_NAMES.items()}
+
+
+def normalize_us_state(value):
+    normalized = re.sub(r"[^a-z]+", " ", str(value or "").casefold()).strip()
+    return normalized.upper() if normalized.upper() in US_STATES else _STATE_CODES_BY_NAME.get(normalized)
 
 def _fold(value):
     return str(value or "").casefold()
@@ -237,17 +253,22 @@ def _date_window_bounds(criteria, at):
     raise ValueError("Date window is invalid")
 
 
-def _state_codes(text):
-    return sorted(set(re.findall(r"(?<![A-Z])(" + "|".join(sorted(US_STATES)) + r")(?![A-Z])", str(text or "").upper())))
+_REQUIRED_ONSITE = re.compile(
+    r"\b(?:requires|requiring)\s+(?:(?:occasional|regular|weekly|monthly)\s+|"
+    r"(?:\d{1,2}|one|two|three|four|five)\s+days?\s+(?:(?:per|a)\s+(?:week|month|quarter)\s+)?)?"
+    r"on[- ]?site\b"
+    r"|\bon[- ]?site\s+(?:attendance|work|visits?)\s+(?:is|are|may\s+be)\s+required\b",
+    re.I,
+)
+
 
 def classify_location(location_text, description=""):
     location = str(location_text or "").strip() or "Unknown"
     combined = f"{location} {description or ''}"
     folded = combined.casefold()
     remote_indicated = bool(re.search(r"\bremote\b", folded))
-    hybrid_indicated = bool(re.search(r"\bhybrid\b", folded))
+    hybrid_indicated = bool(re.search(r"\bhybrid\b", folded) or (remote_indicated and _REQUIRED_ONSITE.search(combined)))
     onsite_indicated = bool(re.search(r"\b(on[- ]?site|onsite)\b", folded))
-    state_codes = _state_codes(combined)
 
     country = None
     if re.search(r"\b(united states|u.?s.?a?|us)\b", folded):
@@ -261,32 +282,37 @@ def classify_location(location_text, description=""):
     city = None
     state = None
     if parts:
-        first = parts[0]
+        first = re.sub(r"^(?:hybrid|on[- ]?site)\s*[-–—:]\s*", "", parts[0], flags=re.I)
+        if re.fullmatch(r"hybrid|on[- ]?site", first, re.I) and len(parts) > 2:
+            first = parts[1]
         if not re.search(r"\b(remote|hybrid|onsite|on-site)\b", first, re.I):
             city = first[:200]
-    if state_codes:
-        state = state_codes[0]
+        # A state beside the city is stronger evidence than a code-like word
+        # or an unrelated state mentioned in the job description.
+        state = next((code for part in reversed(parts[1:]) if (code := normalize_us_state(part))), None)
 
-    restricted_states = []
-    restriction = re.search(
-        r"(?:must|may|eligible|applicants?)[^.;]{0,80}(?:reside|live|located)[^.;]{0,40}(?:in|within)\s*:?\s*([A-Z]{2}(?:\s*,\s*[A-Z]{2})+)",
-        combined,
-        re.I,
-    )
-    if restriction:
-        restricted_states = _state_codes(restriction.group(1))
-    elif remote_indicated and len(state_codes) >= 2:
-        restricted_states = state_codes
+    restricted_states = set()
+    if remote_indicated:
+        restricted_states = _location_scope_states(location)
+        declared_states = iter(_declared_residence_states(description or ""))
+        if first_declaration := next(declared_states, None):
+            restricted_states = first_declaration & restricted_states if restricted_states else first_declaration
+            restricted_states.intersection_update(*declared_states)
+    if state is None and restricted_states:
+        state = min(restricted_states)
 
     remote_regions = []
-    if restricted_states:
-        remote_type = "REMOTE_SPECIFIC_STATES"
-        remote_regions = restricted_states
-    elif hybrid_indicated:
+    if hybrid_indicated:
         remote_type = "HYBRID"
+    elif restricted_states:
+        remote_type = "REMOTE_SPECIFIC_STATES"
+        remote_regions = sorted(restricted_states)
     elif onsite_indicated and not remote_indicated:
         remote_type = "ONSITE"
-    elif remote_indicated and re.search(r"\b(worldwide|anywhere|global)\b", folded):
+    elif remote_indicated and (
+        re.fullmatch(_WORLDWIDE_LOCATION, _remote_scope_text(location), re.I)
+        or _WORLDWIDE_WORK.search(description or "")
+    ):
         remote_type = "REMOTE_WORLDWIDE"
         remote_regions = ["WORLDWIDE"]
     elif remote_indicated and country == "US":
@@ -309,6 +335,136 @@ def classify_location(location_text, description=""):
         "city": city,
         "location_text": location,
     }
+
+_STATE_NAME = "|".join(sorted(map(re.escape, US_STATE_NAMES.values()), key=len, reverse=True))
+# Postal abbreviations are uppercase in prose so that "in" and "or" are not interpreted as states.
+_STATE_TOKEN = rf"\b(?:{_STATE_NAME}|(?-i:{'|'.join(sorted(US_STATES))}))\b"
+_STATE_LIST = rf"{_STATE_TOKEN}(?:(?:\s*,\s*(?:(?:or|and)\s+)?|\s+(?:or|and)\s+|\s*/\s*){_STATE_TOKEN})*"
+_STATE_TOKENS = re.compile(_STATE_TOKEN, re.I)
+_APPLICANT_LOCATION = r"\b(?:applicants?|candidates?)\s+(?:(?:based|living|located|residing)\s+)?in\s+"
+_APPLY_DENIED = (
+    r"(?:(?:may|can)\s+not\s+apply|cannot\s+apply|"
+    r"(?:are\s+not|aren['’]t)\s+(?:eligible|considered)|are\s+ineligible)\b"
+)
+_STATE_EXCLUSIONS = (
+    re.compile(
+        rf"\b(?:except(?:\s+for)?|excluding|(?:(?:cannot|can\s+not|do\s+not|don['’]t|unable\s+to)"
+        rf"\s+hire|no\s+hiring)\s+in|not\s+(?:available|eligible|open)\s+"
+        rf"(?:in|to\s+residents?\s+of))\s+(?P<states>{_STATE_LIST})",
+        re.I,
+    ),
+    re.compile(
+        rf"(?P<states>{_STATE_LIST})\s+residents?\s+{_APPLY_DENIED}",
+        re.I,
+    ),
+    re.compile(
+        rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+{_APPLY_DENIED}",
+        re.I,
+    ),
+    re.compile(
+        rf"\bnot\s+(?:available|open)\s+to\s+(?P<states>{_STATE_LIST})\s+residents?\b",
+        re.I,
+    ),
+)
+_APPLICANT_ALLOWED_STATES = re.compile(
+    rf"{_APPLICANT_LOCATION}(?P<states>{_STATE_LIST})\s+"
+    r"(?:(?:may|can)\s+apply|are\s+eligible)\b",
+    re.I,
+)
+_RESIDENCE_REQUIREMENT = re.compile(
+    r"\b(?:must|required\s+to|may\s+only|can\s+only|if\s+you)\s+(?:currently\s+)?"
+    r"(?:reside|live|be\s+(?:located|based))\s+(?:in|within)\s*:?\s*"
+    r"(?:one\s+of\s+the\s+following\s+states\s*:\s*)?",
+    re.I,
+)
+_US_LOCATION = r"(?:the\s+)?(?:united states(?: of america)?|u\.?s\.?(?:a\.?)?)"
+_WORLDWIDE_LOCATION = r"(?:worldwide|globally|global|anywhere in the world)"
+_OTHER_COUNTRY = r"(?:canada|united kingdom|u\.?k\.?|australia|india|germany|france|mexico)"
+_LOCATION_SCOPE = re.compile(
+    r"^(?:fully\s+)?remote(?:\s*[-–—,:|]\s*|\s+(?:(?:in|within|from|across)\s+)?)", re.I,
+)
+_WORLDWIDE_WORK = re.compile(rf"\b(?:work|remote)\s+(?:from\s+)?{_WORLDWIDE_LOCATION}\b", re.I)
+_REMOTE_TEXT_SCOPE = re.compile(
+    rf"\b(?:remote|work)\s+(?:from\s+)?(?:anywhere\s+)?(?:in|within|across|from)\s+{_US_LOCATION}\b",
+    re.I,
+)
+_ALLOWED_STATES = re.compile(_STATE_LIST, re.I)
+_RESIDENCE_STATES = re.compile(rf"{_STATE_LIST}(?=\s*(?:[.;:\n]|$))", re.I)
+
+
+def _stated_us_states(value):
+    return {normalize_us_state(token.group()) for token in _STATE_TOKENS.finditer(value)}
+
+
+def _residence_scopes(text):
+    return (text[match.end():] for match in _RESIDENCE_REQUIREMENT.finditer(text))
+
+
+def _declared_residence_states(text):
+    for scope in _residence_scopes(text):
+        if match := _RESIDENCE_STATES.match(scope):
+            yield _stated_us_states(match.group())
+    for match in _APPLICANT_ALLOWED_STATES.finditer(text):
+        yield _stated_us_states(match["states"])
+
+
+def _remote_scope_text(location):
+    text = _LOCATION_SCOPE.sub("", location)
+    return re.sub(r"\s*\(remote\)\s*$", "", text, flags=re.I).strip(" ()")
+
+
+def _location_scope_states(location):
+    if _LOCATION_SCOPE.match(location):
+        scope = _remote_scope_text(location)
+        if scope != "CA" and _ALLOWED_STATES.fullmatch(scope):
+            return _stated_us_states(scope)
+    return set()
+
+
+def _remote_residence_status(job, state, arrangement):
+    if arrangement != "REMOTE":
+        return "UNKNOWN" if arrangement == "UNKNOWN" else "EXCLUDED"
+
+    location = str(job.get("location") or "").strip()
+    description = str(job.get("description") or "")
+    text = f"{location}\n{description}"
+    if any(state in _stated_us_states(exclusion["states"])
+           for pattern in _STATE_EXCLUSIONS for exclusion in pattern.finditer(text)):
+        return "EXCLUDED"
+
+    location_states = _location_scope_states(location)
+    if location_states and state not in location_states:
+        return "EXCLUDED"
+    scope = _remote_scope_text(location)
+    if re.fullmatch(_OTHER_COUNTRY, scope, re.I):
+        return "EXCLUDED"
+
+    expressly_eligible = False
+    for text in (location, description):
+        for states in _declared_residence_states(text):
+            if state not in states:
+                return "EXCLUDED"
+            expressly_eligible = True
+        for scope in _residence_scopes(text):
+            if _RESIDENCE_STATES.match(scope):
+                continue
+            if re.match(rf"{_US_LOCATION}\b", scope, re.I):
+                expressly_eligible = True
+            elif re.match(rf"{_OTHER_COUNTRY}\b", scope, re.I):
+                return "EXCLUDED"
+            else:
+                return "UNKNOWN"
+    if expressly_eligible:
+        return "ELIGIBLE"
+
+    if re.fullmatch(rf"{_US_LOCATION}(?:\s+only)?|{_WORLDWIDE_LOCATION}", scope, re.I):
+        return "ELIGIBLE"
+    if location_states:
+        return "ELIGIBLE"
+    if job.get("remote_type") == "REMOTE_COUNTRY":
+        return "EXCLUDED"
+    return "ELIGIBLE" if _REMOTE_TEXT_SCOPE.search(description) or _WORLDWIDE_WORK.search(description) else "UNKNOWN"
+
 
 def normalize_title(value):
     original = " ".join(str(value or "").split())
@@ -704,7 +860,9 @@ def evaluate_search(criteria, job, at=None):
 
     remote_type = str(job.get("remote_type") or "UNKNOWN")
     arrangements = set(criteria.get("work_arrangements") or [])
-    arrangement = "REMOTE" if remote_type.startswith("REMOTE_") or remote_type == "REMOTE" or attrs.get("remote_indicated") else remote_type
+    arrangement = remote_type
+    if remote_type.startswith("REMOTE") or (remote_type == "UNKNOWN" and attrs.get("remote_indicated")):
+        arrangement = "HYBRID" if _REQUIRED_ONSITE.search(description) else "REMOTE"
     remote_preference = criteria.get("remote", "ANY")
     if remote_preference == "REQUIRED" and arrangement != "REMOTE":
         reasons.append("REMOTE_REQUIRED")
@@ -713,15 +871,28 @@ def evaluate_search(criteria, job, at=None):
     if arrangements and arrangement not in arrangements:
         reasons.append("WORK_ARRANGEMENT_MISMATCH")
 
+    local_geo = {}
+    if arrangement in {"HYBRID", "ONSITE"} and (criteria.get("states") or criteria.get("cities")):
+        reported_location = classify_location(job.get("location"))
+        if reported_location["city"] and reported_location["state"] and reported_location["country"] in {None, "US"}:
+            local_geo = reported_location
     for key, job_key in (("countries", "country"), ("states", "state"), ("cities", "city")):
         allowed = {_fold(v) for v in criteria.get(key, [])}
-        if allowed and _fold(attrs.get(job_key)) not in allowed:
+        observed = local_geo.get(job_key) or attrs.get(job_key)
+        if allowed and _fold(observed) not in allowed:
             reasons.append(key.upper() + "_MISMATCH")
 
     allowed_regions = {_fold(v) for v in criteria.get("remote_regions", [])}
     job_regions = {_fold(v) for v in attrs.get("remote_regions", [])}
     if allowed_regions and not (allowed_regions & job_regions):
         reasons.append("REMOTE_REGION_MISMATCH")
+
+    residence = None
+    if residence_state := criteria.get("remote_residence_state"):
+        status = _remote_residence_status(job, residence_state, arrangement)
+        residence = {"state": residence_state, "status": status}
+        if status != "ELIGIBLE":
+            reasons.append("REMOTE_RESIDENCE_" + status)
 
     employment = set(criteria.get("employment_types") or [])
     if employment and attrs.get("employment_type", "UNKNOWN") not in employment:
@@ -790,8 +961,11 @@ def evaluate_search(criteria, job, at=None):
 
     optional = [value for value in criteria.get("optional_keywords", []) if _contains(value, corpus, aliases)]
     optional_skills = sorted(set(criteria.get("optional_skills") or []) & job_skill_ids)
-    return {"matched": not reasons, "reasons": reasons, "optional_matches": optional,
-            "optional_skill_matches": optional_skills}
+    result = {"matched": not reasons, "reasons": reasons, "optional_matches": optional,
+              "optional_skill_matches": optional_skills}
+    if residence is not None:
+        result["remote_residence"] = residence
+    return result
 
 def filter_jobs(rows, criteria):
     results = []

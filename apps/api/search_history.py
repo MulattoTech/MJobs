@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy.exc import NoResultFound
+from services.discovery.search_history import normalize_posting_activity
 
 
 _DEFAULT_LIMIT = 50
@@ -29,6 +30,13 @@ def _project_run(run, profile_id: str):
         _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
     if run.get("profile_id") != profile_id:
         _error(500, "SEARCH_HISTORY_SCOPE_MISMATCH")
+    search_profile_id = run.get("search_profile_id")
+    if search_profile_id is not None and (
+            not isinstance(search_profile_id, str)
+            or not search_profile_id.strip()
+            or len(search_profile_id) > 128
+            or any(ord(char) < 32 for char in search_profile_id)):
+        _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
     if not isinstance(run.get("run_id"), str) or not run["run_id"].strip():
         _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
     if (not isinstance(run.get("source"), str) or not run["source"].strip()
@@ -47,7 +55,7 @@ def _project_run(run, profile_id: str):
     errors = run.get("errors")
     if not isinstance(errors, list) or any(not isinstance(value, str) for value in errors):
         _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
-    return {
+    item = {
         "id": run["run_id"],
         "profile_id": profile_id,
         "source": run["source"],
@@ -61,6 +69,17 @@ def _project_run(run, profile_id: str):
         "duplicates": run["duplicates"],
         "errors": list(errors),
     }
+    if "search_profile_id" in run:
+        item["search_profile_id"] = search_profile_id
+    if "posting_activity" in run:
+        try:
+            activity = normalize_posting_activity(run["posting_activity"], item["results"])
+        except ValueError:
+            _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
+        if item["status"] != "COMPLETED" or item["duplicates"] != activity["unchanged"]:
+            _error(500, "SEARCH_HISTORY_RESPONSE_INVALID")
+        item["posting_activity"] = activity
+    return item
 
 
 def create_search_history_router(store, *, history_lister=None) -> APIRouter:
@@ -73,15 +92,21 @@ def create_search_history_router(store, *, history_lister=None) -> APIRouter:
         profile_id: str,
         limit: int = Query(default=_DEFAULT_LIMIT, ge=1, le=_MAX_LIMIT),
         cursor: str | None = Query(default=None, max_length=_MAX_CURSOR_LENGTH),
+        search_profile_id: str | None = Query(default=None, min_length=1, max_length=128),
     ):
+        if search_profile_id is not None and (
+                not search_profile_id.strip()
+                or any(ord(char) < 32 for char in search_profile_id)):
+            _error(422, "SEARCH_HISTORY_SEARCH_PROFILE_ID_INVALID")
         try:
             store.profile(profile_id)
         except NoResultFound:
             _error(404, "SEARCH_HISTORY_PROFILE_NOT_FOUND")
         try:
-            result = list_history(
-                store, profile_id, limit=limit, cursor=cursor,
-            )
+            arguments = {"limit": limit, "cursor": cursor}
+            if search_profile_id is not None:
+                arguments["search_profile_id"] = search_profile_id
+            result = list_history(store, profile_id, **arguments)
         except NoResultFound:
             _error(404, "SEARCH_HISTORY_PROFILE_NOT_FOUND")
         except ValueError as exc:

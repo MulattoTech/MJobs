@@ -161,6 +161,31 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     expect(schedule.get_by_label("Enable scheduled discovery", exact=True)).not_to_be_checked()
                     expect(schedule.get_by_label("Interval (seconds)", exact=True)).to_have_value("1200")
 
+                    limit_window = schedule.get_by_label("Limit discovery to a local time window", exact=True)
+                    limit_window.check()
+                    schedule.get_by_label("IANA time zone", exact=True).fill("America/Chicago")
+                    schedule.get_by_label("Starts at (inclusive)", exact=True).fill("22:00")
+                    schedule.get_by_label("Ends at (exclusive)", exact=True).fill("06:00")
+                    save_schedule = page.get_by_role("button", name="Save schedule", exact=True)
+                    save_schedule.click()
+                    expect(save_schedule).to_have_count(0)
+                    self.assertEqual(search_profile_puts[-1]["scheduler"], {
+                        "enabled": False, "interval_seconds": 1200,
+                        "window": {"time_zone": "America/Chicago", "start_local": "22:00", "end_local": "06:00"},
+                    })
+
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    expect(limit_window).to_be_checked()
+                    expect(schedule.get_by_label("IANA time zone", exact=True)).to_have_value("America/Chicago")
+                    expect(schedule.get_by_label("Starts at (inclusive)", exact=True)).to_have_value("22:00")
+                    expect(schedule.get_by_label("Ends at (exclusive)", exact=True)).to_have_value("06:00")
+                    limit_window.uncheck()
+                    save_schedule.click()
+                    expect(save_schedule).to_have_count(0)
+                    self.assertEqual(search_profile_puts[-1]["scheduler"],
+                                     {"enabled": False, "interval_seconds": 1200})
+
                     self.assertEqual(external, [])
                     local_requests = [(method, urlsplit(url).path)
                                       for method, url in requests if url.startswith(origin)]

@@ -8,7 +8,7 @@ from packages.domain.automation import SavedSearchRule
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
 from services.discovery.search_semantics import (
-    DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, parse_timestamp,
+    DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, US_STATES, parse_timestamp,
 )
 from services.discovery.skill_taxonomy import normalize_skill_list
 from services.discovery.requirement_parsers import CLEARANCE_LEVELS, WORK_AUTHORIZATION_FLAGS
@@ -287,6 +287,11 @@ def save_search_profile(store, data):
     }
     if job_filters is not None:
         new_criteria["job_filters"] = job_filters
+    if "remote_residence_state" in data:
+        state = data["remote_residence_state"]
+        if state is not None and (not isinstance(state, str) or state.upper() not in US_STATES):
+            raise ValueError("Remote residence must be a U.S. state postal code")
+        new_criteria["remote_residence_state"] = state.upper() if state is not None else None
     radius_values = (new_criteria["radius_miles"], new_criteria["radius_latitude"], new_criteria["radius_longitude"])
     if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
         raise ValueError("Radius filtering requires miles, latitude, and longitude together")

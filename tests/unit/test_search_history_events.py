@@ -88,6 +88,27 @@ class SearchHistoryEventTests(unittest.TestCase):
             "errors": [],
         })
 
+    def test_saved_search_identity_is_retained_in_its_terminal_history_receipt(self):
+        operation = self._operation(params={
+            "source_id": "fixture-source",
+            "search_profile_id": "remote-it-ok",
+        })
+        record = build_search_history_record(operation, self._metadata())
+
+        self.assertEqual(record["search_profile_id"], "remote-it-ok")
+        record_search_history(self.store, record)
+        persisted = list_search_history(self.store, "fixture")["runs"]
+        self.assertEqual(persisted[0]["search_profile_id"], "remote-it-ok")
+
+    def test_invalid_saved_search_identity_is_omitted_from_history_receipt(self):
+        operation = self._operation(params={
+            "source_id": "fixture-source",
+            "search_profile_id": "s" * 129,
+        })
+        record = build_search_history_record(operation, self._metadata())
+
+        self.assertNotIn("search_profile_id", record)
+
     def test_dead_lettered_operation_maps_to_failed_and_preserves_error(self):
         operation = self._operation(
             state="DEAD_LETTERED", error="SOURCE_UNAVAILABLE",

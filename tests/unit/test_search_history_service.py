@@ -118,6 +118,59 @@ class SearchHistoryServiceTests(unittest.TestCase):
             record_search_history(self.store, self._run(query="different query"))
         self.assertEqual(self._audit_rows(), before)
 
+    def test_optional_saved_search_identity_round_trips_and_replay_is_stable(self):
+        recorded = record_search_history(
+            self.store, self._run(search_profile_id="remote-it-ok"),
+        )
+
+        self.assertEqual(recorded["search_profile_id"], "remote-it-ok")
+        self.assertEqual(
+            list_search_history(self.store, "fixture")["runs"], [recorded],
+        )
+        self.assertEqual(
+            record_search_history(self.store, dict(recorded)), recorded,
+        )
+        before = self._audit_rows()
+        with self.assertRaisesRegex(ValueError, "SEARCH_HISTORY_SEARCH_PROFILE_ID_INVALID"):
+            record_search_history(self.store, self._run(search_profile_id="x" * 129))
+        self.assertEqual(self._audit_rows(), before)
+
+    def test_saved_search_filter_finds_its_latest_receipt_before_global_limit(self):
+        older_match = record_search_history(self.store, self._run(
+            run_id="search-old", search_profile_id="fixture-search",
+            finished_at="2026-10-09T10:01:00Z",
+        ))
+        newest_other = record_search_history(self.store, self._run(
+            run_id="other-new", finished_at="2026-10-09T10:06:00Z",
+        ))
+        latest_match = record_search_history(self.store, self._run(
+            run_id="search-latest", search_profile_id="fixture-search",
+            started_at="2026-10-09T10:04:00Z",
+            finished_at="2026-10-09T10:05:00Z", status="FAILED",
+        ))
+
+        self.assertEqual(list_search_history(self.store, "fixture", limit=1)["runs"], [newest_other])
+        matching_page = list_search_history(
+            self.store, "fixture", limit=1, search_profile_id="fixture-search",
+        )
+        self.assertEqual(matching_page["profile_id"], "fixture")
+        self.assertEqual(matching_page["runs"], [latest_match])
+        self.assertIsInstance(matching_page["next_cursor"], str)
+        matching_cursor = matching_page["next_cursor"]
+        next_page = list_search_history(
+            self.store, "fixture", limit=1, cursor=matching_cursor, search_profile_id="fixture-search",
+        )
+        self.assertEqual([row["run_id"] for row in next_page["runs"]], ["search-old"])
+        for other_scope in (None, "another-search"):
+            with self.subTest(other_scope=other_scope), self.assertRaisesRegex(ValueError, "CURSOR_INVALID"):
+                list_search_history(
+                    self.store, "fixture", limit=1, cursor=matching_cursor, search_profile_id=other_scope,
+                )
+        self.assertEqual(list_search_history(
+            self.store, "other", limit=1, search_profile_id="fixture-search",
+        )["runs"], [])
+        self.assertEqual(older_match["search_profile_id"], "fixture-search")
+
     def test_invalid_cursor_and_unknown_profile_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "SEARCH_HISTORY_CURSOR_INVALID"):
             list_search_history(self.store, "fixture", cursor="not-a-cursor")
