@@ -1,0 +1,73 @@
+"""Verify isolated unit scheduling, actual pytest collection, and fail-closed reconciliation."""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+from tools.ci.unit_shard_evidence import reconcile, verify_manifests
+from tools.ci.unit_shard_selection import split_inventory
+
+
+def test_weighted_unit_assignment_is_disjoint_and_keeps_new_cases():
+    nodes = ['tests/unit/test_a.py::test_one', 'tests/unit/test_a.py::test_two',
+             'tests/unit/test_b.py::test_b', 'tests/unit/test_new.py::test_new']
+    groups = split_inventory(nodes, 2, {'tests/unit/test_a.py': 100})
+    assert sorted(node for group in groups for node in group) == sorted(nodes)
+    assert any(set(nodes[:2]) <= set(group) for group in groups)
+    assert groups == split_inventory(list(reversed(nodes)), 2, {'tests/unit/test_a.py': 100})
+
+
+def test_manifest_negative_controls():
+    inventory = ['a', 'b']
+    first = {'index': 0, 'count': 2, 'inventory': inventory, 'selected': ['a'], 'completed': ['a']}
+    second = {'index': 1, 'count': 2, 'inventory': inventory, 'selected': ['b'], 'completed': ['b']}
+    assert verify_manifests([first, second], 2) == 2
+    for altered in ({**second, 'selected': ['a'], 'completed': ['a']},
+                    {**second, 'completed': []}, {**second, 'index': 0},
+                    {**second, 'inventory': ['b']}, {**second, 'count': 3}):
+        with pytest.raises(ValueError):
+            verify_manifests([first, altered], 2)
+    with pytest.raises(ValueError):
+        verify_manifests([first], 2)
+
+
+def test_real_pytest_shards_and_combined_report(tmp_path):
+    root = Path(__file__).resolve().parents[2]
+    suite = tmp_path / 'tests/unit'
+    suite.mkdir(parents=True)
+    (tmp_path / 'pytest.ini').write_text('[pytest]\n', encoding='utf-8')
+    (suite / 'test_a.py').write_text(
+        'import os\n'
+        'def test_a():\n'
+        '    assert "MJOBS_CI_UNIT_SHARD_INDEX" not in os.environ\n'
+        '    assert "tools.ci.unit_shard_selection" not in os.environ.get("PYTEST_PLUGINS", "")\n',
+        encoding='utf-8')
+    (suite / 'test_b.py').write_text(
+        'import pytest\n@pytest.mark.skip(reason="existing skip")\ndef test_b(): pass\n', encoding='utf-8')
+    reports = tmp_path / 'reports'
+    output = tmp_path / 'outputs/ci'
+    for index in range(2):
+        env = os.environ.copy()
+        env.update(PYTHONPATH=str(root), PYTEST_PLUGINS='tools.ci.unit_shard_selection',
+                   MJOBS_CI_UNIT_SHARD_INDEX=str(index), MJOBS_CI_UNIT_SHARD_COUNT='2')
+        result = subprocess.run([sys.executable, '-m', 'pytest', '-q', 'tests/unit',
+                                 '--junitxml=outputs/ci/unit.xml'],
+                                cwd=tmp_path, env=env, capture_output=True, text=True, check=False)
+        assert result.returncode == 0, result.stdout + result.stderr
+        dest = reports / f'unit-shard-{index}'
+        dest.mkdir(parents=True)
+        for name in ('unit.xml', 'unit-collection.json'):
+            (output / name).replace(dest / name)
+    assert reconcile(reports, 2, output / 'combined.xml') == 2
+    assert 'skipped="1"' in (output / 'combined.xml').read_text(encoding='utf-8')
+    bad = reports / 'unit-shard-0/unit-collection.json'
+    data = json.loads(bad.read_text(encoding='utf-8'))
+    data['completed'] = []
+    bad.write_text(json.dumps(data), encoding='utf-8')
+    with pytest.raises(ValueError):
+        reconcile(reports, 2, output / 'combined.xml')

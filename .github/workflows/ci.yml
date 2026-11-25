@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   python:
-    name: Python / unit and integrity
+    name: Python / quality, coverage and integrity
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -28,13 +28,12 @@ jobs:
             requirements.lock
             requirements.txt
             .github/test-requirements.txt
+            .github/docs-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
       - name: Check bounded Python quality
         run: |
           python -m ruff check apps/api/application_multipage_state.py services/operations/pipeline_workbench.py services/operations/pipeline_actions.py
           python -m mypy --config-file pyproject.toml
-      - name: Execute unit regressions
-        run: python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml
       - name: Enforce scoped Python coverage (synthetic AI fixtures only)
         run: |
           python -m coverage run --branch --source=services/ai -m pytest -q tests/unit/test_ai_prompt_versioning.py tests/unit/test_ai_providers.py tests/unit/test_ai_structured_output.py tests/unit/test_ai_task_configuration.py tests/unit/test_ci_coverage_gate.py
@@ -49,11 +48,77 @@ jobs:
           python -m tools.verification.progress validate
           python -m tools.verification.progress_dashboard --check
           python -m tools.verification.reference_provenance
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: python-quality-results
+          path: |
+            outputs/ci/backend-coverage.json
+            outputs/ci/backend-coverage-gate.json
+            outputs/ci/provider-task-matrix.json
+          retention-days: 7
+          if-no-files-found: error
+  unit:
+    name: Python / unit shard ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.lock
+            requirements.txt
+            .github/test-requirements.txt
+            .github/docs-requirements.txt
+      - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
+      - name: Execute disjoint full unit inventory
+        env:
+          PYTEST_PLUGINS: tools.ci.unit_shard_selection
+          MJOBS_CI_UNIT_SHARD_INDEX: ${{ matrix.shard }}
+          MJOBS_CI_UNIT_SHARD_COUNT: ${{ strategy.job-total }}
+        run: python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml
       - name: Test summary
         if: always()
         run: python -m tools.ci.test_summary outputs/ci/unit.xml
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
+        with:
+          name: unit-shard-${{ matrix.shard }}
+          path: |
+            outputs/ci/unit.xml
+            outputs/ci/unit-collection.json
+          retention-days: 7
+          if-no-files-found: error
+  unit-evidence:
+    name: Python / complete unit inventory
+    needs: [unit, python]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: unit-shard-*
+          path: outputs/ci/unit-shards
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: python-quality-results
+          path: outputs/ci
+      - name: Reconcile full unit inventory and preserve combined report
+        run: python -m tools.ci.unit_shard_evidence --directory outputs/ci/unit-shards --count 2 --output outputs/ci/unit.xml
+      - run: python -m tools.ci.test_summary outputs/ci/unit.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: unit-results
           path: |
@@ -62,7 +127,7 @@ jobs:
             outputs/ci/backend-coverage-gate.json
             outputs/ci/provider-task-matrix.json
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: error
   web:
     name: Web / Vitest and production build
     runs-on: ubuntu-24.04
@@ -120,7 +185,7 @@ jobs:
         run: git diff --check HEAD^ HEAD
   required:
     name: CI / required
-    needs: [python, web, repository]
+    needs: [python, unit, unit-evidence, web, repository]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 2
@@ -132,6 +197,8 @@ jobs:
           python - <<'PY'
           import json,os
           results=json.loads(os.environ['RESULTS'])
+          if set(results) != {'python','unit','unit-evidence','web','repository'}:
+              raise SystemExit('Required fast gate inventory mismatch')
           failures={name:job['result'] for name,job in results.items() if job['result']!='success'}
           if failures:raise SystemExit('Required gates failed, skipped or cancelled: '+str(failures))
           print('All required fast gates passed.')
