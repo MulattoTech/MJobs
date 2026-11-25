@@ -11,7 +11,7 @@ on:
         description: Full-suite shard count for manual benchmarking only
         type: choice
         options: ['3', '4', '6', '8', '10', '12']
-        default: '8'
+        default: '10'
 permissions:
   contents: read
 concurrency:
@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       max-parallel: 12
       matrix:
-        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '6' && '[0,1,2,3,4,5]' || inputs.shards == '10' && '[0,1,2,3,4,5,6,7,8,9]' || inputs.shards == '12' && '[0,1,2,3,4,5,6,7,8,9,10,11]' || '[0,1,2,3,4,5,6,7]') }}
+        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '6' && '[0,1,2,3,4,5]' || inputs.shards == '8' && '[0,1,2,3,4,5,6,7]' || inputs.shards == '12' && '[0,1,2,3,4,5,6,7,8,9,10,11]' || '[0,1,2,3,4,5,6,7,8,9]') }}
     services:
       postgres:
         image: postgres:17
@@ -36,14 +36,14 @@ jobs:
           POSTGRES_DB: mjobs_test
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U mjobs -d mjobs_test"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+          --health-cmd "pg_isready -h 127.0.0.1 -U mjobs -d mjobs_test"
+          --health-interval 1s --health-timeout 5s --health-retries 60
       redis:
         image: redis:7
         ports: ['6379:6379']
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+          --health-interval 1s --health-timeout 5s --health-retries 60
     env:
       MJOBS_TEST_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
       MJOBS_WORKER_RECOVERY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_worker_recovery

@@ -17,7 +17,12 @@ def verify_manifests(manifests: list[dict], count: int) -> int:
     seen: set[str] = set()
     for m in manifests:
         selected = set(m['selected'])
-        if (m['count'] != count or m['inventory'] != inventory or not selected
+        if m['inventory'] != inventory:
+            missing = full - set(m['inventory'])
+            unexpected = set(m['inventory']) - full
+            raise ValueError(f"Unit collection inventory mismatch on shard {m['index']}: "
+                             f"{len(missing)} missing, {len(unexpected)} unexpected")
+        if (m['count'] != count or not selected
                 or len(selected) != len(m['selected']) or sorted(selected) != m['completed']
                 or seen & selected or not selected <= full):
             raise ValueError('Unit collection or execution evidence mismatch')
@@ -30,6 +35,7 @@ def verify_manifests(manifests: list[dict], count: int) -> int:
 def reconcile(directory: Path, count: int, output: Path) -> int:
     manifests = []
     suites = ET.Element('testsuites')
+    identities = set()
     for index in range(count):
         folder = directory / f'unit-shard-{index}'
         manifest = json.loads((folder / 'unit-collection.json').read_text(encoding='utf-8'))
@@ -38,10 +44,16 @@ def reconcile(directory: Path, count: int, output: Path) -> int:
         manifests.append(manifest)
         root = ET.parse(folder / 'unit.xml').getroot()
         reports = [root] if root.tag == 'testsuite' else list(root.findall('testsuite'))
-        cases = sum(len(list(report.iter('testcase'))) for report in reports)
-        if (not reports or cases < len(manifest['selected'])
-                or any(int(report.get(key, '0')) for report in reports for key in ('failures', 'errors'))):
+        cases = [case for report in reports for case in report.iter('testcase')]
+        if (not reports or len(cases) != len(manifest['selected'])
+                or any(int(report.get(key, '0')) for report in reports for key in ('failures', 'errors'))
+                or any(case.find('failure') is not None or case.find('error') is not None for case in cases)):
             raise ValueError('Incomplete or failed unit JUnit evidence')
+        for case in cases:
+            identity = (case.get('classname'), case.get('name'))
+            if not all(identity) or identity in identities:
+                raise ValueError('Duplicate or missing unit JUnit identity')
+            identities.add(identity)
         suites.extend(reports)
     total = verify_manifests(manifests, count)
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -65,6 +66,19 @@ def test_real_pytest_shards_and_combined_report(tmp_path):
             (output / name).replace(dest / name)
     assert reconcile(reports, 2, output / 'combined.xml') == 2
     assert 'skipped="1"' in (output / 'combined.xml').read_text(encoding='utf-8')
+    # A same-sized report with a duplicate identity must not qualify.
+    first_xml = reports / 'unit-shard-0/unit.xml'
+    second_xml = reports / 'unit-shard-1/unit.xml'
+    original = second_xml.read_bytes()
+    first_case = next(ET.parse(first_xml).iter('testcase'))
+    second_tree = ET.parse(second_xml)
+    second_case = next(second_tree.iter('testcase'))
+    for attr in ('classname', 'name'):
+        second_case.set(attr, first_case.attrib[attr])
+    second_tree.write(second_xml, encoding='utf-8')
+    with pytest.raises(ValueError, match='Duplicate or missing unit JUnit identity'):
+        reconcile(reports, 2, output / 'combined.xml')
+    second_xml.write_bytes(original)
     bad = reports / 'unit-shard-0/unit-collection.json'
     data = json.loads(bad.read_text(encoding='utf-8'))
     data['completed'] = []
