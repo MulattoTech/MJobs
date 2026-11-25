@@ -840,8 +840,14 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime, 
         for row in checks[dispatches[0] + 1:dispatches[1]]))
     paired_polls = (len(polls) >= 2 and len(polls) % 2 == 0
         and all(right == left + 1 for left, right in zip(polls[::2], polls[1::2])))
+    terminal_poll_read = (bool(polls) and bool(finalizes) and any(
+        index > max(polls) and index < min(finalizes) for index in reads))
+    cleanup_read_between = (cleanup_status == "NOT_REQUIRED" or len(cleanups) == 2 and any(
+        cleanups[0] < index < cleanups[1] for index in reads))
     if (not polls or not reads or len(dispatches) != 2 or len(finalizes) != 2
             or not paired_polls
+            or not terminal_poll_read
+            or not cleanup_read_between
             or [row.get("extra_enabled") for row in dispatch_checks] != [True, False]
             or any(row.get("extra_enabled_policy_sha256") != extra["enabled_policy_sha256"]
                    or row.get("extra_disabled_policy_sha256") !=

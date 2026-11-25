@@ -1449,7 +1449,7 @@ def source_setup_artifact(state, public):
         primary_stages.append("enable")
     primary_stages.extend(["dispatch", "read", "dispatch", "poll", "poll", "read", "finalize"])
     if public["cleanup"]["status"] == "RESTORED_DISABLED":
-        primary_stages.extend(["cleanup", "cleanup"])
+        primary_stages.extend(["cleanup", "read", "cleanup", "read"])
     primary_stages.extend(["finalize", "release"])
     first_dispatch = primary_stages.index("dispatch")
     transition_read = next(index for index in range(first_dispatch + 1, len(primary_stages))
@@ -1521,6 +1521,7 @@ def source_setup_controlled(artifact):
 def actual_composed_source_setup_trace(tmp_path, *, provider="wwr", existing_primary=False):
     """Run the real public producer and composed guards through a deterministic fake Page."""
     from tests.browser import test_acceptance_source_setup as producer
+    from cli import acceptance_public_source
 
     current = {"api": None}
 
@@ -1624,6 +1625,8 @@ def actual_composed_source_setup_trace(tmp_path, *, provider="wwr", existing_pri
 
     original_init = producer._PublicSetupAPI.__init__
     original_compose = producer.compose_owned_public_containment
+    original_run = acceptance_public_source.run
+    timeline = []
     def initialize_api(api, selected_provider, **options):
         original_init(api, selected_provider, **options)
         current["api"] = api
@@ -1640,10 +1643,40 @@ def actual_composed_source_setup_trace(tmp_path, *, provider="wwr", existing_pri
             return composed(stage, context)
         return call
 
+    def run_with_public_timeline(*args, **options):
+        containment = options["containment_preflight"]
+        request = options["request"]
+        def traced_containment(stage, context):
+            timeline.append(("guard", stage))
+            return containment(stage, context)
+        def traced_request(method, path, **kwargs):
+            timeline.append(("request", method, path))
+            return request(method, path, **kwargs)
+        options["containment_preflight"] = traced_containment
+        options["request"] = traced_request
+        return original_run(*args, **options)
+
     with patch.object(producer, "sync_playwright", FakePlaywright), \
             patch.object(producer._PublicSetupAPI, "__init__", initialize_api), \
-            patch.object(producer, "compose_owned_public_containment", compose_with_observed_release):
-        return producer._run_public_setup_join(tmp_path, provider)
+            patch.object(producer, "compose_owned_public_containment", compose_with_observed_release), \
+            patch.object(acceptance_public_source, "run", run_with_public_timeline):
+        observed = producer._run_public_setup_join(tmp_path, provider)
+        observed["callback_request_timeline"] = timeline
+        return observed
+
+
+def assert_public_dispatch_post_poll_order(observed):
+    timeline = observed["callback_request_timeline"]
+    dispatches = [index for index, event in enumerate(timeline)
+                  if event[:2] == ("guard", "dispatch")]
+    polls = [index for index, event in enumerate(timeline) if event[:2] == ("guard", "poll")]
+    source_id = observed["public"]["source_id"]
+    posts = [index for index, event in enumerate(timeline)
+             if event == ("request", "POST", f"/sources/{source_id}/collect")]
+    assert sum(method == "POST" and path.endswith("/collect")
+               for method, path, _ in observed["calls"]) == 1
+    assert len(dispatches) == 2 and len(posts) == 1 and len(polls) >= 2
+    assert dispatches[1] < posts[0] < polls[0]
 
 
 @pytest.mark.parametrize("provider", ["wwr", "remotive"])
@@ -1652,6 +1685,7 @@ def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(tmp_path, p
     state, public, artifact = observed["baseline"], observed["public"], observed["setup"]
     assert public["result"] == "PASS" and artifact is not None
     assert public["cleanup"]["status"] == "RESTORED_DISABLED"
+    assert_public_dispatch_post_poll_order(observed)
     row = journey.validate_source_setup_artifact(artifact, state, public, observed["target"], observed["runtime"])
     assert row["step"] == 9 and row["status"] == "NOT_RUN"
 
@@ -1662,6 +1696,7 @@ def test_source_setup_accepts_existing_enabled_primary_without_cleanup_guards(tm
     state, public, artifact = observed["baseline"], observed["public"], observed["setup"]
     assert public["result"] == "PASS" and artifact is not None
     assert public["cleanup"]["status"] == "NOT_REQUIRED"
+    assert_public_dispatch_post_poll_order(observed)
     row = journey.validate_source_setup_artifact(artifact, state, public, observed["target"], observed["runtime"])
     assert row["step"] == 9 and row["status"] == "NOT_RUN"
 
@@ -1679,24 +1714,49 @@ def test_actual_composed_trace_records_guarded_transition_and_paired_polls(tmp_p
                for row in checks[first + 1:second])
     assert len(polls) >= 2 and len(polls) % 2 == 0
     assert all(right == left + 1 for left, right in zip(polls[::2], polls[1::2]))
+    terminal_poll = max(polls)
+    first_finalize = next(index for index, row in enumerate(checks) if row["stage"] == "finalize")
+    first_cleanup, second_cleanup = [index for index, row in enumerate(checks) if row["stage"] == "cleanup"]
+    assert any(row["stage"] == "read" for row in checks[terminal_poll + 1:first_finalize])
+    assert any(row["stage"] == "read" for row in checks[first_cleanup + 1:second_cleanup])
 
 
-@pytest.mark.parametrize("mutation", ["extra-dispatch", "single-poll", "missing-disable-readback"])
+@pytest.mark.parametrize("mutation", ["extra-dispatch", "single-poll", "missing-disable-readback",
+                                       "terminal-poll-finalize", "adjacent-cleanup-guards"])
 def test_source_setup_rejects_malformed_actual_producer_trace(tmp_path, mutation):
     observed = actual_composed_source_setup_trace(tmp_path)
     artifact = observed["setup"]
     checks = artifact["primary_containment_checks"]
+    checked_at = [row["checked_at"] for row in checks]
     dispatches = [index for index, row in enumerate(checks) if row["stage"] == "dispatch"]
     if mutation == "extra-dispatch":
         checks.insert(dispatches[0] + 1, copy.deepcopy(checks[dispatches[0]]))
     elif mutation == "single-poll":
         poll = next(index for index in reversed(range(len(checks))) if checks[index]["stage"] == "poll")
         checks.pop(poll)
+    elif mutation == "terminal-poll-finalize":
+        polls = [index for index, row in enumerate(checks) if row["stage"] == "poll"]
+        terminal_read = next(index for index in range(polls[-1] + 1, len(checks))
+                             if checks[index]["stage"] == "read")
+        first_finalize = next(index for index, row in enumerate(checks) if row["stage"] == "finalize")
+        assert checks[terminal_read + 1]["stage"] == "read"
+        checks[polls[0]]["stage"] = "read"
+        checks[terminal_read]["stage"] = "poll"
+        checks[terminal_read + 1]["stage"] = "finalize"
+        checks[first_finalize]["stage"] = "read"
+    elif mutation == "adjacent-cleanup-guards":
+        cleanups = [index for index, row in enumerate(checks) if row["stage"] == "cleanup"]
+        between = next(index for index in range(cleanups[0] + 1, cleanups[1])
+                       if checks[index]["stage"] == "read")
+        checks[between]["stage"] = "cleanup"
+        checks[cleanups[1]]["stage"] = "read"
     else:
         for row in checks[dispatches[0] + 1:dispatches[1]]:
             if row["stage"] == "read" and row["extra_enabled"] is False:
                 row["extra_enabled"] = True
                 row["extra_disabled_policy_sha256"] = None
+    if mutation in {"terminal-poll-finalize", "adjacent-cleanup-guards"}:
+        assert [row["checked_at"] for row in checks] == checked_at
     with pytest.raises(ValueError):
         journey.validate_source_setup_artifact(artifact, observed["baseline"], observed["public"],
             observed["target"], observed["runtime"])
