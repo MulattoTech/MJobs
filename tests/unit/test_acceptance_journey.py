@@ -1447,17 +1447,26 @@ def source_setup_artifact(state, public):
     primary_stages = ["preflight"]
     if public["cleanup"]["status"] == "RESTORED_DISABLED":
         primary_stages.append("enable")
-    primary_stages.extend(["dispatch", "dispatch", "poll", "read", "finalize"])
+    primary_stages.extend(["dispatch", "read", "dispatch", "poll", "poll", "read", "finalize"])
     if public["cleanup"]["status"] == "RESTORED_DISABLED":
         primary_stages.extend(["cleanup", "cleanup"])
     primary_stages.extend(["finalize", "release"])
-    for stage in primary_stages:
+    first_dispatch = primary_stages.index("dispatch")
+    transition_read = next(index for index in range(first_dispatch + 1, len(primary_stages))
+                           if primary_stages[index] == "read")
+    for index, stage in enumerate(primary_stages):
         row = {**binding, "stage": stage, "verified": True, **flags,
             "owner": "fixture-owner", "token_sha256": "7" * 64, "lease_expires_at": expiry,
             "checked_at": artifact["timestamp"], "receipt": {**flags, "lease_expires_at": expiry}}
         if stage == "preflight":
             row.update(primary_source_id=None, primary_policy_sha256=None,
                 extra_source_id=None, extra_enabled_policy_sha256=None, extra_disabled_policy_sha256=None)
+        else:
+            enabled = index < transition_read
+            row.update(extra_source_id=extra["source_id"],
+                extra_enabled_policy_sha256=extra["enabled_policy_sha256"],
+                extra_disabled_policy_sha256=None if enabled else extra["disabled_policy_sha256"],
+                extra_enabled=enabled)
         if stage == "release":
             row.update(**{key: False for key in flags}, owner=None, token_sha256=None,
                        lease_expires_at=None, receipt=release)
@@ -1509,22 +1518,188 @@ def source_setup_controlled(artifact):
     return artifact
 
 
+def actual_composed_source_setup_trace(tmp_path, *, provider="wwr", existing_primary=False):
+    """Run the real public producer and composed guards through a deterministic fake Page."""
+    from tests.browser import test_acceptance_source_setup as producer
+
+    current = {"api": None}
+
+    class Request:
+        def __init__(self, url, method, body):
+            self.url, self.method = url, method
+            self.post_data = json.dumps(body) if body is not None else None
+            self.post_data_json = body
+
+    class Route:
+        def __init__(self, request, previous):
+            self.request, self.previous, self.response = request, previous, None
+        def fulfill(self, **response):
+            self.response = response
+        def abort(self):
+            raise AssertionError("controlled source UI requested a blocked route")
+        def fallback(self):
+            assert self.previous is not None
+            self.previous(self)
+
+    class Locator:
+        def __init__(self, page, name, text=None):
+            self.page, self.name, self.text, self.first = page, name, text, self
+        def get_by_role(self, role, name=None, exact=False):
+            return Locator(self.page, name, self.text)
+        def filter(self, has_text):
+            return Locator(self.page, self.name, has_text)
+        def count(self):
+            if self.text is None:
+                return 1
+            return sum(self.text in row["provider"] + " / " + row["tenant"]
+                       for row in current["api"].sources)
+        def wait_for(self, **kwargs):
+            return None
+        def select_option(self, value):
+            self.page.fields[self.name] = value
+        def fill(self, value):
+            self.page.fields[self.name] = value
+        def click(self):
+            if self.name == "Add source":
+                fields = self.page.fields
+                self.page.request("PUT", "/sources", {
+                    "provider": fields["Source provider"], "tenant": "default", "enabled": True,
+                    "poll_interval": int(fields["Interval (minutes)"]) * 60,
+                    "request_timeout": int(fields["Request timeout (seconds)"]),
+                    "rate_limit": int(fields["Rate limit (requests/minute)"]),
+                    "concurrency": int(fields["Source concurrency"]),
+                    "jitter_seconds": int(fields["Schedule jitter (seconds)"]),
+                })
+            elif self.name == "Disable":
+                row = next(row for row in current["api"].sources
+                           if self.text in row["provider"] + " / " + row["tenant"])
+                policy = {key: row[key] for key in (
+                    "provider", "tenant", "poll_interval", "concurrency", "request_timeout",
+                    "rate_limit", "jitter_seconds")}
+                self.page.request("PUT", "/sources", {**policy, "enabled": False})
+
+    class Page:
+        def __init__(self):
+            self.handlers, self.origin = [], ""
+            self.fields = {"Interval (minutes)": "60", "Request timeout (seconds)": "10",
+                "Rate limit (requests/minute)": "60", "Source concurrency": "1",
+                "Schedule jitter (seconds)": "30"}
+        def route(self, pattern, handler):
+            self.handlers.append(handler)
+        def request(self, method, path, body=None):
+            previous = self.handlers[-2] if len(self.handlers) > 1 else None
+            route = Route(Request(self.origin + path, method, body), previous)
+            self.handlers[-1](route)
+            if path == "/":
+                return {}
+            return json.loads(route.response["body"]) if route.response and "body" in route.response else {}
+        def goto(self, url, **kwargs):
+            self.origin = url.rstrip("/")
+            self.request("GET", "/")
+        def reload(self, **kwargs):
+            self.request("GET", "/")
+        def get_by_role(self, role, name=None, exact=False):
+            return Locator(self, name)
+        def get_by_label(self, name=None, exact=False):
+            return Locator(self, name)
+        def get_by_text(self, text=None, exact=False):
+            return Locator(self, text)
+        def locator(self, selector):
+            return Locator(self, selector)
+
+    class Browser:
+        def new_page(self):
+            return Page()
+        def close(self):
+            return None
+    class Chromium:
+        def launch(self, **kwargs):
+            return Browser()
+    class FakePlaywright:
+        chromium = Chromium()
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return None
+
+    original_init = producer._PublicSetupAPI.__init__
+    original_compose = producer.compose_owned_public_containment
+    def initialize_api(api, selected_provider, **options):
+        original_init(api, selected_provider, **options)
+        current["api"] = api
+        if existing_primary:
+            api.request("PUT", "/sources", json={"provider": selected_provider, "tenant": "default",
+                "enabled": True, "poll_interval": 604800, "concurrency": 1,
+                "request_timeout": 10, "rate_limit": 1, "jitter_seconds": 0})
+
+    def compose_with_observed_release(*args, **options):
+        composed = original_compose(*args, **options)
+        def call(stage, context):
+            if stage == "release" and context.get("cleanup_status") == "NOT_REQUIRED":
+                context = {**context, "newly_created": False}
+            return composed(stage, context)
+        return call
+
+    with patch.object(producer, "sync_playwright", FakePlaywright), \
+            patch.object(producer._PublicSetupAPI, "__init__", initialize_api), \
+            patch.object(producer, "compose_owned_public_containment", compose_with_observed_release):
+        return producer._run_public_setup_join(tmp_path, provider)
+
+
 @pytest.mark.parametrize("provider", ["wwr", "remotive"])
-def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(provider):
-    state, public = baseline(), public_artifact(provider)
-    artifact = source_setup_artifact(state, public)
-    row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
-    assert row["step"] == 9 and row["status"] == "PASS"
+def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(tmp_path, provider):
+    observed = actual_composed_source_setup_trace(tmp_path, provider=provider)
+    state, public, artifact = observed["baseline"], observed["public"], observed["setup"]
+    assert public["result"] == "PASS" and artifact is not None
+    assert public["cleanup"]["status"] == "RESTORED_DISABLED"
+    row = journey.validate_source_setup_artifact(artifact, state, public, observed["target"], observed["runtime"])
+    assert row["step"] == 9 and row["status"] == "NOT_RUN"
 
 
-def test_source_setup_accepts_existing_enabled_primary_without_cleanup_guards():
-    state, public = baseline(), public_artifact()
-    public["cleanup"]["status"] = "NOT_REQUIRED"
-    artifact = source_setup_artifact(state, public)
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_source_setup_accepts_existing_enabled_primary_without_cleanup_guards(tmp_path, provider):
+    observed = actual_composed_source_setup_trace(tmp_path, provider=provider, existing_primary=True)
+    state, public, artifact = observed["baseline"], observed["public"], observed["setup"]
+    assert public["result"] == "PASS" and artifact is not None
+    assert public["cleanup"]["status"] == "NOT_REQUIRED"
+    row = journey.validate_source_setup_artifact(artifact, state, public, observed["target"], observed["runtime"])
+    assert row["step"] == 9 and row["status"] == "NOT_RUN"
 
-    row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
 
-    assert row["step"] == 9 and row["status"] == "PASS"
+def test_actual_composed_trace_records_guarded_transition_and_paired_polls(tmp_path):
+    observed = actual_composed_source_setup_trace(tmp_path)
+    checks = observed["setup"]["primary_containment_checks"]
+    dispatches = [row for row in checks if row["stage"] == "dispatch"]
+    polls = [index for index, row in enumerate(checks) if row["stage"] == "poll"]
+    assert len(dispatches) == 2
+    assert [row["extra_enabled"] for row in dispatches] == [True, False]
+    first, second = (checks.index(row) for row in dispatches)
+    assert any(row["stage"] == "read" and row["extra_enabled"] is False
+               and row["extra_disabled_policy_sha256"] == observed["setup"]["owned_extra"]["disabled_policy_sha256"]
+               for row in checks[first + 1:second])
+    assert len(polls) >= 2 and len(polls) % 2 == 0
+    assert all(right == left + 1 for left, right in zip(polls[::2], polls[1::2]))
+
+
+@pytest.mark.parametrize("mutation", ["extra-dispatch", "single-poll", "missing-disable-readback"])
+def test_source_setup_rejects_malformed_actual_producer_trace(tmp_path, mutation):
+    observed = actual_composed_source_setup_trace(tmp_path)
+    artifact = observed["setup"]
+    checks = artifact["primary_containment_checks"]
+    dispatches = [index for index, row in enumerate(checks) if row["stage"] == "dispatch"]
+    if mutation == "extra-dispatch":
+        checks.insert(dispatches[0] + 1, copy.deepcopy(checks[dispatches[0]]))
+    elif mutation == "single-poll":
+        poll = next(index for index in reversed(range(len(checks))) if checks[index]["stage"] == "poll")
+        checks.pop(poll)
+    else:
+        for row in checks[dispatches[0] + 1:dispatches[1]]:
+            if row["stage"] == "read" and row["extra_enabled"] is False:
+                row["extra_enabled"] = True
+                row["extra_disabled_policy_sha256"] = None
+    with pytest.raises(ValueError):
+        journey.validate_source_setup_artifact(artifact, observed["baseline"], observed["public"],
+            observed["target"], observed["runtime"])
 
 
 def test_source_setup_rejects_dispatch_after_cleanup_before_second_finalize():

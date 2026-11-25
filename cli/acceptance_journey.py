@@ -833,7 +833,21 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime, 
     cleanups = [index for index, stage in enumerate(stages) if stage == "cleanup"]
     cleanup_count = 2 if cleanup_status == "RESTORED_DISABLED" else 0
     enables = [index for index, stage in enumerate(stages) if stage == "enable"]
+    dispatch_checks = [checks[index] for index in dispatches]
+    disabled_transition = (len(dispatches) == 2 and any(
+        row.get("stage") == "read" and row.get("extra_enabled") is False
+        and row.get("extra_disabled_policy_sha256") == extra["disabled_policy_sha256"]
+        for row in checks[dispatches[0] + 1:dispatches[1]]))
+    paired_polls = (len(polls) >= 2 and len(polls) % 2 == 0
+        and all(right == left + 1 for left, right in zip(polls[::2], polls[1::2])))
     if (not polls or not reads or len(dispatches) != 2 or len(finalizes) != 2
+            or not paired_polls
+            or [row.get("extra_enabled") for row in dispatch_checks] != [True, False]
+            or any(row.get("extra_enabled_policy_sha256") != extra["enabled_policy_sha256"]
+                   or row.get("extra_disabled_policy_sha256") !=
+                       (None if index == 0 else extra["disabled_policy_sha256"])
+                   for index, row in enumerate(dispatch_checks))
+            or not disabled_transition
             or len(cleanups) != cleanup_count
             or (cleanup_status == "RESTORED_DISABLED" and (len(enables) != 1 or enables[0] >= min(dispatches)))
             or (cleanup_status == "NOT_REQUIRED" and enables)
