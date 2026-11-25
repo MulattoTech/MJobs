@@ -37,10 +37,12 @@ def select_files(root: Path, suite: str, index: int, count: int) -> list[str]:
     folder = root / 'tests' / suite
     files = sorted(set(folder.rglob('test_*.py')) | set(folder.rglob('*_test.py')))
     paths = [path.relative_to(root).as_posix() for path in files]
-    profile = root / 'tools/ci/integration_timings.json'
-    if suite == 'integration' and profile.is_file():
+    profile = root / f'tools/ci/{suite}_timings.json'
+    if profile.is_file():
         data = json.loads(profile.read_text(encoding='utf-8'))
-        targets, timings = target_weights(paths, data['seconds'], data.get('case_seconds', {}))
+        targets, timings = paths, data['seconds']
+        if suite == 'integration':
+            targets, timings = target_weights(paths, timings, data.get('case_seconds', {}))
         return weighted_groups(targets, count, timings)[index]
     return [path for n, path in enumerate(paths) if n % count == index]
 
@@ -73,7 +75,7 @@ def main() -> int:
         env['MJOBS_CI_EXCLUDE_NODES'] = json.dumps(excluded)
         command.extend(['-p', 'tools.ci.shard_selection', '--durations=20', '--durations-min=0.5'])
     result = subprocess.run(command, cwd=ROOT, env=env, check=False).returncode
-    if result == 0 and args.suite == 'integration':
+    if result == 0:
         observed = report_timings(report, selected, split=split)
         if set(observed) != set(selected):
             raise ValueError(f'Missing integration reports for: {sorted(set(selected) - observed.keys())}')

@@ -71,6 +71,22 @@ class PublicCITests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 select_files(self.root, *args)
 
+    def test_browser_profile_changes_assignment_without_losing_files(self):
+        import json
+
+        folder = self.root / 'tests/browser'
+        folder.mkdir(parents=True)
+        profile = self.root / 'tools/ci/browser_timings.json'
+        profile.parent.mkdir(parents=True)
+        paths = [f'tests/browser/test_{i}.py' for i in range(6)]
+        for path in paths:
+            (self.root / path).touch()
+        profile.write_text(json.dumps({'seconds': dict(zip(paths, [100, 1, 100, 1, 1, 1]))}))
+        groups = [select_files(self.root, 'browser', index, 2) for index in range(2)]
+        self.assertEqual(sorted(path for group in groups for path in group), paths)
+        self.assertFalse({paths[0], paths[2]} <= set(groups[0]))
+        self.assertFalse({paths[0], paths[2]} <= set(groups[1]))
+
     def test_junit_counts_keep_failures_and_skips(self):
         path = self.root / 'x.xml'
         path.write_text('<testsuites><testsuite tests="10" failures="2" errors="1" skipped="3"/></testsuites>')

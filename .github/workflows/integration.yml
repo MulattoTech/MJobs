@@ -11,7 +11,7 @@ on:
         description: Full-suite shard count for manual benchmarking only
         type: choice
         options: ['3', '4', '6', '8', '10', '12']
-        default: '10'
+        default: '8'
 permissions:
   contents: read
 concurrency:
@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       max-parallel: 12
       matrix:
-        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '6' && '[0,1,2,3,4,5]' || inputs.shards == '8' && '[0,1,2,3,4,5,6,7]' || inputs.shards == '12' && '[0,1,2,3,4,5,6,7,8,9,10,11]' || '[0,1,2,3,4,5,6,7,8,9]') }}
+        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '6' && '[0,1,2,3,4,5]' || inputs.shards == '10' && '[0,1,2,3,4,5,6,7,8,9]' || inputs.shards == '12' && '[0,1,2,3,4,5,6,7,8,9,10,11]' || '[0,1,2,3,4,5,6,7]') }}
     services:
       postgres:
         image: postgres:17

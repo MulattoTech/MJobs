@@ -10,12 +10,19 @@ class VisitOracle:
     def __init__(self, test, store, origin, expected):
         self.test = test
         self.store = store
+        self.origin = origin
         self.expected = list(expected)
         self.urls = [f'{origin}/profiles/{profile}/jobs/{job}/view'
                      for profile, job in self.expected]
         self.requests = []
         self.receipts = []
         test.assertEqual(self.rows(), [])
+
+    def expect_open(self, profile, job):
+        """Declare the next intended action before observing any network request."""
+        self.test.assertEqual(len(self.receipts), len(self.expected))
+        self.expected.append((profile, job))
+        self.urls.append(f'{self.origin}/profiles/{profile}/jobs/{job}/view')
 
     def rows(self):
         with self.store.engine.connect() as connection:
