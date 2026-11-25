@@ -21,6 +21,7 @@ from services.discovery.manual_capture import capture_manual_job
 from services.discovery.matching import recalculate
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.search_semantics import evaluate_search
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -182,6 +183,10 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
             requests = []
             external_requests = []
             blocked_writes = []
+            visits = VisitOracle(self, store, origin, [
+                ("fixture", first_job_id), ("fixture", first_job_id),
+                ("fixture", second_job_id), ("other", first_job_id),
+            ])
             submission_requests = []
             actual_first_attempts = []
             fail_first_saved_response = True
@@ -210,6 +215,9 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                         if parsed.netloc != origin_netloc:
                             external_requests.append(request.url)
                             route.abort()
+                            return
+                        if visits.admit(request):
+                            route.continue_()
                             return
                         requests.append({
                             "method": request.method,
@@ -263,7 +271,9 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     first_card = page.locator(".job-card").filter(
                         has_text="Synthetic Systems Administrator Feedback Role",
                     )
-                    first_card.click()
+                    with visits.response(page) as visit_response:
+                        first_card.click()
+                    visits.verify(visit_response.value)
                     feedback = page.get_by_role("region", name="Job match feedback")
                     category = feedback.get_by_label("Feedback category", exact=True)
                     save = feedback.get_by_role("button", name="Save feedback", exact=True)
@@ -378,9 +388,11 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             urlsplit(response.url).path == feedback_url
                             and response.request.method == "GET") as readback:
-                        page.locator(".job-card").filter(
-                            has_text="Synthetic Systems Administrator Feedback Role",
-                        ).click()
+                        with visits.response(page) as visit_response:
+                            page.locator(".job-list .job-card").filter(
+                                has_text="Synthetic Systems Administrator Feedback Role",
+                            ).click()
+                        visits.verify(visit_response.value)
                     self.assertEqual(readback.value.status, 200, readback.value.text())
                     history = readback.value.json()
                     self.assertEqual(history["profile_id"], "fixture")
@@ -399,9 +411,11 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             urlsplit(response.url).path == second_feedback_url
                             and response.request.method == "GET") as second_job_history:
-                        page.locator(".job-card").filter(
-                            has_text="Synthetic Linux Project Coordinator Feedback Role",
-                        ).click()
+                        with visits.response(page) as visit_response:
+                            page.locator(".job-list .job-card").filter(
+                                has_text="Synthetic Linux Project Coordinator Feedback Role",
+                            ).click()
+                        visits.verify(visit_response.value)
                     self.assertEqual(second_job_history.value.status, 200)
                     self.assertEqual(second_job_history.value.json()["items"], [])
                     self.assertIsNone(second_job_history.value.json()["latest"])
@@ -420,9 +434,11 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             urlsplit(response.url).path == other_feedback_url
                             and response.request.method == "GET") as other_profile_history:
-                        page.locator(".job-card").filter(
-                            has_text="Synthetic Systems Administrator Feedback Role",
-                        ).click()
+                        with visits.response(page) as visit_response:
+                            page.locator(".job-list .job-card").filter(
+                                has_text="Synthetic Systems Administrator Feedback Role",
+                            ).click()
+                        visits.verify(visit_response.value)
                     self.assertEqual(other_profile_history.value.status, 200)
                     self.assertEqual(other_profile_history.value.json()["items"], [])
                     expect(page.get_by_role("region", name="Job match feedback").get_by_role(
@@ -430,6 +446,7 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     )).to_have_count(0)
 
                     self.assertFalse(fail_first_saved_response)
+                    visits.finish()
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(submission_requests, [])

@@ -1,12 +1,14 @@
 """Connected local Chromium journey: edit native weights, reload and explain ranking."""
 import threading
 import time
+import unittest
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from fixtures.browser_ports import bound_browser_socket
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_preference_weighting import (
     CONFIG_URL, app_for, create_workspace, criteria, rescore,
 )
@@ -20,6 +22,7 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
     server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     outside_requests, forbidden_writes, saved_requests = [], [], []
+    visits = VisitOracle(unittest.TestCase(), store, origin, [("fixture", "aligned-job")])
     try:
         thread.start()
         deadline = time.monotonic() + 10
@@ -38,6 +41,8 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
                     route.abort()
                 elif request.method == "PUT" and parsed.path == CONFIG_URL:
                     saved_requests.append(request.post_data_json)
+                    route.continue_()
+                elif visits.admit(request):
                     route.continue_()
                 elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                     forbidden_writes.append((request.method, parsed.path))
@@ -77,7 +82,9 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
             expect(editor.get_by_label("Remote work region weight", exact=True)).to_have_value("10")
             expect(editor.get_by_label("Title weight", exact=True)).to_have_value("10")
             with page.expect_response(lambda r: urlsplit(r.url).path.endswith("/aligned-job/match-explanation")) as explained:
-                page.locator(".job-card").filter(has_text="Systems Administrator").click()
+                with visits.response(page) as visit_response:
+                    page.locator(".job-list .job-card").filter(has_text="Systems Administrator").click()
+                visits.verify(visit_response.value)
             body = explained.value.json()
             assert explained.value.status == 200
             assert body["score"] == 75
@@ -87,6 +94,7 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
             expect(contributions).to_contain_text("DETERMINISTIC_PROFILE_JOB_FIT")
             expect(contributions).to_contain_text("match:fit_factors/remote_location")
             assert len(saved_requests) == 1
+            visits.finish()
             assert outside_requests == [] and forbidden_writes == []
             context.close()
             browser.close()
