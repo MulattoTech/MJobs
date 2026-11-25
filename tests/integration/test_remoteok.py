@@ -6,9 +6,11 @@ import time
 import unittest
 
 import httpx
+from fastapi.testclient import TestClient
 from workers.operations import OperationCancelled
 from sqlalchemy import select
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.sources.contract import (
@@ -18,6 +20,7 @@ from services.discovery.sources.contract import (
 from services.discovery.sources.remoteok import RemoteOK, SourceError
 from services.discovery.sources.collect import configure_source, collect_source
 from services.discovery.sources.registry import source_adapter
+from services.discovery.search_semantics import filter_jobs
 from tests.integration.test_spine import PROFILE
 
 RAW_REMOTEOK_PAYLOAD = [
@@ -66,6 +69,7 @@ class RemoteOKTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
         self.requests = []
 
@@ -126,6 +130,184 @@ class RemoteOKTests(unittest.TestCase):
         self.assertEqual(attrs["salary_period"], "YEAR")
         self.assertEqual(attrs["salary_source"], "SOURCE_PROVIDED")
         self.assertEqual(attrs["reported_posted_at"], "2026-10-05T13:00:02+00:00")
+
+    def test_search_preserves_remote_region_evidence_and_unknown_locations(self):
+        payload = [
+            {"id": "us", "position": "US Engineer", "company": "A", "location": "USA Only"},
+            {"id": "ca", "position": "CA Engineer", "company": "B", "location": "Canada Only"},
+            {"id": "world", "position": "Global Engineer", "company": "C", "location": "Worldwide"},
+            {"id": "unknown", "position": "Remote Engineer", "company": "D", "location": "Various"},
+            {"id": "malformed", "position": "Remote Engineer", "company": "E",
+             "location": ["USA Only"], "description": "Remote worldwide for global applicants."},
+        ]
+        adapter = RemoteOK(transport=httpx.MockTransport(
+            lambda _: httpx.Response(200, json=payload)))
+
+        batch = adapter.search()
+        normalized = {item.raw["id"]: adapter.normalize(item.raw) for item in batch.items}
+
+        self.assertEqual(normalized["us"]["attributes"]["remote_regions"], ["US"])
+        self.assertEqual(normalized["ca"]["attributes"]["remote_regions"], ["CA"])
+        self.assertEqual(normalized["world"]["attributes"]["remote_regions"], ["WORLDWIDE"])
+        self.assertEqual(normalized["unknown"]["attributes"]["remote_regions"], [])
+        self.assertEqual(normalized["malformed"]["location"], "Unknown")
+        self.assertEqual(normalized["malformed"]["attributes"]["remote_regions"], [])
+
+    def test_structured_region_wins_conflicting_description_through_collection_and_filter(self):
+        raw = {
+            "id": "region-conflict", "position": "Remote Engineer", "company": "Region Test Co",
+            "location": "USA Only",
+            "description": "Remote Canada only; this worldwide team welcomes global applicants.",
+            "url": "https://remoteok.com/remote-jobs/region-conflict",
+        }
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, json=[raw]))
+
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        with self.store.engine.connect() as connection:
+            persisted = connection.execute(select(m.jobs)).mappings().one()
+        job = {
+            "title": persisted["title"], "description": persisted["description"],
+            "location": persisted["location"], "remote_type": persisted["remote_type"],
+            "skills": [], "company": "Region Test Co", "attributes": persisted["attributes"],
+        }
+        self.assertEqual(job["location"], "USA Only")
+        self.assertEqual(job["attributes"]["remote_regions"], ["US"])
+        self.assertEqual(len(filter_jobs([job], {"remote_regions": ["US"]})), 1)
+        self.assertEqual(filter_jobs([job], {"remote_regions": ["CA"]}), [])
+
+    def test_structured_location_regions_fail_closed_and_gate_profile_filters(self):
+        display_cutoff_exclusion = "Worldwide" + " " * 1000 + "except USA"
+        raw_cutoff_exclusion = "Worldwide" + " " * 500_000 + "except USA"
+        payload = [
+            {"id": "structured-us", "position": "Structured US", "company": "US Co",
+             "location": "USA Only", "description": "Applicants must reside in Canada."},
+            {"id": "structured-ca", "position": "Structured Canada", "company": "CA Co",
+             "location": "Canada Only", "description": "Applicants must reside in the US."},
+            {"id": "structured-world", "position": "Structured Worldwide", "company": "World Co",
+             "location": "Worldwide", "description": "Applicants must reside in Canada."},
+            {"id": "structured-states", "position": "Structured States", "company": "States Co",
+             "location": "TX, OK, AR, KS", "description": "Applicants must reside in Canada."},
+            {"id": "world-except-us", "position": "Worldwide Except US", "company": "Except Co",
+             "location": "Worldwide except USA", "description": ""},
+            {"id": "conditional", "position": "Conditional US", "company": "Conditional Co",
+             "location": "USA Only if applicants reside in Canada", "description": ""},
+            {"id": "mixed", "position": "Mixed Regions", "company": "Mixed Co",
+             "location": "USA and Canada", "description": ""},
+            {"id": "bad-states", "position": "Invalid State List", "company": "Invalid State Co",
+             "location": "TX, ZZ, OK", "description": ""},
+            {"id": "display-cutoff", "position": "Display Cutoff", "company": "Display Cutoff Co",
+             "location": display_cutoff_exclusion, "description": ""},
+            {"id": "raw-cutoff", "position": "Raw Cutoff", "company": "Raw Cutoff Co",
+             "location": raw_cutoff_exclusion, "description": ""},
+            {"id": "generic-description", "position": "Description Geography", "company": "Description Co",
+             "location": "Remote", "description": "Applicants must reside in Canada."},
+            {"id": "malformed-description", "position": "Malformed Location", "company": "Malformed Co",
+             "location": ["Remote"], "description": "Applicants must reside in Canada."},
+        ]
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, json=payload))
+
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(select(m.jobs)).mappings().all()
+        by_title = {row["title"]: row for row in rows}
+        expected_regions = {
+            "Structured US": ["US"], "Structured Canada": ["CA"],
+            "Structured Worldwide": ["WORLDWIDE"],
+            "Structured States": ["AR", "KS", "OK", "TX"],
+        }
+        for title, regions in expected_regions.items():
+            self.assertEqual(by_title[title]["attributes"]["remote_regions"], regions)
+            self.assertEqual(by_title[title]["remote_type"], "REMOTE")
+        unknown_titles = {
+            "Worldwide Except US", "Conditional US", "Mixed Regions", "Invalid State List",
+            "Display Cutoff", "Raw Cutoff", "Description Geography", "Malformed Location",
+        }
+        for title in unknown_titles:
+            with self.subTest(title=title):
+                attributes = by_title[title]["attributes"]
+                self.assertEqual(attributes["remote_regions"], [])
+                self.assertIsNone(attributes["country"])
+                self.assertIsNone(attributes["state"])
+                self.assertIsNone(attributes["city"])
+                self.assertEqual(by_title[title]["remote_type"], "REMOTE")
+        self.assertEqual(by_title["Worldwide Except US"]["location"], "Worldwide except USA")
+        self.assertEqual(by_title["Conditional US"]["location"],
+                         "USA Only if applicants reside in Canada")
+        self.assertEqual(by_title["Mixed Regions"]["location"], "USA and Canada")
+        self.assertEqual(by_title["Invalid State List"]["location"], "TX, ZZ, OK")
+        for title in ("Display Cutoff", "Raw Cutoff"):
+            self.assertTrue(by_title[title]["location"].startswith("Worldwide"))
+            self.assertLessEqual(len(by_title[title]["location"]), 1000)
+        self.assertEqual(by_title["Description Geography"]["location"], "Remote")
+        self.assertEqual(by_title["Description Geography"]["description"],
+                         "Applicants must reside in Canada.")
+        self.assertEqual(by_title["Malformed Location"]["location"], "Unknown")
+
+        for region, expected_titles in {
+            "US": {"Structured US"}, "CA": {"Structured Canada"},
+            "WORLDWIDE": {"Structured Worldwide"}, "TX": {"Structured States"},
+        }.items():
+            with self.subTest(region=region):
+                matches = self.store.jobs(search_criteria={"remote_regions": [region]})
+                self.assertEqual({job["title"] for job in matches}, expected_titles)
+
+    def test_multistate_residency_uses_remote_regions_in_saved_searches(self):
+        payload = [
+            {"id": "ca-tx", "position": "State Restricted", "company": "States Co",
+             "location": "CA, TX"},
+            {"id": "canada", "position": "Canada Restricted", "company": "Canada Co",
+             "location": "Canada Only"},
+        ]
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, json=payload))
+
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        cases = (
+            ("canada", "remote_regions", ["CA"], {"Canada Restricted"}),
+            ("california", "remote_regions", ["California"], {"State Restricted"}),
+            ("texas", "remote_regions", ["TX"], {"State Restricted"}),
+            ("two-states", "remote_regions", ["California", "TX"], {"State Restricted"}),
+            ("mixed", "remote_regions", ["CA", "TX"], {"Canada Restricted", "State Restricted"}),
+            ("nationwide", "remote_regions", ["US"], set()),
+            ("physical-california", "states", ["CA"], set()),
+            ("physical-texas", "states", ["TX"], set()),
+        )
+        app = create_app(self.store, "http://127.0.0.1:1", self.root,
+                         "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+        with TestClient(app) as client:
+            for name, field, values, expected_titles in cases:
+                with self.subTest(search=name):
+                    saved = client.put("/search-profiles", json={
+                        "id": name, "profile_id": "fixture", "name": name,
+                        "enabled": False, field: values,
+                    })
+                    self.assertEqual(saved.status_code, 200, saved.text)
+                    readback = client.get(f"/search-profiles/{name}")
+                    self.assertEqual(readback.status_code, 200, readback.text)
+                    criteria = readback.json()["criteria"]
+                    self.assertEqual(criteria[field], values)
+                    matches = self.store.jobs(profile_id="fixture", search_criteria=criteria)
+                    self.assertEqual({job["title"] for job in matches}, expected_titles)
+                    results = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": name,
+                    })
+                    self.assertEqual(results.status_code, 200, results.text)
+                    self.assertEqual({job["title"] for job in results.json()["jobs"]}, expected_titles)
+
+        jobs = {job["title"]: job for job in self.store.jobs(
+            search_criteria={"remote": "REQUIRED"})}
+        self.assertEqual(set(jobs), {"State Restricted", "Canada Restricted"})
+        state_job = jobs["State Restricted"]
+        self.assertEqual(state_job["location"], "CA, TX")
+        self.assertEqual(state_job["attributes"]["country"], "US")
+        self.assertIsNone(state_job["attributes"]["state"])
+        self.assertEqual(state_job["attributes"]["remote_regions"], ["California", "TX"])
+        self.assertEqual(jobs["Canada Restricted"]["attributes"]["remote_regions"], ["CA"])
 
     def test_capabilities_and_unsupported_features(self):
         adapter = RemoteOK()
