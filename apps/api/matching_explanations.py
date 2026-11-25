@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
+from services.discovery.matching import build_explanation
 from services.matching.selected_search_scoring import compose_selected_search_match
 from services.matching.scoring_profiles import resolve_role_scoring_profile
 
@@ -164,13 +165,18 @@ def _validate_current_evidence(job: Any, profile: dict, criteria: Any, match: An
     """Reject saved component reasons that no longer describe current source evidence."""
     stored = match["components"].get("scoring_contributions", [])
     stored_by_dimension = {row["dimension"]: row for row in stored}
-    skill_baseline = stored_by_dimension.get("skills", {}).get("raw_score")
-    if skill_baseline is None:
-        skill_baseline = match["score"]
     try:
+        skill_evidence = build_explanation(job, profile)
+        current_components = skill_evidence["components"]
+        if match["missing"] != skill_evidence["missing"]:
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+        for field in ("detected", "requirements"):
+            saved = match["components"].get(field)
+            if saved is not None and saved != current_components[field]:
+                _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
         current = compose_selected_search_match(
             job,
-            {"score": skill_baseline},
+            {"score": skill_evidence["score"]},
             criteria,
             candidate_profile=profile,
         )
@@ -182,10 +188,6 @@ def _validate_current_evidence(job: Any, profile: dict, criteria: Any, match: An
     }
     fields = ("weight", "raw_score", "weighted_contribution", "explanation", "provenance")
     for dimension, expected in current_by_dimension.items():
-        # The skills component is the base match score, which is intentionally
-        # preserved as the legacy baseline by this read-only projection.
-        if dimension == "skills":
-            continue
         saved = stored_by_dimension.get(dimension)
         if saved is None:
             if expected["raw_score"] is not None:
@@ -269,17 +271,18 @@ def create_matching_explanations_router(store) -> APIRouter:
             resolution_label = "CURRENT"
 
         contributions = _stored_contributions(components, resolution)
-        if resolution.profile is None and not contributions:
-            contributions = [{
-                "dimension": "skills",
-                "weight": 100.0,
-                "raw_score": match["score"],
-                "weighted_contribution": match["score"],
-                "explanation": (
-                    "The saved deterministic match score is preserved because no scoring profile was selected."
-                ),
-                "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-            }]
+        if resolution.profile is None:
+            if not contributions:
+                contributions = [{
+                    "dimension": "skills",
+                    "weight": 100.0,
+                    "raw_score": match["score"],
+                    "weighted_contribution": match["score"],
+                    "explanation": (
+                        "The saved deterministic match score is preserved because no scoring profile was selected."
+                    ),
+                    "provenance": {"source": "LEGACY_MATCH_BASELINE"},
+                }]
         else:
             _validate_current_evidence(job, profile, search["criteria"], match)
         _validate_contribution_score(match["score"], contributions, resolution)

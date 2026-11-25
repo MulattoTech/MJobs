@@ -11,6 +11,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.matching import build_explanation
 from services.discovery.search_profiles import save_search_profile
 from services.matching.profile_scoring import resolve_and_compose_profile_scoring
 from tests.integration.test_spine import PROFILE
@@ -129,18 +130,24 @@ class MatchingExplanationContributionTests(unittest.TestCase):
                 m.jobs.c.id == "selected-job",
             )).mappings().one())
         career_profile = self.store.profile("fixture")
-        legacy_match = {"score": 80.0, "missing": [], "components": {}}
+        skill_baseline = build_explanation(job, career_profile)
+        legacy_match = {
+            "score": skill_baseline["score"], "missing": skill_baseline["missing"],
+            "components": skill_baseline["components"],
+        }
         expected = resolve_and_compose_profile_scoring(
             job,
             legacy_match,
             role_family="cloud operations",
             profiles_by_role_family={saved_profile["role_family"]: saved_profile},
+            candidate_profile=career_profile,
         )
         with self.store.engine.begin() as connection:
             connection.execute(m.matches.insert().values(
                 id="selected-match", job_id="selected-job", profile_id="fixture",
                 profile_version=career_profile["version"], score=expected["score"],
-                missing=[], components={
+                missing=skill_baseline["missing"], components={
+                    **skill_baseline["components"],
                     "scoring_profile": expected["scoring_profile"],
                     "scoring_contributions": expected["scoring_contributions"],
                 },
@@ -150,7 +157,7 @@ class MatchingExplanationContributionTests(unittest.TestCase):
         response = self.client.get(self._explanation_url())
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
-        self.assertEqual(body["score"], 74.0)
+        self.assertEqual(body["score"], expected["score"])
         self.assertEqual(body["scoring_profile"]["id"], saved_profile["id"])
         self.assertEqual(body["scoring_profile"]["version"], saved_profile["version"])
         self.assertEqual(body["scoring_contributions"], expected["scoring_contributions"])
@@ -169,7 +176,7 @@ class MatchingExplanationContributionTests(unittest.TestCase):
             if row["raw_score"] is not None
         ]
         self.assertEqual(sum(known_contributions), body["score"])
-        self.assertEqual(sum(known_contributions), 74.0)
+        self.assertEqual(sum(known_contributions), expected["score"])
 
         wrong_profile = self.client.get(self._explanation_url(profile_id="other"))
         self.assertEqual(wrong_profile.status_code, 404)
@@ -245,17 +252,22 @@ class MatchingExplanationContributionTests(unittest.TestCase):
                 m.jobs.c.id == "selected-job",
             )).mappings().one())
         career_profile = self.store.profile("fixture")
+        skill_baseline = build_explanation(job, career_profile)
         expected = resolve_and_compose_profile_scoring(
             job,
-            {"score": 80.0, "missing": [], "components": {}},
+            {"score": skill_baseline["score"], "missing": skill_baseline["missing"],
+             "components": skill_baseline["components"]},
             role_family="cloud operations",
             profiles_by_role_family={saved_profile["role_family"]: saved_profile},
+            candidate_profile=career_profile,
         )
         with self.store.engine.begin() as connection:
             connection.execute(m.matches.insert().values(
                 id="selected-match", job_id="selected-job", profile_id="fixture",
-                profile_version=career_profile["version"], score=expected["score"], missing=[],
+                profile_version=career_profile["version"], score=expected["score"],
+                missing=skill_baseline["missing"],
                 components={
+                    **skill_baseline["components"],
                     "scoring_profile": expected["scoring_profile"],
                     "scoring_contributions": expected["scoring_contributions"],
                 },
@@ -304,6 +316,75 @@ class MatchingExplanationContributionTests(unittest.TestCase):
         self.assertEqual(missing.status_code, 409, missing.text)
         self.assertEqual(missing.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
         self.assertEqual(self._snapshot(), before_missing_read)
+
+    def test_changed_and_missing_job_skills_make_same_version_match_stale(self):
+        configured = self.client.put(self._profile_url(), json={
+            "expected_version": None,
+            "profile": {
+                "schema_version": 1,
+                "role_family": "Cloud Operations",
+                "weights": {"skills": 80, "ai_intensity": 20},
+                "thresholds": {},
+            },
+        })
+        self.assertEqual(configured.status_code, 200, configured.text)
+        saved_profile = configured.json()["profile"]
+        scoring_version = saved_profile["version"]
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "selected-job",
+            ).values(skills=["Python"]))
+            job = dict(connection.execute(select(m.jobs).where(
+                m.jobs.c.id == "selected-job",
+            )).mappings().one())
+        career_profile = self.store.profile("fixture")
+        skill_baseline = build_explanation(job, career_profile)
+        expected = resolve_and_compose_profile_scoring(
+            job,
+            {"score": skill_baseline["score"], "missing": skill_baseline["missing"],
+             "components": skill_baseline["components"]},
+            role_family="cloud operations",
+            profiles_by_role_family={saved_profile["role_family"]: saved_profile},
+            candidate_profile=career_profile,
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(m.matches.insert().values(
+                id="selected-match", job_id="selected-job", profile_id="fixture",
+                profile_version=career_profile["version"], score=expected["score"],
+                missing=skill_baseline["missing"],
+                components={
+                    **skill_baseline["components"],
+                    "scoring_profile": expected["scoring_profile"],
+                    "scoring_contributions": expected["scoring_contributions"],
+                },
+            ))
+
+        current = self.client.get(self._explanation_url())
+        self.assertEqual(current.status_code, 200, current.text)
+        self.assertEqual(current.json()["score"], expected["score"])
+
+        for changed_skills in (["Linux"], []):
+            with self.subTest(changed_skills=changed_skills):
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.jobs.update().where(
+                        m.jobs.c.id == "selected-job",
+                    ).values(skills=changed_skills))
+                before_read = self._snapshot()
+                stale = self.client.get(self._explanation_url())
+                self.assertEqual(stale.status_code, 409, stale.text)
+                self.assertEqual(stale.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
+                self.assertEqual(self._snapshot(), before_read)
+                self.assertEqual(self.store.profile("fixture")["version"], career_profile["version"])
+                with self.store.engine.connect() as connection:
+                    current_search = connection.execute(select(m.search_profiles).where(
+                        m.search_profiles.c.id == "selected-search",
+                    )).mappings().one()
+                    saved_match = connection.execute(select(m.matches).where(
+                        m.matches.c.id == "selected-match",
+                    )).mappings().one()
+                self.assertEqual(current_search["criteria"]["role_scoring_profile"]["version"],
+                                 scoring_version)
+                self.assertEqual(saved_match["profile_version"], career_profile["version"])
 
     def test_recalculation_persists_experience_weight_from_verified_profile_facts(self):
         self.store.save_profile({

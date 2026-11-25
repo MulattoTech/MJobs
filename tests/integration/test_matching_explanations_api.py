@@ -10,7 +10,9 @@ from sqlalchemy import select
 from apps.api.matching_explanations import create_matching_explanations_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.matching import build_explanation
 from services.discovery.search_profiles import save_search_profile
+from services.matching.selected_search_scoring import compose_selected_search_match
 from tests.integration.test_spine import PROFILE
 
 
@@ -73,10 +75,14 @@ class MatchingExplanationsApiTests(unittest.TestCase):
                     }],
                 }))
 
-    def _replace_match_components(self, components, *, profile_version=None):
+    def _replace_match_components(self, components, *, profile_version=None, score=None, missing=None):
         values = {"components": components}
         if profile_version is not None:
             values["profile_version"] = profile_version
+        if score is not None:
+            values["score"] = score
+        if missing is not None:
+            values["missing"] = missing
         with self.store.engine.begin() as connection:
             connection.execute(m.matches.update().where(
                 m.matches.c.id == "match",
@@ -149,25 +155,33 @@ class MatchingExplanationsApiTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(m.jobs.update().where(
                 m.jobs.c.id == "job",
-            ).values(attributes={}))
-        contributions = [{
-            "dimension": "skills", "weight": 70.0, "raw_score": 72.5,
-            "weighted_contribution": 72.5, "explanation": "Stored score contribution.",
-            "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-        }]
+            ).values(attributes={}, skills=["Python"]))
+            job = dict(connection.execute(select(m.jobs).where(
+                m.jobs.c.id == "job",
+            )).mappings().one())
+            search = dict(connection.execute(select(m.search_profiles).where(
+                m.search_profiles.c.id == "selected-search",
+            )).mappings().one())
+        profile = self.store.profile("fixture")
+        base = build_explanation(job, profile)
+        composed = compose_selected_search_match(
+            job, {"score": base["score"]}, search["criteria"], candidate_profile=profile,
+        )
+        contributions = composed["scoring_contributions"]
         self._replace_match_components({
+            **base["components"],
             "scoring_profile": {
                 "selection": "ROLE_FAMILY", "requested_role_family": "Systems",
                 "selected_role_family": "Systems", "profile_id": "systems-profile",
                 "profile_version": "version-current",
             },
             "scoring_contributions": contributions,
-        })
+        }, score=composed["score"], missing=base["missing"])
         before = self._snapshot()
         response = self.client.get(self._url())
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
-        self.assertEqual(body["score"], 72.5)
+        self.assertEqual(body["score"], composed["score"])
         self.assertEqual(body["resolution"], "CURRENT")
         self.assertEqual(body["scoring_profile"], {
             "id": "systems-profile", "version": "version-current", "role_family": "Systems",
@@ -176,11 +190,12 @@ class MatchingExplanationsApiTests(unittest.TestCase):
         self.assertEqual(body["profile_resolution"]["profile_id"], "systems-profile")
         self.assertEqual(body["profile_resolution"]["profile_version"], "version-current")
         by_dimension = {row["dimension"]: row for row in body["scoring_contributions"]}
-        self.assertEqual(by_dimension["skills"], contributions[0])
+        self.assertEqual(by_dimension["skills"], next(
+            row for row in contributions if row["dimension"] == "skills"))
         self.assertEqual(by_dimension["ai_intensity"], {
             "dimension": "ai_intensity", "weight": 30.0, "raw_score": None,
             "weighted_contribution": None,
-            "explanation": "ai_intensity is UNKNOWN because the stored match has no contribution for this dimension.",
+            "explanation": "ai_intensity is UNKNOWN because trustworthy normalized evidence is unavailable.",
             "provenance": {"source": "UNKNOWN"},
         })
         self.assertEqual(body["score"], before[m.matches.name][0]["score"])
