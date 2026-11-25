@@ -32,12 +32,14 @@ def verify_manifests(manifests: list[dict], count: int) -> int:
     return len(full)
 
 
-def reconcile(directory: Path, count: int, output: Path) -> int:
+def reconcile(directory: Path, count: int, output: Path, *, single: bool = False) -> int:
+    if single and count != 1:
+        raise ValueError('Single-report reconciliation requires exactly one shard')
     manifests = []
     suites = ET.Element('testsuites')
     identities = set()
     for index in range(count):
-        folder = directory / f'unit-shard-{index}'
+        folder = directory if single else directory / f'unit-shard-{index}'
         manifest = json.loads((folder / 'unit-collection.json').read_text(encoding='utf-8'))
         if manifest['index'] != index:
             raise ValueError('Shard report path/index mismatch')
@@ -65,9 +67,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--directory', type=Path, required=True)
     parser.add_argument('--count', type=int, required=True)
+    parser.add_argument('--single', action='store_true')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    print(f'Verified {reconcile(args.directory, args.count, args.output)} collected unit tests exactly once')
+    print(f'Verified {reconcile(args.directory, args.count, args.output, single=args.single)} collected unit tests exactly once')
 
 
 if __name__ == '__main__':
