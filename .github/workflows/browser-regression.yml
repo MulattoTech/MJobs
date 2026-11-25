@@ -44,7 +44,7 @@ jobs:
       - name: Execute disjoint browser test files
         env:
           SHARD: ${{ matrix.shard }}
-        run: python -m tools.ci.run_shard --suite browser --index "$SHARD" --count 4
+        run: python -m tools.ci.run_shard --suite browser --index "$SHARD" --count 4 --hosted
       - name: Test summary
         if: always()
         env:
@@ -73,4 +73,4 @@ jobs:
           pattern: browser-results-*
           path: outputs/ci/matrix
       - name: Reconcile every exact browser test identity
-        run: python -m tools.ci.shard_evidence --suite browser --count 4 --directory outputs/ci/matrix
+        run: python -m tools.ci.shard_evidence --suite browser --count 4 --directory outputs/ci/matrix --hosted

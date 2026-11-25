@@ -100,7 +100,7 @@ jobs:
           SHARD_COUNT: ${{ strategy.job-total }}
           MJOBS_CI_POSTGRES_TEMPLATE: ${{ inputs.postgres_template && '1' || '0' }}
           MJOBS_CI_POSTGRES_DUMP_CONTAINER: ${{ job.services.postgres.id }}
-        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT"
+        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT" --hosted
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
         env:
@@ -145,4 +145,4 @@ jobs:
         run: |
           proof=()
           if [ "$POSTGRES_TEMPLATE" = 1 ]; then proof+=(--postgres-template); fi
-          python -m tools.ci.shard_evidence --suite integration --count "$SHARD_COUNT" --directory outputs/ci/matrix "${proof[@]}"
+          python -m tools.ci.shard_evidence --suite integration --count "$SHARD_COUNT" --directory outputs/ci/matrix --hosted "${proof[@]}"

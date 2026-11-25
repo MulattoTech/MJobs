@@ -41,7 +41,7 @@ jobs:
           MJOBS_CI_UNIT_SHARD_COUNT: '1'
         run: python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml
       - name: Reconcile complete unit inventory
-        run: python -m tools.ci.unit_shard_evidence --directory outputs/ci --count 1 --output outputs/ci/unit.xml --single
+        run: python -m tools.ci.unit_shard_evidence --directory outputs/ci --count 1 --output outputs/ci/unit.xml --single --hosted
       - name: Enforce scoped Python coverage (synthetic AI fixtures only)
         run: |
           python -m coverage run --branch --source=services/ai -m pytest -q tests/unit/test_ai_prompt_versioning.py tests/unit/test_ai_providers.py tests/unit/test_ai_structured_output.py tests/unit/test_ai_task_configuration.py tests/unit/test_ci_coverage_gate.py

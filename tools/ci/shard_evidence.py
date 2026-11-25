@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from tools.ci.integration_split import SPLIT_NODES, invocation
+from tools.ci.junit_identity import canonical_junit_identity, load_hosted_skips, verify_hosted_skip
 
 TEMPLATE_TARGET = "tests/integration/test_aggregator_bootstrap_postgres.py"
 PROOF_NAME = "postgres-template-proof.json"
@@ -43,7 +44,8 @@ def verify_template_proof(path: Path) -> None:
 
 
 def verify_shard(manifest: dict, report: Path, targets: list[str], *,
-                 split: bool, postgres_template: bool = False) -> tuple[set[str], set[tuple[str, str]]]:
+                 split: bool, postgres_template: bool = False,
+                 allowed_skips: dict[str, str] | None = None) -> tuple[set[str], set[tuple[str, str]]]:
     expected_targets = _unique(targets)
     _, exclusions = invocation(targets) if split else (targets, [])
     inventory = _unique(manifest["inventory"])
@@ -59,8 +61,10 @@ def verify_shard(manifest: dict, report: Path, targets: list[str], *,
         raise ValueError("Shard collected tests outside its exact assigned targets, or omitted targets")
     expected = {}
     for row in manifest["selected"]:
-        identity = (row["classname"], row["name"])
-        if not all(isinstance(part, str) and part for part in identity) or identity in expected:
+        identity = canonical_junit_identity(row["nodeid"])
+        if identity != (row["classname"], row["name"]):
+            raise ValueError("Collected node ID does not match JUnit identity")
+        if identity in expected:
             raise ValueError("Missing or duplicate collected JUnit identity")
         expected[identity] = row["nodeid"]
     actual = set()
@@ -73,6 +77,7 @@ def verify_shard(manifest: dict, report: Path, targets: list[str], *,
         if (postgres_template and expected[identity].split("::", 1)[0] == TEMPLATE_TARGET
                 and case.find("skipped") is not None):
             raise ValueError("Requested PostgreSQL template fixture was skipped")
+        verify_hosted_skip(expected[identity], case, allowed_skips)
         actual.add(identity)
     if actual != set(expected):
         raise ValueError(f"Missing exact JUnit identities: {len(set(expected) - actual)}")
@@ -82,11 +87,12 @@ def verify_shard(manifest: dict, report: Path, targets: list[str], *,
 
 
 def reconcile(directory: Path, suite: str, count: int, *, postgres_template: bool = False,
-              root: Path = ROOT) -> int:
+              hosted: bool = False, root: Path = ROOT) -> int:
     from tools.ci.run_shard import select_files
 
     if count < 1 or suite not in ("browser", "integration"):
         raise ValueError("Invalid shard matrix")
+    allowed_skips = load_hosted_skips(root, suite) if hosted else None
     split = suite == "integration" and (root / "tools/ci/integration_timings.json").is_file()
     all_targets = set(select_files(root, suite, 0, 1))
     seen_targets = set()
@@ -105,7 +111,8 @@ def reconcile(directory: Path, suite: str, count: int, *, postgres_template: boo
         if (folder / PROOF_NAME).exists() != (postgres_template and TEMPLATE_TARGET in targets):
             raise ValueError("Missing or unexpected PostgreSQL template proof owner")
         nodes, identities = verify_shard(manifest, folder / f"{suite}-{index}.xml", targets,
-                                         split=split, postgres_template=postgres_template)
+                                         split=split, postgres_template=postgres_template,
+                                         allowed_skips=allowed_skips)
         if seen_nodes & nodes or seen_identities & identities:
             raise ValueError("Duplicate test across shards")
         seen_targets.update(targets)
@@ -122,10 +129,11 @@ def main() -> None:
     parser.add_argument("--suite", choices=["browser", "integration"], required=True)
     parser.add_argument("--count", type=int, required=True)
     parser.add_argument("--postgres-template", action="store_true")
+    parser.add_argument("--hosted", action="store_true", help="Enforce reviewed hosted skip contract")
     args = parser.parse_args()
     if args.postgres_template and args.suite != "integration":
         parser.error("Template proof belongs only to integration")
-    print(f"Verified {reconcile(args.directory, args.suite, args.count, postgres_template=args.postgres_template)} exact test identities across all shards")
+    print(f"Verified {reconcile(args.directory, args.suite, args.count, postgres_template=args.postgres_template, hosted=args.hosted)} exact test identities across all shards")
 
 
 if __name__ == "__main__":

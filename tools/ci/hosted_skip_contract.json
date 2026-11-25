@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "baseline_head": "13a581d7f791a397bd13533a58f88f11ab341738",
+  "prior_comparison_head": "22b6605e0410c66c917d510e0f646ebef30a4fc2",
+  "description": "Reviewed Linux hosted skip allowances: exact test node ID and exact pytest.skip reason. New skips require explicit review, not baseline regeneration. Local fixture runs do not use this hosted policy.",
+  "suites": {
+    "unit": [
+      {
+        "reason": "Native NTFS junction fixture",
+        "nodeids": [
+          "tests/unit/test_protected_config_backup.py::ProtectedConfigFilesystemTests::test_ntfs_junction_ancestor_is_rejected"
+        ]
+      },
+      {
+        "reason": "Native NTFS leaf DACL fixture",
+        "nodeids": [
+          "tests/unit/test_protected_config_backup.py::ProtectedConfigFilesystemTests::test_ntfs_broad_leaf_read_acl_is_rejected_even_under_private_parent"
+        ]
+      },
+      {
+        "reason": "Native Windows actual Chromium channel",
+        "nodeids": [
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_actual_chromium_cooperative_close_via_bound_channel"
+        ]
+      },
+      {
+        "reason": "Native Windows bounded pipe reads",
+        "nodeids": [
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_partial_oversized_and_lost_pipe_fail_with_bounded_reads"
+        ]
+      },
+      {
+        "reason": "Native Windows contained process trees",
+        "nodeids": [
+          "tests/unit/test_fleet_t12_browser_lifecycle.py::FleetT12BrowserLifecycleTests::test_observer_interruption_isolated_and_closure_persists_per_session"
+        ]
+      },
+      {
+        "reason": "Native Windows containment",
+        "nodeids": [
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_actual_chromium_members_are_contained_until_cooperative_close",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_external_observer_survives_creator_exit_with_actual_chromium",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_external_observer_survives_creator_exit_with_live_orphan",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_failed_launch_cannot_be_retried_or_reported_exited",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_last_handle_loss_never_reports_orphan_exit",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_native_host_does_not_inherit_synthetic_api_secrets",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_query_transfer_rejects_missing_target_and_closed_source",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_root_exit_orphan_live_and_creator_close_retains_tree_proof",
+          "tests/unit/test_browser_tree_containment.py::BrowserTreeContainmentTests::test_unlaunched_job_and_lost_query_never_prove_exit"
+        ]
+      },
+      {
+        "reason": "Native Windows creator exit",
+        "nodeids": [
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_observer_retains_authority_after_disposable_creator_exit"
+        ]
+      },
+      {
+        "reason": "Native Windows durable observer",
+        "nodeids": [
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_creator_death_recovers_after_sqlite_write_timeout",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_creator_death_retains_live_chromium_then_persists_on_peer_reload",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_enrollment_precedes_ack_and_persists_cooperative_closure",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_lost_ack_rolls_back_only_unlaunched_enrollment_and_allows_retry",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_rollback_rejects_replacement_query_wrong_token_and_admitted_tree",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_stale_scope_fails_child_enrollment_without_replacing_owner",
+          "tests/unit/test_browser_tree_durable_bootstrap.py::DurableBootstrapTests::test_wrong_owner_bootstrap_has_no_ack_or_enrollment"
+        ]
+      },
+      {
+        "reason": "Native Windows junction boundary",
+        "nodeids": [
+          "tests/unit/test_backup_restore_snapshot.py::test_capture_refuses_destination_junction_ancestor_before_any_operation",
+          "tests/unit/test_backup_restore_snapshot.py::test_capture_rejects_document_junction_and_preserves_its_target",
+          "tests/unit/test_backup_restore_snapshot.py::test_native_junction_rejected_before_read_or_target_operation[ancestor]",
+          "tests/unit/test_backup_restore_snapshot.py::test_native_junction_rejected_before_read_or_target_operation[archive]",
+          "tests/unit/test_backup_restore_snapshot.py::test_native_junction_rejected_before_read_or_target_operation[documents]",
+          "tests/unit/test_backup_restore_snapshot.py::test_unlisted_nested_junction_rejected_before_inventory_stats_target"
+        ]
+      },
+      {
+        "reason": "Native Windows maximum bound frame",
+        "nodeids": [
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_maximum_ascii_scope_roundtrips_within_pipe_budget"
+        ]
+      },
+      {
+        "reason": "Native Windows observer IPC",
+        "nodeids": [
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_missing_ack_fails_closed_and_owned_observer_exits",
+          "tests/unit/test_browser_tree_ipc.py::BrowserTreeIPCTests::test_private_native_channel_bound_to_query_and_exact_scope"
+        ]
+      },
+      {
+        "reason": "Native Windows private host input",
+        "nodeids": [
+          "tests/unit/test_browser_tree_private_input.py::BrowserTreePrivateInputTests::test_concurrent_restricted_launcher_cannot_inherit_private_reader",
+          "tests/unit/test_browser_tree_private_input.py::BrowserTreePrivateInputTests::test_failed_native_launch_closes_only_owned_input_descriptors",
+          "tests/unit/test_browser_tree_private_input.py::BrowserTreePrivateInputTests::test_invalid_input_is_unlaunched_unknown_and_cannot_retry",
+          "tests/unit/test_browser_tree_private_input.py::BrowserTreePrivateInputTests::test_maximum_input_delivers_without_waiting_for_child_reader",
+          "tests/unit/test_browser_tree_private_input.py::BrowserTreePrivateInputTests::test_private_input_roundtrip_eof_and_unrelated_handle_exclusion"
+        ]
+      },
+      {
+        "reason": "Native Windows private observer",
+        "nodeids": [
+          "tests/unit/test_browser_tree_certificate.py::BrowserTreeCertificateTests::test_actual_chromium_closure_survives_query_close_and_database_reload"
+        ]
+      },
+      {
+        "reason": "Native Windows retained identity",
+        "nodeids": [
+          "tests/unit/test_browser_host_status.py::BrowserHostStatusTests::test_failed_host_handle_retention_is_ambiguous_and_never_replayed",
+          "tests/unit/test_browser_host_status.py::BrowserHostStatusTests::test_fast_exit_keeps_original_status_even_when_pid_reopen_lies"
+        ]
+      },
+      {
+        "reason": "Native creator death and Chromium",
+        "nodeids": [
+          "tests/unit/test_browser_tree_certificate.py::BrowserTreeCertificateTests::test_retained_writer_persists_after_actual_creator_death_and_peer_reload"
+        ]
+      },
+      {
+        "reason": "Native non-POSIX compatibility control",
+        "nodeids": [
+          "tests/unit/test_progress_journal_durability.py::ProgressJournalDurabilityTests::test_non_posix_retains_file_flush_and_atomic_replacement"
+        ]
+      },
+      {
+        "reason": "Native retained query provenance",
+        "nodeids": [
+          "tests/unit/test_browser_tree_certificate.py::BrowserTreeCertificateTests::test_unrelated_query_and_ipc_enrollment_cannot_substitute_for_retained_query"
+        ]
+      },
+      {
+        "reason": "Native retained query writer",
+        "nodeids": [
+          "tests/unit/test_browser_tree_certificate.py::BrowserTreeCertificateTests::test_retained_native_writer_requires_self_enrollment_and_closed_tree"
+        ]
+      },
+      {
+        "reason": "Optional host-installed Codex CLI is absent on this runner",
+        "nodeids": [
+          "tests/unit/test_agent_dashboard.py::AgentDashboardSupervisorTests::test_installed_codex_runner_resolves_to_launchable_prefix"
+        ]
+      },
+      {
+        "reason": "Windows case-insensitive filesystem alias",
+        "nodeids": [
+          "tests/unit/test_acceptance_integrity.py::test_output_rejects_windows_case_alias"
+        ]
+      },
+      {
+        "reason": "Windows directory junction",
+        "nodeids": [
+          "tests/unit/test_acceptance_integrity.py::test_output_rejects_windows_junction_alias[common_dir]",
+          "tests/unit/test_acceptance_integrity.py::test_output_rejects_windows_junction_alias[git_dir]"
+        ]
+      },
+      {
+        "reason": "Windows junction contract",
+        "nodeids": [
+          "tests/unit/test_acceptance_public_source.py::PublicSourceObservationTests::test_junction_parent_is_rejected_before_any_request"
+        ]
+      },
+      {
+        "reason": "Windows owned Chromium tree cancellation",
+        "nodeids": [
+          "tests/unit/test_cli_verification_process.py::test_cancel_terminates_actual_owned_chromium_members"
+        ]
+      },
+      {
+        "reason": "Windows process-tree cancellation contract",
+        "nodeids": [
+          "tests/unit/test_cli_verification_process.py::test_cancel_reaps_child_and_terminates_its_grandchild"
+        ]
+      },
+      {
+        "reason": "Windows retained process identity regression",
+        "nodeids": [
+          "tests/unit/test_cli_verification_process.py::test_exited_root_cannot_leave_descendant_or_touch_unrelated_process[False]",
+          "tests/unit/test_cli_verification_process.py::test_exited_root_cannot_leave_descendant_or_touch_unrelated_process[True]"
+        ]
+      },
+      {
+        "reason": "Windows-only log viewer",
+        "nodeids": [
+          "tests/unit/test_mission_visible_terminal.py::VisibleTerminalTests::test_log_viewer_never_spawns_a_second_coding_agent"
+        ]
+      },
+      {
+        "reason": "Windows-only visible terminals",
+        "nodeids": [
+          "tests/unit/test_mission_visible_terminal.py::VisibleTerminalTests::test_visible_start_uses_true_windows_console_and_owned_manifest"
+        ]
+      },
+      {
+        "reason": "npm .cmd wrappers are Windows-only",
+        "nodeids": [
+          "tests/unit/test_mission_visible_terminal.py::VisibleTerminalTests::test_windows_cmd_wrapper_preserves_multiline_stdin"
+        ]
+      }
+    ],
+    "browser": [
+      {
+        "reason": "Native Windows creator-independent recovery",
+        "nodeids": [
+          "tests/browser/test_manual_auth_departed_recovery.py::ManualAuthDepartedRecoveryTests::test_api_departure_closed_tree_recovery_reload_then_explicit_retry"
+        ]
+      },
+      {
+        "reason": "Native isolated Windows host",
+        "nodeids": [
+          "tests/browser/test_manual_auth_isolated.py::ManualAuthIsolatedBrowserTests::test_mounted_api_closes_original_tree_then_allows_separate_explicit_retry",
+          "tests/browser/test_manual_auth_isolated.py::ManualAuthIsolatedBrowserTests::test_mounted_prelaunch_cancellation_confirms_native_rollback_and_releases_capacity",
+          "tests/browser/test_manual_auth_isolated.py::ManualAuthIsolatedBrowserTests::test_native_sign_in_persists_for_separate_worker_dry_run_without_replay",
+          "tests/browser/test_manual_auth_isolated.py::ManualAuthIsolatedBrowserTests::test_saved_attempt_private_host_observer_closure_and_held_capacity"
+        ]
+      }
+    ],
+    "integration": [
+      {
+        "reason": "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1",
+        "nodeids": [
+          "tests/integration/test_remoteok.py::RemoteOKTests::test_live_bounded_search_read_only",
+          "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_live_bounded_search_read_only"
+        ]
+      },
+      {
+        "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence",
+        "nodeids": [
+          "tests/integration/test_connected_verification_command.py::test_connected_command_executes_sources_and_durable_application",
+          "tests/integration/test_connected_verification_command.py::test_connected_repeats_with_new_identity_and_ignores_personal_environment",
+          "tests/integration/test_connected_verification_command.py::test_deadline_cancels_owned_child_and_removes_temporary_files",
+          "tests/integration/test_connected_verification_command.py::test_dry_run_never_enters_submit_path_and_parent_rejects_changed_artifacts",
+          "tests/integration/test_connected_verification_command.py::test_executed_detector_failure_propagates_without_passing_downstream",
+          "tests/integration/test_connected_verification_command.py::test_explicit_dry_run_executes_complete_pipeline_with_zero_submissions",
+          "tests/integration/test_connected_verification_command.py::test_missing_browser_preserves_executed_sources_and_nonzero_partial",
+          "tests/integration/test_connected_verification_command.py::test_no_op_explicit_discovery_cannot_borrow_company_discovery_inventory",
+          "tests/integration/test_connected_verification_command.py::test_no_op_rescore_cannot_pass_using_discovery_scores",
+          "tests/integration/test_connected_verification_command.py::test_parent_preserves_post_confirmation_failure_stage[duplicate]",
+          "tests/integration/test_connected_verification_command.py::test_parent_preserves_post_confirmation_failure_stage[readback]",
+          "tests/integration/test_connected_verification_command.py::test_real_browser_failures_cannot_project_success[confirmation]",
+          "tests/integration/test_connected_verification_command.py::test_real_browser_failures_cannot_project_success[upload]"
+        ]
+      },
+      {
+        "reason": "NOT_RUN: explicit owned local ntfy smoke not enabled",
+        "nodeids": [
+          "tests/integration/test_ntfy_live.py::test_official_local_ntfy_delivery_and_restart_deduplication"
+        ]
+      },
+      {
+        "reason": "Native isolated Windows host",
+        "nodeids": [
+          "tests/integration/test_manual_auth_recovery.py::ManualAuthRecoveryApiTests::test_mounted_sign_in_passes_original_admission_to_isolated_host"
+        ]
+      },
+      {
+        "reason": "Requires isolated refresh PostgreSQL",
+        "nodeids": [
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_cancel_after_real_import_cannot_erase_committed_outcome",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_cancel_waits_for_import_transaction_receipt",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_kind_scope_and_missing_receipt_preserve_normal_recovery",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_process_death_after_commit_recovers_without_network_or_duplicate_import",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_receipt_does_not_override_newer_worker_attempt",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_receipt_survives_monitor_pointer_change",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_saved_import_wins_post_commit_exception",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_saved_import_wins_post_commit_timeout",
+          "tests/integration/test_company_refresh_receipts.py::PostgreSQLCompanyRefreshReceiptTests::test_unrelated_receipts_never_prevent_cancellation"
+        ]
+      },
+      {
+        "reason": "SQLite in-memory-only shared DBAPI guard",
+        "nodeids": [
+          "tests/integration/test_fleet_t18_snapshot_fencing.py::ProfileReadSnapshotPostgresTests::test_in_memory_shared_transaction_fails_closed_before_begin"
+        ]
+      },
+      {
+        "reason": "STK01 requires frozen static audit and explicit disposable-stack resource grant",
+        "nodeids": [
+          "tests/integration/test_company_monitoring_recovery.py::CompanyMonitoringRecoveryTests::test_owned_stack_restart_preserves_data_and_resumes_company_monitoring"
+        ]
+      },
+      {
+        "reason": "Set MJOBS_RETRY_POSTGRES_URL to an isolated disposable PostgreSQL database",
+        "nodeids": [
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_apply_mock_failure_ignores_concurrent_cancel_for_retry_precedence",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_cancellation_during_provider_failure_cannot_schedule_a_retry",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_cancellation_during_retry_wait_is_terminal",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_deadline_crossed_inside_operation_fence_cannot_schedule_retry",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_invalid_timeout_configuration_finalizes_claimed_operation",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_nontransient_failures_never_schedule_automatic_retry",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_provider_backoff_and_poll_interval_prevent_an_early_retry",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_real_source_timeout_policy_survives_restart_and_collects_once_on_retry",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_retry_limit_and_exponential_delay_are_bounded_without_reopening_terminal_work",
+          "tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests::test_transient_failure_persists_backoff_and_completes_same_operation_after_restart"
+        ]
+      },
+      {
+        "reason": "This ordering requires the actual disposable PostgreSQL subclass",
+        "nodeids": [
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_domain_revoker_commits_first",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_domain_share_precedes_normal_profile_update",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_domain_skips_locked_profile_writer",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_enrollment_revoker_commits_first",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_enrollment_share_precedes_normal_profile_update",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_enrollment_skips_locked_profile_writer",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_import_revoker_commits_first",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_import_share_precedes_normal_profile_update",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_import_skips_locked_profile_writer",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_proof_revoker_commits_first",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_proof_share_precedes_normal_profile_update",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_proof_skips_locked_profile_writer",
+          "tests/integration/test_aggregator_bootstrap_worker.py::AggregatorBootstrapWorkerTests::test_v2_postgres_rollback_releases_each_actual_stage_profile_lock"
+        ]
+      },
+      {
+        "reason": "disposable PostgreSQL URL not configured",
+        "nodeids": [
+          "tests/integration/test_migration_recovery.py::MigrationRecoveryTests::test_interrupted_postgresql_upgrade_preserves_data_and_can_resume"
+        ]
+      },
+      {
+        "reason": "disposable protected-config PostgreSQL URL not configured",
+        "nodeids": [
+          "tests/integration/test_migration_recovery.py::MigrationRecoveryTests::test_interrupted_postgresql_protected_credential_migration_preserves_data_and_resumes"
+        ]
+      }
+    ]
+  }
+}

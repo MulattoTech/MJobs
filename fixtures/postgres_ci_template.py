@@ -19,13 +19,31 @@ SCHEMA = 'aggregator_bootstrap_fixture'
 PREFIX = 'mjobs_test_ci_'
 
 
-def disposable_url(value):
+def disposable_url(value, *, env=None):
+    env = os.environ if env is None else env
+    # libpq's PGHOSTADDR can supersede a validated URL host. Disallow inherited
+    # endpoint/service/options configuration before creating any fixture engine.
+    overrides = {"PGHOST", "PGHOSTADDR", "PGPORT", "PGDATABASE", "PGSERVICE",
+                 "PGSERVICEFILE", "PGOPTIONS"}
+    present = sorted({key.upper() for key, val in env.items()
+                      if key.upper() in overrides and val})
+    if present:
+        raise ValueError("Inherited PostgreSQL endpoint/options overrides are forbidden: "
+                         + ", ".join(present))
     url = make_url(value)
-    if (url.get_backend_name() != 'postgresql' or url.host not in {'localhost', '127.0.0.1', '::1'}
+    if (url.drivername not in {'postgresql', 'postgresql+psycopg', 'postgresql+psycopg2'}
+            or url.host not in {'localhost', '127.0.0.1', '::1'}
             or not url.database or not (url.database == 'mjobs_test' or url.database.startswith('mjobs_test_'))
             or url.query):
         raise ValueError('An explicit loopback disposable mjobs_test database URL is required')
-    return url
+    # Pin numeric loopback hostaddr and port in every derived URL, including
+    # migration, Store, clone and cleanup connections. Do not rely on DNS or
+    # on environment defaults changing between validation and connection.
+    host = '127.0.0.1' if url.host == 'localhost' else url.host
+    port = 5432 if url.port is None else url.port
+    if not 1 <= port <= 65535:
+        raise ValueError('An explicit loopback disposable mjobs_test database URL is required')
+    return url.set(host=host, port=port).update_query_dict({'hostaddr': host})
 
 
 def require_template_inputs(env):
@@ -34,7 +52,7 @@ def require_template_inputs(env):
         raise ValueError('Requested PostgreSQL template requires MJOBS_TEST_POSTGRES_URL')
     if not re.fullmatch(r'[0-9a-f]{64}', env.get('MJOBS_CI_POSTGRES_DUMP_CONTAINER', '')):
         raise ValueError('Requested PostgreSQL template requires an exact dump container ID')
-    return disposable_url(env['MJOBS_TEST_POSTGRES_URL'])
+    return disposable_url(env['MJOBS_TEST_POSTGRES_URL'], env=env)
 
 
 class OwnedDatabaseTemplate:

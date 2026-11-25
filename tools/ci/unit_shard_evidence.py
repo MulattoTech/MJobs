@@ -6,6 +6,10 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from tools.ci.junit_identity import canonical_junit_identity, load_hosted_skips, verify_hosted_skip
+
+ROOT = Path(__file__).resolve().parents[2]
+
 
 def verify_manifests(manifests: list[dict], count: int) -> int:
     if count < 1 or len(manifests) != count or {m['index'] for m in manifests} != set(range(count)):
@@ -32,9 +36,11 @@ def verify_manifests(manifests: list[dict], count: int) -> int:
     return len(full)
 
 
-def reconcile(directory: Path, count: int, output: Path, *, single: bool = False) -> int:
+def reconcile(directory: Path, count: int, output: Path, *, single: bool = False,
+              hosted: bool = False, root: Path = ROOT) -> int:
     if single and count != 1:
         raise ValueError('Single-report reconciliation requires exactly one shard')
+    allowed_skips = load_hosted_skips(root, 'unit') if hosted else None
     manifests = []
     suites = ET.Element('testsuites')
     identities = set()
@@ -51,11 +57,21 @@ def reconcile(directory: Path, count: int, output: Path, *, single: bool = False
                 or any(int(report.get(key, '0')) for report in reports for key in ('failures', 'errors'))
                 or any(case.find('failure') is not None or case.find('error') is not None for case in cases)):
             raise ValueError('Incomplete or failed unit JUnit evidence')
+        expected = {canonical_junit_identity(node): node for node in manifest['selected']}
+        if len(expected) != len(manifest['selected']):
+            raise ValueError('Duplicate or ambiguous collected unit JUnit identity')
+        seen = set()
         for case in cases:
             identity = (case.get('classname'), case.get('name'))
             if not all(identity) or identity in identities:
                 raise ValueError('Duplicate or missing unit JUnit identity')
+            if identity not in expected:
+                raise ValueError('Unexpected unit JUnit identity')
+            verify_hosted_skip(expected[identity], case, allowed_skips)
+            seen.add(identity)
             identities.add(identity)
+        if seen != set(expected):
+            raise ValueError('Missing exact unit JUnit identities')
         suites.extend(reports)
     total = verify_manifests(manifests, count)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -68,9 +84,10 @@ def main() -> None:
     parser.add_argument('--directory', type=Path, required=True)
     parser.add_argument('--count', type=int, required=True)
     parser.add_argument('--single', action='store_true')
+    parser.add_argument('--hosted', action='store_true', help='Enforce reviewed hosted skip contract')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    print(f'Verified {reconcile(args.directory, args.count, args.output, single=args.single)} collected unit tests exactly once')
+    print(f'Verified {reconcile(args.directory, args.count, args.output, single=args.single, hosted=args.hosted)} collected unit tests exactly once')
 
 
 if __name__ == '__main__':

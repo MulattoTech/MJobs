@@ -87,13 +87,14 @@ def test_real_pytest_shards_and_combined_report(tmp_path):
         reconcile(reports, 2, output / 'combined.xml')
 
 def test_single_runner_reconciles_full_inventory(tmp_path):
-    manifest = {'index': 0, 'count': 1, 'inventory': ['a', 'b'],
-                'selected': ['a', 'b'], 'completed': ['a', 'b']}
+    nodes = ['tests/unit/test_pair.py::test_a', 'tests/unit/test_pair.py::test_b']
+    manifest = {'index': 0, 'count': 1, 'inventory': nodes,
+                'selected': nodes, 'completed': nodes}
     (tmp_path / 'unit-collection.json').write_text(json.dumps(manifest), encoding='utf-8')
     report = tmp_path / 'unit.xml'
     report.write_text('<testsuites><testsuite tests="2" failures="0" errors="0" skipped="1">'
-                      '<testcase classname="m" name="a"/>'
-                      '<testcase classname="m" name="b"><skipped/></testcase>'
+                      '<testcase classname="tests.unit.test_pair" name="test_a"/>'
+                      '<testcase classname="tests.unit.test_pair" name="test_b"><skipped/></testcase>'
                       '</testsuite></testsuites>', encoding='utf-8')
     assert reconcile(tmp_path, 1, report, single=True) == 2
     assert len(list(ET.parse(report).iter('testcase'))) == 2

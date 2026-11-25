@@ -13,6 +13,7 @@ from statistics import median
 from tools.ci.integration_split import invocation, target_weights
 from tools.ci.integration_timing_profile import report_timings
 from tools.ci.shard_evidence import PROOF_NAME, TEMPLATE_TARGET, verify_shard
+from tools.ci.junit_identity import load_hosted_skips
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -54,6 +55,7 @@ def main() -> int:
     parser.add_argument('--index', type=int, required=True)
     parser.add_argument('--count', type=int, required=True)
     parser.add_argument('--list', action='store_true')
+    parser.add_argument('--hosted', action='store_true', help='Enforce reviewed hosted skip contract')
     args = parser.parse_args()
     selected = select_files(ROOT, args.suite, args.index, args.count)
     if not selected:
@@ -90,7 +92,8 @@ def main() -> int:
     if result == 0:
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         verify_shard(manifest, report, selected, split=split,
-                     postgres_template=postgres_template)
+                     postgres_template=postgres_template,
+                     allowed_skips=load_hosted_skips(ROOT, args.suite) if args.hosted else None)
         manifest.update(suite=args.suite, index=args.index, count=args.count, targets=selected)
         manifest_path.write_text(json.dumps(manifest) + '\n', encoding='utf-8')
         observed = report_timings(report, selected, split=split)
