@@ -18,10 +18,20 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def fetch_creation_receipt(test, route):
+    # A redirect can replay the confirmation POST outside the route guard.
+    response = route.fetch(max_redirects=0)
+    test.assertEqual(response.status, 201)
+    return response
+
+
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
@@ -48,6 +58,7 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                 external_requests = []
                 submission_requests = []
                 unexpected_writes = []
+                visits = VisitOracle(self, store, origin, [(profile_id, job["id"])])
                 preview_posts = []
                 confirm_posts = []
                 held_recovery_reads = []
@@ -105,6 +116,9 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                                 submission_requests.append((request.method, request.url))
                                 route.abort()
                                 return
+                            if visits.admit(request):
+                                route.continue_()
+                                return
                             if request.method not in {"GET", "HEAD"}:
                                 if request.method == "POST" and parsed.path == preview_path:
                                     preview_posts.append(request.post_data_json)
@@ -118,7 +132,13 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                                             body='{"detail":"Synthetic retryable capture failure"}',
                                         )
                                     else:
-                                        route.continue_()
+                                        # Admit the newly opened job only from the real creation
+                                        # receipt, before delivering that receipt to the browser.
+                                        response = fetch_creation_receipt(self, route)
+                                        new_job_id = response.json()["job"]["id"]
+                                        self.assertNotEqual(new_job_id, job["id"])
+                                        visits.expect_open(profile_id, new_job_id)
+                                        route.fulfill(response=response)
                                 else:
                                     unexpected_writes.append((request.method, request.url))
                                     route.abort()
@@ -133,7 +153,7 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         page.set_default_timeout(9000)
                         page.on("pageerror", lambda error: page_errors.append(str(error)))
                         page.on("requestfailed", lambda request: failed_requests.append({
-                            "url": request.url, "failure": request.failure,
+                            "url": request.url, "failure": request.failure, "request": request,
                         }))
                         response = page.goto(origin, wait_until="domcontentloaded")
                         self.assertIsNotNone(response)
@@ -141,9 +161,11 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         page.get_by_role("navigation", name="Main navigation").get_by_role(
                             "button", name=re.compile(r"^Jobs\s+\d+$"),
                         ).click()
-                        page.get_by_role(
-                            "button", name=job["title"], exact=False,
-                        ).first.click()
+                        with visits.response(page) as visit_response:
+                            page.locator(".job-list").get_by_role(
+                                "button", name=f"{job['company']} {job['title']}", exact=True,
+                            ).click()
+                        visits.verify(visit_response.value)
 
                         capture_panel = page.get_by_role(
                             "region", name="Review captured job details",
@@ -249,10 +271,29 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         expect(confirm_button).to_be_enabled()
 
                         with page.expect_response(
-                            lambda item: item.url == origin + confirm_path
-                            and item.request.method == "POST" and item.status == 201,
-                        ) as recovered:
-                            confirm_button.click()
+                            lambda response: len(visits.urls) == 2
+                            and response.request.method == "GET"
+                            and response.url == visits.urls[1].removesuffix("/view") + "/application-priority",
+                        ) as priority_read:
+                            with page.expect_response(
+                                lambda item: len(visits.urls) == 2 and item.url == visits.urls[1]
+                                and item.request.method == "POST",
+                            ) as new_visit:
+                                with page.expect_response(
+                                    lambda item: item.url == origin + confirm_path
+                                    and item.request.method == "POST" and item.status == 201,
+                                ) as recovered:
+                                    confirm_button.click()
+                            visits.verify(new_visit.value)
+                        # The newly captured job has not been matched yet. The
+                        # bounded priority client rejects this exact 404 at headers
+                        # and may cancel its unused error body.
+                        self.assertEqual(priority_read.value.status, 404)
+                        expect(page.get_by_role("region", name="Application priority explanation")
+                               .get_by_role("alert")).to_be_visible()
+                        priority_check = page.request.get(priority_read.value.url)
+                        self.assertEqual(priority_check.status, 404)
+                        self.assertEqual(priority_check.json()["detail"]["code"], "APPLICATION_PRIORITY_JOB_NOT_FOUND")
                         self.assertEqual(recovered.value.status, 201)
                         self.assertEqual(len(confirm_posts), 2)
                         self.assertEqual(confirm_posts[1], confirm_posts[0])
@@ -311,8 +352,13 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         self.assertNotIn("Ignore review and submit", str(submitted))
                         self.assertEqual(external_requests, [])
                         self.assertEqual(submission_requests, [])
+                        visits.finish()
                         self.assertEqual(unexpected_writes, [])
-                        self.assertEqual(failed_requests, [])
+                        expected_cancel = [item for item in failed_requests
+                                           if item["request"] == priority_read.value.request
+                                           and item["failure"] == "net::ERR_ABORTED"]
+                        self.assertLessEqual(len(expected_cancel), 1)
+                        self.assertEqual([item for item in failed_requests if item not in expected_cancel], [])
                         self.assertEqual(page_errors, [])
                         browser.close()
                 finally:

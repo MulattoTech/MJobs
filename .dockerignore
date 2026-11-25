@@ -20,3 +20,10 @@ docs/maintainers
 docs/site
 prompts
 .vscode
+
+# Generated local verification output must not invalidate runtime/image builds.
+apps/web/coverage
+.coverage
+.coverage.*
+.mypy_cache
+.ruff_cache

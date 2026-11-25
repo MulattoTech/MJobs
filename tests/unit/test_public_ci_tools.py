@@ -1,12 +1,13 @@
 """Offline regression tests for public-repository verification helpers."""
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
+
 from tools.ci.check_repository import check_markdown, check_required_ci, check_workflows
-from tools.ownership_index import check_index
-from tools.ci.run_shard import select_files
-from tools.ci.test_summary import summarize
 from tools.ci.release_gate import unmet
+from tools.ci.run_shard import select_files, weighted_groups
+from tools.ci.test_summary import summarize
+from tools.ownership_index import check_index
 
 
 class PublicCITests(unittest.TestCase):
@@ -14,6 +15,21 @@ class PublicCITests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.addCleanup(self.temp.cleanup)
+
+    def test_repository_job_uses_minimal_pinned_dependencies(self):
+        import yaml
+
+        root = Path(__file__).resolve().parents[2]
+        requirements = (root / '.github/test-requirements.txt').read_text(encoding='utf-8').splitlines()
+        yaml_pin = next(line for line in requirements if line.startswith('PyYAML=='))
+        jobs = yaml.load((root / '.github/workflows/ci.yml').read_text(encoding='utf-8'),
+                         Loader=yaml.BaseLoader)['jobs']
+        commands = [step.get('run', '') for step in jobs['repository']['steps']]
+        install = [command for command in commands if 'pip install' in command]
+        self.assertEqual(install, [f'python -m pip install {yaml_pin} -r .github/docs-requirements.txt'])
+        self.assertIn('python -m tools.ci.check_repository', commands)
+        self.assertIn('python -m tools.site.build', commands)
+        self.assertIn('git diff --check HEAD^ HEAD', commands)
 
     def test_links_check_real_targets_without_network(self):
         (self.root / 'README.md').write_text('[good](there.md) [web](https://example.com) [bad](absent.md)', encoding='utf-8')
@@ -42,6 +58,21 @@ class PublicCITests(unittest.TestCase):
         self.assertEqual(len(set(flat)), 11)
         self.assertEqual(groups[0], select_files(self.root, 'browser', 0, 4))
 
+    def test_weighted_shards_preserve_inventory_and_balance(self):
+        files = [f'test_{i}.py' for i in range(6)]
+        weights = dict(zip(files, [90, 1, 1, 80, 1, 1]))
+        groups = weighted_groups(files, 3, weights)
+        self.assertEqual(sorted(p for g in groups for p in g), sorted(files))
+        self.assertTrue(all(groups))
+        self.assertEqual(groups, weighted_groups(list(reversed(files)), 3, weights))
+        self.assertLessEqual(max(sum(weights[p] for p in g) for g in groups), 90)
+
+    def test_weighted_shards_include_unknown_and_invalid_timings(self):
+        files = ['a', 'b', 'c', 'd']
+        groups = weighted_groups(files, 3, {'a': 5, 'b': float('nan'), 'c': -1})
+        self.assertEqual(sorted(p for g in groups for p in g), files)
+        self.assertTrue(all(groups))
+
     def test_nested_and_suffix_tests_are_not_omitted(self):
         folder = self.root / 'tests/integration/nested'
         folder.mkdir(parents=True)
@@ -54,6 +85,22 @@ class PublicCITests(unittest.TestCase):
         for args in [('browser', 4, 4), ('unknown', 0, 1), ('browser', -1, 4)]:
             with self.assertRaises(ValueError):
                 select_files(self.root, *args)
+
+    def test_browser_profile_changes_assignment_without_losing_files(self):
+        import json
+
+        folder = self.root / 'tests/browser'
+        folder.mkdir(parents=True)
+        profile = self.root / 'tools/ci/browser_timings.json'
+        profile.parent.mkdir(parents=True)
+        paths = [f'tests/browser/test_{i}.py' for i in range(6)]
+        for path in paths:
+            (self.root / path).touch()
+        profile.write_text(json.dumps({'seconds': dict(zip(paths, [100, 1, 100, 1, 1, 1]))}))
+        groups = [select_files(self.root, 'browser', index, 2) for index in range(2)]
+        self.assertEqual(sorted(path for group in groups for path in group), paths)
+        self.assertFalse({paths[0], paths[2]} <= set(groups[0]))
+        self.assertFalse({paths[0], paths[2]} <= set(groups[1]))
 
     def test_junit_counts_keep_failures_and_skips(self):
         path = self.root / 'x.xml'

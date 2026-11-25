@@ -1,5 +1,6 @@
 """Connected local-browser acceptance for manually reviewed application answers."""
 from copy import deepcopy
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -36,6 +37,42 @@ SENSITIVE_QUESTION_ID = "legal-authorization-review"
 SENSITIVE_QUESTION = "Are you legally authorized to work in the United States?"
 MANUAL_ANSWER = "Controlled fictional test application."
 CONCURRENT_ANSWER_ID = "concurrent-version-change"
+
+
+class ReprepareNoticeBrowserTests(unittest.TestCase):
+    def test_reprepare_notice_requires_visible_unique_app_level_status(self):
+        from cli.ui_e2e import assert_reprepare_notice
+
+        instruction = "Run a local dry run to create a fresh ATS question preflight"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                context = browser.new_context()
+                context.route("**/*", lambda route: route.abort())
+                page = context.new_page()
+                global_notice = (
+                    '<div class="notice" role="status">Current application documents are revision 6. '
+                    + instruction + ' for this revision. Nothing was submitted.</div>'
+                )
+                question_hint = '<section><p role="status">' + instruction + ' before resuming.</p></section>'
+                page.set_content("<main>" + global_notice + question_hint + "</main>")
+                expect(page.get_by_role("status").filter(has_text=instruction)).to_have_count(2)
+                assert_reprepare_notice(page)
+
+                # A per-question hint alone must not satisfy the application-level gate.
+                page.set_content("<main>" + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+
+                # Neither a hidden global notice nor an ambiguous duplicate may pass.
+                page.set_content("<main><div hidden>" + global_notice + "</div>" + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+                page.set_content("<main>" + global_notice + global_notice + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+            finally:
+                browser.close()
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
@@ -176,8 +213,13 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(
                 app, log_level="error", access_log=False))
-            thread = threading.Thread(
-                target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            def serve_isolated_api():
+                # Keep cancellation of unread error bodies from stranding
+                # Windows Proactor transports in the owned fixture.
+                with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                    runner.run(server.serve(sockets=[sock]))
+
+            thread = threading.Thread(target=serve_isolated_api, daemon=True)
             thread.start()
             deadline = time.monotonic() + 10
             external, errors, writes = [], [], []
@@ -452,8 +494,8 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(prepared["profile_version"], saved_profile["version"])
                     self.assertEqual(prepared["document_version"],
                                      old_document_version + 1)
-                    expect(page.get_by_role("status").filter(has_text=
-                        "Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
+                    expect(page.locator("main > .notice[role=status]").filter(has_text="Current application documents are revision")).to_contain_text(
+                        "Run a local dry run to create a fresh ATS question preflight")
                     refreshed_documents = page.request.get(
                         f"{origin}/profiles/fixture/applications/"
                         f"{application_ids['fixture']}/documents")
@@ -517,6 +559,27 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         '[aria-label="Resume validation for question 1"]')
                     resume_button = resume_validation.get_by_role(
                         "button", name="Resume and validate current form", exact=True)
+                    # Re-preparation invalidated the old preflight. The UI must
+                    # refuse resume until a real dry run checks the new revision.
+                    expect(resume_button).to_be_disabled()
+                    expect(resume_validation).to_contain_text("fresh ATS question preflight")
+                    self.assertFalse(latest_preflight(store, application_ids["fixture"])["is_current"])
+                    self.assertFalse(any(path.endswith("/answer-review-resumes") for _, path in writes))
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        fresh_run = executor.submit(
+                            apply_mock, store, application_ids["fixture"], fixture, root,
+                            request_id="fresh-current-revision-before-answer-resume",
+                        ).result(timeout=45)
+                    self.assertEqual(fresh_run["state"], "DRY_RUN_COMPLETE")
+                    fresh_preflight = latest_preflight(store, application_ids["fixture"])
+                    self.assertTrue(fresh_preflight["is_current"])
+                    self.assertEqual(fresh_preflight["result"], "PASS")
+                    self.assertEqual(fresh_preflight["document_version"], prepared["document_version"])
+                    self.assertEqual(fresh_preflight["metadata_fingerprint"], resumed_preflight["metadata_fingerprint"])
+                    # Refresh the selected application without discarding its reviewed
+                    # draft, using the existing application-card read-only navigation.
+                    page.get_by_role("region", name="Application pipeline").locator(
+                        ".job-card").filter(has_text=job["title"]).click()
                     expect(resume_button).to_be_enabled()
                     with page.expect_response(lambda response:
                             response.request.method == "POST"
@@ -559,7 +622,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(history_response.status, 200)
                     history = history_response.json()
                     self.assertFalse(history["external_submission_enabled"])
-                    self.assertEqual(len(history["attempts"]), 3)
+                    self.assertEqual(len(history["attempts"]), 4)
                     self.assertTrue(any(
                         row["document_version"] == applications_before[0]["document_version"]
                         and row["state"] == "DRY_RUN_COMPLETE"
@@ -684,7 +747,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(request_bodies[5]["expected_profile_version"],
                                      saved_profile["version"])
                     self.assertGreater(store.count("documents"), documents_before)
-                    self.assertEqual(store.count("application_attempts"), attempts_before + 2)
+                    self.assertEqual(store.count("application_attempts"), attempts_before + 3)
                     self.assertEqual(store.application(applications_before[0]["id"])["state"],
                                      "DRY_RUN_COMPLETE")
                     self.assertEqual(store.application(applications_before[0]["id"])["document_version"],

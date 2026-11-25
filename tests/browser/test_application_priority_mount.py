@@ -20,6 +20,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.manual_capture import capture_manual_job
 from services.discovery.matching import recalculate
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -130,6 +131,10 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
 
                 external = []
                 requests = []
+                visits = VisitOracle(self, store, origin, [
+                    ("fixture", known_job["id"]), ("fixture", partial_job["id"]),
+                    (other["id"], known_job["id"]), ("fixture", known_job["id"]),
+                ])
                 fail_known_once = True
                 misbind_job_once = True
                 misbind_profile_once = True
@@ -146,7 +151,13 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                             route.abort()
                             return
 
+                        if visits.admit(route.request):
+                            route.continue_()
+                            return
                         requests.append((route.request.method, parsed.path))
+                        if route.request.method != "GET":
+                            route.abort()
+                            return
                         segments = parsed.path.strip("/").split("/")
                         is_priority_read = (
                             route.request.method == "GET" and len(segments) == 5
@@ -192,7 +203,9 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     expect(known_card).to_be_visible()
                     expect(partial_card).to_be_visible()
 
-                    known_card.click()
+                    with visits.response(page) as visit_response:
+                        known_card.click()
+                    visits.verify(visit_response.value)
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
                     expect(panel).to_have_count(1)
@@ -230,7 +243,9 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     expect(factors).to_contain_text("Priority contribution: UNKNOWN")
 
                     # A server response for another job must never expose its score or factors.
-                    partial_card.click()
+                    with visits.response(page) as visit_response:
+                        partial_card.click()
+                    visits.verify(visit_response.value)
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
                     expect(panel).to_have_count(1)
@@ -246,7 +261,9 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value(other["id"])
                     known_card = page.locator(".job-card").filter(
                         has_text="Synthetic Priority Panel Known Role")
-                    known_card.click()
+                    with visits.response(page) as visit_response:
+                        known_card.click()
+                    visits.verify(visit_response.value)
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
                     expect(panel.get_by_role("alert")).to_contain_text(
@@ -260,7 +277,9 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
                     known_card = page.locator(".job-card").filter(
                         has_text="Synthetic Priority Panel Known Role")
-                    known_card.click()
+                    with visits.response(page) as visit_response:
+                        known_card.click()
+                    visits.verify(visit_response.value)
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
                     expect(panel.get_by_role("list", name="Priority factors", exact=True)).to_be_visible()
@@ -276,6 +295,8 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     self.assertFalse(fail_known_once)
                     self.assertFalse(misbind_job_once)
                     self.assertFalse(misbind_profile_once)
+                    visits.finish()
+                    expected_visits = visits.rows()
                     self.assertEqual(external, [])
                     self.assertFalse([request for request in requests if request[0] != "GET"], requests)
                     self.assertFalse(any(method in {"POST", "PUT", "PATCH", "DELETE"}
@@ -299,7 +320,11 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
 
             reopened = Store(database_url)
             try:
-                self.assertEqual(self._snapshot(reopened), before_browser)
+                final = self._snapshot(reopened)
+                self.assertEqual(sorted(final.pop(m.profile_job_views.name), key=lambda row: row["id"]),
+                                 sorted(expected_visits, key=lambda row: row["id"]))
+                self.assertEqual(before_browser.pop(m.profile_job_views.name), [])
+                self.assertEqual(final, before_browser)
             finally:
                 reopened.engine.dispose()
 

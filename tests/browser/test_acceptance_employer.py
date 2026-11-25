@@ -18,7 +18,7 @@ import uvicorn
 
 from apps.api.main import create_app
 from cli.acceptance_employer import begin_employer_observation, observe_employer_journey
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
@@ -43,7 +43,7 @@ class EmployerAcceptanceTests(unittest.TestCase):
         self.socket = bound_browser_socket()
         self.origin = f'http://127.0.0.1:{self.socket.getsockname()[1]}'
         self.server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
-        self.thread = threading.Thread(target=self.server.run,
+        self.thread = threading.Thread(target=run_owned_browser_server, args=(self.server,),
             kwargs={'sockets': [self.socket]}, daemon=True)
         self.thread.start()
         self.addCleanup(self.stop_server)

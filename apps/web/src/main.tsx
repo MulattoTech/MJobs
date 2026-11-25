@@ -1481,8 +1481,25 @@ function App() {
       throw new Error('Save and read back the exact reviewed answer before resuming this application.');
     if(selectedApp.profile_id!==profileId||selectedApp.profile_version!==draft.savedReadback.profile_version)
       throw new Error('Resume and prepare the current saved profile revision before continuing.');
+    if(selectedApp.question_preflight?.is_current!==true)
+      throw new Error('Run a local dry run to create a fresh ATS question preflight for this revision before resuming.');
+    // Obtain current form evidence from the scoped review endpoint before
+    // submitting. A changed question/form requires explicit new review.
     const selectedProfile=profileId;const selectedApplication=selectedApp.id;const selectionSequence=appSequence.current;
-    await resumeAndRevalidateAnswer(applicationAnswerResumeClient,selectedProfile,selectedApplication,draft.resumeReview,draft.savedReadback,crypto.randomUUID());
+    const currentReview=await api<ApplicationAnswerReview>( '/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(selectedApp.id)+'/answer-review-resumes/questions/'+encodeURIComponent(draft.resumeReview.question.question_id));
+    if(!hasBoundReviewScope(currentReview,profileId,selectedApp.id,draft.resumeReview.question.question_id)||
+      currentReview.profile_version!==draft.savedReadback.profile_version||
+      currentReview.form_fingerprint!==draft.resumeReview.form_fingerprint||
+      currentReview.question.fingerprint!==draft.resumeReview.question.fingerprint||
+      currentReview.question.text!==draft.resumeReview.question.text)
+      throw new Error('The form or reviewed question changed. Review the current question again before resuming.');
+    if(profileRef.current!==selectedProfile||appSequence.current!==selectionSequence||selectedAppRef.current?.id!==selectedApplication)
+      throw new Error('The active profile or application changed. Reload it before continuing.');
+    const activeDraft=answerDraftsRef.current[index];
+    if(activeDraft?.resumeReview!==draft.resumeReview||activeDraft?.savedReadback!==draft.savedReadback||
+      activeDraft.question!==draft.question||activeDraft.text!==draft.text)
+      throw new Error('The reviewed answer changed. Review and save it again before resuming.');
+    await resumeAndRevalidateAnswer(applicationAnswerResumeClient,selectedProfile,selectedApplication,currentReview,draft.savedReadback,crypto.randomUUID());
     if(profileRef.current!==selectedProfile||selectionSequence!==appSequence.current||selectedAppRef.current?.id!==selectedApplication)return;
     await showApp(selectedApplication,undefined,false);
     await refresh(selectedProfile);
@@ -2034,7 +2051,7 @@ function App() {
               <label>Answer<textarea maxLength={10000} value={draft.text} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:e.target.value,answer_id:undefined,savedReadback:undefined,reviewed:false,bankConsent:false}:row))}/></label>
               <label className="consent"><input type="checkbox" checked={draft.reviewed} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,reviewed:e.target.checked,bankConsent:e.target.checked?row.bankConsent:false}:row))}/> I reviewed this exact answer for this job</label>
               {!sensitive&&<><button type="button" disabled={!!busy||!draft.reviewed||!draft.question.trim()||!draft.text.trim()} onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConfidence:80,bankConsent:false}:row))}>Save to Answer Bank</button>{draft.bankConfidence!==undefined&&<div className="provenance" aria-label={`Answer Bank confirmation for question ${index+1}`}><p>This is a separate profile-level save. Confirm the answer is accurate and suitable for future reuse. It will remain subject to per-application review.</p><label>Answer bank confidence (%)<input aria-label="Answer bank confidence (%)" type="number" min={0} max={100} step={1} value={draft.bankConfidence} disabled={!!busy} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConfidence:Number(e.target.value)}:row))}/></label><label className="consent"><input aria-label="I confirm this answer is accurate and may be reused" type="checkbox" checked={!!draft.bankConsent} disabled={!!busy} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConsent:e.target.checked}:row))}/> I confirm this answer is accurate and may be reused</label><button type="button" disabled={!!busy||!draft.reviewed||!draft.text.trim()||!draft.question.trim()||!draft.bankConsent||!Number.isInteger(draft.bankConfidence)||draft.bankConfidence<0||draft.bankConfidence>100} onClick={()=>void action('Saving reviewed answer to Answer Bank',()=>saveReviewedAnswerToBank(index))}>Confirm and save to Answer Bank</button></div>}</>}
-              {draft.resumeReview&&draft.savedReadback&&<div className="provenance" aria-label={`Resume validation for question ${index+1}`}><p>The exact approved answer was read back from the Answer Bank. Resume will run a fresh local form preflight and must match this application, question, answer, and form before the page continues.</p><button type="button" className="primary" disabled={!!busy||selectedApp.profile_version!==draft.savedReadback.profile_version} onClick={()=>void action('Resuming application with fresh validation',()=>resumeReviewedAnswer(index))}>Resume and validate current form</button>{selectedApp.profile_version!==draft.savedReadback.profile_version&&<p role="status">Prepare the current saved profile revision before resuming.</p>}</div>}
+              {draft.resumeReview&&draft.savedReadback&&<div className="provenance" aria-label={`Resume validation for question ${index+1}`}><p>The exact approved answer was read back from the Answer Bank. Resume will run a fresh local form preflight and must match this application, question, answer, and form before the page continues.</p><button type="button" className="primary" disabled={!!busy||selectedApp.profile_version!==draft.savedReadback.profile_version||selectedApp.question_preflight?.is_current!==true} onClick={()=>void action('Resuming application with fresh validation',()=>resumeReviewedAnswer(index))}>Resume and validate current form</button>{selectedApp.profile_version!==draft.savedReadback.profile_version&&<p role="status">Prepare the current saved profile revision before resuming.</p>}{selectedApp.question_preflight?.is_current!==true&&<p role="status">Run a local dry run to create a fresh ATS question preflight before resuming.</p>}</div>}
               <button type="button" className="quiet" onClick={()=>setAnswerDrafts(rows=>rows.filter((_,i)=>i!==index))}>Remove question</button>
             </fieldset>;
           })}

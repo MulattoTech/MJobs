@@ -379,6 +379,17 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertTrue(any("codex" in part.casefold() for part in prefix))
 
 
+    def test_issue_brief_remains_explicitly_unavailable_without_cli_or_on_timeout(self):
+        supervisor = AgentSupervisor(self.root)
+        for failure in (FileNotFoundError("gh"), subprocess.TimeoutExpired("gh", 12)):
+            with self.subTest(failure=type(failure).__name__):
+                with patch("tools.agent_dashboard.supervisor._run", side_effect=failure) as lookup:
+                    brief = supervisor._issue_brief({"issue": 318})
+                lookup.assert_called_once()
+                self.assertIn("Issue #318 acceptance could not be injected", brief)
+                self.assertIn("before coding", brief)
+                self.assertNotIn("PASS", brief)
+
     def test_prompt_frontloads_live_lane_claim(self):
         supervisor = AgentSupervisor(self.root)
         supervisor.bus.mkdir(parents=True, exist_ok=True)

@@ -28,7 +28,8 @@ def test_connected_execution_cannot_request_unbounded_wait(value):
 @pytest.mark.parametrize("key,value", [
     ("invocation_id", "older-run"), ("revision", "older-head"),
     ("source_sha256", "older-inputs"), ("external_submission_enabled", True),
-    ("finished_at", (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()),
+    pytest.param("finished_at", (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+                 id="finished_at-stale"),
     ("runtime", {"pid": 999, "python": sys.version.split()[0]}),
     ("checks", {"mock confirmation": {"status": "PASS", "reason": "old evidence"}}),
 ])

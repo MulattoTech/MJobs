@@ -18,6 +18,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -116,6 +117,7 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
             )
             external_requests = []
             writes = []
+            visits = VisitOracle(self, store, origin, [("fixture", target["id"])])
             submission_requests = []
             errors = []
             try:
@@ -139,6 +141,8 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                         if parsed.netloc != urlsplit(origin).netloc:
                             external_requests.append(request.url)
                             route.abort()
+                        elif visits.admit(request):
+                            route.continue_()
                         elif request.method not in {"GET", "HEAD"}:
                             writes.append((request.method, parsed.path))
                             if any(part in parsed.path.casefold() for part in (
@@ -176,9 +180,11 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                     returned = jobs_response.value.json()["jobs"]
                     self.assertIn(target["id"], {row["id"] for row in returned})
                     self.assertEqual(response_jobs[-1].status, 200)
-                    page.get_by_role(
-                        "button", name=re.compile(re.escape(target["title"])),
-                    ).first.click()
+                    with visits.response(page) as view_response:
+                        page.locator(".job-list").get_by_role(
+                            "button", name=re.compile(re.escape(target["title"])),
+                        ).click()
+                    visits.verify(view_response.value)
 
                     # The warning panel is an explanatory signal only. Unknown
                     # company identity remains explicitly UNKNOWN; the evidence
@@ -226,6 +232,7 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                     self.assertEqual(cross_profile, 404)
                     self.assertEqual(potential_risk.count(), 0)
 
+                    visits.finish()
                     self.assertEqual(external_requests, [])
                     self.assertEqual(writes, [])
                     self.assertEqual(submission_requests, [])
@@ -239,7 +246,9 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                 final_counts = table_counts()
                 store.engine.dispose()
             self.assertFalse(thread.is_alive(), "Isolated job-risk API did not stop")
-            self.assertEqual(final_counts, before)
+            expected_counts = dict(before)
+            expected_counts[m.profile_job_views.name] += 1
+            self.assertEqual(final_counts, expected_counts)
 
 
 if __name__ == "__main__":

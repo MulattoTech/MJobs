@@ -463,7 +463,8 @@ class AIResumeTests(unittest.TestCase):
                 pass
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         server.daemon_threads = True
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        # This controls idle listener shutdown polling, not request deadlines.
+        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": .02}, daemon=True)
         thread.start()
         self.store.save_ai_task_settings("fixture", {
             "resume_tailoring": {"provider": "local", "model": "fixture-model"},

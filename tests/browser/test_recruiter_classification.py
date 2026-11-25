@@ -16,6 +16,7 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from packages.persistence.store import Store, now, upsert
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -155,6 +156,7 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
 
                 external = []
                 requests = []
+                visits = VisitOracle(self, store, origin, [("recruiter-fixture", job["id"]) for job in jobs])
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context(viewport={"width": 1365, "height": 1000})
@@ -164,9 +166,14 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                         if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif visits.admit(route.request):
+                            route.continue_()
                         else:
                             requests.append((route.request.method, parsed.path, parse_qs(parsed.query)))
-                            route.continue_()
+                            if route.request.method != "GET":
+                                route.abort()
+                            else:
+                                route.continue_()
 
                     context.route("**/*", local_only)
                     page = context.new_page()
@@ -216,7 +223,9 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     staffing = get_classification("recruiter-staffing-job")
                     self.assertEqual(staffing["classification"], "STAFFING_AGENCY")
                     direct_card = visible_jobs.filter(has_text="Direct employer fixture")
-                    direct_card.click()
+                    with visits.response(page) as visit_response:
+                        direct_card.click()
+                    visits.verify(visit_response.value)
                     expect(page.locator(".job-detail > h2").first).to_have_text(
                         "Direct employer fixture",
                     )
@@ -231,7 +240,9 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     expect(region).to_contain_text("synthetic:company-profile")
 
                     ambiguous_card = visible_jobs.filter(has_text="Ambiguous employer fixture")
-                    ambiguous_card.click()
+                    with visits.response(page) as visit_response:
+                        ambiguous_card.click()
+                    visits.verify(visit_response.value)
                     expect(page.locator(".job-detail > h2").first).to_have_text(
                         "Ambiguous employer fixture",
                     )
@@ -244,7 +255,9 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     expect(region).to_contain_text("No classification evidence is available.")
                     expect(region).not_to_contain_text("DIRECT EMPLOYER")
 
-                    staffing_card.click()
+                    with visits.response(page) as visit_response:
+                        staffing_card.click()
+                    visits.verify(visit_response.value)
                     expect(page.locator(".job-detail > h2").first).to_have_text(
                         "Staffing agency fixture remains visible",
                     )
@@ -266,8 +279,9 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                         for word in ("reject this job", "exclude this job", "not eligible")))
 
                     # An explicit classification request is read-only. No method other
-                    # than GET is allowed in this workflow; there are no external origins.
+                    # than GET is allowed for classification; exact job-open receipts are verified separately.
                     expect(page.locator(".job-card").filter(has_text="Staffing agency fixture remains visible")).to_be_visible()
+                    visits.finish()
                     self.assertEqual(external, [])
                     self.assertFalse([request for request in requests if request[0] != "GET"], requests)
                     self.assertFalse(any(
