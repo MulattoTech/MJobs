@@ -309,6 +309,125 @@ class RemoteOKTests(unittest.TestCase):
         self.assertEqual(state_job["attributes"]["remote_regions"], ["California", "TX"])
         self.assertEqual(jobs["Canada Restricted"]["attributes"]["remote_regions"], ["CA"])
 
+    def test_ambiguous_country_codes_do_not_grant_state_eligibility(self):
+        # A bare list of two-letter global location codes needs independent US
+        # evidence. Description prose is never authoritative geography.
+        locations = {
+            "Ambiguous DE CA": "DE, CA",
+            "Ambiguous AL IN": "AL, IN",
+            "Ambiguous CA CO": "CA, CO",
+            "Ambiguous prefixed": "Remote CA, GA only",
+            "Ambiguous lower case": "me, ne",
+            "Country list": "US, CA",
+            "Mixed invalid": "CA, TX, ZZ",
+            "Duplicate list": "CA, CA, TX",
+            "Explicit invalid": "US: CA, ZZ",
+            "Explicit exclusion": "US: DE, CA except TX",
+            "Valid CA TX": "CA, TX",
+            "Explicit US states": "US: DE, CA",
+            "Explicit full US states": "Remote United States: IN, AL only",
+            "Canada Restricted": "Canada Only",
+            "US Restricted": "USA Only",
+        }
+        payload = [
+            {"id": str(81000 + i), "position": title, "company": "Geo Test Co",
+             "location": location, "description": "Applicants in USA and Canada."}
+            for i, (title, location) in enumerate(locations.items())
+        ]
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        requests = []
+
+        def transport(request):
+            requests.append(request)
+            return httpx.Response(200, json=payload)
+
+        collect_source(self.store, source_id, "fixture", transport=httpx.MockTransport(transport))
+        self.assertEqual(len(requests), 1)
+        expected_regions = {
+            "Valid CA TX": ("US", ["California", "TX"]),
+            "Explicit US states": ("US", ["California", "DE"]),
+            "Explicit full US states": ("US", ["AL", "IN"]),
+            "Canada Restricted": ("CA", ["CA"]),
+            "US Restricted": ("US", ["US"]),
+        }
+
+        def assert_persisted():
+            jobs = {job["title"]: job for job in self.store.jobs(
+                search_criteria={"remote": "REQUIRED"})}
+            self.assertEqual(set(jobs), set(locations))
+            for title, job in jobs.items():
+                with self.subTest(persisted=title):
+                    country, regions = expected_regions.get(title, (None, []))
+                    self.assertEqual(job["attributes"]["country"], country)
+                    self.assertEqual(job["attributes"]["remote_regions"], regions)
+                    self.assertIsNone(job["attributes"]["state"])
+                    self.assertEqual(job["location"], locations[title])
+
+        cases = (
+            ("amb-ca", "remote_regions", ["CA"], {"Canada Restricted"}),
+            ("amb-california", "remote_regions", ["California"],
+             {"Valid CA TX", "Explicit US states"}),
+            ("amb-texas", "remote_regions", ["TX"], {"Valid CA TX"}),
+            ("amb-delaware", "remote_regions", ["DE"], {"Explicit US states"}),
+            ("amb-indiana", "remote_regions", ["IN"], {"Explicit full US states"}),
+            ("amb-us", "remote_regions", ["US"], {"US Restricted"}),
+            ("amb-physical-ca", "states", ["CA"], set()),
+            ("amb-physical-tx", "states", ["TX"], set()),
+            ("amb-physical-de", "states", ["DE"], set()),
+        )
+
+        def verify_saved_searches(create):
+            app = create_app(self.store, "http://127.0.0.1:1", self.root,
+                             "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+            with TestClient(app) as client:
+                for name, field, values, expected_titles in cases:
+                    with self.subTest(search=name, create=create):
+                        if create:
+                            saved = client.put("/search-profiles", json={
+                                "id": name, "profile_id": "fixture", "name": name,
+                                "enabled": False, field: values,
+                            })
+                            self.assertEqual(saved.status_code, 200, saved.text)
+                        readback = client.get(f"/search-profiles/{name}")
+                        self.assertEqual(readback.status_code, 200, readback.text)
+                        criteria = readback.json()["criteria"]
+                        self.assertEqual(criteria[field], values)
+                        matches = self.store.jobs(profile_id="fixture", search_criteria=criteria)
+                        self.assertEqual({job["title"] for job in matches}, expected_titles)
+                        results = client.get("/jobs", params={
+                            "profile_id": "fixture", "search_profile_id": name,
+                        })
+                        self.assertEqual(results.status_code, 200, results.text)
+                        self.assertEqual({job["title"] for job in results.json()["jobs"]},
+                                         expected_titles)
+
+        assert_persisted()
+        verify_saved_searches(create=True)
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        assert_persisted()
+        verify_saved_searches(create=False)
+
+    def test_unmarked_all_country_collision_state_pairs_are_unknown(self):
+        # All ISO 3166-1 alpha-2 / US postal state-code overlaps. Exercise
+        # every pair rather than only the reviewer's example.
+        from itertools import combinations
+        from services.discovery.sources.remoteok import _structured_remote_location
+
+        collisions = (
+            "AL", "AZ", "AR", "CA", "CO", "DE", "GA", "ID", "IL", "IN", "KY",
+            "LA", "ME", "MD", "MA", "MN", "MS", "MO", "MT", "NE", "NC", "PA",
+            "SC", "SD", "TN", "VA",
+        )
+        for left, right in combinations(collisions, 2):
+            with self.subTest(left=left, right=right):
+                facts = _structured_remote_location(f"{left}, {right}")
+                self.assertIsNone(facts["country"])
+                self.assertEqual(facts["remote_regions"], [])
+                self.assertTrue(facts["remote_indicated"])
+
     def test_capabilities_and_unsupported_features(self):
         adapter = RemoteOK()
         caps = adapter.capabilities()

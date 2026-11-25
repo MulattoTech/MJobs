@@ -40,8 +40,18 @@ _US_STATE_CODES = frozenset({
     "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT",
     "VA", "WA", "WV", "WI", "WY", "DC",
 })
+# US postal state codes without an ISO 3166-1 alpha-2 country-code overlap.
+# A positive allowlist is intentionally conservative for unmarked global
+# location lists; CA, DE, IN and other country collisions cannot establish US
+# context by themselves. Do not derive eligibility from description prose.
+_UNAMBIGUOUS_US_STATE_CODES = frozenset({
+    "AK", "CT", "DC", "FL", "HI", "IA", "KS", "MI", "ND", "NH", "NJ", "NM", "NV",
+    "NY", "OH", "OK", "OR", "RI", "TX", "UT", "VT", "WA", "WI", "WV", "WY",
+})
 _STRUCTURED_STATE_LIST = re.compile(
-    r"(?:remote\s+)?([A-Z]{2}(?:\s*,\s*[A-Z]{2})+)(?:\s+only)?", re.IGNORECASE,
+    r"(?:remote\s+)?(?:(u\.?\s*s\.?\s*a?\.?|united states(?: of america)?)\s*:\s*)?"
+    r"([A-Z]{2}(?:\s*,\s*[A-Z]{2})+)(?:\s+only)?",
+    re.IGNORECASE | re.ASCII,
 )
 MAX_STRUCTURED_LOCATION_CHARS = 256
 
@@ -78,8 +88,11 @@ def _structured_remote_location(location):
 
     state_match = _STRUCTURED_STATE_LIST.fullmatch(value)
     if state_match:
-        states = [token.strip().upper() for token in state_match.group(1).split(",")]
-        if len(set(states)) == len(states) and set(states) <= _US_STATE_CODES:
+        states = [token.strip().upper() for token in state_match.group(2).split(",")]
+        has_us_evidence = (state_match.group(1) is not None
+                           or not _UNAMBIGUOUS_US_STATE_CODES.isdisjoint(states))
+        if (has_us_evidence and len(set(states)) == len(states)
+                and set(states) <= _US_STATE_CODES):
             states.sort()
             # The shared region filter uses bare CA for Canada.
             regions = ["California" if state == "CA" else state for state in states]
