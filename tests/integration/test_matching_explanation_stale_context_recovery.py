@@ -149,6 +149,57 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
                          saved["components"]["scoring_contributions"])
         self.assertEqual(self._database_bytes(), before)
 
+    def test_skill_source_reordering_preserves_match_but_evidence_changes_stay_stale(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "context-job",
+            ).values(description="Python and Linux", skills=["Python", "Linux"], attributes={}))
+        current = self._save_scoring_profile({"skills": 75})
+        saved = self._insert_match(current)
+        saved_components = saved["components"]
+        self.assertEqual(saved_components["detected"], ["Python", "Linux"])
+        self.assertEqual(
+            [row["skill"] for row in saved_components["requirements"]],
+            ["Python", "Linux"],
+        )
+
+        def update_job(**values):
+            with self.store.engine.begin() as connection:
+                connection.execute(m.jobs.update().where(
+                    m.jobs.c.id == "context-job",
+                ).values(**values))
+
+        def assert_stale_without_write():
+            before = self._database_bytes()
+            response = self.client.get(self._explanation_url())
+            self.assertEqual(response.status_code, 409, response.text)
+            self.assertEqual(
+                response.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT",
+            )
+            self.assertEqual(self._database_bytes(), before)
+
+        update_job(description="Linux and Python", skills=["Linux", "Python"])
+        before_reordered_read = self._database_bytes()
+        reordered = self.client.get(self._explanation_url())
+        self.assertEqual(reordered.status_code, 200, reordered.text)
+        self.assertEqual(self._database_bytes(), before_reordered_read)
+
+        update_job(description="Linux, Python and Docker", skills=["Linux", "Python", "Docker"])
+        assert_stale_without_write()
+
+        update_job(description="Linux", skills=["Linux"])
+        assert_stale_without_write()
+
+        update_job(
+            description="Required Linux and Python",
+            skills=["Linux", "Python"],
+            attributes={
+                "skill_evidence": "structured_required_skills",
+                "required_skills": ["Linux", "Python"],
+            },
+        )
+        assert_stale_without_write()
+
     def test_old_default_weight_is_stale_against_configured_current_weight(self):
         current = self._save_scoring_profile({"skills": 75})
         # A persisted weight of 100 is stale against the current selected-search
