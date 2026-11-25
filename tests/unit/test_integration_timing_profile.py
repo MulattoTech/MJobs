@@ -37,11 +37,11 @@ def test_complete_profile_rejects_missing_and_duplicate_files(tmp_path):
 
 @pytest.mark.parametrize(('cases', 'error'), [
     ('', 'Empty test report'),
-    ('<testcase classname="unknown" time="1"/>', 'Unmapped testcase'),
-    ('<testcase classname="tests.integration.test_a" time="nan"/>', 'Invalid testcase duration'),
-    ('<testcase classname="tests.integration.test_a" time="-1"/>', 'Invalid testcase duration'),
-    ('<testcase classname="tests.integration.test_a" time="1"><failure/></testcase>', 'Failed testcase'),
-    ('<testcase classname="tests.integration.test_a" time="1"><error/></testcase>', 'Failed testcase'),
+    ('<testcase classname="unknown" name="test_x" time="1"/>', 'Unmapped testcase'),
+    ('<testcase classname="tests.integration.test_a" name="test_x" time="nan"/>', 'Invalid testcase duration'),
+    ('<testcase classname="tests.integration.test_a" name="test_x" time="-1"/>', 'Invalid testcase duration'),
+    ('<testcase classname="tests.integration.test_a" name="test_x" time="1"><failure/></testcase>', 'Failed testcase'),
+    ('<testcase classname="tests.integration.test_a" name="test_x" time="1"><error/></testcase>', 'Failed testcase'),
 ])
 def test_report_timings_rejects_invalid_evidence(tmp_path, cases, error):
     report = make_report(tmp_path, 'bad.xml', cases)
