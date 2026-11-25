@@ -1444,7 +1444,14 @@ def source_setup_artifact(state, public):
         "project": TARGET["project_name"], "scheduler_container_id": RUNTIME["containers"]["scheduler"],
         "lease_expired_at": artifact["timestamp"]}
     primary_checks = []
-    for stage in ("preflight", "enable", "dispatch", "poll", "read", "finalize", "cleanup", "finalize", "release"):
+    primary_stages = ["preflight"]
+    if public["cleanup"]["status"] == "RESTORED_DISABLED":
+        primary_stages.append("enable")
+    primary_stages.extend(["dispatch", "dispatch", "poll", "read", "finalize"])
+    if public["cleanup"]["status"] == "RESTORED_DISABLED":
+        primary_stages.extend(["cleanup", "cleanup"])
+    primary_stages.extend(["finalize", "release"])
+    for stage in primary_stages:
         row = {**binding, "stage": stage, "verified": True, **flags,
             "owner": "fixture-owner", "token_sha256": "7" * 64, "lease_expires_at": expiry,
             "checked_at": artifact["timestamp"], "receipt": {**flags, "lease_expires_at": expiry}}
@@ -1510,13 +1517,55 @@ def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(provider):
     assert row["step"] == 9 and row["status"] == "PASS"
 
 
+def test_source_setup_accepts_existing_enabled_primary_without_cleanup_guards():
+    state, public = baseline(), public_artifact()
+    public["cleanup"]["status"] = "NOT_REQUIRED"
+    artifact = source_setup_artifact(state, public)
+
+    row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+
+    assert row["step"] == 9 and row["status"] == "PASS"
+
+
 def test_source_setup_rejects_dispatch_after_cleanup_before_second_finalize():
     state, public = baseline(), public_artifact()
     artifact = source_setup_artifact(state, public)
-    impossible_stages = ["preflight", "enable", "poll", "read", "finalize", "cleanup",
-                         "dispatch", "finalize", "release"]
+    impossible_stages = ["preflight", "enable", "poll", "read", "finalize", "cleanup", "cleanup",
+                         "dispatch", "dispatch", "finalize", "release"]
     for row, stage in zip(artifact["primary_containment_checks"], impossible_stages):
         row["stage"] = stage
+
+    with pytest.raises(ValueError):
+        journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+
+
+@pytest.mark.parametrize("change", ["extra-dispatch", "conflicting-dispatch"])
+def test_source_setup_rejects_duplicate_or_conflicting_dispatch_guards(change):
+    state, public = baseline(), public_artifact()
+    artifact = source_setup_artifact(state, public)
+    checks = artifact["primary_containment_checks"]
+    dispatches = [index for index, row in enumerate(checks) if row["stage"] == "dispatch"]
+    if change == "extra-dispatch":
+        checks.insert(checks.index(next(row for row in checks if row["stage"] == "poll")),
+                      copy.deepcopy(checks[dispatches[-1]]))
+    else:
+        checks[dispatches[-1]]["primary_source_id"] = "conflicting-source"
+
+    with pytest.raises(ValueError):
+        journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+
+
+@pytest.mark.parametrize("cleanup_status", ["NOT_REQUIRED", "RESTORED_DISABLED"])
+def test_source_setup_cleanup_guards_must_match_public_cleanup_observation(cleanup_status):
+    state, public = baseline(), public_artifact()
+    public["cleanup"]["status"] = cleanup_status
+    artifact = source_setup_artifact(state, public)
+    checks = artifact["primary_containment_checks"]
+    if cleanup_status == "NOT_REQUIRED":
+        finalize = [index for index, row in enumerate(checks) if row["stage"] == "finalize"]
+        checks.insert(finalize[-1], {**checks[finalize[-1]], "stage": "cleanup"})
+    else:
+        artifact["primary_containment_checks"] = [row for row in checks if row["stage"] != "cleanup"]
 
     with pytest.raises(ValueError):
         journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
