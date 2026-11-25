@@ -1510,6 +1510,18 @@ def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(provider):
     assert row["step"] == 9 and row["status"] == "PASS"
 
 
+def test_source_setup_rejects_dispatch_after_cleanup_before_second_finalize():
+    state, public = baseline(), public_artifact()
+    artifact = source_setup_artifact(state, public)
+    impossible_stages = ["preflight", "enable", "poll", "read", "finalize", "cleanup",
+                         "dispatch", "finalize", "release"]
+    for row, stage in zip(artifact["primary_containment_checks"], impossible_stages):
+        row["stage"] = stage
+
+    with pytest.raises(ValueError):
+        journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+
+
 def test_source_setup_rejects_legacy_receipt_without_owned_release_history():
     state, public = baseline(), public_artifact()
     artifact = source_setup_artifact(state, public)

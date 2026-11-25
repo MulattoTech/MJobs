@@ -824,6 +824,18 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
             or any(stage not in {"preflight", "enable", "dispatch", "poll", "read", "finalize", "cleanup", "release"}
                    for stage in stages)):
         raise ValueError("Source setup containment history lacks the single completed lifecycle")
+    dispatches = [index for index, stage in enumerate(stages) if stage == "dispatch"]
+    polls = [index for index, stage in enumerate(stages) if stage == "poll"]
+    reads = [index for index, stage in enumerate(stages) if stage == "read"]
+    finalizes = [index for index, stage in enumerate(stages) if stage == "finalize"]
+    cleanups = [index for index, stage in enumerate(stages) if stage == "cleanup"]
+    if (not polls or not reads or len(finalizes) != 2 or not cleanups
+            or max(dispatches) >= min(polls)
+            or not any(max(dispatches) < index < finalizes[0] for index in reads)
+            or max(polls) >= finalizes[0]
+            or finalizes[0] >= min(cleanups) or max(cleanups) >= finalizes[1]
+            or finalizes[1] >= len(stages) - 1):
+        raise ValueError("Source setup containment history is causally out of order")
     binding = {"acceptance_run_id": artifact["acceptance_run_id"], "target_origin": target["base_url"],
         "profile_id": baseline["profile_id"], "application_id": baseline["application_id"],
         "job_id": baseline["selected_application_job_id"], "primary_provider": primary_provider}
