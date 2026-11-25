@@ -12,6 +12,10 @@ on:
         type: choice
         options: ['3', '4', '6', '8', '10', '12']
         default: '8'
+      postgres_template:
+        description: Opt-in disposable database template benchmark with independent equivalence proof
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -94,6 +98,8 @@ jobs:
         env:
           SHARD: ${{ matrix.shard }}
           SHARD_COUNT: ${{ strategy.job-total }}
+          MJOBS_CI_POSTGRES_TEMPLATE: ${{ inputs.postgres_template && '1' || '0' }}
+          MJOBS_CI_POSTGRES_DUMP_CONTAINER: ${{ job.services.postgres.id }}
         run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT"
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
@@ -104,7 +110,9 @@ jobs:
         if: always()
         with:
           name: integration-results-${{ matrix.shard }}
-          path: outputs/ci/integration-*.xml
+          path: |
+            outputs/ci/integration-*.xml
+            outputs/ci/postgres-template-proof.json
           retention-days: 7
           if-no-files-found: ignore
   required:

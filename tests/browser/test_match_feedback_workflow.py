@@ -14,7 +14,7 @@ from sqlalchemy import select
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.manual_capture import capture_manual_job
@@ -179,7 +179,7 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             origin_netloc = urlsplit(origin).netloc
             server = uvicorn.Server(uvicorn.Config(app, log_level="error", access_log=False))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={"sockets": [sock]}, daemon=True)
             requests = []
             external_requests = []
             blocked_writes = []

@@ -16,6 +16,21 @@ class PublicCITests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.addCleanup(self.temp.cleanup)
 
+    def test_repository_job_uses_minimal_pinned_dependencies(self):
+        import yaml
+
+        root = Path(__file__).resolve().parents[2]
+        requirements = (root / '.github/test-requirements.txt').read_text(encoding='utf-8').splitlines()
+        yaml_pin = next(line for line in requirements if line.startswith('PyYAML=='))
+        jobs = yaml.load((root / '.github/workflows/ci.yml').read_text(encoding='utf-8'),
+                         Loader=yaml.BaseLoader)['jobs']
+        commands = [step.get('run', '') for step in jobs['repository']['steps']]
+        install = [command for command in commands if 'pip install' in command]
+        self.assertEqual(install, [f'python -m pip install {yaml_pin} -r .github/docs-requirements.txt'])
+        self.assertIn('python -m tools.ci.check_repository', commands)
+        self.assertIn('python -m tools.site.build', commands)
+        self.assertIn('git diff --check HEAD^ HEAD', commands)
+
     def test_links_check_real_targets_without_network(self):
         (self.root / 'README.md').write_text('[good](there.md) [web](https://example.com) [bad](absent.md)', encoding='utf-8')
         (self.root / 'there.md').write_text('# here', encoding='utf-8')

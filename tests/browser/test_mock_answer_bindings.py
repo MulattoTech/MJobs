@@ -114,10 +114,21 @@ class MockAnswerBindingFlowTests(unittest.TestCase):
             app_id = self.prepared(origin, dict(PROFILE, answers=edited))
             saved = self.store.profile("fixture")
             self.assertFalse(saved["answers"][0]["verified"])
-            result = apply_mock(self.store, app_id, origin, self.root)
+            with patch("services.applications.mock_adapter.sync_playwright") as browser:
+                result = apply_mock(self.store, app_id, origin, self.root)
+            browser.assert_not_called()
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
             report = latest_preflight(self.store, app_id)
         self.assertEqual(result["state"], "REVIEW_REQUIRED")
-        self.assertEqual(report["result"], "FAIL")
+        # T13 explicitly distinguishes question-bearing answer review from
+        # missing legacy requirements. Both remain fail-closed.
+        self.assertEqual(report["result"], "UNKNOWN")
+        self.assertEqual(report["reason"], "ANSWER_REVIEW_UNKNOWN_ANSWER")
+        self.assertTrue(any(row["question_id"] == "country" and row["review_required"]
+                            and row["reason"] == "UNKNOWN_ANSWER" for row in report["answer_review"]))
         self.assertEqual(report["missing"][0]["question_id"], "country")
         self.assertNotIn("Changed after approval", json.dumps(report))
 
@@ -133,7 +144,12 @@ class MockAnswerBindingFlowTests(unittest.TestCase):
             reviewed["answers"][0]["user_approved"] = True
             self.store.save_profile(reviewed)
             _, report = self.assert_review_before_browser(origin, None)
-        self.assertEqual(report["result"], "FAIL")
+        # T13 explicitly distinguishes question-bearing answer review from
+        # missing legacy requirements. Both remain fail-closed.
+        self.assertEqual(report["result"], "UNKNOWN")
+        self.assertEqual(report["reason"], "ANSWER_REVIEW_UNKNOWN_ANSWER")
+        self.assertTrue(any(row["question_id"] == "country" and row["review_required"]
+                            and row["reason"] == "UNKNOWN_ANSWER" for row in report["answer_review"]))
         self.assertEqual(report["missing"][0]["question_id"], "country")
         self.assertNotIn("United States", json.dumps(report))
 

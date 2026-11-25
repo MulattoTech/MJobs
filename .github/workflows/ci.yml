@@ -121,7 +121,9 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
-      - run: python -m pip install -r .github/test-requirements.txt -r .github/docs-requirements.txt
+      # This runner only checks repository policy and builds static docs.
+      # Keep PyYAML aligned with the full pinned test toolchain.
+      - run: python -m pip install PyYAML==6.0.3 -r .github/docs-requirements.txt
       - run: python -m tools.ci.check_repository
       - run: python -m tools.site.build
       - name: Whitespace check

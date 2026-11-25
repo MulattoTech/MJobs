@@ -111,7 +111,13 @@ class Store:
         # Register tables declared outside models.py before creating the shared metadata.
         from packages.persistence import resume_workspace  # noqa: F401
 
-        m.metadata.create_all(self.engine)
+        # Python's legacy SQLite transaction control does not implicitly begin
+        # a transaction for DDL. Explicitly batch the fixture schema so each
+        # table/index does not require its own durable commit. Keep the same
+        # journal, synchronous and foreign-key settings; partial DDL rolls back.
+        with self.engine.begin() as connection:
+            connection.exec_driver_sql("BEGIN")
+            m.metadata.create_all(connection)
 
     @staticmethod
     def _business_tables():

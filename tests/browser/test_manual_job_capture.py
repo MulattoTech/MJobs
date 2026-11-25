@@ -13,7 +13,7 @@ from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
 
@@ -48,7 +48,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={"sockets": [sock]}, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10

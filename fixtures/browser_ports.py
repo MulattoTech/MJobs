@@ -1,4 +1,5 @@
 """Bound high loopback ports for browser fixtures without changing host policy."""
+import asyncio
 import errno
 import secrets
 import socket
@@ -25,3 +26,8 @@ def bound_browser_socket():
             sock.close()
             raise
     return create_browser_server(bind)
+
+def run_owned_browser_server(server, *, sockets):
+    """Run the owned test server without stranding canceled Windows transports."""
+    with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+        runner.run(server.serve(sockets=sockets))
