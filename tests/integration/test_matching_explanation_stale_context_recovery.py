@@ -79,7 +79,7 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()["profile"]
 
-    def _insert_match(self, profile, *, contribution_weight, attributed_version=None):
+    def _insert_match(self, profile, *, contribution_weight=None, attributed_version=None):
         with self.store.engine.connect() as connection:
             search = connection.execute(select(m.search_profiles).where(
                 m.search_profiles.c.id == "selected-search",
@@ -89,30 +89,47 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         # Negative cases below then alter only the stale field under test.
         recalculate(self.store, "fixture", scoring_criteria=search["criteria"])
         career = self.store.profile("fixture")
-        with self.store.engine.begin() as connection:
+        with self.store.engine.connect() as connection:
             saved = connection.execute(select(m.matches).where(
                 m.matches.c.job_id == "context-job",
                 m.matches.c.profile_id == "fixture",
                 m.matches.c.profile_version == career["version"],
             )).mappings().one()
-            components = deepcopy(saved["components"])
+            saved = dict(saved)
+
+        # The positive case keeps the production writer's complete row intact.
+        if contribution_weight is None and attributed_version is None:
+            return saved
+
+        components = deepcopy(saved["components"])
+        if contribution_weight is not None:
             contribution = next(
                 row for row in components["scoring_contributions"]
                 if row["dimension"] == "skills"
             )
             contribution["weight"] = float(contribution_weight)
-            if attributed_version is not None:
-                components["scoring_profile"]["profile_version"] = attributed_version
+        if attributed_version is not None:
+            components["scoring_profile"]["profile_version"] = attributed_version
+        # Each negative case changes only its requested stale field.
+        saved["components"] = components
+        with self.store.engine.begin() as connection:
             connection.execute(m.matches.update().where(
                 m.matches.c.id == saved["id"],
             ).values(components=components))
+        return saved
 
     def _database_bytes(self):
         return self.database.read_bytes()
 
     def test_current_profile_weight_and_matching_contribution_are_readable(self):
         current = self._save_scoring_profile({"skills": 75})
-        self._insert_match(current, contribution_weight=75)
+        saved = self._insert_match(current)
+        self.assertEqual(current["weights"]["skills"], 75.0)
+        self.assertEqual(
+            next(row for row in saved["components"]["scoring_contributions"]
+                 if row["dimension"] == "skills")["weight"],
+            75.0,
+        )
         before = self._database_bytes()
 
         response = self.client.get(self._explanation_url())
@@ -127,12 +144,15 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         self.assertEqual(body["scoring_contributions"][0]["provenance"], {
             "source": "LEGACY_MATCH_BASELINE",
         })
+        self.assertEqual(body["score"], saved["score"])
+        self.assertEqual(body["scoring_contributions"],
+                         saved["components"]["scoring_contributions"])
         self.assertEqual(self._database_bytes(), before)
 
     def test_old_default_weight_is_stale_against_configured_current_weight(self):
         current = self._save_scoring_profile({"skills": 75})
-        # This reproduces the mount test's old fixture: the explanation claims 100
-        # although the currently selected search configures the skills weight as 75.
+        # A persisted weight of 100 is stale against the current selected-search
+        # skills weight of 75.
         self._insert_match(current, contribution_weight=100)
         before = self._database_bytes()
 
@@ -144,7 +164,7 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
 
     def test_stale_profile_attribution_and_foreign_search_remain_fail_closed(self):
         current = self._save_scoring_profile({"skills": 75})
-        self._insert_match(current, contribution_weight=75, attributed_version="obsolete-version")
+        self._insert_match(current, attributed_version="obsolete-version")
         before = self._database_bytes()
 
         stale = self.client.get(self._explanation_url())
