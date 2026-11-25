@@ -167,6 +167,111 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertEqual(tracked["tracking_status"], "INTERVIEW")
         self.assertEqual(tracked["tracking_attribution"], "USER_REPORTED")
 
+    def test_explicit_clear_supersedes_tracking_and_keeps_locked_application_state(self):
+        from services.tracking.applications import (
+            read_application_tracking, set_application_pipeline_status,
+        )
+        job = self.add_job("cleared-job", application=True, application_state="CONFIRMED",
+                           docs=(("resume", 1, self.profile_version),
+                                 ("cover-letter", 1, self.profile_version)))
+        app_id = job["application_id"]
+        original = self.store.application(app_id)
+        untouched = self.read()["items"][0]
+        set_application_pipeline_status(self.store, "fixture", app_id, "INTERVIEW", "track-first")
+        tracked = self.read()["items"][0]
+        self.assertEqual(tracked["stage"], "TRACKING")
+        self.assertEqual(tracked["tracking_status"], "INTERVIEW")
+        set_application_pipeline_status(self.store, "fixture", app_id, None, "clear-second")
+        snapshot = self.read()
+        cleared = snapshot["items"][0]
+        self.assertEqual(cleared["stage"], "PREPARED")
+        self.assertEqual(cleared["next_action"], "OPEN_APPLICATION")
+        self.assertFalse(cleared["can_prepare"])
+        self.assertIsNone(cleared["tracking_status"])
+        self.assertEqual(cleared["tracking_attribution"], "USER_REPORTED")
+        self.assertEqual(snapshot["counts"]["by_stage"]["TRACKING"], 0)
+        self.assertEqual(snapshot["counts"]["by_stage"]["PREPARED"], 1)
+        self.assertNotEqual(cleared["fingerprint"], tracked["fingerprint"])
+        self.assertNotEqual(cleared["fingerprint"], untouched["fingerprint"])
+        self.assertEqual(self.read(), snapshot)
+        replay = set_application_pipeline_status(self.store, "fixture", app_id, None, "clear-second")
+        self.assertEqual(self.read(), snapshot)
+        self.assertEqual([e["status"] for e in replay["history"] if e["type"] == "status"],
+                         ["INTERVIEW", None])
+        self.assertEqual(self.store.application(app_id), original)
+        self.assertEqual(read_application_tracking(self.store, "fixture", app_id), replay)
+        set_application_pipeline_status(self.store, "fixture", app_id, "OFFER", "track-third")
+        retracked = self.read()["items"][0]
+        self.assertEqual(retracked["stage"], "TRACKING")
+        self.assertEqual(retracked["tracking_status"], "OFFER")
+        self.assertEqual(self.store.application(app_id), original)
+
+    def test_clear_is_not_an_active_tracking_blocker_for_preparable_application(self):
+        from services.tracking.applications import set_application_pipeline_status
+        job = self.add_job("clear-preparable", application=True)
+        app_id = job["application_id"]
+        original = self.read()["items"][0]
+        self.assertTrue(original["can_prepare"])
+        set_application_pipeline_status(self.store, "fixture", app_id, "INTERVIEW", "track")
+        self.assertFalse(self.read()["items"][0]["can_prepare"])
+        set_application_pipeline_status(self.store, "fixture", app_id, None, "clear")
+        cleared = self.read()["items"][0]
+        self.assertEqual(cleared["stage"], "READY_TO_PREPARE")
+        self.assertEqual(cleared["next_action"], "PREPARE")
+        self.assertTrue(cleared["can_prepare"])
+        self.assertIsNone(cleared["tracking_status"])
+        self.assertNotEqual(cleared["fingerprint"], original["fingerprint"])
+
+    def test_invalid_or_stale_clear_does_not_override_valid_tracking(self):
+        job = self.add_job("clear-validation", application=True)
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        payloads = (
+            {"status": "INTERVIEW", "attribution": "USER_REPORTED", "sequence": 2},
+            {"status": None, "attribution": "USER_REPORTED", "sequence": 1},
+            {"attribution": "USER_REPORTED", "sequence": 3},
+            {"status": None, "attribution": "INVALID", "sequence": 4},
+            {"status": None, "attribution": "USER_REPORTED", "sequence": True},
+            {"status": [], "attribution": "USER_REPORTED", "sequence": 5},
+        )
+        with self.store.engine.begin() as connection:
+            for i, payload in enumerate(payloads):
+                connection.execute(m.audit.insert().values(
+                    id=f"clear-validation-{i}", entity_id=entity,
+                    action="APPLICATION_PIPELINE_STATUS", payload=payload,
+                    timestamp=f"2026-10-11T14:0{i}:00Z"))
+        item = self.read()["items"][0]
+        self.assertEqual(item["stage"], "TRACKING")
+        self.assertEqual(item["tracking_status"], "INTERVIEW")
+        self.assertEqual(item["tracking_attribution"], "USER_REPORTED")
+
+    def test_unsequenced_and_zero_sequence_clear_cannot_erase_legacy_stage(self):
+        job = self.add_job("legacy-clear-validation", application=True)
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        payloads = (
+            {"status": "INTERVIEW", "attribution": "USER_REPORTED"},
+            {"status": None, "attribution": "USER_REPORTED"},
+            {"status": None, "attribution": "USER_REPORTED", "sequence": 0},
+        )
+        with self.store.engine.begin() as connection:
+            for i, payload in enumerate(payloads):
+                connection.execute(m.audit.insert().values(
+                    id=f"legacy-clear-validation-{i}", entity_id=entity,
+                    action="APPLICATION_PIPELINE_STATUS", payload=payload,
+                    timestamp=f"2026-10-11T14:0{i}:00Z"))
+        item = self.read()["items"][0]
+        self.assertEqual(item["stage"], "TRACKING")
+        self.assertEqual(item["tracking_status"], "INTERVIEW")
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="valid-numbered-clear", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": None, "attribution": "USER_REPORTED", "sequence": 1},
+                timestamp="2026-10-11T14:04:00Z"))
+        cleared = self.read()["items"][0]
+        self.assertEqual(cleared["stage"], "READY_TO_PREPARE")
+        self.assertIsNone(cleared["tracking_status"])
+        self.assertNotEqual(item["fingerprint"], cleared["fingerprint"])
+
     def test_email_reported_status_is_preserved_as_user_tracking(self):
         job = self.add_job("email-tracking-job", application=True,
                            docs=(("resume", 1, self.profile_version),
