@@ -39,6 +39,42 @@ MANUAL_ANSWER = "Controlled fictional test application."
 CONCURRENT_ANSWER_ID = "concurrent-version-change"
 
 
+class ReprepareNoticeBrowserTests(unittest.TestCase):
+    def test_reprepare_notice_requires_visible_unique_app_level_status(self):
+        from cli.ui_e2e import assert_reprepare_notice
+
+        instruction = "Run a local dry run to create a fresh ATS question preflight"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                context = browser.new_context()
+                context.route("**/*", lambda route: route.abort())
+                page = context.new_page()
+                global_notice = (
+                    '<div class="notice" role="status">Current application documents are revision 6. '
+                    + instruction + ' for this revision. Nothing was submitted.</div>'
+                )
+                question_hint = '<section><p role="status">' + instruction + ' before resuming.</p></section>'
+                page.set_content("<main>" + global_notice + question_hint + "</main>")
+                expect(page.get_by_role("status").filter(has_text=instruction)).to_have_count(2)
+                assert_reprepare_notice(page)
+
+                # A per-question hint alone must not satisfy the application-level gate.
+                page.set_content("<main>" + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+
+                # Neither a hidden global notice nor an ambiguous duplicate may pass.
+                page.set_content("<main><div hidden>" + global_notice + "</div>" + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+                page.set_content("<main>" + global_notice + global_notice + question_hint + "</main>")
+                with self.assertRaises(AssertionError):
+                    assert_reprepare_notice(page)
+            finally:
+                browser.close()
+
+
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
