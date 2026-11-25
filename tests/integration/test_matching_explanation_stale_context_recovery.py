@@ -11,6 +11,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.matching import recalculate
 from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
 
@@ -79,29 +80,32 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         return response.json()["profile"]
 
     def _insert_match(self, profile, *, contribution_weight, attributed_version=None):
+        with self.store.engine.connect() as connection:
+            search = connection.execute(select(m.search_profiles).where(
+                m.search_profiles.c.id == "selected-search",
+            )).mappings().one()
+
+        # Use the production match writer for the positive evidence baseline.
+        # Negative cases below then alter only the stale field under test.
+        recalculate(self.store, "fixture", scoring_criteria=search["criteria"])
         career = self.store.profile("fixture")
         with self.store.engine.begin() as connection:
-            connection.execute(m.matches.insert().values(
-                id="context-match", job_id="context-job", profile_id="fixture",
-                profile_version=career["version"], score=73.0, missing=[],
-                components={
-                    "scoring_profile": {
-                        "requested_role_family": "systems administration",
-                        "selected_role_family": profile["role_family"],
-                        "profile_id": profile["id"],
-                        "profile_version": attributed_version or profile["version"],
-                        "selection": "ROLE_FAMILY",
-                    },
-                    "scoring_contributions": [{
-                        "dimension": "skills",
-                        "weight": float(contribution_weight),
-                        "raw_score": 73.0,
-                        "weighted_contribution": 73.0,
-                        "explanation": "Stored deterministic skills baseline.",
-                        "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-                    }],
-                },
-            ))
+            saved = connection.execute(select(m.matches).where(
+                m.matches.c.job_id == "context-job",
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.profile_version == career["version"],
+            )).mappings().one()
+            components = deepcopy(saved["components"])
+            contribution = next(
+                row for row in components["scoring_contributions"]
+                if row["dimension"] == "skills"
+            )
+            contribution["weight"] = float(contribution_weight)
+            if attributed_version is not None:
+                components["scoring_profile"]["profile_version"] = attributed_version
+            connection.execute(m.matches.update().where(
+                m.matches.c.id == saved["id"],
+            ).values(components=components))
 
     def _database_bytes(self):
         return self.database.read_bytes()
