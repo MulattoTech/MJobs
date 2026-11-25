@@ -92,7 +92,7 @@ jobs:
       - name: Execute each integration test file in exactly one isolated shard
         env:
           SHARD: ${{ matrix.shard }}
-          SHARD_COUNT: ${{ inputs.shards || '6' }}
+          SHARD_COUNT: ${{ strategy.job-total }}
         run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT"
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''

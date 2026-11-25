@@ -2,7 +2,11 @@
 
 import pytest
 
-from tools.ci.integration_timing_profile import complete_profile, report_timings
+from tools.ci.integration_timing_profile import (
+    blend_timings,
+    complete_profile,
+    report_timings,
+)
 
 FILES = ['tests/integration/test_a.py', 'tests/integration/test_b.py']
 
@@ -43,3 +47,14 @@ def test_report_timings_rejects_invalid_evidence(tmp_path, cases, error):
     report = make_report(tmp_path, 'bad.xml', cases)
     with pytest.raises(ValueError, match=error):
         report_timings(report, FILES)
+
+def test_blend_timings_weights_recent_data_and_keeps_current_inventory():
+    latest = {'a': 12.0, 'b': 6.0, 'new': 4.0}
+    previous = {'a': 6.0, 'b': float('nan'), 'removed': 20.0}
+    assert blend_timings(latest, previous) == {'a': 10.0, 'b': 6.0, 'new': 4.0}
+
+
+@pytest.mark.parametrize('weight', [0, -1, 2, float('nan'), float('inf')])
+def test_blend_timings_rejects_invalid_weights(weight):
+    with pytest.raises(ValueError, match='Latest weight'):
+        blend_timings({'a': 1.0}, {}, weight)

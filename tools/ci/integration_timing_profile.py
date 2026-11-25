@@ -53,18 +53,51 @@ def complete_profile(files: list[str], reports: list[Path]) -> dict[str, float]:
     return {p: round(seconds, 3) for p, seconds in sorted(weights.items())}
 
 
+def blend_timings(
+    latest: dict[str, float], previous: dict[str, float], latest_weight: float = 2 / 3,
+) -> dict[str, float]:
+    """Smooth runner-to-runner variance without carrying removed files forward."""
+    if not math.isfinite(latest_weight) or not 0 < latest_weight <= 1:
+        raise ValueError('Latest weight must be in (0, 1]')
+    result = {}
+    for path, seconds in sorted(latest.items()):
+        if not math.isfinite(seconds) or seconds < 0:
+            raise ValueError(f'Invalid latest timing: {path}')
+        historical = previous.get(path)
+        if (isinstance(historical, (int, float)) and not isinstance(historical, bool)
+                and math.isfinite(historical) and historical >= 0):
+            seconds = latest_weight * seconds + (1 - latest_weight) * historical
+        result[path] = round(seconds, 3)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--run', type=int, required=True)
     parser.add_argument('--head', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--previous', type=Path,
+                        help='Blend a prior successful profile with the latest run')
+    parser.add_argument('--latest-weight', type=float, default=2 / 3)
     parser.add_argument('reports', type=Path, nargs='+')
     args = parser.parse_args()
     if args.run <= 0 or not re.fullmatch(r'[0-9a-f]{40}', args.head):
         parser.error('Expected a positive run ID and full lowercase commit SHA')
     weights = complete_profile(integration_files(ROOT), args.reports)
-    args.output.write_text(json.dumps({'source_run': args.run, 'source_head': args.head,
-                                       'seconds': weights}, indent=2) + '\n', encoding='utf-8')
+    profile = {'source_run': args.run, 'source_head': args.head, 'seconds': weights}
+    if args.previous:
+        previous = json.loads(args.previous.read_text(encoding='utf-8'))
+        previous_run = previous['source_run']
+        previous_head = previous['source_head']
+        if (not isinstance(previous_run, int) or previous_run <= 0
+                or previous_run == args.run or not isinstance(previous_head, str)
+                or not re.fullmatch(r'[0-9a-f]{40}', previous_head)):
+            parser.error('Previous profile must identify a distinct valid run and exact head')
+        profile['seconds'] = blend_timings(weights, previous['seconds'], args.latest_weight)
+        profile['previous_source_run'] = previous_run
+        profile['previous_source_head'] = previous_head
+        profile['latest_weight'] = args.latest_weight
+    args.output.write_text(json.dumps(profile, indent=2) + '\n', encoding='utf-8')
     print(f'Profiled {len(weights)} files from {len(args.reports)} reports')
 
 
