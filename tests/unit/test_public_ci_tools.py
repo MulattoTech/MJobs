@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from tools.ci.check_repository import check_markdown, check_required_ci, check_workflows
 from tools.ownership_index import check_index
-from tools.ci.run_shard import select_files
+from tools.ci.run_shard import select_files, weighted_groups
 from tools.ci.test_summary import summarize
 from tools.ci.release_gate import unmet
 
@@ -41,6 +41,21 @@ class PublicCITests(unittest.TestCase):
         self.assertEqual(len(flat), 11)
         self.assertEqual(len(set(flat)), 11)
         self.assertEqual(groups[0], select_files(self.root, 'browser', 0, 4))
+
+    def test_weighted_shards_preserve_inventory_and_balance(self):
+        files = [f'test_{i}.py' for i in range(6)]
+        weights = dict(zip(files, [90, 1, 1, 80, 1, 1]))
+        groups = weighted_groups(files, 3, weights)
+        self.assertEqual(sorted(p for g in groups for p in g), sorted(files))
+        self.assertTrue(all(groups))
+        self.assertEqual(groups, weighted_groups(list(reversed(files)), 3, weights))
+        self.assertLessEqual(max(sum(weights[p] for p in g) for g in groups), 90)
+
+    def test_weighted_shards_include_unknown_and_invalid_timings(self):
+        files = ['a', 'b', 'c', 'd']
+        groups = weighted_groups(files, 3, {'a': 5, 'b': float('nan'), 'c': -1})
+        self.assertEqual(sorted(p for g in groups for p in g), files)
+        self.assertTrue(all(groups))
 
     def test_nested_and_suffix_tests_are_not_omitted(self):
         folder = self.root / 'tests/integration/nested'

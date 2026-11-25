@@ -18,9 +18,9 @@ jobs:
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 6
       matrix:
-        shard: [0, 1, 2]
+        shard: [0, 1, 2, 3, 4, 5]
     services:
       postgres:
         image: postgres:17
@@ -64,6 +64,7 @@ jobs:
           cache: pip
           cache-dependency-path: |
             requirements.txt
+            requirements.lock
             .github/test-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
@@ -85,7 +86,7 @@ jobs:
       - name: Execute each integration test file in exactly one isolated shard
         env:
           SHARD: ${{ matrix.shard }}
-        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count 3
+        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count 6
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
         env:
