@@ -23,6 +23,7 @@ try:
     from apps.api.main import create_app
     from fixtures.browser_ports import bound_browser_socket
     from packages.persistence import models as m
+    from tests.browser.visit_oracle import VisitOracle
     from packages.persistence.store import Store
     from services.discovery.matching import recalculate
     from services.discovery.search_profiles import save_search_profile
@@ -262,6 +263,7 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
             profile_writes = []
             explanation_reads = []
             blocked_writes = []
+            visits = VisitOracle(self, store, origin, [('fixture', 'selected-job')])
             external_requests = []
             ai_requests = []
             submission_requests = []
@@ -306,6 +308,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                                 route.abort()
                         elif path.endswith("/match-explanation") and request.method == "GET":
                             explanation_reads.append(request.url)
+                            route.continue_()
+                        elif visits.admit(request):
                             route.continue_()
                         elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, request.url))
@@ -442,8 +446,10 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         urlsplit(response.url).path.endswith(
                             "/selected-search/jobs/selected-job/match-explanation")
                     ) as explanation_response:
-                        page.locator(".job-card").filter(
-                            has_text="Cloud Systems Engineer").click()
+                        with visits.response(page) as view_response:
+                            page.locator(".job-card").filter(
+                                has_text="Cloud Systems Engineer").click()
+                        visits.verify(view_response.value)
                     explanation_body = explanation_response.value.json()
                     self.assertEqual(explanation_response.value.status, 200)
                     self.assertEqual(explanation_body["search_profile_id"], "selected-search")
@@ -499,6 +505,7 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     self.assertEqual(len(profile_writes), 2)
                     self.assertGreaterEqual(len(profile_reads), 5)
                     self.assertGreaterEqual(len(explanation_reads), 1)
+                    visits.finish()
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(ai_requests, [])

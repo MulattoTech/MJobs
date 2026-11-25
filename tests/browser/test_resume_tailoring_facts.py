@@ -18,6 +18,7 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -49,6 +50,8 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
 
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            visits = VisitOracle(self, store, origin, [('fixture', job['id'])])
+            unexpected_visits = []
             api = create_app(store, 'http://127.0.0.1:1', root,
                 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
             server = uvicorn.Server(uvicorn.Config(api, log_level='error'))
@@ -71,6 +74,11 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif visits.admit(route.request):
+                            route.continue_()
+                        elif route.request.method == 'POST' and urlsplit(route.request.url).path.endswith('/view'):
+                            unexpected_visits.append(route.request.url)
+                            route.abort()
                         elif route.request.method == 'POST' and urlsplit(route.request.url).path == '/applications':
                             prepare_requests.append(route.request.post_data_json)
                             route.abort()
@@ -84,7 +92,13 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     page.reload()
                     expect(page.locator('.job-grid .job-list .job-card').first).to_be_visible()
-                    page.locator('.job-grid .job-list .job-card').first.click()
+                    with visits.response(page) as view_response:
+                        page.locator('.job-grid .job-list .job-card').first.click()
+                    visits.verify(view_response.value)
+                    after_open = persisted_counts()
+                    expected_after_open = dict(before_review)
+                    expected_after_open[m.profile_job_views.name] += 1
+                    self.assertEqual(after_open, expected_after_open)
                     page.get_by_label('Order approved skills for this job', exact=True).check()
                     page.set_default_timeout(5000)
                     expect(page.get_by_label('Choose resume facts', exact=True)).to_be_visible()
@@ -109,7 +123,9 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
 
                     rows = application_documents(store, application_id)
                     self.assertEqual(rows, before_documents)
-                    self.assertEqual(persisted_counts(), before_review)
+                    self.assertEqual(persisted_counts(), after_open)
+                    visits.finish()
+                    self.assertEqual(unexpected_visits, [])
                     self.assertFalse(any(row['kind'] == 'resume' and row['version'] == 2 for row in rows))
                     self.assertEqual(store.profile('fixture')['facts'][0]['text'], experience['text'])
                     self.assertFalse(external)
