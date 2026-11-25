@@ -228,6 +228,83 @@ class MatchingExplanationContributionTests(unittest.TestCase):
         self.assertEqual(response.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
         self.assertEqual(self._snapshot(), before_read)
 
+    def test_changed_job_evidence_makes_persisted_explanation_stale(self):
+        configured = self.client.put(self._profile_url(), json={
+            "expected_version": None,
+            "profile": {
+                "schema_version": 1,
+                "role_family": "Cloud Operations",
+                "weights": {"skills": 80, "ai_intensity": 20},
+                "thresholds": {},
+            },
+        })
+        self.assertEqual(configured.status_code, 200, configured.text)
+        saved_profile = configured.json()["profile"]
+        with self.store.engine.connect() as connection:
+            job = dict(connection.execute(select(m.jobs).where(
+                m.jobs.c.id == "selected-job",
+            )).mappings().one())
+        career_profile = self.store.profile("fixture")
+        expected = resolve_and_compose_profile_scoring(
+            job,
+            {"score": 80.0, "missing": [], "components": {}},
+            role_family="cloud operations",
+            profiles_by_role_family={saved_profile["role_family"]: saved_profile},
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(m.matches.insert().values(
+                id="selected-match", job_id="selected-job", profile_id="fixture",
+                profile_version=career_profile["version"], score=expected["score"], missing=[],
+                components={
+                    "scoring_profile": expected["scoring_profile"],
+                    "scoring_contributions": expected["scoring_contributions"],
+                },
+            ))
+
+        current = self.client.get(self._explanation_url())
+        self.assertEqual(current.status_code, 200, current.text)
+        self.assertEqual(current.json()["score"], expected["score"])
+
+        changed_attributes = deepcopy(job["attributes"])
+        changed_attributes["specialized_signals"]["ai_intensity"] = {
+            "score": 90,
+            "provenance": {
+                "source": "EMPLOYER_POSTING_METADATA",
+                "evidence_ref": "posting:ai-intensity-8",
+            },
+        }
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "selected-job",
+            ).values(attributes=changed_attributes))
+        before_stale_read = self._snapshot()
+
+        stale = self.client.get(self._explanation_url())
+
+        self.assertEqual(stale.status_code, 409, stale.text)
+        self.assertEqual(stale.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
+        self.assertEqual(self._snapshot(), before_stale_read)
+
+        with self.store.engine.begin() as connection:
+            persisted = dict(connection.execute(select(m.matches).where(
+                m.matches.c.id == "selected-match",
+            )).mappings().one())
+            sparse_components = deepcopy(persisted["components"])
+            sparse_components["scoring_contributions"] = [
+                row for row in sparse_components["scoring_contributions"]
+                if row["dimension"] != "ai_intensity"
+            ]
+            connection.execute(m.matches.update().where(
+                m.matches.c.id == "selected-match",
+            ).values(components=sparse_components))
+        before_missing_read = self._snapshot()
+
+        missing = self.client.get(self._explanation_url())
+
+        self.assertEqual(missing.status_code, 409, missing.text)
+        self.assertEqual(missing.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
+        self.assertEqual(self._snapshot(), before_missing_read)
+
     def test_recalculation_persists_experience_weight_from_verified_profile_facts(self):
         self.store.save_profile({
             **deepcopy(PROFILE),

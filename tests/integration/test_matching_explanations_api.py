@@ -143,6 +143,13 @@ class MatchingExplanationsApiTests(unittest.TestCase):
 
     def test_current_projection_binds_selected_search_and_keeps_unknown_explicit(self):
         self._save_scoring_profile()
+        # The synthetic job has no supported AI-intensity evidence in this
+        # unknown-control case; an omitted persisted component must not conceal
+        # evidence that is present in the current job record.
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "job",
+            ).values(attributes={}))
         contributions = [{
             "dimension": "skills", "weight": 70.0, "raw_score": 72.5,
             "weighted_contribution": 72.5, "explanation": "Stored score contribution.",

@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
+from services.matching.selected_search_scoring import compose_selected_search_match
 from services.matching.scoring_profiles import resolve_role_scoring_profile
 
 
@@ -159,6 +160,41 @@ def _validate_contribution_score(score: float, contributions: list[dict], resolu
         _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
 
 
+def _validate_current_evidence(job: Any, profile: dict, criteria: Any, match: Any) -> None:
+    """Reject saved component reasons that no longer describe current source evidence."""
+    stored = match["components"].get("scoring_contributions", [])
+    stored_by_dimension = {row["dimension"]: row for row in stored}
+    skill_baseline = stored_by_dimension.get("skills", {}).get("raw_score")
+    if skill_baseline is None:
+        skill_baseline = match["score"]
+    try:
+        current = compose_selected_search_match(
+            job,
+            {"score": skill_baseline},
+            criteria,
+            candidate_profile=profile,
+        )
+    except (AttributeError, TypeError, ValueError):
+        _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+
+    current_by_dimension = {
+        row["dimension"]: row for row in current["scoring_contributions"]
+    }
+    fields = ("weight", "raw_score", "weighted_contribution", "explanation", "provenance")
+    for dimension, expected in current_by_dimension.items():
+        # The skills component is the base match score, which is intentionally
+        # preserved as the legacy baseline by this read-only projection.
+        if dimension == "skills":
+            continue
+        saved = stored_by_dimension.get(dimension)
+        if saved is None:
+            if expected["raw_score"] is not None:
+                _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+            continue
+        if any(saved.get(field) != expected.get(field) for field in fields):
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+
+
 def create_matching_explanations_router(store) -> APIRouter:
     """Build a read-only API for inspecting persisted match explanations."""
     router = APIRouter()
@@ -244,6 +280,8 @@ def create_matching_explanations_router(store) -> APIRouter:
                 ),
                 "provenance": {"source": "LEGACY_MATCH_BASELINE"},
             }]
+        else:
+            _validate_current_evidence(job, profile, search["criteria"], match)
         _validate_contribution_score(match["score"], contributions, resolution)
         return {
             "profile_id": profile_id,
