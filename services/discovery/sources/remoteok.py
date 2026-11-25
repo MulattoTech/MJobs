@@ -24,7 +24,7 @@ from services.discovery.sources.contract import (
     SourceCompany, SourceItem,
 )
 from services.discovery.search_semantics import (
-    classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
+    normalize_employment_type, normalize_experience_level, normalize_title,
     parse_education_requirement, parse_salary, parse_timestamp,
 )
 from services.discovery.skill_taxonomy import extract_skills
@@ -34,6 +34,71 @@ from services.discovery.negative_filters import parse_negative_conditions
 HOST = "https://remoteok.com"
 API_URL = "https://remoteok.com/api"
 CANCELLATION_POLL_INTERVAL = 0.05
+_US_STATE_CODES = frozenset({
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
+    "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT",
+    "VA", "WA", "WV", "WI", "WY", "DC",
+})
+# US postal state codes without an ISO 3166-1 alpha-2 country-code overlap.
+# A positive allowlist is intentionally conservative for unmarked global
+# location lists; CA, DE, IN and other country collisions cannot establish US
+# context by themselves. Do not derive eligibility from description prose.
+_UNAMBIGUOUS_US_STATE_CODES = frozenset({
+    "AK", "CT", "DC", "FL", "HI", "IA", "KS", "MI", "ND", "NH", "NJ", "NM", "NV",
+    "NY", "OH", "OK", "OR", "RI", "TX", "UT", "VT", "WA", "WI", "WV", "WY",
+})
+_STRUCTURED_STATE_LIST = re.compile(
+    r"(?:remote\s+)?(?:(u\.?\s*s\.?\s*a?\.?|united states(?: of america)?)\s*:\s*)?"
+    r"([A-Z]{2}(?:\s*,\s*[A-Z]{2})+)(?:\s+only)?",
+    re.IGNORECASE | re.ASCII,
+)
+MAX_STRUCTURED_LOCATION_CHARS = 256
+
+
+def _structured_remote_location(location):
+    """Classify only unambiguous structured location values from Remote OK."""
+    facts = {
+        "remote_type": "UNKNOWN", "remote_regions": [], "remote_indicated": True,
+        "country": None, "state": None, "city": None, "location_text": location,
+    }
+    if (not isinstance(location, str)
+            or len(location) > MAX_STRUCTURED_LOCATION_CHARS):
+        return facts
+    value = " ".join(location.split())
+    if not value:
+        return facts
+
+    prefix = r"(?:remote\s+)?"
+    suffix = r"(?:\s+only)?"
+    if re.fullmatch(prefix + r"(?:u\.?\s*s\.?\s*a?\.?|united states(?: of america)?)" + suffix,
+                    value, re.IGNORECASE):
+        facts.update(remote_type="REMOTE_US", remote_regions=["US"], country="US")
+        return facts
+    if re.fullmatch(prefix + r"canada" + suffix, value, re.IGNORECASE):
+        facts.update(remote_type="REMOTE_COUNTRY", remote_regions=["CA"], country="CA")
+        return facts
+    if re.fullmatch(prefix + r"(?:united kingdom|uk|great britain)" + suffix, value, re.IGNORECASE):
+        facts.update(remote_type="REMOTE_COUNTRY", remote_regions=["GB"], country="GB")
+        return facts
+    if re.fullmatch(prefix + r"(?:worldwide|global|anywhere(?:\s+in\s+the\s+world)?)" + suffix,
+                    value, re.IGNORECASE):
+        facts.update(remote_type="REMOTE_WORLDWIDE", remote_regions=["WORLDWIDE"])
+        return facts
+
+    state_match = _STRUCTURED_STATE_LIST.fullmatch(value)
+    if state_match:
+        states = [token.strip().upper() for token in state_match.group(2).split(",")]
+        has_us_evidence = (state_match.group(1) is not None
+                           or not _UNAMBIGUOUS_US_STATE_CODES.isdisjoint(states))
+        if (has_us_evidence and len(set(states)) == len(states)
+                and set(states) <= _US_STATE_CODES):
+            states.sort()
+            # The shared region filter uses bare CA for Canada.
+            regions = ["California" if state == "CA" else state for state in states]
+            # A residency list supplies remote regions without a single physical state.
+            facts.update(remote_type="REMOTE_SPECIFIC_STATES", remote_regions=regions, country="US")
+    return facts
 
 
 
@@ -333,8 +398,13 @@ class RemoteOK:
         title = plain_text(title_raw)[:500]
         description = structured_text(raw.get("description"))[:50000]
         company_name = plain_text(raw.get("company") or "Unknown Company")[:200]
-        location_raw = plain_text(raw.get("location") or "Remote")[:1000] or "Remote"
-        location_facts = classify_location(location_raw, description)
+        source_location = raw.get("location")
+        location_raw = (plain_text(source_location)[:1000] or "Remote"
+                        if isinstance(source_location, str) else "Unknown")
+        # Eligibility consumes only the bounded, unmodified structured value.
+        # The sanitized/truncated display value above must never become a
+        # trusted prefix when the provider appends a restriction after it.
+        location_facts = _structured_remote_location(source_location)
 
         tags = raw.get("tags") if isinstance(raw.get("tags"), list) else []
         clean_tags = [str(t).strip() for t in tags if isinstance(t, str) and str(t).strip()]

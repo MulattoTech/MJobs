@@ -469,6 +469,182 @@ class WeWorkRemotelyTests(unittest.TestCase):
             self.assertEqual(source_row["health_status"], "HEALTHY")
             self.assertEqual(source_row["provider"], "wwr")
 
+    def test_collect_uses_bounded_structured_location_over_generic_description(self):
+        from services.discovery.matching import build_preference_fit_factors
+        from services.discovery.search_semantics import evaluate_search
+        from services.discovery.search_profiles import get_search_profile, save_search_profile
+
+        generic = "Remote opportunity; generic feed copy says available worldwide."
+        rows = [
+            {"title": "US Scope Co: Engineer", "region": "USA Only",
+             "country": "🇺🇸 United States of America", "state": "California",
+             "description": generic, "guid": "https://weworkremotely.com/remote-jobs/us-scope",
+             "link": "https://weworkremotely.com/remote-jobs/us-scope"},
+            {"title": "World Scope Co: Engineer", "region": "Anywhere in the World",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/world-scope",
+             "link": "https://weworkremotely.com/remote-jobs/world-scope"},
+            {"title": "Country Scope Co: Engineer", "region": "", "country": "Canada",
+             "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/country-scope",
+             "link": "https://weworkremotely.com/remote-jobs/country-scope"},
+            {"title": "California Scope Co: Engineer", "region": "California", "country": "United States",
+             "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/california-scope",
+             "link": "https://weworkremotely.com/remote-jobs/california-scope"},
+            {"title": "State Scope Co: Engineer", "region": "", "country": "",
+             "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/state-scope",
+             "link": "https://weworkremotely.com/remote-jobs/state-scope"},
+            {"title": "Unsupported Scope Co: Engineer", "region": "Europe Only",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/unsupported-scope",
+             "link": "https://weworkremotely.com/remote-jobs/unsupported-scope"},
+            {"title": "Conflicting Scope Co: Engineer", "region": "USA Only",
+             "country": "Canada", "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/conflicting-scope",
+             "link": "https://weworkremotely.com/remote-jobs/conflicting-scope"},
+            {"title": "Excluded Scope Co: Engineer", "region": "Not USA",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/excluded-scope",
+             "link": "https://weworkremotely.com/remote-jobs/excluded-scope"},
+            {"title": "Ambiguous Scope Co: Engineer", "region": "CA Only",
+             "country": "", "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/ambiguous-scope",
+             "link": "https://weworkremotely.com/remote-jobs/ambiguous-scope"},
+            {"title": "Malformed Scope Co: Engineer", "region": "U" * 129,
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/malformed-scope",
+             "link": "https://weworkremotely.com/remote-jobs/malformed-scope"},
+            {"title": "Known Control Co: Engineer", "region": "United Kingdom", "country": "UK",
+             "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/known-control",
+             "link": "https://weworkremotely.com/remote-jobs/known-control"},
+            {"title": "Unicode Exclusion Co: Engineer", "region": "Worldwide 🌎 except USA",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/unicode-exclusion",
+             "link": "https://weworkremotely.com/remote-jobs/unicode-exclusion"},
+            {"title": "Punctuation Exclusion Co: Engineer", "region": "Worldwide—except USA",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/punctuation-exclusion",
+             "link": "https://weworkremotely.com/remote-jobs/punctuation-exclusion"},
+            {"title": "Japanese Exclusion Co: Engineer", "region": "Worldwide 米国を除く",
+             "country": "United States", "state": "California", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/japanese-exclusion",
+             "link": "https://weworkremotely.com/remote-jobs/japanese-exclusion"},
+            {"title": "Canadian Flag Control Co: Engineer", "region": "", "country": "🇨🇦 Canada",
+             "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/canada-flag-control",
+             "link": "https://weworkremotely.com/remote-jobs/canada-flag-control"},
+            {"title": "Mismatched Flag Control Co: Engineer", "region": "", "country": "🇨🇦 United States",
+             "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/mismatched-flag-control",
+             "link": "https://weworkremotely.com/remote-jobs/mismatched-flag-control"},
+            {"title": "Reverse Mismatched Flag Control Co: Engineer", "region": "", "country": "🇺🇸 Canada",
+             "state": "", "description": generic,
+             "guid": "https://weworkremotely.com/remote-jobs/reverse-mismatched-flag-control",
+             "link": "https://weworkremotely.com/remote-jobs/reverse-mismatched-flag-control"},
+        ]
+        payload = self.duplicate_fixture(rows)
+        # Real XML shapes which Element.findtext() used to accept partially.
+        malformed_nodes = b'''\
+          <item><title>Duplicate Scope Co: Engineer</title><region>USA Only</region><region>Canada Only</region>
+            <country>United States</country><state>California</state><description>Remote opportunity.</description>
+            <guid>https://weworkremotely.com/remote-jobs/duplicate-region</guid><link>https://weworkremotely.com/remote-jobs/duplicate-region</link></item>
+          <item><title>Nested Scope Co: Engineer</title><region>Worldwide<exception>except USA</exception></region>
+            <country>United States</country><state>California</state><description>Remote opportunity.</description>
+            <guid>https://weworkremotely.com/remote-jobs/nested-region</guid><link>https://weworkremotely.com/remote-jobs/nested-region</link></item>
+          <item><title>Tail Scope Co: Engineer</title><region>Worldwide</region> except USA
+            <country>United States</country><state>California</state><description>Remote opportunity.</description>
+            <guid>https://weworkremotely.com/remote-jobs/tail-region</guid><link>https://weworkremotely.com/remote-jobs/tail-region</link></item>
+        '''
+        payload = payload.replace(b"</channel>", malformed_nodes + b"</channel>")
+        source_id = configure_source(self.store, "default", provider="wwr", poll_interval=300)
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, content=payload,
+            headers={"content-type": "application/rss+xml"}))
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        with self.store.engine.connect() as connection:
+            jobs = {row["requisition"]: dict(row) for row in connection.execute(
+                select(m.jobs).where(m.jobs.c.requisition.in_([
+                    "us-scope", "world-scope", "country-scope", "california-scope", "state-scope",
+                    "unsupported-scope", "conflicting-scope", "excluded-scope",
+                    "ambiguous-scope", "malformed-scope", "known-control", "duplicate-region",
+                    "nested-region", "tail-region", "unicode-exclusion", "punctuation-exclusion",
+                    "japanese-exclusion", "canada-flag-control", "mismatched-flag-control",
+                    "reverse-mismatched-flag-control",
+                ]))).mappings()}
+        self.assertEqual(set(jobs), {
+            "us-scope", "world-scope", "country-scope", "state-scope",
+            "california-scope",
+            "unsupported-scope", "conflicting-scope", "excluded-scope",
+            "ambiguous-scope", "malformed-scope", "known-control", "duplicate-region",
+            "nested-region", "tail-region", "unicode-exclusion", "punctuation-exclusion",
+            "japanese-exclusion", "canada-flag-control", "mismatched-flag-control",
+            "reverse-mismatched-flag-control",
+        })
+
+        us_job = jobs["us-scope"]
+        self.assertEqual(us_job["remote_type"], "REMOTE")
+        self.assertEqual(us_job["attributes"]["remote_regions"], ["US"])
+        self.assertEqual(us_job["attributes"]["country"], "US")
+        self.assertEqual(us_job["attributes"]["state"], "CA")
+        self.assertTrue(evaluate_search({"countries": ["US"], "states": ["CA"],
+                                         "remote_regions": ["US"]}, us_job)["matched"])
+        canada_factor = next(factor for factor in build_preference_fit_factors(
+            us_job, {"contact": {"country": "Canada"}, "preferences": {}})
+            if factor["id"] == "remote_location")
+        self.assertEqual(canada_factor["status"], "NO_DIRECT_MATCH")
+
+        world = jobs["world-scope"]["attributes"]
+        self.assertEqual(world["remote_regions"], ["WORLDWIDE"])
+        self.assertEqual(world["country"], "US")
+        self.assertEqual(world["state"], "CA")
+        self.assertEqual(jobs["country-scope"]["attributes"]["remote_regions"], ["CA"])
+        self.assertEqual(jobs["state-scope"]["attributes"]["remote_regions"], [])
+        self.assertEqual(jobs["state-scope"]["attributes"]["country"], None)
+        california = jobs["california-scope"]["attributes"]
+        self.assertEqual(california["remote_regions"], [])
+        self.assertEqual(california["country"], "US")
+        self.assertEqual(california["state"], "CA")
+        self.assertEqual(jobs["known-control"]["attributes"]["remote_regions"], ["GB"])
+        self.assertEqual(jobs["canada-flag-control"]["attributes"]["remote_regions"], ["CA"])
+        for requisition in ("unsupported-scope", "conflicting-scope", "excluded-scope",
+                            "ambiguous-scope", "malformed-scope", "duplicate-region",
+                            "nested-region", "tail-region", "unicode-exclusion",
+                            "punctuation-exclusion", "japanese-exclusion",
+                            "mismatched-flag-control", "reverse-mismatched-flag-control"):
+            with self.subTest(requisition=requisition):
+                attributes = jobs[requisition]["attributes"]
+                self.assertEqual(attributes["remote_regions"], [])
+                self.assertIsNone(attributes["country"])
+                self.assertIsNone(attributes["state"])
+
+        # Exercise saved-profile readback through Store.jobs against persisted
+        # rows, including positive and negative region/state selection.
+        profiles = {
+            "canada": {"remote_regions": ["CA"]},
+            "united-states": {"remote_regions": ["US"]},
+            "worldwide": {"remote_regions": ["WORLDWIDE"]},
+            "california-state": {"countries": ["US"], "states": ["CA"]},
+        }
+        expected = {
+            "canada": {"country-scope", "canada-flag-control"},
+            "united-states": {"us-scope"},
+            "worldwide": {"world-scope"},
+            "california-state": {"us-scope", "california-scope", "world-scope"},
+        }
+        for name, filters in profiles.items():
+            search_id = f"wwr-{name}"
+            save_search_profile(self.store, {
+                "id": search_id, "profile_id": "fixture", "name": f"WWR {name}",
+                "enabled": True, **filters,
+            })
+            saved = get_search_profile(self.store, search_id)
+            results = self.store.jobs(search_criteria=saved["criteria"], limit=100)
+            matched = {row["requisition"] for row in results}
+            self.assertEqual(matched, expected[name], name)
+
     # ── Helper unit tests ───────────────────────────────────────────────
 
     def test_extract_company_title_with_colon(self):

@@ -30,6 +30,22 @@ from services.discovery.negative_filters import parse_negative_conditions
 HOST = "https://remotive.com"
 API_URL = "https://remotive.com/api/remote-jobs"
 CANCELLATION_POLL_INTERVAL = 0.05
+MAX_CANDIDATE_LOCATION_EVIDENCE_CHARS = 256
+_STRUCTURED_LOCATION_ALIASES = {
+    "us": "Remote USA",
+    "u.s.": "Remote USA",
+    "usa": "Remote USA",
+    "u.s.a.": "Remote USA",
+    "united states": "Remote USA",
+    "united states of america": "Remote USA",
+    "canada": "Remote Canada",
+    "uk": "Remote UK",
+    "united kingdom": "Remote UK",
+    "worldwide": "Remote Worldwide",
+    "global": "Remote Worldwide",
+    "anywhere": "Remote Worldwide",
+    "anywhere in the world": "Remote Worldwide",
+}
 
 
 
@@ -42,6 +58,23 @@ def plain_text(value):
     for element in parsed(["script", "style", "noscript"]):
         element.decompose()
     return parsed.get_text(" ", strip=True)
+
+
+def _candidate_location_facts(value):
+    """Use only a bounded, exact provider location value for region eligibility."""
+    unknown = classify_location("Remote")
+    if not isinstance(value, str) or len(value) > MAX_CANDIDATE_LOCATION_EVIDENCE_CHARS:
+        return unknown
+
+    location = " ".join(value.split()).casefold()
+    if location.startswith("remote "):
+        location = location[len("remote "):]
+    if location.endswith(" only"):
+        location = location[:-len(" only")]
+    canonical_location = _STRUCTURED_LOCATION_ALIASES.get(location)
+    if canonical_location is None:
+        return unknown
+    return classify_location(canonical_location)
 
 
 def company_slug(name):
@@ -313,8 +346,9 @@ class Remotive:
         title = plain_text(raw["title"])[:500]
         description = structured_text(raw.get("description"))[:50000]
         company_name = plain_text(raw.get("company_name") or "Unknown Company")[:200]
-        location_raw = plain_text(raw.get("candidate_required_location") or "Remote")[:1000]
-        location_facts = classify_location(location_raw, description)
+        candidate_location = raw.get("candidate_required_location")
+        location_raw = plain_text(candidate_location or "Remote")[:1000]
+        location_facts = _candidate_location_facts(candidate_location)
 
         tags = raw.get("tags") if isinstance(raw.get("tags"), list) else []
         tag_str = " ".join(str(t) for t in tags if isinstance(t, str))

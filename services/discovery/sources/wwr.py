@@ -27,7 +27,7 @@ from services.discovery.sources.contract import (
     SourceCompany, SourceItem,
 )
 from services.discovery.search_semantics import (
-    classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
+    US_STATES, normalize_employment_type, normalize_experience_level, normalize_title,
     parse_education_requirement, parse_salary, parse_timestamp,
 )
 from services.discovery.skill_taxonomy import extract_skills
@@ -94,6 +94,127 @@ _JOB_TYPE_MAP: dict[str, str] = {
     "freelance": "FREELANCE",
     "internship": "INTERNSHIP",
 }
+
+_LOCATION_FIELD_LIMIT = 128
+_COUNTRY_CODES = {
+    "us": "US", "usa": "US", "u s": "US", "u s a": "US",
+    "united states": "US", "united states of america": "US",
+    "ca": "CA", "canada": "CA",
+    "gb": "GB", "uk": "GB", "u k": "GB", "united kingdom": "GB",
+    "great britain": "GB",
+}
+_US_STATE_CODES = "AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split()
+_US_STATE_NAMES = "Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|District of Columbia".casefold().split("|")
+_STATE_CODES_BY_NAME = dict(zip(_US_STATE_NAMES, _US_STATE_CODES))
+_WORLDWIDE_REGIONS = {"anywhere in the world", "worldwide", "global"}
+_COUNTRY_FLAGS = {"🇺🇸": ("US", "united states of america"), "🇨🇦": ("CA", "canada")}
+
+
+def _location_token(value):
+    # Only case and whitespace are formatting. Punctuation, qualifiers,
+    # accents, and unrecognized Unicode remain significant and cannot turn a
+    # longer exclusion into one of the exact aliases above.
+    if not isinstance(value, str) or not value.isascii():
+        return "__invalid_location_token__"
+    return re.sub(r"\s+", " ", value.casefold()).strip()
+
+
+def _bounded_location_field(value):
+    if value is None:
+        return "", True
+    if (not isinstance(value, str) or len(value) > _LOCATION_FIELD_LIMIT
+            or any(ord(char) < 32 or ord(char) == 127 for char in value)):
+        return "", False
+    return value.strip(), True
+
+
+def _country_code(value):
+    if isinstance(value, str):
+        for flag, (code, canonical_name) in _COUNTRY_FLAGS.items():
+            if value.startswith(flag):
+                remainder = value[len(flag):]
+                if (remainder and remainder[0].isspace()
+                        and _location_token(remainder) == canonical_name):
+                    return code
+                return None
+    return _COUNTRY_CODES.get(_location_token(value))
+
+
+def _state_code(value):
+    token = _location_token(value)
+    if token.upper() in US_STATES:
+        return token.upper()
+    return _STATE_CODES_BY_NAME.get(token)
+
+
+def _region_scope(value):
+    token = _location_token(value)
+    if token in _WORLDWIDE_REGIONS:
+        return "WORLDWIDE", None
+    country_token = token.removesuffix(" only")
+    # CA is both Canada and California; an abbreviated region is ambiguous.
+    if country_token == "ca":
+        return None
+    country_code = _COUNTRY_CODES.get(country_token)
+    if country_code:
+        return country_code, None
+    state_name = token.removesuffix(" only")
+    state_code = _STATE_CODES_BY_NAME.get(state_name)
+    return ("US", state_code) if state_code else None
+
+
+def _classify_wwr_location(region_value, country_value, state_value):
+    region, valid_region = _bounded_location_field(region_value)
+    country, valid_country = _bounded_location_field(country_value)
+    state, valid_state = _bounded_location_field(state_value)
+    unknown = {"remote_regions": [], "country": None, "state": None, "city": None}
+    if not (valid_region and valid_country and valid_state):
+        return region, country, state, "Remote", unknown
+
+    country_code = _country_code(country) if country else None
+    state_code = _state_code(state) if state else None
+    if ((country and country_code is None) or (state and state_code is None)
+            or (state_code and country_code not in (None, "US"))):
+        display = region or country or state or "Remote"
+        return region, country, state, display, unknown
+
+    if region:
+        scope = _region_scope(region)
+        if (scope is None
+                or (scope[0] != "WORLDWIDE" and country_code and scope[0] != country_code)
+                or (state_code and scope[0] not in {"US", "WORLDWIDE"})
+                or (scope[1] and state_code and scope[1] != state_code)):
+            display = region or country or state or "Remote"
+            return region, country, state, display, unknown
+        # A state code such as CA collides with a country code such as Canada.
+        # Keep state scope in the dedicated country/state fields, never in the
+        # country-level remote_regions list.
+        remote_regions = [] if scope[1] else [scope[0]]
+        if scope[0] == "WORLDWIDE":
+            resolved_country = country_code
+        else:
+            resolved_country = country_code or scope[0]
+        resolved_state = state_code or scope[1]
+    elif country_code:
+        remote_regions = [country_code]
+        resolved_country = country_code
+        resolved_state = state_code
+    elif state_code:
+        # State-only data cannot safely populate the country/state contract:
+        # the two-letter code may collide with a country code.
+        display = state
+        return region, country, state, display, unknown
+    else:
+        remote_regions = []
+        resolved_country = resolved_state = None
+
+    display = region or country or state or "Remote"
+    return region, country, state, display, {
+        "remote_regions": remote_regions,
+        "country": resolved_country,
+        "state": resolved_state,
+        "city": None,
+    }
 
 
 def _extract_company_title(raw_title: str) -> tuple[str, str]:
@@ -328,6 +449,17 @@ class WeWorkRemotely:
 
     def _parse_items(self, channel) -> list[dict]:
         """Parse RSS <item> elements into raw dicts."""
+        def structured_location(item, tag):
+            nodes = item.findall(tag)
+            if not nodes:
+                return ""
+            if len(nodes) != 1:
+                return []
+            node = nodes[0]
+            if len(node) or (node.tail and node.tail.strip()):
+                return []
+            return (node.text or "").strip()
+
         items = []
         for item in channel.findall("item"):
             raw = {}
@@ -336,9 +468,12 @@ class WeWorkRemotely:
             raw["guid"] = (item.findtext("guid") or "").strip()
             raw["description"] = (item.findtext("description") or "").strip()
             raw["pubDate"] = (item.findtext("pubDate") or "").strip()
-            raw["region"] = (item.findtext("region") or "").strip()
-            raw["country"] = (item.findtext("country") or "").strip()
-            raw["state"] = (item.findtext("state") or "").strip()
+            # Lists are deliberately invalid location values. They survive
+            # JSON persistence and make the classifier fail closed without
+            # allowing another field to restore eligibility.
+            raw["region"] = structured_location(item, "region")
+            raw["country"] = structured_location(item, "country")
+            raw["state"] = structured_location(item, "state")
             raw["category"] = (item.findtext("category") or "").strip()
             raw["type"] = (item.findtext("type") or "").strip()
             raw["skills"] = (item.findtext("skills") or "").strip()
@@ -455,12 +590,10 @@ class WeWorkRemotely:
         description = structured_text(raw.get("description"))[:50000]
         company_name = plain_text(company_name_raw)[:200]
 
-        # Location from region, country, state
-        region = (raw.get("region") or "").strip()
-        country = (raw.get("country") or "").strip()
-        state = (raw.get("state") or "").strip()
-        location_raw = region or country or "Remote"
-        location_facts = classify_location(location_raw, description)
+        # WWR's structured location fields are authoritative; generic posting
+        # prose must not broaden a provider restriction such as "USA Only".
+        region, country, state, location_raw, location_facts = _classify_wwr_location(
+            raw.get("region"), raw.get("country"), raw.get("state"))
 
         # Skills from <skills> element and description
         skills_list = _extract_skills_from_element(raw.get("skills", ""))
