@@ -17,7 +17,7 @@ from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
-from services.discovery.sources.remotive import Remotive, SourceError
+from services.discovery.sources.remotive import Remotive, SourceError, plain_text
 from services.discovery.sources.collect import configure_source, collect_source
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
@@ -117,6 +117,64 @@ class RemotiveTests(unittest.TestCase):
         self.assertEqual(attrs["native_posting_id"], 1001)
         self.assertEqual(attrs["employment_type"], "FULL_TIME")
         self.assertIn("Python", normalized["skills"])
+
+    def test_region_eligibility_uses_bounded_candidate_location_only(self):
+        display_cutoff = "Worldwide" + " " * 1000 + "except USA"
+        raw_cutoff = "Worldwide" + " " * 500_000 + "except USA"
+        cases = [
+            ("usa", "USA Only", "Join our remote worldwide team.", ["US"]),
+            ("worldwide", "Worldwide", "Applicants may work in the US.", ["WORLDWIDE"]),
+            ("remote-usa", "  Remote   USA  ", "Worldwide team serving global customers.", ["US"]),
+            ("canada", "Canada Only", "A worldwide team.", ["CA"]),
+            ("generic", "Remote", "Join our remote worldwide team.", []),
+            ("description-only", "Remote", "Applicants must reside in Canada.", []),
+            ("except", "Worldwide except USA", "Remote worldwide team.", []),
+            ("conditional", "USA Only if applicants reside in Canada", "", []),
+            ("mixed", "USA and Canada", "", []),
+            ("display-cutoff", display_cutoff, "", []),
+            ("raw-cutoff", raw_cutoff, "", []),
+            ("malformed", ["Worldwide"], "Join our worldwide team.", []),
+        ]
+        jobs = [{
+            "id": 8100 + index,
+            "url": f"https://remotive.com/remote-jobs/region-{name}",
+            "title": f"Region Evidence {name}",
+            "company_name": f"Region Co {name}",
+            "candidate_required_location": location,
+            "description": description,
+        } for index, (name, location, description, _regions) in enumerate(cases)]
+        payload = {"jobs": jobs}
+        source_id = configure_source(self.store, "default", provider="remotive")
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, json=payload))
+
+        collect_source(self.store, source_id, "fixture", transport=transport)
+
+        with self.store.engine.connect() as connection:
+            persisted = connection.execute(select(m.jobs)).mappings().all()
+            postings = connection.execute(select(m.postings)).mappings().all()
+        by_title = {row["title"]: row for row in persisted}
+        for name, original_location, _description, expected_regions in cases:
+            title = f"Region Evidence {name}"
+            row = by_title[title]
+            self.assertEqual(row["attributes"]["remote_regions"], expected_regions)
+            self.assertEqual(row["remote_type"], "REMOTE")
+            expected_display = (plain_text(original_location)[:1000]
+                                if isinstance(original_location, str) else plain_text(original_location)[:1000])
+            self.assertEqual(row["location"], expected_display)
+        for name in ("display-cutoff", "raw-cutoff"):
+            self.assertTrue(by_title[f"Region Evidence {name}"]["location"].startswith("Worldwide"))
+            self.assertLessEqual(len(by_title[f"Region Evidence {name}"]["location"]), 1000)
+        raw_cutoff_posting = next(row for row in postings if row["raw"]["id"] == 8110)
+        self.assertEqual(raw_cutoff_posting["raw"]["candidate_required_location"], raw_cutoff)
+
+        for region, expected_titles in {
+            "US": {"Region Evidence usa", "Region Evidence remote-usa"},
+            "CA": {"Region Evidence canada"},
+            "WORLDWIDE": {"Region Evidence worldwide"},
+        }.items():
+            with self.subTest(region=region):
+                eligible = self.store.jobs(search_criteria={"remote_regions": [region]})
+                self.assertEqual({row["title"] for row in eligible}, expected_titles)
 
     def test_capabilities_and_unsupported_features(self):
         adapter = Remotive()
