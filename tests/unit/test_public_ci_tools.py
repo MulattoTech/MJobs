@@ -1,12 +1,13 @@
 """Offline regression tests for public-repository verification helpers."""
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
+
 from tools.ci.check_repository import check_markdown, check_required_ci, check_workflows
-from tools.ownership_index import check_index
+from tools.ci.release_gate import unmet
 from tools.ci.run_shard import select_files, weighted_groups
 from tools.ci.test_summary import summarize
-from tools.ci.release_gate import unmet
+from tools.ownership_index import check_index
 
 
 class PublicCITests(unittest.TestCase):

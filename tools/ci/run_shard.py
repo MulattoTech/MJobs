@@ -1,12 +1,15 @@
 """Stable test-file sharding; a failed or empty shard cannot report success."""
 from __future__ import annotations
+
 import argparse
 import json
 import math
-from statistics import median
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+from statistics import median
+
+from tools.ci.integration_timing_profile import report_timings
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -55,8 +58,18 @@ def main() -> int:
         return 0
     output = ROOT / 'outputs/ci'
     output.mkdir(parents=True, exist_ok=True)
-    return subprocess.run([sys.executable, '-m', 'pytest', '-q', *selected, '--junitxml',
-                           str(output / f'{args.suite}-{args.index}.xml')], cwd=ROOT).returncode
+    report = output / f'{args.suite}-{args.index}.xml'
+    report.unlink(missing_ok=True)
+    command = [sys.executable, '-m', 'pytest', '-q', *selected, '--junitxml', str(report)]
+    if args.suite == 'integration':
+        command.extend(['--durations=20', '--durations-min=0.5'])
+    result = subprocess.run(command, cwd=ROOT, check=False).returncode
+    if result == 0 and args.suite == 'integration':
+        observed = report_timings(report, selected)
+        if set(observed) != set(selected):
+            raise ValueError(f'Missing integration reports for: {sorted(set(selected) - observed.keys())}')
+        print(f'Verified execution reports for all {len(selected)} assigned files', flush=True)
+    return result
 
 
 if __name__ == '__main__':

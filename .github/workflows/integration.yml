@@ -6,6 +6,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      shards:
+        description: Full-suite shard count for manual benchmarking only
+        type: choice
+        options: ['3', '4', '6', '8']
+        default: '6'
 permissions:
   contents: read
 concurrency:
@@ -18,9 +24,9 @@ jobs:
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 8
       matrix:
-        shard: [0, 1, 2, 3, 4, 5]
+        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '8' && '[0,1,2,3,4,5,6,7]' || '[0,1,2,3,4,5]') }}
     services:
       postgres:
         image: postgres:17
@@ -86,7 +92,8 @@ jobs:
       - name: Execute each integration test file in exactly one isolated shard
         env:
           SHARD: ${{ matrix.shard }}
-        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count 6
+          SHARD_COUNT: ${{ inputs.shards || '6' }}
+        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT"
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
         env:
