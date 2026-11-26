@@ -36,6 +36,8 @@ STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
 PUBLIC_JOB_LIST_STEPS = frozenset({12, 13, 14})
 APPLICATION_RECEIPTS = {36: "prepared_document_pair", 53: "application_audit_trace"}
+RESUME_COMPARISON_RECEIPT = "generated_resume_comparison"
+UI_RECEIPTS = {34: RESUME_COMPARISON_RECEIPT, **APPLICATION_RECEIPTS}
 CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
@@ -577,6 +579,35 @@ def validate_stage_lineage(artifact, identity):
             raise ValueError("Application stage lineage scope or operation identity mismatch")
         by_step[row["step"]] = copy.deepcopy(row)
     return by_step
+
+
+def _validate_generated_resume_comparison(receipt, continuity):
+    """Require the immutable pair and known difference observed by the fixture UI."""
+    pins = {"profile_id", "application_id", "job_id"}
+    if (set(continuity) != {*pins, "document_ids"}
+            or not isinstance(receipt, dict) or set(receipt) != {*pins, "documents", "omitted"}
+            or any(receipt[key] != continuity[key] for key in pins)):
+        raise ValueError("Criterion 34 requires the selected application's resume comparison receipt")
+    documents = receipt["documents"]
+    if not isinstance(documents, dict) or set(documents) != {"base", "tailored"}:
+        raise ValueError("Criterion 34 requires both compared resume revisions")
+    base, tailored = documents["base"], documents["tailored"]
+    for document in (base, tailored):
+        if (not isinstance(document, dict) or set(document) != {"id", "version", "profile_version", "sha256"}
+                or not isinstance(document["id"], str) or not SAFE_ID.fullmatch(document["id"])
+                or type(document["version"]) is not int or document["version"] < 1
+                or any(not isinstance(document[key], str) or not re.fullmatch(r"[a-f0-9]{64}", document[key])
+                       for key in ("profile_version", "sha256"))):
+            raise ValueError("Criterion 34 has invalid compared resume pins")
+    if (continuity["document_ids"] != [base["id"], tailored["id"]]
+            or base["id"] == tailored["id"] or base["version"] >= tailored["version"]
+            or base["sha256"] == tailored["sha256"]):
+        raise ValueError("Criterion 34 requires the exact distinct compared resume pair")
+    omission = receipt["omitted"]
+    if (not isinstance(omission, dict) or set(omission) != {"fact_id", "kind", "text_sha256"}
+            or not isinstance(omission["fact_id"], str) or not SAFE_ID.fullmatch(omission["fact_id"])
+            or omission["kind"] != "skill" or omission["text_sha256"] != hashlib.sha256(b"SQL").hexdigest()):
+        raise ValueError("Criterion 34 requires the known omitted SQL skill from the selected comparison")
 
 
 def _validate_application_receipt(step, artifact, continuity, stage, *, run_id, source_commit):
@@ -1496,6 +1527,8 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 validate_runtime_identity(artifact.get("runtime_identity"))
             if 36 <= step <= 53 and step not in lineage:
                 raise ValueError("Application observation requires actual stage lineage")
+            if step == 34:
+                _validate_generated_resume_comparison(artifact.get(RESUME_COMPARISON_RECEIPT), continuity)
             if step in APPLICATION_RECEIPTS:
                 _validate_application_receipt(step, artifact, continuity, lineage[step],
                                               run_id=run_id, source_commit=source["commit"])
@@ -1698,8 +1731,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 if isinstance(observations, list):
                     for row in observations:
                         step = row.get("step") if isinstance(row, dict) else None
-                        if (type(step) is int and step in APPLICATION_RECEIPTS and row.get("status") == "PASS"
-                                and APPLICATION_RECEIPTS[step] not in artifact):
+                        if (type(step) is int and step in UI_RECEIPTS and row.get("status") == "PASS"
+                                and UI_RECEIPTS[step] not in artifact):
                             legacy_missing_receipts.add(step)
                             row["status"] = "PARTIAL"
         elif name == "public":
@@ -1795,9 +1828,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 report_row["verification"]["command"] = "cli.acceptance_public_browser.run (source-scoped UI list)"
                 report_row["verification"]["public_job_list_lineage"] = copy.deepcopy(artifact["public_job_list_lineage"])
             if row["step"] in legacy_missing_receipts:
-                report_row.update(producer_status="PASS", credit_withheld="APPLICATION_RECEIPT_NOT_RECORDED")
-            if row["status"] == "PASS" and row["step"] in APPLICATION_RECEIPTS:
-                field = APPLICATION_RECEIPTS[row["step"]]
+                reason = ("RESUME_COMPARISON_RECEIPT_NOT_RECORDED" if row["step"] == 34
+                          else "APPLICATION_RECEIPT_NOT_RECORDED")
+                report_row.update(producer_status="PASS", credit_withheld=reason)
+            if row["status"] == "PASS" and row["step"] in UI_RECEIPTS:
+                field = UI_RECEIPTS[row["step"]]
                 report_row["verification"][field] = copy.deepcopy(artifact[field])
             if "job_id" in row["continuity"]:
                 report_row["verification"]["job_scope"] = (

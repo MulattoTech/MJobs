@@ -697,10 +697,32 @@ def scoped_observation(step):
     return row
 
 
+def resume_comparison_artifact():
+    artifact = baseline()
+    row = scoped_observation(34)
+    artifact["acceptance_observations"] = [row]
+    scope = {key: row["continuity"][key] for key in ("profile_id", "application_id", "job_id")}
+    base_id, tailored_id = row["continuity"]["document_ids"]
+    base = {**scope, "kind": "resume", "id": base_id, "version": 2,
+            "profile_version": "a" * 64, "sha256": {"txt": "b" * 64}}
+    tailored = {**base, "id": tailored_id, "version": 4, "sha256": {"txt": "c" * 64}}
+    sql = {"fact_id": "sql-fact", "kind": "skill", "text": "SQL"}
+
+    def snapshot(document, facts):
+        return {**{key: document[key] for key in ("id", "version", "profile_version")},
+                "sha256": document["sha256"]["txt"], "facts": facts}
+
+    comparison = {"base": snapshot(base, [sql]), "tailored": snapshot(tailored, []), "omitted": [sql]}
+    artifact[journey.RESUME_COMPARISON_RECEIPT] = journey.ui_e2e.generated_resume_omission_receipt(
+        comparison, base=base, tailored=tailored, omitted_fact=sql, **scope)
+    return artifact
+
+
 @pytest.mark.parametrize("step", [17, 18, 19, 20, 21, 22, 32, 33, 34, 35])
 def test_pass_requires_concrete_job_and_document_lineage(step):
-    artifact = baseline()
-    artifact["acceptance_observations"] = [scoped_observation(step)]
+    artifact = resume_comparison_artifact() if step == 34 else baseline()
+    if step != 34:
+        artifact["acceptance_observations"] = [scoped_observation(step)]
     rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
                                         source=SOURCE, identity=journey._identity(artifact))
     assert rows[0]["continuity"]["job_id"] == ("browse-job-1" if step < 32 else "mock-job-1")
@@ -1093,21 +1115,75 @@ def application_receipt_rows(artifact):
                                          source=SOURCE, identity=journey._identity(artifact))
 
 
-@pytest.mark.parametrize("step", [36, 53])
+def test_step34_stores_exact_producer_comparison_witness_in_verification(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = resume_comparison_artifact()
+    artifact["acceptance_observations"].extend(scoped_observation(step) for step in (33, 35))
+    checkpoint.binding["frontend_build"] = {"status": "PASS"}
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    rows = checkpoint.payload()["steps"]
+    for step in (33, 34, 35):
+        assert rows[step - 1]["status"] == "PASS"
+        assert (journey.RESUME_COMPARISON_RECEIPT in rows[step - 1]["verification"]) is (step == 34)
+    assert rows[33]["verification"][journey.RESUME_COMPARISON_RECEIPT] == artifact[journey.RESUME_COMPARISON_RECEIPT]
+
+
+@pytest.mark.parametrize("change", [
+    "empty-receipt", "empty-documents", "empty-omission", "wrong-profile", "wrong-application",
+    "wrong-job", "wrong-document", "swapped-roles", "same-version", "reversed-versions", "same-hash", "invalid-version",
+    "bad-profile-version", "wrong-omission", "raw-omission-text",
+])
+def test_step34_rejects_malformed_or_conflicting_witness(change):
+    artifact = resume_comparison_artifact()
+    field = journey.RESUME_COMPARISON_RECEIPT
+    receipt = artifact[field]
+    documents = receipt["documents"]
+    base, tailored = documents["base"], documents["tailored"]
+    if change == "empty-receipt":
+        artifact[field] = {}
+    elif change == "empty-documents":
+        receipt["documents"] = {}
+    elif change == "empty-omission":
+        receipt["omitted"] = {}
+    elif change in {"wrong-profile", "wrong-application", "wrong-job"}:
+        receipt[change.removeprefix("wrong-") + "_id"] = "unrelated"
+    elif change == "wrong-document":
+        tailored["id"] = "letter-1"
+    elif change == "swapped-roles":
+        documents["base"], documents["tailored"] = tailored, base
+    elif change == "same-version":
+        tailored["version"] = base["version"]
+    elif change == "reversed-versions":
+        base["version"], tailored["version"] = tailored["version"], base["version"]
+    elif change == "same-hash":
+        tailored["sha256"] = base["sha256"]
+    elif change == "invalid-version":
+        base["version"] = True
+    elif change == "bad-profile-version":
+        base["profile_version"] = "not-a-hash"
+    elif change == "wrong-omission":
+        receipt["omitted"]["text_sha256"] = hashlib.sha256(b"Python").hexdigest()
+    elif change == "raw-omission-text":
+        receipt["omitted"]["text"] = "SQL"
+    with pytest.raises(ValueError, match="Criterion 34"):
+        application_receipt_rows(artifact)
+
+
+@pytest.mark.parametrize("step", [34, 36, 53])
 def test_application_receipt_is_required_even_when_legacy_booleans_are_true(step):
-    artifact = application_receipt_artifact(step)
-    artifact.pop(journey.APPLICATION_RECEIPTS[step])
+    artifact = resume_comparison_artifact() if step == 34 else application_receipt_artifact(step)
+    artifact.pop(journey.UI_RECEIPTS[step])
     with pytest.raises(ValueError, match=f"Criterion {step}"):
         application_receipt_rows(artifact)
 
 
-@pytest.mark.parametrize("step", [36, 53])
+@pytest.mark.parametrize("step", [34, 36, 53])
 def test_resume_withholds_credit_for_historical_missing_receipt_without_rewriting_it(tmp_path, step):
     journey_path = tmp_path / "journey.json"
     ui_path = tmp_path / "ui.json"
     checkpoint = journey.JourneyCheckpoint.create(journey_path, RUN_ID, SOURCE, TARGET)
-    state = application_receipt_artifact(step)
-    field = journey.APPLICATION_RECEIPTS[step]
+    state = resume_comparison_artifact() if step == 34 else application_receipt_artifact(step)
+    field = journey.UI_RECEIPTS[step]
     state.pop(field)
     state["acceptance_observations"].append({**observation(4),
         "continuity": {key: state[key] for key in IDENTITY}})
@@ -1120,7 +1196,8 @@ def test_resume_withholds_credit_for_historical_missing_receipt_without_rewritin
     result = journey.JourneyCheckpoint.resume(journey_path, RUN_ID, SOURCE, TARGET).payload()
     restored = result["steps"][step - 1]
     assert restored["status"] == "PARTIAL" and restored["producer_status"] == "PASS"
-    assert restored["credit_withheld"] == "APPLICATION_RECEIPT_NOT_RECORDED"
+    assert restored["credit_withheld"] == ("RESUME_COMPARISON_RECEIPT_NOT_RECORDED" if step == 34
+                                           else "APPLICATION_RECEIPT_NOT_RECORDED")
     assert restored["verification"]["resume_imported"] is True
     assert result["steps"][3]["status"] == "PASS"
     assert ui_path.read_bytes() == before
