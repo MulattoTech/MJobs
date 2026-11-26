@@ -13,7 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from urllib.parse import quote, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 from uuid import uuid4
 
 import httpx
@@ -578,6 +578,31 @@ def prepared_document_pair(application, documents, *, application_id, profile_id
             return None
         pair[kind] = document["id"]
     return pair if pair["resume"] != pair["cover-letter"] else None
+
+
+def generated_resume_omission_receipt(comparison, *, base, tailored, omitted_fact,
+                                      profile_id, application_id, job_id):
+    """Bind a known omission to the selected immutable, same-application pair."""
+    scope = {"profile_id": profile_id, "application_id": application_id, "job_id": job_id}
+    documents = {}
+    for role, document in (("base", base), ("tailored", tailored)):
+        assert document["kind"] == "resume" and all(document.get(key) == value for key, value in scope.items())
+        assert EvidenceJournal._lineage_id(document["id"])
+        snapshot = comparison[role]
+        pins = {key: document[key] for key in ("id", "version", "profile_version")}
+        pins["sha256"] = document["sha256"]["txt"]
+        assert all(snapshot.get(key) == value for key, value in pins.items()), (
+            "Resume comparison response differs from the selected document pair")
+        documents[role] = pins
+    assert base["id"] != tailored["id"], "Resume comparison requires two distinct documents"
+    assert comparison["omitted"] == [omitted_fact], "Resume comparison did not show the expected omission"
+    assert comparison["base"]["facts"].count(omitted_fact) == 1
+    assert all(fact["fact_id"] != omitted_fact["fact_id"] for fact in comparison["tailored"]["facts"])
+    return {
+        **scope, "documents": documents,
+        "omitted": {"fact_id": omitted_fact["fact_id"], "kind": omitted_fact["kind"],
+                    "text_sha256": hashlib.sha256(omitted_fact["text"].encode("utf-8")).hexdigest()},
+    }
 
 
 def prepare_ui_artifact_directory(base_url, evidence_path, acceptance_run_id=None):
@@ -2212,22 +2237,10 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 job_id=application['job_id'], documents=comparison_documents)
             base_document=next(row for row in comparison_documents
                                if row['version']==2 and row['kind']=='resume')
-            tailored_document=next(row for row in comparison_documents
-                                   if row['version']==3 and row['kind']=='resume')
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
             expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
             expect(result.get_by_role('heading',name='Tailored resume · v3',exact=True)).to_be_visible()
-            observe_acceptance_step(
-                34, "PASS", "The UI compared immutable generated base and tailored resume versions.",
-                evidence_kind="CONTROLLED_FIXTURE",
-                checks=[{"name": "generated_base_visible", "passed": True},
-                        {"name": "tailored_version_visible", "passed": True},
-                        {"name": "omission_and_change_summary_visible", "passed": True}],
-                continuity={"profile_id": profile_id, "application_id": identifier,
-                            "job_id": application["job_id"],
-                            "document_ids": [base_document["id"], tailored_document["id"]]},
-            )
             actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
 
             profile_before_comparison=request('/profiles/'+profile_id)
@@ -2273,10 +2286,47 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             assert 'Python' in selected_text and 'SQL' not in selected_text
             assert 'SQL' in download_document(selected_cover['id'],'txt').decode('utf-8')
             comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
-            comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
-            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-            expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
+            base_selection = comparison.get_by_label("Base resume", exact=True)
+            tailored_selection = comparison.get_by_label("Tailored version", exact=True)
+            base_value = "g:" + base_document["id"]
+            base_selection.select_option(base_value)
+            tailored_selection.select_option(selected_resume["id"])
+            expect(base_selection).to_have_value(base_value)
+            expect(tailored_selection).to_have_value(selected_resume["id"])
+            comparison_path = (f"/profiles/{quote(profile_id, safe='')}"
+                               f"/applications/{quote(identifier, safe='')}/document-comparison")
+            expected_endpoint = urlsplit(base_url + comparison_path)
+            with page.expect_response(lambda response:
+                    response.request.method == "GET"
+                    and urlsplit(response.url)._replace(query="", fragment="") == expected_endpoint) as compared:
+                comparison.get_by_role("button", name="Compare selected resumes", exact=True).click()
+            assert compared.value.ok
+            assert parse_qs(urlsplit(compared.value.url).query, keep_blank_values=True) == {
+                "base_document_id": [base_document["id"]],
+                "tailored_document_id": [selected_resume["id"]],
+            }
+            omission = {"fact_id": sql_fact_id, "kind": "skill", "text": "SQL"}
+            comparison_receipt = generated_resume_omission_receipt(
+                compared.value.json(), base=base_document, tailored=selected_resume, omitted_fact=omission,
+                profile_id=profile_id, application_id=identifier, job_id=application["job_id"])
+            result = comparison.get_by_role("region", name="Resume comparison result", exact=True)
+            expect(result.get_by_role("heading", name="Generated base · v2", exact=True)).to_be_visible()
+            expect(result.get_by_role("heading", name="Tailored resume · v4", exact=True)).to_be_visible()
+            expect(result.get_by_role("region", name="Content omitted", exact=True).get_by_text(
+                "skill: SQL", exact=True)).to_be_visible()
             assert request('/profiles/'+profile_id)==profile_before_comparison
+            if acceptance_run_id is not None:
+                journal.binding["generated_resume_comparison"] = comparison_receipt
+            observe_acceptance_step(
+                34, "PASS", "The selected generated base and tailored resume showed the same SQL omission in the UI and API.",
+                evidence_kind="CONTROLLED_FIXTURE",
+                checks=[{"name": "generated_base_visible", "passed": True},
+                        {"name": "tailored_version_visible", "passed": True},
+                        {"name": "omission_and_change_summary_visible", "passed": True}],
+                continuity={"profile_id": profile_id, "application_id": identifier,
+                            "job_id": application["job_id"],
+                            "document_ids": [base_document["id"], selected_resume["id"]]},
+            )
             observe_acceptance_step(
                 33, "PASS", "Tailored resume contains only selected approved facts and preserves approved cover-letter facts.",
                 evidence_kind="CONTROLLED_FIXTURE",

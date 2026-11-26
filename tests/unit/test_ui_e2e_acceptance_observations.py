@@ -90,6 +90,56 @@ def test_prepared_document_pair_rejects_unbound_or_ambiguous_readback(invalid, k
     assert ui_e2e.prepared_document_pair(application, documents, **scope) is None
 
 
+@pytest.mark.parametrize("scenario", [
+    "known-omission", "empty-diff", "wrong-pair-with-omission", "wrong-text-hash",
+    "omitted-fact-still-in-tailored", "cross-application",
+])
+def test_generated_resume_omission_receipt_requires_actual_difference_on_the_selected_pair(scenario):
+    from services.documents.comparison import compare_facts
+
+    scope = {"application_id": "application-b", "profile_id": "profile-b", "job_id": "job-b"}
+    base = {**scope, "kind": "resume", "version": 2, "id": "resume-v2",
+            "profile_version": "a" * 64, "sha256": {"txt": "b" * 64}}
+    tailored = {**base, "version": 4, "id": "resume-v4", "sha256": {"txt": "c" * 64}}
+    python_fact = {"fact_id": "python", "kind": "skill", "text": "Python"}
+    sql_fact = {"fact_id": "sql", "kind": "skill", "text": "SQL"}
+
+    def snapshot(document, facts):
+        return {"id": document["id"], "version": document["version"],
+                "profile_version": document["profile_version"], "sha256": document["sha256"]["txt"],
+                "facts": facts, "text": "Resume text must not be retained in the receipt."}
+
+    base_facts = [python_fact, sql_fact]
+    tailored_facts = base_facts if scenario == "empty-diff" else [python_fact]
+    result = {"base": snapshot(base, base_facts), "tailored": snapshot(tailored, tailored_facts),
+              **compare_facts(base_facts, tailored_facts, {})}
+    if scenario == "wrong-pair-with-omission":
+        result["tailored"].update(id="resume-v3", version=3)
+    elif scenario == "wrong-text-hash":
+        result["base"]["sha256"] = "d" * 64
+    elif scenario == "omitted-fact-still-in-tailored":
+        result["tailored"]["facts"].append(sql_fact)
+    elif scenario == "cross-application":
+        tailored["application_id"] = "application-a"
+
+    def receipt():
+        return ui_e2e.generated_resume_omission_receipt(
+            result, base=base, tailored=tailored, omitted_fact=sql_fact, **scope)
+
+    if scenario != "known-omission":
+        with pytest.raises(AssertionError):
+            receipt()
+        return
+    assert receipt() == {
+        **scope,
+        "documents": {
+            "base": {"id": "resume-v2", "version": 2, "profile_version": "a" * 64, "sha256": "b" * 64},
+            "tailored": {"id": "resume-v4", "version": 4, "profile_version": "a" * 64, "sha256": "c" * 64},
+        },
+        "omitted": {"fact_id": "sql", "kind": "skill", "text_sha256": hashlib.sha256(b"SQL").hexdigest()},
+    }
+
+
 def test_observation_has_exact_runner_contract_shape_and_matching_run_id():
     observation = build_observation(
         step=12,
