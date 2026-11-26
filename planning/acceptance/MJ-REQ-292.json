@@ -21,7 +21,7 @@
       7725
     ]
   },
-  "acceptance_policy": "PASS requires observed numbered acceptance on exact source with artifact hashes; historical or adjacent tests do not promote rows. Review, protected integration and whole-contract readiness remain separate.",
+  "acceptance_policy": "PASS requires the feature's acceptance criteria to be demonstrated by its automated tests (unit and integration as applicable) on the exact source with artifact hashes. A live guarded run is recommended but not required to merge. Historical or adjacent tests do not promote rows. Review and protected integration readiness remain separate.",
   "steps": [
     {
       "number": 1,
