@@ -89,6 +89,40 @@ class FixtureMonitoringWorkerRecoveryTests(unittest.TestCase):
         self.assertEqual(self.operation()['attempt_count'], 1)
         self.assertEqual(self.receipt_count(), 1)
 
+    def test_store_restart_preserves_source_and_job_identity_then_monitor_worker_completes(self):
+        before_jobs = sorted((row['id'], row['requisition'], row['posting_count'])
+            for row in self.store.jobs('fixture'))
+        before_source = self.source['id']
+        with self.store.engine.connect() as connection:
+            before_operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == self.operation_id)).mappings().one())
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.store.bind_workspace_mode('FIXTURE')
+
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == before_source)).mappings().one())
+            operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == self.operation_id)).mappings().one())
+        self.assertEqual(source['id'], before_source)
+        self.assertEqual(operation['id'], before_operation['id'])
+        self.assertEqual(operation['state'], 'QUEUED')
+        self.assertEqual(sorted((row['id'], row['requisition'], row['posting_count'])
+            for row in self.store.jobs('fixture')), before_jobs)
+
+        result = self.run_worker()
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        observation = monitor.read_fixture_monitoring(self.store, self.origin, 'fixture', before_source)
+        self.assertEqual(observation['status'], 'HEALTHY')
+        self.assertEqual(observation['completed_operation_id'], self.operation_id)
+        self.assertEqual(observation['source_id'], before_source)
+        self.assertEqual(self.operation()['state'], 'COMPLETED')
+        self.assertEqual(self.operation()['attempt_count'], 1)
+        self.assertEqual(sorted((row['id'], row['requisition'], row['posting_count'])
+            for row in self.store.jobs('fixture')), before_jobs)
+        self.assertEqual(self.receipt_count(), 1)
+
     def test_committed_receipt_overrides_finalization_exception_and_late_cancel_flag(self):
         original = monitor.refresh_fixture_source
         def committed_then_error(*args, **kwargs):

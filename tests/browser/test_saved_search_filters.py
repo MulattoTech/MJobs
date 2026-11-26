@@ -13,6 +13,7 @@ from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
+from cli.ui_e2e_jobs_journey import reset_annual_salary_filters
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
@@ -426,7 +427,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Salary availability", exact=True)).to_have_value("ALLOW_UNKNOWN")
                     expect(page.get_by_label("Minimum hourly salary (USD)", exact=True)).to_have_value("25")
                     page.get_by_label("Salary unit", exact=True).select_option("YEAR")
-                    page.get_by_label("Salary availability", exact=True).select_option("DEFAULT")
+                    annual_min = page.get_by_label("Minimum annual salary (USD)", exact=True)
+                    annual_max = page.get_by_label("Maximum annual salary (USD)", exact=True)
+                    annual_min.fill("70000")
+                    annual_max.fill("120000")
+                    reset_annual_salary_filters(page)
+                    expect(annual_min).to_have_value("")
+                    expect(annual_max).to_have_value("")
+                    expect(page.get_by_label("Salary availability", exact=True)).to_have_value("DEFAULT")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "salary_period=HOUR" in response.url

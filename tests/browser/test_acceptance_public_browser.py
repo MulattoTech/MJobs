@@ -78,6 +78,12 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
                         }
                         executed = set()
                         fake_source_requests = []
+                        payload = copy.deepcopy(RAW_REMOTIVE_PAYLOAD)
+                        sibling = dict(payload["jobs"][0], id=1003,
+                            url="https://remotive.com/remote-jobs/software-dev/senior-python-engineer-1003",
+                            candidate_required_location="Canada Only")
+                        payload["jobs"].append(sibling)
+                        payload["job-count"] = len(payload["jobs"])
 
                         with TestClient(app) as api_client:
                             def request(method, path, **kwargs):
@@ -95,7 +101,7 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
                                 self.assertEqual(request.method, "GET")
                                 self.assertEqual(str(request.url), "https://remotive.com/api/remote-jobs")
                                 fake_source_requests.append(str(request.url))
-                                return httpx.Response(200, json=RAW_REMOTIVE_PAYLOAD, request=request)
+                                return httpx.Response(200, json=payload, request=request)
 
                             with patch("httpx.HTTPTransport.handle_request", controlled_provider_get):
                                 collected = collect_public_jobs(
@@ -162,6 +168,11 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
 
             first = next(row for row in evidence["observations"]
                          if row["native_posting_id"] == "1001")
+            sibling_observation = next(row for row in evidence["observations"]
+                                       if row["native_posting_id"] == "1003")
+            self.assertNotEqual(first["job_id"], sibling_observation["job_id"])
+            for posting in (first, sibling_observation):
+                self.assertTrue(posting["checks"]["canonical_job_id_bound_to_selected_detail_readback"])
             self.assertEqual(first["restriction"]["source_field"], "candidate_required_location")
             self.assertEqual(first["restriction"]["source_value"], "USA Only")
             self.assertTrue(first["restriction"]["visible"])

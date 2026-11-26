@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "issue": 293,
+  "classification": "LOCAL_CONNECTED_CANDIDATE_OBSERVATION_NOT_CANONICAL_ACCEPTANCE",
+  "prepared_at_utc": "2026-11-26T09:00:22.880377+00:00",
+  "acceptance_promoted": false,
+  "acceptance_run_id": "mjreq292-ae97c368f763-78f0378b77be",
+  "tested_source": {
+    "commit": "ae97c368f763e184eed7973704f9ef88b34abf63",
+    "tree": "d35019cacdeb89e043fb43b69ad8fb76e86e1a54"
+  },
+  "campaign": {
+    "result": "PARTIAL",
+    "exit_code": 2,
+    "started_at_utc": "2026-11-26T08:36:21.903637+00:00",
+    "segments": {
+      "monitor_after": "COMPLETE",
+      "monitor_prepare": "COMPLETE",
+      "public": "COMPLETE",
+      "recovery": "COMPLETE",
+      "ui": "COMPLETE"
+    },
+    "numbered_counts": {
+      "PASS": 59,
+      "PARTIAL": 1,
+      "FAIL": 0,
+      "NOT_RUN": 0,
+      "BLOCKED": 0
+    },
+    "pass_ranges": [
+      [
+        1,
+        24
+      ],
+      [
+        26,
+        60
+      ]
+    ],
+    "partial_steps": [
+      25
+    ],
+    "primary_public_source": "remotive",
+    "native_mock_scenario": "native-greenhouse",
+    "real_external_application_submission": false,
+    "observed_public_job_count": 5,
+    "source_cleanup": "RESTORED_DISABLED",
+    "owned_fixture_residue": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "controlled_dotenv_absent_after_cleanup": true
+  },
+  "step_25": {
+    "status": "PARTIAL",
+    "reason": "SAME_EMPLOYER_EXAMPLES_NOT_OBSERVED",
+    "blocked_child_count": 2,
+    "child_reason": "COMPANY_DOMAIN_CORROBORATION_REQUIRED",
+    "missing_proof": "Neither attempted child produced a persisted official-domain bootstrap receipt. The same public parent run must establish reciprocal official employer origin and exact native posting corroboration, then observe the required same-employer examples."
+  },
+  "private_evidence_sha256": {
+    "journey.json": "6342ead7a34b05abb00bf08cc764cb1e43f69415c9edc90163c0d817dbc4807b",
+    "startup.json": "5e1540745de501bab7320837cc00cbfb02e8bada8d243245bb3c3b678efc9e28",
+    "ui.json": "5ce42900a7451967bd9a288a0949a346003a5de35f518b1cac6281a6bd1a381c",
+    "public.json": "888855b5d7915f49568ee031631082f7392fa9624ae53af780148254b76d1fe9",
+    "public-browser.json": "0a0228939460a184389e407ddfc26d97b0472fc7da47277de79b81e916301006",
+    "public-source-setup.json": "71cdb3c910b7e6bfcffa6c1b5f9ac3103d3f124bec9ac7bd830af59ea65e97ef",
+    "recovery-baseline.json": "58c79675ab16f8253c180bed8f60459198449fe678d8b0176964b1962c882adf",
+    "compose-recovery.json": "0ea691fa3655699162025c8f174e8224a9cde995482af203795b5526d1e22f10",
+    "recovery.json": "262752a74db9f54a4276c4ce6d9f054cb0a6165171c68a8ba190f99eccc68682",
+    "monitor_prepare.json": "c34b8ea48d106616912a6fae24544ee21da11c8e15333085bfd6978022fc4183",
+    "monitor_after.json": "26908393a961390eec2cd13654b5f093e8975f1612674f51aee1cdd8838e706b"
+  },
+  "run_receipts_sha256": {
+    "frontend_build": "9c1a338bd39b176cb286749eb1f436a2f1b0c75c53148559f343d0c3b246d17f",
+    "startup": "c014480e3314ccd085b7ace7379b56728f50d815eac74fa0aa906e516402b05d",
+    "launch_argv": "d4a501177d3187151d01ddae9d0ca0c442b418bcf4317b01b58092a9f74e1523",
+    "fixture_cleanup_readback": "be47d92ac2096e27934fa1cc384a5e175e2450ee92d3f00e4814e38d356b11dd"
+  },
+  "image_id": "sha256:b158d43e916b68281e40f519cfa8c5ca8f2af34335cec2859e4c886faf920455",
+  "limits": [
+    "The numbered observations describe this one local candidate run.",
+    "Canonical PASS still requires approved independent review receipts and protected integrated-source evidence.",
+    "This evidence-only record does not certify a new source archive, Docker image, or provider result.",
+    "Raw artifacts are held locally. Only aggregate results, fixed codes and hashes are retained here."
+  ],
+  "source_attribution_note": {
+    "commit": "959eee777061645c94ba2e902e43de9e1d50a127",
+    "recorded_git_author": "MJobs Orchestrator",
+    "paths": [
+      "compose.yml"
+    ],
+    "contribution_trailers_present": false,
+    "strict_validator": "Exit 0: no source-code changes in this commit. Its extension filter excludes .yml.",
+    "scope": "Validator exclusion does not establish human or AI authorship. The local two-parent merge is preserved."
+  }
+}

@@ -7,10 +7,12 @@ does not apply that file: matching it proves only retained manual configuration.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
 import tempfile
+import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,6 +72,40 @@ def compare_baseline(baseline, observed):
     return compare(baseline['local_persistence'], observed)
 
 
+def configuration_env_sha256(root, environment):
+    """Hash the default dotenv or the admitted recovery project's exact dotenv."""
+    if not (environment.get("COMPOSE_ENV_FILES") or
+            any(key.startswith("MJOBS_RECOVERY_") for key in environment)):
+        return hashlib.sha256((Path(root) / ".env").read_bytes()).hexdigest()
+
+    from tools import dev_fixture_guard as guard
+
+    try:
+        project = environment["COMPOSE_PROJECT_NAME"]
+        path = guard.recovery_env_path(project)
+        token = environment["MJOBS_DEV_GUARD_TOKEN"]
+        expiry = environment["MJOBS_DEV_GUARD_EXPIRES"]
+        endpoint = environment["MJOBS_RECOVERY_DOCKER_ENDPOINT"]
+        if (environment["COMPOSE_ENV_FILES"] != str(path)
+                or environment["COMPOSE_FILE"] != os.pathsep.join(guard.compose_files(True))
+                or environment.get("DOCKER_CONTEXT")
+                or environment.get("DOCKER_HOST") != endpoint
+                or environment.get("MJOBS_IMAGE") != environment.get("MJOBS_RECOVERY_IMAGE_ID")
+                or not re.fullmatch(r"[0-9]{1,12}", expiry)
+                or int(expiry) <= time.time()
+                or path.is_symlink() or not path.is_file() or path.stat().st_size > 16384):
+            raise ValueError
+        before = hashlib.sha256(path.read_bytes()).hexdigest()
+        values = guard.read_recovery_dotenv(path)
+        guard.validate_recovery_dotenv_values(project, token, expiry, values)
+        if (values != guard.recovery_dotenv_values(environment)
+                or hashlib.sha256(path.read_bytes()).hexdigest() != before):
+            raise ValueError
+    except (KeyError, OSError, RuntimeError, TypeError, ValueError):
+        raise ValueError("Persistence proof requires the admitted recovery dotenv") from None
+    return before
+
+
 def collect(get_json, get_bytes, profile_id, application_id, *, root=ROOT):
     """Read the already-seeded synthetic fixture via API JSON and download seams.
 
@@ -120,7 +156,7 @@ def collect(get_json, get_bytes, profile_id, application_id, *, root=ROOT):
     # Hash the actual local configuration, never ship its bytes or arbitrary keys.
     # The same operator-managed file is retained during fresh-target restoration.
     values['configuration'] = [{
-        'env_sha256': hashlib.sha256((Path(root) / '.env').read_bytes()).hexdigest(),
+        'env_sha256': configuration_env_sha256(root, os.environ),
         'compose_sha256': hashlib.sha256((Path(root) / 'compose.yml').read_bytes()).hexdigest(),
         'settings': {key: settings[key] for key in
                      ('mode', 'operation_mode', 'external_submission_enabled', 'worker_limits')},

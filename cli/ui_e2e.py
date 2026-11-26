@@ -13,6 +13,7 @@ import sys
 import tempfile
 import time
 from urllib.parse import quote, urlsplit
+from uuid import uuid4
 
 import httpx
 from docx import Document
@@ -754,6 +755,35 @@ def assert_supported_fixture_search(search, *, profile_id, include_titles, remot
     scheduler = criteria.get("scheduler")
     if not isinstance(scheduler, dict) or scheduler.get("enabled") is not False:
         raise AssertionError("fixture search must keep its background scheduler disabled")
+
+
+def create_fixture_us_remote_search(put, request, profile_id):
+    """Save a browsing-only search without changing the two discovery searches."""
+    search_id = f"fixture-step16-{uuid4().hex}"
+    scheduler = {"enabled": False, "interval_seconds": 1800}
+    response = put("/search-profiles", {
+        "id": search_id,
+        "profile_id": profile_id,
+        "name": "Synthetic US remote restrictions",
+        "enabled": False,
+        "remote": "REQUIRED",
+        "remote_regions": ["US"],
+        "scheduler": scheduler,
+    })
+    assert response.ok and response.json().get("id") == search_id, (
+        "Step 16 search save did not return the fresh search ID")
+    saved = request("/search-profiles/" + search_id)
+    criteria = saved.get("criteria") or {}
+    assert (saved.get("id") == search_id and saved.get("profile_id") == profile_id
+            and saved.get("enabled") is False and saved.get("source_ids") == []
+            and criteria.get("remote") == "REQUIRED"
+            and criteria.get("remote_regions") == ["US"]
+            and criteria.get("include_titles") == []
+            and "job_filters" not in criteria
+            and criteria.get("scheduler") == scheduler
+            and criteria["scheduler"].get("enabled") is False), (
+        "Step 16 search readback did not match the same-profile, schedule-off US scope")
+    return saved["id"]
 
 
 def assert_reprepared_profile_pins(*, previous_profile_version, old_application_profile_version,
@@ -1629,8 +1659,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                                 "request_id": discovery_request_id},
                 )
                 if acceptance_run_id is not None:
+                    remote_search_id = create_fixture_us_remote_search(
+                        lambda path, payload: context.request.put(base_url + path, data=payload),
+                        request, profile_id)
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
                     run_fixture_job_observations(
                         page, request, profile_id, navigation, observe_acceptance_step,
+                        remote_search_id=remote_search_id,
                         record_observed_jobs=journal.record_observed_jobs)
                     from cli.acceptance_employer import observe_employer_journey
 

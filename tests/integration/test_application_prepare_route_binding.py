@@ -15,11 +15,36 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
 from services.applications.preflight import latest_preflight, persist_preflight
+from services.applications.form_review_providers import normalize_application_route
+from services.applications.provider_registry import ApplicationAdapterRegistry
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
 
 class ApplicationPrepareRouteBindingTests(unittest.TestCase):
+    def test_route_selects_matching_ats_adapter_and_broken_extension_fails_closed(self):
+        normalized = normalize_application_route(
+            "greenhouse",
+            "https://boards.greenhouse.io/acme/jobs/123",
+            route_metadata={"tenant": "acme", "requisition": "123"},
+        )
+        self.assertEqual(normalized, {
+            "provider": "greenhouse",
+            "tenant": "acme",
+            "requisition": "123",
+            "url": "https://boards.greenhouse.io/acme/jobs/123",
+        })
+
+        def broken_factory():
+            raise RuntimeError("private adapter initialization detail")
+
+        registry = ApplicationAdapterRegistry(extensions=(("broken", broken_factory),))
+        self.assertIsNone(registry.get("broken"))
+        self.assertIsNone(registry.normalize_route(
+            "broken", {"provider": "broken", "url": "https://example.invalid/apply"},
+        ))
+        self.assertIsNone(registry.capabilities("broken"))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-prepare-route-binding-")
         self.addCleanup(self.temp.cleanup)

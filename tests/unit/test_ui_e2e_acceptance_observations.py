@@ -10,6 +10,7 @@ from cli import ui_e2e
 from cli.ui_e2e_jobs_journey import (
     build_observation,
     canonical_posting_count_matches,
+    fixture_us_remote_explanation,
     match_sort_matches_readback,
     open_job_detail_for_selected_card,
     visible_posting_count_footer_matches,
@@ -336,6 +337,73 @@ def test_remote_match_explanation_shows_recorded_job_regions_not_profile_locatio
     assert "Recorded job regions: OK, TX." in factor["explanation"]
     assert "Oklahoma" not in factor["explanation"]
     assert factor["score_effect"] == "NONE"
+
+
+@pytest.mark.parametrize("readback_overrides", [
+    {},
+    {"profile_id": "other-profile"},
+    {"id": "existing-discovery-search"},
+    {"criteria": {"remote": "REQUIRED", "remote_regions": []}},
+])
+def test_step16_creates_and_reads_a_fresh_schedule_off_search(readback_overrides):
+    from types import SimpleNamespace
+
+    from apps.api.main import SearchProfileInput
+    from packages.domain.automation import SavedSearchRule
+
+    writes = []
+
+    def put(path, payload):
+        assert path == "/search-profiles"
+        parsed = SearchProfileInput.model_validate(payload)
+        assert SavedSearchRule.from_mapping(parsed.scheduler).enabled is False
+        writes.append(payload)
+        return SimpleNamespace(ok=True, json=lambda: {"id": payload["id"]})
+
+    def read(path):
+        payload = writes[-1]
+        assert path == f"/search-profiles/{payload['id']}"
+        assert payload["id"].startswith("fixture-step16-")
+        assert payload["profile_id"] == "fixture-profile"
+        assert payload["enabled"] is False
+        assert payload["scheduler"] == {"enabled": False, "interval_seconds": 1800}
+        assert payload["remote"] == "REQUIRED"
+        assert payload["remote_regions"] == ["US"]
+        assert "include_titles" not in payload
+        return {**payload, "source_ids": [], "criteria": {
+            "remote": payload["remote"], "remote_regions": payload["remote_regions"],
+            "include_titles": [], "scheduler": payload["scheduler"],
+        }, **readback_overrides}
+
+    if readback_overrides:
+        with pytest.raises(AssertionError, match="search readback"):
+            ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+    else:
+        first = ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+        second = ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+        assert first == writes[0]["id"] and second == writes[1]["id"] and first != second
+
+
+@pytest.mark.parametrize("job_regions, detail_regions, detail_id, explanation, expected", [
+    (["US"], ["US"], "same-job", "Recorded job regions: US.", True),
+    ([], ["US"], "same-job", "Recorded job regions: US.", False),
+    (["US"], [], "same-job", "Recorded job regions: US.", False),
+    (["US"], ["CA"], "same-job", "Recorded job regions: US.", False),
+    (["US"], ["US"], "other-job", "Recorded job regions: US.", False),
+    (["US"], ["US"], "same-job", "The selected profile is in the US.", False),
+    (["US"], ["US"], "same-job", "Recorded job regions: CA.", False),
+    (["US"], ["US"], "same-job", None, False),
+])
+def test_step16_explanation_binds_same_canonical_job_and_recorded_regions(
+        job_regions, detail_regions, detail_id, explanation, expected):
+    job = {"id": "same-job", "title": "Fixture role", "remote_type": "REMOTE_US",
+           "attributes": {"fictional": True, "remote_regions": job_regions}}
+    detail = {**job, "id": detail_id,
+              "attributes": {"fictional": True, "remote_regions": detail_regions},
+              "match": {"components": {"fit_factors": [
+                  {"id": "remote_location", "label": "Remote work region", "explanation": explanation},
+              ]}}}
+    assert fixture_us_remote_explanation(job, detail) == (explanation if expected else None)
 
 
 def test_observation_accepts_job_and_document_lineage_with_bounded_lists():

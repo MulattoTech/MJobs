@@ -185,6 +185,29 @@ def open_job_detail_for_selected_card(page, card, title, expect):
     return detail_region
 
 
+def has_fixture_us_remote_region(job):
+    attributes = job.get("attributes") or {}
+    return (attributes.get("fictional") is True and job.get("remote_type") == "REMOTE_US"
+            and attributes.get("remote_regions") == ["US"])
+
+
+def fixture_us_remote_explanation(job, detail):
+    """Return an explanation backed by both readbacks of the same fixture job."""
+    if (not job.get("id") or detail.get("id") != job["id"]
+            or not job.get("title") or detail.get("title") != job["title"]
+            or not has_fixture_us_remote_region(job) or not has_fixture_us_remote_region(detail)):
+        return None
+    factors = (detail.get("match") or {}).get("components", {}).get("fit_factors") or []
+    remote_factors = [factor for factor in factors
+                      if isinstance(factor, dict) and factor.get("id") == "remote_location"]
+    if len(remote_factors) != 1 or remote_factors[0].get("label") != "Remote work region":
+        return None
+    explanation = remote_factors[0].get("explanation")
+    if isinstance(explanation, str) and explanation.endswith("Recorded job regions: US."):
+        return explanation
+    return None
+
+
 def build_observation(*, step, status, observable_result, evidence_kind,
                       source_commit, run_id, continuity=None, checks=None):
     """Validate and project one step observation onto the runner-owned schema."""
@@ -265,11 +288,17 @@ def build_observation(*, step, status, observable_result, evidence_kind,
     }
 
 
-def run_fixture_job_observations(page, request, profile_id, navigate, observe,
-                                 record_observed_jobs=None):
+def reset_annual_salary_filters(page):
+    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Salary availability", exact=True).select_option("DEFAULT")
+
+
+def run_fixture_job_observations(page, request, profile_id, navigate, observe, *,
+                                 remote_search_id, record_observed_jobs=None):
     """Exercise and observe fixture-backed Jobs UI behavior, without live providers."""
     import time
-    from urllib.parse import urlsplit
+    from urllib.parse import parse_qs, urlsplit
 
     from playwright.sync_api import expect
 
@@ -448,85 +477,65 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
            else "Fixture salary fields or the salary-filtered list are unavailable.",
            [{"name": "salary_range_visible", "passed": salary_visible},
             {"name": "salary_filter_retains_jobs", "passed": salary_filter_valid}])
-    searches = request("/search-profiles?profile_id=" + profile_id).get("search_profiles", [])
-    region_search = next((row for row in searches
-                          if isinstance(row, dict)
-                          and isinstance(row.get("criteria"), dict)
-                          and isinstance(row["criteria"].get("remote_regions"), list)
-                          and row["criteria"]["remote_regions"]), None)
-    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")
-    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("")
-    page.get_by_label("Salary availability", exact=True).select_option("ANY")
+    reset_annual_salary_filters(page)
     remote_rows = request("/jobs?profile_id=" + profile_id + "&remote_type=REMOTE").get("jobs", [])
     if remote_rows:
         expect(page.locator(".job-card-title")).to_have_text(
             [row.get("title") for row in remote_rows])
-    allowed_regions = set()
-    remote_restrictions_available = False
-    remote_filter_matches = (bool(remote_rows)
-                             and match_sort_matches_readback(
-                                 remote_rows, page.locator(".job-card-title").all_text_contents())
-                             and all(str(row.get("remote_type") or "").startswith("REMOTE")
-                                     for row in remote_rows))
-    if region_search is not None:
-        allowed_regions = {value.casefold() for value in region_search["criteria"]["remote_regions"]
-                           if isinstance(value, str) and value.strip()}
-        page.get_by_label("Saved search profile", exact=True).select_option(region_search["id"])
-        remote_rows = request("/jobs?profile_id=" + profile_id
-                              + "&search_profile_id=" + region_search["id"]).get("jobs", [])
-        if remote_rows:
-            expect(page.locator(".job-card-title")).to_have_text(
-                [row.get("title") for row in remote_rows])
-        remote_titles = page.locator(".job-card-title").all_text_contents()
-        source_scoped = [row for row in remote_rows
-                         if isinstance(row, dict)
-                         and isinstance(row.get("attributes"), dict)
-                         and isinstance(row["attributes"].get("remote_regions"), list)
-                         and row["attributes"]["remote_regions"]]
-        remote_restrictions_available = bool(source_scoped)
-        remote_filter_matches = (remote_filter_matches and bool(remote_rows)
-                                 and match_sort_matches_readback(remote_rows, remote_titles)
-                                 and all(str(row.get("remote_type") or "").startswith("REMOTE")
-                                         for row in remote_rows)
-                                 and all(allowed_regions & {
-                                     value.casefold() for value in (
-                                         (row.get("attributes") or {}).get("remote_regions") or [])
-                                     if isinstance(value, str)}
-                                     for row in remote_rows))
+    remote_filter_matches = match_sort_matches_readback(
+        remote_rows, page.locator(".job-card-title").all_text_contents())
     remote_type_visible = bool(remote_rows) and all(
         str(row.get("remote_type") or "").startswith("REMOTE") for row in remote_rows)
+
+    saved_search = page.get_by_label("Saved search profile", exact=True)
+    def is_region_list_response(response):
+        url = urlsplit(response.url)
+        query = parse_qs(url.query)
+        return (response.request.method == "GET" and url.path == "/jobs"
+                and query.get("profile_id") == [profile_id]
+                and query.get("search_profile_id") == [remote_search_id])
+
+    with page.expect_response(is_region_list_response) as region_response:
+        saved_search.select_option(remote_search_id)
+    assert region_response.value.ok, "Step 16 scoped browser list request failed"
+    expect(saved_search).to_have_value(remote_search_id)
+    region_query = "?profile_id=" + profile_id + "&search_profile_id=" + remote_search_id
+    region_rows = request("/jobs" + region_query).get("jobs", [])
+    expect(page.locator(".job-card-title")).to_have_text([row["title"] for row in region_rows])
+    remote_ids = {row["id"] for row in remote_rows}
+    region_filter_matches = (match_sort_matches_readback(
+        region_rows, page.locator(".job-card-title").all_text_contents())
+        and all(row["id"] in remote_ids and has_fixture_us_remote_region(row)
+                for row in region_rows))
     remote_ui_visible = False
-    if remote_rows and region_search is not None:
-        remote_job = remote_rows[0]
-        remote_detail = request("/jobs/" + remote_job["id"] + "?profile_id=" + profile_id
-                                + "&search_profile_id=" + region_search["id"])
-        restrictions = (remote_detail.get("attributes") or {}).get("remote_regions", [])
-        remote_card = page.locator(".job-card").filter(has_text=remote_job.get("title", ""))
+    remote_job = region_rows[0] if region_filter_matches else None
+    if remote_job is not None:
+        remote_card = page.get_by_role(
+            "button", name=f"{remote_job['company']} {remote_job['title']}", exact=True)
         if remote_card.count() == 1:
             remote_detail_region = open_job_detail_for_selected_card(
-                page, remote_card, remote_job.get("title"), expect)
-            factor = next((row for row in (remote_detail.get("match") or {})
-                           .get("components", {}).get("fit_factors", [])
-                           if isinstance(row, dict) and row.get("id") == "remote_location"), None)
-            remote_ui_visible = (remote_detail.get("id") == remote_job.get("id")
-                                 and "selected" in (remote_card.get_attribute("class") or "").split()
-                                 and bool(restrictions) and isinstance(factor, dict)
-                                 and bool(set(value.casefold() for value in restrictions
-                                              if isinstance(value, str)) & allowed_regions)
-                                 and remote_detail_region.get_by_text(
-                                     "Remote work region", exact=False).count() == 1
-                                 and remote_detail_region.get_by_text(
-                                     factor.get("explanation", ""), exact=False).count() > 0)
-    record(16, "PASS" if remote_filter_matches and remote_type_visible
-           and remote_restrictions_available and remote_ui_visible else "PARTIAL",
+                page, remote_card, remote_job["title"], expect)
+            remote_detail = request("/jobs/" + remote_job["id"] + "?profile_id=" + profile_id)
+            explanation = fixture_us_remote_explanation(remote_job, remote_detail)
+            if explanation and "selected" in (remote_card.get_attribute("class") or "").split():
+                fit_signals = remote_detail_region.get_by_role(
+                    "list", name="Additional fit signals", exact=True)
+                region_item = fit_signals.get_by_role("listitem").filter(
+                    has_text="Remote work region")
+                explanation_text = region_item.get_by_text(
+                    f". {explanation} This does not change the score.", exact=True)
+                remote_ui_visible = (region_item.count() == 1 and explanation_text.count() == 1
+                                     and explanation_text.is_visible())
+
+    remote_pass = remote_filter_matches and remote_type_visible and remote_ui_visible
+    record(16, "PASS" if remote_pass else "PARTIAL",
            "Remote results match the saved region scope and show source restrictions."
-           if remote_filter_matches and remote_type_visible
-           and remote_restrictions_available and remote_ui_visible
-           else "A saved remote-region filter or source-backed restriction is unavailable.",
+           if remote_pass else "The saved scope or source-backed regional explanation was unavailable.",
            [{"name": "remote_filter_returned_a_remote_job", "passed": remote_filter_matches},
             {"name": "remote_job_type_visible", "passed": remote_type_visible},
-            {"name": "employer_remote_restrictions_available",
-             "passed": remote_restrictions_available and remote_ui_visible}])
+            {"name": "employer_remote_restrictions_available", "passed": remote_ui_visible}],
+           continuity={"profile_id": profile_id, **({"job_id": remote_job["id"]}
+                                                    if remote_ui_visible else {})})
     page.get_by_label("Saved search profile", exact=True).select_option("")
     page.get_by_label("Work location", exact=True).select_option("")
     jobs = request("/jobs?profile_id=" + profile_id).get("jobs", [])

@@ -155,6 +155,17 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
         receipt = admitted.json()
         self.assertEqual(receipt["state"], "QUEUED")
         self.assertFalse(receipt["external_submission_enabled"])
+
+        # A lost admission response may be retried while the corrected answer
+        # is being resumed. The durable request identity must keep that retry
+        # attached to the original operation, whose identity owns the browser
+        # attempt, rather than create a second operation/attempt.
+        retried = self.client.post(self.base, json=self.payload())
+        self.assertEqual(retried.status_code, 202, retried.text)
+        self.assertTrue(retried.json()["replayed"])
+        self.assertEqual(retried.json()["operation_id"], receipt["operation_id"])
+        self.assertEqual(self.apply_mock_operation_count(), 1)
+
         pending = self.client.get(self.base + "/resume-1")
         self.assertEqual(pending.status_code, 202, pending.text)
         self.assertEqual(pending.json()["operation_id"], receipt["operation_id"])
