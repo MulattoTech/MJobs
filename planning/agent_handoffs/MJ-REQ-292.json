@@ -661,7 +661,7 @@
     "tests/integration/test_aggregator_bootstrap_worker.py": "/root; bootstrap-budget; dbaccc0a11b9e1488139a5f98ae8395c6693f450",
     "__parallel_contracts__/mjreq292/aggregator-bootstrap-budget": "/root; bootstrap-budget; dbaccc0a11b9e1488139a5f98ae8395c6693f450"
   },
-  "acceptance_ledger_sha256": "1da809161a7dd2a1deab948ed76f595d23beeac12c12be85649f42b709aff23d",
+  "acceptance_ledger_sha256": "bf3e99b63b917e0b513b29a9222ad0a452cd5f5beaa04b3652f59fa9b618ca6d",
   "runtime": {
     "active": false,
     "last_run_id": "mj292-44220090e592",
