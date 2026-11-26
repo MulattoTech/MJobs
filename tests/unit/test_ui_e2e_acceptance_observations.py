@@ -7,7 +7,11 @@ import json
 import pytest
 
 from cli import ui_e2e
-from cli.ui_e2e_jobs_journey import build_observation
+from cli.ui_e2e_jobs_journey import (
+    build_observation,
+    canonical_posting_count_matches,
+    match_sort_matches_readback,
+)
 
 
 RUN_ID = "01a1b028-0834-7130-b5ac-b7625e151716"
@@ -157,6 +161,62 @@ def test_observation_checks_must_match_the_registered_step_names():
         run_id=RUN_ID,
         checks=[{"name": "match_sort_order", "passed": True}],
     )["step"] == 14
+
+
+def test_match_sort_oracle_binds_rendered_order_to_unique_canonical_rows():
+    rows = [
+        {"id": "job-a", "title": "Alpha Role", "match_score": 95},
+        {"id": "job-b", "title": "Beta Role", "match_score": 95},
+        {"id": "job-c", "title": "Gamma Role", "match_score": 70},
+    ]
+
+    assert match_sort_matches_readback(rows, ["Alpha Role", "Beta Role", "Gamma Role"])
+    assert not match_sort_matches_readback(rows, ["Beta Role", "Alpha Role", "Gamma Role"])
+    assert not match_sort_matches_readback(
+        [{**rows[0], "title": "Same Role"}, {**rows[1], "title": "Same Role"}],
+        ["Same Role", "Same Role"],
+    )
+    assert not match_sort_matches_readback(
+        [rows[1], rows[0], rows[2]], ["Beta Role", "Alpha Role", "Gamma Role"],
+    )
+    assert not match_sort_matches_readback(
+        [{**rows[0], "match_score": True}, rows[1]], ["Alpha Role", "Beta Role"],
+    )
+
+
+def test_job_discovery_slice_passes_require_canonical_identity_for_duplicate_count():
+    with pytest.raises(ValueError, match="job_id continuity"):
+        build_observation(
+            step=17, status="PASS",
+            observable_result="Canonical count matches distinct source postings.",
+            evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT,
+            run_id=RUN_ID,
+            checks=[{"name": "canonical_duplicate_job_available", "passed": True},
+                    {"name": "duplicate_count_matches_readback", "passed": True}],
+        )
+
+    observation = build_observation(
+        step=17, status="PASS",
+        observable_result="Canonical count matches distinct source postings.",
+        evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT,
+        run_id=RUN_ID, continuity={"profile_id": "profile-123", "job_id": "job-789"},
+        checks=[{"name": "canonical_duplicate_job_available", "passed": True},
+                {"name": "duplicate_count_matches_readback", "passed": True}],
+    )
+    assert observation["continuity"]["job_id"] == "job-789"
+
+
+def test_duplicate_count_requires_distinct_source_posting_identities():
+    postings = [
+        {"source": "Board-A", "source_job_id": "listing-1"},
+        {"source": "Board-B", "source_job_id": "listing-1"},
+        {"source": "Employer", "source_job_id": "req-1"},
+    ]
+
+    assert canonical_posting_count_matches(3, postings)
+    assert not canonical_posting_count_matches(2, postings)
+    assert not canonical_posting_count_matches(3, postings + [postings[0]])
+    assert not canonical_posting_count_matches(3, [*postings[:-1], {"source": "Employer"}])
 
 
 def test_observation_accepts_job_and_document_lineage_with_bounded_lists():
