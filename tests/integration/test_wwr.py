@@ -269,8 +269,8 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertEqual(adapter.fetch('synthetic-identity')['description'], base['description'])
         self.assertEqual(adapter.health(), 'HEALTHY')
 
-    def test_search_rejects_conflicts_even_when_filters_or_limits_hide_them(self):
-        """An ambiguous full feed must not appear healthy because a caller selects a subset."""
+    def test_search_excludes_conflicts_before_filters_or_limits(self):
+        """Filtering cannot restore a variant or hide the adapter's partial health."""
         base = {'title': 'Synthetic Acme: Engineer', 'description': 'Original work.',
                 'guid': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
                 'link': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
@@ -282,17 +282,19 @@ class WeWorkRemotelyTests(unittest.TestCase):
                  'category': 'Design'}
 
         for reverse in (False, True):
-            for kwargs in ({}, {'limit': 1}, {'category': 'Design'},
-                           {'search_term': 'Fresh Only'}):
+            for kwargs, expected in (({}, [fresh['link']]), ({'limit': 1}, [fresh['link']]),
+                                     ({'category': 'Design'}, [fresh['link']]),
+                                     ({'search_term': 'Fresh Only'}, [fresh['link']]),
+                                     ({'category': 'Programming'}, []),
+                                     ({'search_term': 'Different work'}, [])):
                 with self.subTest(reverse=reverse, filter=kwargs):
                     pair = [conflicting, base] if reverse else [base, conflicting]
                     payload = self.duplicate_fixture([fresh, *pair])
                     adapter = WeWorkRemotely(transport=httpx.MockTransport(
                         lambda _: httpx.Response(200, content=payload)))
-                    with self.assertRaises(SourceError) as raised:
-                        adapter.search(**kwargs)
-                    self.assertEqual(raised.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
-                    self.assertEqual(adapter.health(), 'SOURCE_DUPLICATE_JOB_ID')
+                    batch = adapter.search(**kwargs)
+                    self.assertEqual([item.raw['link'] for item in batch.items], expected)
+                    self.assertEqual(adapter.health(), 'PARTIAL')
 
     def test_search_coalesces_only_exact_repeats_and_preserves_first_seen_order(self):
         first = {'title': 'Synthetic Acme: Engineer', 'description': 'Same role.',
@@ -312,7 +314,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertEqual(len(limited.items), 1)
         self.assertEqual(limited.items[0].raw['description'], 'Same role.')
 
-    def test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting(self):
+    def test_collection_preserves_prior_posting_and_admits_only_unambiguous_rows(self):
         base = {'title': 'Synthetic Acme: Engineer', 'description': 'Python systems.',
                 'guid': 'https://weworkremotely.com/remote-jobs/synthetic-identity',
                 'link': 'https://weworkremotely.com/remote-jobs/synthetic-identity'}
@@ -342,7 +344,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
             with self.subTest(reverse=reverse):
                 duplicate = [base, {**base, 'description': 'Conflicting work.'}]
                 with self.assertRaises(SourceError) as failure:
-                    collect([fresh, *(duplicate[::-1] if reverse else duplicate)])
+                    collect(duplicate[::-1] if reverse else duplicate)
                 self.assertEqual(failure.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
                 self.assertEqual(persisted_rows(), before)
                 with self.store.engine.connect() as connection:
@@ -350,8 +352,13 @@ class WeWorkRemotelyTests(unittest.TestCase):
                         m.job_sources.c.id == source)).mappings().one()
                 self.assertEqual(state['health_status'], 'FAILED')
                 self.assertEqual(state['last_error'], 'SOURCE_DUPLICATE_JOB_ID')
-        collect([base, deepcopy(base)])
-        self.assertEqual(self.store.count('job_postings'), 1)
+        result = collect([fresh, *duplicate])
+        self.assertEqual(result['jobs_seen'], 1)
+        after = persisted_rows()
+        for table in (m.postings, m.posting_snapshots, m.posting_value_candidates):
+            for row in before[table.name]:
+                self.assertIn(row, after[table.name])
+        self.assertEqual(self.store.count('job_postings'), 2)
 
     # ── Error handling ──────────────────────────────────────────────────
 
