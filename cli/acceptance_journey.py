@@ -35,6 +35,7 @@ EMPTY_HASH = hashlib.sha256(b"").hexdigest()
 STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
 PUBLIC_JOB_LIST_STEPS = frozenset({12, 13, 14})
+APPLICATION_RECEIPTS = {36: "prepared_document_pair", 53: "application_audit_trace"}
 CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
@@ -576,6 +577,38 @@ def validate_stage_lineage(artifact, identity):
             raise ValueError("Application stage lineage scope or operation identity mismatch")
         by_step[row["step"]] = copy.deepcopy(row)
     return by_step
+
+
+def _validate_application_receipt(step, artifact, continuity, stage, *, run_id, source_commit):
+    """Require the stage-local receipt in addition to positive UI/readback checks."""
+    receipt = artifact.get(APPLICATION_RECEIPTS[step])
+    if step == 36:
+        pins = {key: stage[key] for key in ("profile_id", "application_id", "job_id")}
+        if (stage["operation_kind"] != "PREPARE" or not re.fullmatch(r"[a-f0-9]{64}", stage["operation_id"])
+                or set(continuity) != {*pins, "document_ids"}
+                or not isinstance(receipt, dict) or set(receipt) != {*pins, "profile_version", "document_version", "documents"}
+                or any(receipt[key] != value for key, value in pins.items())
+                or not isinstance(receipt["profile_version"], str) or not SAFE_ID.fullmatch(receipt["profile_version"])
+                or type(receipt["document_version"]) is not int or receipt["document_version"] < 1):
+            raise ValueError("Criterion 36 requires the selected PREPARE stage's prepared document pair")
+        documents = receipt["documents"]
+        if (not isinstance(documents, dict) or set(documents) != {"resume", "cover-letter"}
+                or documents["resume"] == documents["cover-letter"]
+                or continuity["document_ids"] != [documents["resume"], documents["cover-letter"]]):
+            raise ValueError("Criterion 36 prepared document IDs do not match the numbered observation")
+        return
+
+    if (receipt is None or set(continuity) != {"profile_id", "application_id", "job_id"}
+            or not re.fullmatch(r"[a-f0-9]{64}", stage["operation_id"])):
+        raise ValueError("Criterion 53 requires the final application stage's audit trace")
+    try:
+        from cli.acceptance_audit import validate_application_audit_trace
+    except ModuleNotFoundError as error:
+        if error.name != "cli.acceptance_audit":
+            raise
+        raise ValueError("Criterion 53 requires the exact application audit trace validator") from error
+    validate_application_audit_trace(receipt, run_id=run_id, source_commit=source_commit,
+                                     profile_id=stage["profile_id"], application_id=stage["application_id"])
 
 
 def _public_source_module():
@@ -1463,6 +1496,9 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 validate_runtime_identity(artifact.get("runtime_identity"))
             if 36 <= step <= 53 and step not in lineage:
                 raise ValueError("Application observation requires actual stage lineage")
+            if step in APPLICATION_RECEIPTS:
+                _validate_application_receipt(step, artifact, continuity, lineage[step],
+                                              run_id=run_id, source_commit=source["commit"])
         result.append({"step": step, "status": status, "observable_result": observable,
                        "evidence_kind": kind, "source_commit": source["commit"],
                        "run_id": run_id, "continuity": dict(continuity), "checks": copy.deepcopy(checks)})
@@ -1561,7 +1597,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 artifact, sha = _read_artifact(artifact_path)
                 if recorded.get("sha256") != sha:
                     raise ValueError("Checkpoint artifact hash mismatch")
-                restored.complete_segment(name, artifact, sha, persist=False)
+                restored.complete_segment(name, artifact, sha, persist=False, imported=True)
                 for row in restored.binding["steps"]:
                     if row.get("verification", {}).get("evidence_artifact") in ({f"{name}.json", "public-observations.json", "public-source-setup.json"} if name == "public" else {f"{name}.json"}):
                         row["verification"]["resume_imported"] = True
@@ -1618,10 +1654,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         self.binding["segments"][name] = {"status": "IN_PROGRESS", "started_at_utc": utc_now()}
         self.persist()
 
-    def complete_segment(self, name, artifact, sha, *, persist=True):
+    def complete_segment(self, name, artifact, sha, *, persist=True, imported=False):
         segment_sha = sha
         observation_segment = name
         evidence_name = f"{name}.json"
+        legacy_missing_receipts = set()
         try:
             timestamp = datetime.fromisoformat(artifact["timestamp"])
             started = datetime.fromisoformat(self.binding["started_at_utc"])
@@ -1653,6 +1690,18 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                     raise ValueError("UI runtime identity differs from validated coordinator runtime")
                 self.binding["runtime_identity"] = artifact["runtime_identity"]
             self.binding["stage_lineage"] = list(lineage.values())
+            if imported:
+                # Reconstruct historical rows without rewriting the producer
+                # artifact. A present but invalid receipt still fails validation.
+                artifact = copy.deepcopy(artifact)
+                observations = artifact.get("acceptance_observations")
+                if isinstance(observations, list):
+                    for row in observations:
+                        step = row.get("step") if isinstance(row, dict) else None
+                        if (type(step) is int and step in APPLICATION_RECEIPTS and row.get("status") == "PASS"
+                                and APPLICATION_RECEIPTS[step] not in artifact):
+                            legacy_missing_receipts.add(step)
+                            row["status"] = "PARTIAL"
         elif name == "public":
             original, _ = _read_artifact(self.path.parent / "ui.json")
             validate_public_artifact(artifact, original, self.binding["public_source_provider"], self.binding["run_id"])
@@ -1745,6 +1794,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
             if observation_segment == "public_browser" and row["step"] in PUBLIC_JOB_LIST_STEPS:
                 report_row["verification"]["command"] = "cli.acceptance_public_browser.run (source-scoped UI list)"
                 report_row["verification"]["public_job_list_lineage"] = copy.deepcopy(artifact["public_job_list_lineage"])
+            if row["step"] in legacy_missing_receipts:
+                report_row.update(producer_status="PASS", credit_withheld="APPLICATION_RECEIPT_NOT_RECORDED")
+            if row["status"] == "PASS" and row["step"] in APPLICATION_RECEIPTS:
+                field = APPLICATION_RECEIPTS[row["step"]]
+                report_row["verification"][field] = copy.deepcopy(artifact[field])
             if "job_id" in row["continuity"]:
                 report_row["verification"]["job_scope"] = (
                     "SELECTED_APPLICATION_JOB" if row["step"] >= 32 else "SAME_PROFILE_BROWSED_JOB")

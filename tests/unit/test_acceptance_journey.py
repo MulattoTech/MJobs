@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -1064,6 +1065,193 @@ def test_application_stages_require_actual_stage_lineage(step):
     artifact.pop("stage_lineage")
     with pytest.raises(ValueError, match="lineage"):
         journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+def application_receipt_artifact(step):
+    artifact = application_stage_artifact(step)
+    stage = artifact["stage_lineage"][0]
+    stage["operation_id"] = "8" * 64
+    if step == 36:
+        stage["operation_kind"] = "PREPARE"
+        artifact["acceptance_observations"][0]["continuity"]["document_ids"] = ["resume-1", "letter-1"]
+        artifact["prepared_document_pair"] = {key: stage[key] for key in ("profile_id", "application_id", "job_id")}
+        artifact["prepared_document_pair"].update(profile_version="c" * 64, document_version=1,
+            documents={"resume": "resume-1", "cover-letter": "letter-1"})
+    else:
+        artifact.update(operation_id=stage["operation_id"], request_id=stage["request_id"])
+        artifact["application_audit_trace"] = {"run_id": RUN_ID, "source_commit": SOURCE["commit"],
+            "profile_id": stage["profile_id"], "application_id": stage["application_id"], "events": [
+                {"id": str(index) * 32, "type": kind, "timestamp": f"2026-11-26T14:00:0{4-index}+00:00",
+                 "application_id": stage["application_id"], "index": index}
+                for index, kind in enumerate(("APPLICATION_STATUS_REPORTED", "APPLICATION_CONFIRMED",
+                                              "APPLICATION_SUBMITTED"), 1)]}
+    return artifact
+
+
+def application_receipt_rows(artifact):
+    return journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+                                         source=SOURCE, identity=journey._identity(artifact))
+
+
+@pytest.mark.parametrize("step", [36, 53])
+def test_application_receipt_is_required_even_when_legacy_booleans_are_true(step):
+    artifact = application_receipt_artifact(step)
+    artifact.pop(journey.APPLICATION_RECEIPTS[step])
+    with pytest.raises(ValueError, match=f"Criterion {step}"):
+        application_receipt_rows(artifact)
+
+
+@pytest.mark.parametrize("step", [36, 53])
+def test_resume_withholds_credit_for_historical_missing_receipt_without_rewriting_it(tmp_path, step):
+    journey_path = tmp_path / "journey.json"
+    ui_path = tmp_path / "ui.json"
+    checkpoint = journey.JourneyCheckpoint.create(journey_path, RUN_ID, SOURCE, TARGET)
+    state = application_receipt_artifact(step)
+    field = journey.APPLICATION_RECEIPTS[step]
+    state.pop(field)
+    state["acceptance_observations"].append({**observation(4),
+        "continuity": {key: state[key] for key in IDENTITY}})
+    emit(ui_path, state)
+    before = ui_path.read_bytes()
+    saved = checkpoint.payload()
+    saved.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    saved["segments"]["ui"] = {"status": "COMPLETE", "artifact": "ui.json", "sha256": hashlib.sha256(before).hexdigest()}
+    emit(journey_path, saved)
+    result = journey.JourneyCheckpoint.resume(journey_path, RUN_ID, SOURCE, TARGET).payload()
+    restored = result["steps"][step - 1]
+    assert restored["status"] == "PARTIAL" and restored["producer_status"] == "PASS"
+    assert restored["credit_withheld"] == "APPLICATION_RECEIPT_NOT_RECORDED"
+    assert restored["verification"]["resume_imported"] is True
+    assert result["steps"][3]["status"] == "PASS"
+    assert ui_path.read_bytes() == before
+
+    state[field] = None  # A corrupt present receipt must never use the legacy path.
+    emit(ui_path, state)
+    saved["segments"]["ui"]["sha256"] = hashlib.sha256(ui_path.read_bytes()).hexdigest()
+    emit(journey_path, saved)
+    with pytest.raises(ValueError, match=f"Criterion {step}"):
+        journey.JourneyCheckpoint.resume(journey_path, RUN_ID, SOURCE, TARGET)
+
+
+def test_step36_prepared_pair_and_revision_are_preserved_in_verification(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = application_receipt_artifact(36)
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    row = checkpoint.payload()["steps"][35]
+    assert row["status"] == "PASS"
+    assert row["verification"]["prepared_document_pair"] == artifact["prepared_document_pair"]
+    assert row["verification"]["stage_lineage"]["operation_kind"] == "PREPARE"
+    assert row["observation"]["continuity"]["document_ids"] == ["resume-1", "letter-1"]
+    assert checkpoint.payload()["steps"][52]["status"] == "NOT_RUN"
+
+
+def test_step36_accepts_exact_ui_producer_document_pair():
+    producer = getattr(journey.ui_e2e, "prepared_document_pair", None)
+    if producer is None:
+        pytest.skip("Requires isolated cb0f3900 producer dependency")
+    artifact = application_receipt_artifact(36)
+    receipt = artifact["prepared_document_pair"]
+    pins = {key: receipt[key] for key in ("profile_id", "application_id", "job_id")}
+    documents = [{**pins, "kind": kind, "id": document, "version": receipt["document_version"],
+                  "profile_version": receipt["profile_version"]} for kind, document in receipt["documents"].items()]
+    application = {**pins, "id": receipt["application_id"],
+                   "profile_version": receipt["profile_version"], "document_version": receipt["document_version"]}
+    receipt["documents"] = producer(application, documents, **pins)
+    assert application_receipt_rows(artifact)[0]["status"] == "PASS"
+
+
+@pytest.mark.parametrize("change", ["application", "profile", "job", "missing-document", "duplicate-document", "swapped-kind",
+    "different-document", "receipt-extra", "zero-version", "bool-version", "invalid-profile-version", "wrong-stage",
+    "unbound-operation", "no-row-pair", "wrong-row-order", "unread-document"])
+def test_step36_rejects_unbound_or_tampered_prepared_pair(change):
+    artifact = application_receipt_artifact(36)
+    pair = artifact["prepared_document_pair"]
+    docs = pair["documents"]
+    continuity = artifact["acceptance_observations"][0]["continuity"]
+    if change == "application": pair["application_id"] = "other-application"
+    if change == "profile": pair["profile_id"] = "other-profile"
+    if change == "job": pair["job_id"] = "browse-job-1"
+    if change == "missing-document": docs.pop("cover-letter")
+    if change == "duplicate-document": docs["cover-letter"] = docs["resume"]
+    if change == "swapped-kind": docs["resume"], docs["cover-letter"] = docs["cover-letter"], docs["resume"]
+    if change == "different-document": docs["resume"] = "base-1"
+    if change == "receipt-extra": pair["payload"] = {"private": True}
+    if change == "zero-version": pair["document_version"] = 0
+    if change == "bool-version": pair["document_version"] = True
+    if change == "invalid-profile-version": pair["profile_version"] = " "
+    if change == "wrong-stage": artifact["stage_lineage"][0]["operation_kind"] = "APPLY_MOCK"
+    if change == "unbound-operation": artifact["stage_lineage"][0]["operation_id"] = "not-a-sha"
+    if change == "no-row-pair": continuity.pop("document_ids")
+    if change == "wrong-row-order": continuity["document_ids"].reverse()
+    if change == "unread-document": artifact["application_document_ids"].remove("letter-1")
+    with pytest.raises(ValueError, match="Criterion 36|continuity"):
+        application_receipt_rows(artifact)
+
+
+def test_step53_fails_closed_before_exact_audit_helper_is_installed(monkeypatch):
+    monkeypatch.setitem(sys.modules, "cli.acceptance_audit", None)
+    with pytest.raises(ValueError, match="exact application audit trace validator"):
+        application_receipt_rows(application_receipt_artifact(53))
+
+
+@pytest.mark.parametrize("change", ["other-operation", "non-producer-operation", "unrelated-document"])
+def test_step53_requires_final_submit_lineage_before_loading_audit_helper(change):
+    artifact = application_receipt_artifact(53)
+    if change == "other-operation":
+        artifact["stage_lineage"][0]["operation_id"] = "7" * 64
+    if change == "non-producer-operation":
+        artifact["stage_lineage"][0]["operation_id"] = artifact["operation_id"] = "not-a-sha"
+    if change == "unrelated-document":
+        artifact["acceptance_observations"][0]["continuity"]["document_id"] = "resume-1"
+    with pytest.raises(ValueError, match="Criterion 53|lineage"):
+        application_receipt_rows(artifact)
+
+
+def test_step53_accepts_exact_producer_trace_and_keeps_other_steps_unobserved(tmp_path):
+    producer = pytest.importorskip("cli.acceptance_audit").application_audit_trace
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = application_receipt_artifact(53)
+    trace = artifact["application_audit_trace"]
+    events = [{key: value for key, value in event.items() if key != "index"} for event in trace["events"]]
+    events.insert(1, {**events[0], "application_id": "other-application"})
+    trace = producer({"profile_id": trace["profile_id"], "events": events},
+                     **{key: value for key, value in trace.items() if key != "events"})
+    artifact["application_audit_trace"] = trace
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    rows = checkpoint.payload()["steps"]
+    assert rows[52]["status"] == "PASS"
+    assert rows[52]["verification"]["application_audit_trace"] == trace
+    assert [item["index"] for item in trace["events"]] == [0, 2, 3]
+    assert rows[35]["status"] == rows[51]["status"] == "NOT_RUN"
+
+
+@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "event-application", "missing-event", "duplicate-id",
+    "reordered", "wrong-type", "non-utc", "same-time", "same-index", "index-overflow", "bool-index", "private-field", "trace-extra"])
+def test_step53_rejects_tampered_trace_using_exact_producer_validator(change):
+    pytest.importorskip("cli.acceptance_audit")
+    artifact = application_receipt_artifact(53)
+    trace = artifact["application_audit_trace"]
+    events = trace["events"]
+    if change == "run": trace["run_id"] = "other-run"
+    if change == "source": trace["source_commit"] = "9" * 40
+    if change == "profile": trace["profile_id"] = "other-profile"
+    if change == "application": trace["application_id"] = "other-application"
+    if change == "event-application": events[1]["application_id"] = "other-application"
+    if change == "missing-event": events.pop()
+    if change == "duplicate-id": events[1]["id"] = events[0]["id"]
+    if change == "reordered": events.reverse()
+    if change == "wrong-type": events[1]["type"] = "APPLICATION_PREPARED"
+    if change == "non-utc": events[0]["timestamp"] = "2026-11-26T15:00:03+01:00"
+    if change == "same-time": events[0]["timestamp"] = events[1]["timestamp"]
+    if change == "same-index": events[0]["index"] = events[1]["index"]
+    if change == "index-overflow": events[2]["index"] = 100
+    if change == "bool-index": events[0]["index"] = True
+    if change == "private-field": events[0]["answer"] = "fixture-only"
+    if change == "trace-extra": trace["raw"] = []
+    with pytest.raises(ValueError, match="Criterion 53"):
+        application_receipt_rows(artifact)
 
 
 @pytest.mark.parametrize("step", [41, 42])
