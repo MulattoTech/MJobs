@@ -796,7 +796,9 @@ def _join_public_job_list(baseline, public, browser, step11_pass):
                 raise ValueError("Public job list query does not bind to the selected title")
             word = next(iter(matches)).lower()
             expected = [job_id for job_id in scoped if word in titles[job_id].lower()]
-            matches_visible = target in visible
+            # Full text may also return admitted jobs matched outside the
+            # title, but it must retain every known title match.
+            matches_visible = set(expected).issubset(visible)
         else:
             matches = {titles[job_id] for job_id in scoped if len(titles[job_id]) <= 200
                        and titles[job_id] == titles[job_id].strip()
@@ -813,19 +815,28 @@ def _join_public_job_list(baseline, public, browser, step11_pass):
             raise ValueError("Public job list probe exclusion indices mismatch")
         return {first: full_cohort and matches_visible, second: full_cohort and bool(excluded)}
 
-    def sort_checks(ranked):
-        if (not isinstance(ranked, list) or len(ranked) > len(admitted)
-                or any(not isinstance(row, dict) or set(row) != {"job_id", "match_score"} for row in ranked)):
+    def score_readback(rows):
+        if (not isinstance(rows, list) or len(rows) > len(admitted)
+                or any(not isinstance(row, dict) or set(row) != {"job_id", "match_score"} for row in rows)):
             raise ValueError("Public job list match ranks are invalid")
-        rank_ids = subset([row["job_id"] for row in ranked], admitted, ordered=False)
-        scores = [row["match_score"] for row in ranked]
+        ids = subset([row["job_id"] for row in rows], admitted, ordered=False)
+        scores = [row["match_score"] for row in rows]
         if any(score is not None and (type(score) is not int or not 0 <= score <= 100) for score in scores):
             raise ValueError("Public job list match scores are invalid")
+        return ids, dict(zip(ids, scores))
+
+    def sort_checks(title_sorted, ranked):
+        title_ids, before = score_readback(title_sorted)
+        rank_ids, after = score_readback(ranked)
+        if title_ids != scoped:
+            raise ValueError("Public job list title score baseline indices mismatch")
+        scores = list(after.values())
         order = [score if score is not None else -1 for score in scores]
         # The public collector admitted its bounded cohort from the default
         # profile-scoped match sort. Cross-check its order, not sorted IDs.
         ordered = rank_ids == list(titles) and order == sorted(order, reverse=True)
-        return {"match_sort_order": full_cohort and ordered and len({s for s in scores if s is not None}) >= 2}
+        return {"match_sort_order": full_cohort and before == after and ordered
+                and len({score for score in scores if score is not None}) >= 2}
 
     lineage = {"profile_id": public["profile_id"], "operation_id": public["collection_operation_id"],
                "request_id": public["collection_request_id"], "source_id": public["source_id"],
@@ -836,12 +847,13 @@ def _join_public_job_list(baseline, public, browser, step11_pass):
                 14: "Public cards ordered by distinct match scores in the same profile UI"}
     for row in observed:
         step = row["step"]
-        field = "ranked_jobs" if step == 14 else "probe"
+        fields = {"title_sorted_jobs", "ranked_jobs"} if step == 14 else {"probe"}
         checks = row.get("checks")
-        if (set(row) != {"step", "status", "checks", field} or not isinstance(checks, dict)
+        if (set(row) != {"step", "status", "checks", *fields} or not isinstance(checks, dict)
                 or set(checks) != REQUIRED_CHECKS[step] or any(type(value) is not bool for value in checks.values())):
             raise ValueError("Public job list named checks are invalid")
-        expected = sort_checks(row[field]) if step == 14 else probe_checks(step, row[field])
+        expected = (sort_checks(row["title_sorted_jobs"], row["ranked_jobs"])
+                    if step == 14 else probe_checks(step, row["probe"]))
         status = "NOT_RUN" if not live else ("PASS" if all(checks.values()) else "PARTIAL")
         if row["status"] != status or any(passed and not expected[key] for key, passed in checks.items()):
             raise ValueError("Public job list check contradicts its bound evidence")

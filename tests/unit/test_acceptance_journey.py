@@ -1246,23 +1246,26 @@ def _seal_browser(value):
     return value
 
 
-def public_job_list_artifacts(state, provider="wwr", scope="LIVE_PUBLIC_READ_ONLY"):
+def public_job_list_artifacts(state, provider="wwr", scope="LIVE_PUBLIC_READ_ONLY", *, extra_titles=False):
     public = public_artifact(provider)
     source = public["source_id"]
     first, second = "real-job-1", "real-job-2"
     endpoint = {"wwr": "https://weworkremotely.com/remote-jobs.rss",
                 "remotive": "https://remotive.com/api/remote-jobs"}[provider]
     title = "Técnico Platform"
-    selected = [(second, "Support Engineer", 2), (first, title, 1)]
-    public.update(endpoint=endpoint, observed_real_job_ids=[first, second], execution_scope=scope,
+    selected = [(second, "Support Engineer", 2, 91), (first, title, 1, 60)]
+    if extra_titles:
+        selected[1:1] = [("real-job-3", "Platform Strategist", 3, 82), ("real-job-4", "Data Analyst", 4, 70)]
+    admitted = sorted(job_id for job_id, _, _, _ in selected)
+    public.update(endpoint=endpoint, observed_real_job_ids=admitted, execution_scope=scope,
                   profile_version="c" * 64)
     public["observations"] = [{"job_id": job_id, "source_id": source, "source_endpoint": endpoint,
         "fictional": False, "native_posting_id": native if provider == "remotive" else f"post-{native}",
-        "postings": [{"posting_id": f"posting-{native}"}]} for job_id, _, native in selected]
+        "postings": [{"posting_id": f"posting-{native}"}]} for job_id, _, native, _ in selected]
     browser = public_browser_artifact(state, public)
     browser["endpoint"] = endpoint
     browser["observations"] = []
-    for (_, name, _), proof in zip(selected, public["observations"]):
+    for (_, name, _, _), proof in zip(selected, public["observations"]):
         native = proof["native_posting_id"]
         detail = {"id": proof["job_id"], "title": name, "company": "Example",
                   "native_posting_id": native, "source_posting_ids": [proof["postings"][0]["posting_id"]]}
@@ -1275,16 +1278,19 @@ def public_job_list_artifacts(state, provider="wwr", scope="LIVE_PUBLIC_READ_ONL
     if status == "NOT_RUN":
         for row in browser["acceptance_observations"]:
             row["status"] = status
+    ranked = [{"job_id": job_id, "match_score": score} for job_id, _, _, score in selected]
+    query_results = [first, second, "real-job-3"] if extra_titles else [first]
     browser["job_list_observation"] = {"schema_version": 1, "source_id": source,
-        "admitted_job_ids": [first, second], "source_scoped_job_ids": [first, second], "observations": [
+        "admitted_job_ids": list(admitted), "source_scoped_job_ids": list(admitted), "observations": [
             {"step": 12, "status": status, "checks": {"matching_job_visible": True, "nonmatching_job_hidden": True},
              "probe": {"query_sha256": journey.digest("Platform"), "matching_job_id": first,
-                       "visible_job_ids": [first], "excluded_job_ids": [second]}},
+                       "visible_job_ids": query_results,
+                       "excluded_job_ids": [job_id for job_id in admitted if job_id not in query_results]}},
             {"step": 13, "status": status, "checks": {"filtered_job_visible": True, "other_title_hidden": True},
              "probe": {"title_sha256": hashlib.sha256(json.dumps(title, ensure_ascii=False).encode("utf-8")).hexdigest(),
-                       "expected_job_ids": [first], "visible_job_ids": [first], "excluded_job_ids": [second]}},
+                       "expected_job_ids": [first], "visible_job_ids": [first], "excluded_job_ids": admitted[1:]}},
             {"step": 14, "status": status, "checks": {"match_sort_order": True},
-             "ranked_jobs": [{"job_id": second, "match_score": 91}, {"job_id": first, "match_score": 60}]},
+             "ranked_jobs": ranked, "title_sorted_jobs": sorted(copy.deepcopy(ranked), key=lambda row: row["job_id"])},
         ]}
     return public, _seal_browser(browser)
 
@@ -1304,11 +1310,42 @@ def test_public_job_list_joins_exact_profile_cohort_for_search_filter_and_match_
     assert joined["public_job_list_lineage"]["job_ids"] == public["observed_real_job_ids"]
 
 
+def test_public_search_requires_all_title_matches_but_allows_extra_text_matches():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, extra_titles=True)
+    search = browser["job_list_observation"]["observations"][0]
+    joined = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 12)["status"] == "PASS"
+    # The target is still visible and the legitimate negative is still excluded.
+    # Another admitted title match cannot disappear behind those two checks.
+    search["probe"]["visible_job_ids"].remove("real-job-3")
+    with pytest.raises(ValueError, match="contradicts its bound evidence"):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    search.update(status="PARTIAL", checks={"matching_job_visible": False, "nonmatching_job_hidden": True})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 12)["status"] == "PARTIAL"
+
+
+def test_public_sort_cannot_manufacture_distinct_scores_from_a_tied_title_baseline():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    sort = browser["job_list_observation"]["observations"][2]
+    for row in sort["title_sorted_jobs"]:
+        row["match_score"] = 60
+    with pytest.raises(ValueError, match="contradicts its bound evidence"):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    sort.update(status="PARTIAL", checks={"match_sort_order": False})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 14)["status"] == "PARTIAL"
+
+
 @pytest.mark.parametrize("change", ["source-id", "endpoint", "profile", "profile-version", "inventory-version",
     "malformed-profile-version", "submission-enabled", "operation", "source-policy",
     "job-substitution", "scoped-duplicate", "native-id", "posting", "card-title", "missing-card", "bad-query",
     "forged-search-negative", "query-outside-cohort", "filter-expected", "filter-outside-cohort", "wrong-rank-order",
-    "wrong-source-order", "increasing-score", "score-tie", "bool-score", "duplicate-step", "fake-status"])
+    "wrong-source-order", "increasing-score", "score-tie", "bool-score", "duplicate-step", "fake-status",
+    "missing-title-baseline", "wrong-title-order", "incomplete-title-baseline", "title-score-drift",
+    "title-null-vs-integer", "title-bool-score", "title-extra-field"])
 def test_public_job_list_rejects_resealed_unbound_or_contradictory_receipts(change):
     state = baseline()
     public, browser = public_job_list_artifacts(state)
@@ -1341,6 +1378,13 @@ def test_public_job_list_rejects_resealed_unbound_or_contradictory_receipts(chan
     if change == "bool-score": sort["ranked_jobs"][0]["match_score"] = True
     if change == "duplicate-step": sort["step"] = 13
     if change == "fake-status": search["checks"]["nonmatching_job_hidden"] = False
+    if change == "missing-title-baseline": sort.pop("title_sorted_jobs")
+    if change == "wrong-title-order": sort["title_sorted_jobs"].reverse()
+    if change == "incomplete-title-baseline": sort["title_sorted_jobs"].pop()
+    if change == "title-score-drift": sort["title_sorted_jobs"][0]["match_score"] = 61
+    if change == "title-null-vs-integer": sort["title_sorted_jobs"][0]["match_score"] = None
+    if change == "title-bool-score": sort["title_sorted_jobs"][0]["match_score"] = True
+    if change == "title-extra-field": sort["title_sorted_jobs"][0]["title"] = "unexpected"
     with pytest.raises(ValueError):
         journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
 
