@@ -15,6 +15,7 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -59,6 +60,8 @@ class ResponsiveJobsBrowserTests(unittest.TestCase):
             thread = threading.Thread(target=server.run,
                                       kwargs={"sockets": [sock]}, daemon=True)
             blocked = []
+            visits = VisitOracle(self, store, origin, [])
+            job_ids = {"Alpha Engineer": "responsive-job-0", "Beta Engineer": "responsive-job-1"}
             try:
                 thread.start()
                 deadline = time.monotonic() + 10
@@ -73,6 +76,9 @@ class ResponsiveJobsBrowserTests(unittest.TestCase):
 
                         def local_reads_only(route):
                             request = route.request
+                            if visits.admit(request):
+                                route.continue_()
+                                return
                             if (urlsplit(request.url).netloc != urlsplit(origin).netloc
                                     or request.method not in {"GET", "HEAD"}):
                                 blocked.append((request.method, request.url))
@@ -103,14 +109,20 @@ class ResponsiveJobsBrowserTests(unittest.TestCase):
                                 first.focus()
                                 page.keyboard.press("Tab")
                                 expect(second).to_be_focused()
-                                page.keyboard.press("Enter")
+                                visits.expect_open("fixture", job_ids[second.locator(".job-card-title").inner_text()])
+                                with visits.response(page) as view_response:
+                                    page.keyboard.press("Enter")
+                                visits.verify(view_response.value)
                                 expect(second).to_have_class(re.compile(r"\bselected\b"))
                                 detail = page.locator(".job-detail")
                                 expect(detail.locator(":scope > h2")).to_have_text(
                                     second.locator(".job-card-title").inner_text())
                                 page.keyboard.press("Shift+Tab")
                                 expect(first).to_be_focused()
-                                page.keyboard.press("Space")
+                                visits.expect_open("fixture", job_ids[first.locator(".job-card-title").inner_text()])
+                                with visits.response(page) as view_response:
+                                    page.keyboard.press("Space")
+                                visits.verify(view_response.value)
                                 expect(first).to_have_class(re.compile(r"\bselected\b"))
                                 expect(detail.locator(":scope > h2")).to_have_text(
                                     first.locator(".job-card-title").inner_text())
@@ -136,7 +148,8 @@ class ResponsiveJobsBrowserTests(unittest.TestCase):
                                     (actual_columns, dimensions["content"] <= dimensions["viewport"]),
                                     (columns, True),
                                     f"columns={actual_columns}, dimensions={dimensions}")
-                        self.assertEqual(blocked, [], "UI must remain local and read-only")
+                        visits.finish()
+                        self.assertEqual(blocked, [], "No requests beyond local reads and exact visit receipts")
                     finally:
                         browser.close()
             finally:

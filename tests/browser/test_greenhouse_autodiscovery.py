@@ -168,7 +168,10 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
                     else:
                         self.assertEqual(scheduled, [])
                     page.get_by_role('button', name=re.compile(r'^Jobs')).click()
-                    expect(page.locator('.job-card').filter(has_text='Senior Python Engineer' if reviewed else 'Python Engineer')).to_be_visible()
+                    # Greenhouse's reviewed fixture still returns Python Engineer;
+                    # only the Lever fixture uses Senior Python Engineer.
+                    expected_title = 'Senior Python Engineer' if lever_region else 'Python Engineer'
+                    expect(page.locator('.job-list').get_by_text(expected_title, exact=True)).to_be_visible()
                     if lever_region:
                         expect(page.get_by_label('Application provider',exact=True).locator('option[value="lever"]')).to_have_count(1,timeout=1000)
                         page.get_by_label('Application provider',exact=True).select_option('lever')
