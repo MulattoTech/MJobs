@@ -884,17 +884,56 @@ def answer_bank_confirmation_locator(answer_group, question_number):
     )
 
 
+_ONBOARDING_WRONG_SKILL = "Pythno"
+_ONBOARDING_CORRECTED_SKILL = "Python"
+
+
 def _onboarding_fixture_pdf():
     stream = io.BytesIO()
     pdf = canvas.Canvas(stream)
     text = pdf.beginText(40, 780)
     for line in (
         "Summary", "Fictional onboarding summary for extraction review only.",
+        "Skills", _ONBOARDING_WRONG_SKILL,
     ):
         text.textLine(line)
     pdf.drawText(text)
     pdf.save()
     return stream.getvalue()
+
+
+def _onboarding_fixture_docx():
+    stream = io.BytesIO()
+    document = Document()
+    document.add_paragraph("Summary")
+    document.add_paragraph("Distinct synthetic DOCX original for upload verification.")
+    document.save(stream)
+    return stream.getvalue()
+
+
+def resume_original_receipt(row, *, profile_id, filename, format, original, download):
+    digest = hashlib.sha256(original).hexdigest()
+    assert row.get("profile_id") == profile_id and EvidenceJournal._lineage_id(row.get("id"))
+    assert row.get("filename") == filename and row.get("format") == format
+    assert row.get("sha256") == digest and download == original, "uploaded original failed byte readback"
+    return {
+        "format": format, "profile_id": profile_id, "resume_id": row["id"],
+        "input_sha256": digest, "download_sha256": hashlib.sha256(download).hexdigest(),
+    }
+
+
+def assert_onboarding_fact_revision(before, after, fact_id, **changes):
+    assert before["id"] == after["id"], "profile changed during correction"
+
+    def facts(profile):
+        by_id = {row["fact_id"]: {key: value for key, value in row.items() if key not in {"id", "version"}}
+                 for row in profile["facts"]}
+        assert len(by_id) == len(profile["facts"]), "duplicate profile fact IDs"
+        return by_id
+
+    expected = facts(before)
+    expected[fact_id] = {**expected[fact_id], **changes}
+    assert facts(after) == expected, "corrected or unrelated facts do not match the expected readback"
 
 
 def _onboarding_preflight(base_url):
@@ -1364,21 +1403,92 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         "target_origin": journal.binding["target_origin"]}
                     journal.persist()
 
-                page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
-                    "name": "synthetic-onboarding.pdf", "mimeType": "application/pdf",
-                    "buffer": _onboarding_fixture_pdf(),
-                })
-                page.get_by_label("Resume label", exact=True).fill("Synthetic onboarding fixture")
-                page.get_by_role("button", name="Store resume", exact=True).click()
-                resume_row = page.locator("[data-resume-version='1']")
-                expect(resume_row).to_be_visible()
-                resume_row.get_by_role("button", name="Extract and review", exact=True).click()
+                resumes_path = f"/profiles/{quote(profile_id, safe='')}/resumes"
+
+                def resume_row_for(row):
+                    heading = page.get_by_text(
+                        f"Version {row['version']} · {row['filename']}", exact=True)
+                    return page.locator("[data-resume-version]").filter(has=heading)
+
+                def reload_profile_editor():
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                    navigation("Profile")
+                    expect(page.get_by_role("button", name="Save profile", exact=True)).to_be_enabled()
+
+                uploaded = {}
+                for format, mime_type, data in (
+                    ("pdf", "application/pdf", _onboarding_fixture_pdf()),
+                    ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                     _onboarding_fixture_docx()),
+                ):
+                    filename = f"synthetic-onboarding.{format}"
+                    page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
+                        "name": filename, "mimeType": mime_type, "buffer": data,
+                    })
+                    page.get_by_label("Resume label", exact=True).fill(
+                        f"Synthetic onboarding {format.upper()}")
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == resumes_path) as stored:
+                        page.get_by_role("button", name="Store resume", exact=True).click()
+                    assert stored.value.status == 201
+                    row = stored.value.json()
+                    expect(resume_row_for(row)).to_be_visible()
+                    expect(page.get_by_label("Choose a resume (up to 10 MiB)")).to_be_enabled()
+                    uploaded[format] = (row["id"], filename, data)
+
+                reload_profile_editor()
+                originals = request(resumes_path)["resumes"]
+                original_receipts = []
+                for format, (resume_id, filename, data) in uploaded.items():
+                    matches = [row for row in originals if row["id"] == resume_id]
+                    assert len(matches) == 1
+                    resume_path = f"{resumes_path}/{quote(resume_id, safe='')}"
+                    original_link = resume_row_for(matches[0]).get_by_role(
+                        "link", name="Download original", exact=True)
+                    expect(original_link).to_be_visible()
+                    expect(original_link).to_have_attribute("href", resume_path)
+                    original_response = context.request.get(base_url + original_link.get_attribute("href"))
+                    assert original_response.ok
+                    original_receipts.append(resume_original_receipt(
+                        matches[0], profile_id=profile_id, filename=filename, format=format,
+                        original=data, download=original_response.body()))
+                assert len({row["resume_id"] for row in original_receipts}) == 2
+                assert len({row["input_sha256"] for row in original_receipts}) == 2
+                if acceptance_run_id is not None:
+                    journal.binding["resume_original_readbacks"] = original_receipts
+
+                pdf = next(row for row in originals if row["id"] == uploaded["pdf"][0])
+                extract_path = f"{resumes_path}/{quote(pdf['id'], safe='')}/extract/queued"
+                with page.expect_response(lambda response:
+                        response.request.method == "POST"
+                        and urlsplit(response.url).path == extract_path) as started:
+                    resume_row_for(pdf).get_by_role("button", name="Extract and review", exact=True).click()
+                assert started.value.status == 202
+                operation_id = started.value.json()["operation_id"]
+                assert _SAFE_OPERATION_ID.fullmatch(operation_id)
                 review = page.get_by_role("region", name="Resume extraction review")
                 expect(review).to_be_visible()
+                review_source = review.locator("[data-extraction-source]")
+                expect(review_source).to_be_visible()
+                expect(review_source).to_have_attribute("data-extraction-source", pdf["id"])
+                expect(review_source).to_have_text(
+                    f"Review source: {pdf['label']} · version {pdf['version']} · {pdf['filename']}")
+                extracted = request(f"{extract_path}/{operation_id}")
+                assert extracted["operation_id"] == operation_id and extracted["state"] == "COMPLETED"
+                assert extracted["result"]["status"] == "READY_FOR_REVIEW"
+                suggested_facts = extracted["result"]["facts"]
+                wrong_skill, = [fact for fact in suggested_facts
+                                if fact["kind"] == "skill" and fact["text"] == _ONBOARDING_WRONG_SKILL]
+                expect(review.locator("label.fact-suggestion").filter(
+                    has_text=_ONBOARDING_WRONG_SKILL)).to_be_visible()
                 suggestions = review.locator('label.fact-suggestion:has(strong) input[type="checkbox"]')
-                assert suggestions.count() > 0
+                expect(suggestions).to_have_count(len(suggested_facts))
                 for suggestion in suggestions.all():
+                    expect(suggestion).to_be_visible()
                     expect(suggestion).not_to_be_checked()
+                for suggestion in suggestions.all():
                     suggestion.check()
                 expect(review.get_by_role("button", name="Add selected to profile editor", exact=True)).to_be_enabled()
                 review.get_by_role("button", name="Add selected to profile editor", exact=True).click()
@@ -1391,55 +1501,91 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 save_profile()
                 imported_profile = request("/profiles/" + profile_id)
                 pending_fact_ids = {row["fact_id"] for row in imported_profile["facts"]}
-                assert pending_fact_ids
+                assert imported_profile["id"] == profile_id
+                assert pending_fact_ids == {fact["id"] for fact in suggested_facts}
                 assert all(not row["verified"] and not row["user_approved"]
                            for row in imported_profile["facts"])
+                fact_id = wrong_skill["id"]
+                assert len(pending_fact_ids) > 1
+                assert any(row["fact_id"] == fact_id and row["text"] == _ONBOARDING_WRONG_SKILL
+                           for row in imported_profile["facts"])
+                if acceptance_run_id is not None:
+                    journal.binding["resume_extraction_source_readback"] = {
+                        "profile_id": profile_id, "resume_id": pdf["id"], "sha256": pdf["sha256"],
+                        "label": pdf["label"], "version": pdf["version"], "filename": pdf["filename"],
+                        "operation_id": operation_id, "suggested_fact_ids": sorted(pending_fact_ids),
+                    }
                 observe_acceptance_step(
-                    4, "PASS", "Synthetic resume was uploaded and extracted through the UI.",
+                    4, "PASS", "Both synthetic originals matched their saved download bytes after reload.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "resume_upload_and_extraction_visible", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
                 observe_acceptance_step(
-                    5, "PASS", "Extracted suggestions remain pending until reviewed and approved.",
+                    5, "PASS", "The visible PDF review source matched the durable extraction; suggestions were unchecked and saved pending.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "extracted_suggestions_remain_unapproved", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
 
-                correction = next(row for row in imported_rows.all()
-                                  if row.get_by_role("textbox", name="Fact text", exact=True).count())
-                corrected_fact = correction.get_by_role(
-                    "textbox", name="Fact text", exact=True)
-                prior_fact_text = corrected_fact.input_value()
-                correction_text = prior_fact_text + " (corrected after review)"
-                corrected_fact.fill(correction_text)
+                correction = fact_editor(_ONBOARDING_WRONG_SKILL)
+                correction.get_by_role("textbox", name="Fact text", exact=True).fill(_ONBOARDING_CORRECTED_SKILL)
                 expect(correction.get_by_label("I verified this fact", exact=True)).not_to_be_checked()
                 expect(correction.get_by_label("I approve its use in documents", exact=True)).not_to_be_checked()
                 save_profile()
+                reload_profile_editor()
+                expect(page.locator("fieldset.fact")).not_to_have_count(0)
+                pending_correction = request("/profiles/" + profile_id)
+                assert_onboarding_fact_revision(
+                    imported_profile, pending_correction, fact_id, text=_ONBOARDING_CORRECTED_SKILL)
+                correction = fact_editor(_ONBOARDING_CORRECTED_SKILL)
+                expect(correction.get_by_label("I verified this fact", exact=True)).not_to_be_checked()
+                expect(correction.get_by_label("I approve its use in documents", exact=True)).not_to_be_checked()
+                correction.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                correction.get_by_label("I verified this fact", exact=True).check()
+                fact_editor(_ONBOARDING_CORRECTED_SKILL).get_by_label(
+                    "I approve its use in documents", exact=True).check()
+                save_profile()
+                reload_profile_editor()
+                expect(page.locator("fieldset.fact")).not_to_have_count(0)
                 corrected_profile = request("/profiles/" + profile_id)
-                corrected_row = next(row for row in corrected_profile["facts"]
-                                     if row["text"] == correction_text)
-                assert corrected_row["verified"] is False and corrected_row["user_approved"] is False
-                pending_fact_ids = {row["fact_id"] for row in corrected_profile["facts"]}
+                assert_onboarding_fact_revision(
+                    pending_correction, corrected_profile, fact_id,
+                    verified=True, user_approved=True, confidence=100)
+                correction = fact_editor(_ONBOARDING_CORRECTED_SKILL)
+                expect(correction.get_by_label("I verified this fact", exact=True)).to_be_checked()
+                expect(correction.get_by_label("I approve its use in documents", exact=True)).to_be_checked()
+                pending_fact_ids.remove(fact_id)
+                assert_onboarding_profile_facts(
+                    corrected_profile, pending_fact_ids, expected_approved_fact_texts={_ONBOARDING_CORRECTED_SKILL})
+                if acceptance_run_id is not None:
+                    journal.binding["resume_fact_correction_readback"] = {
+                        "profile_id": profile_id, "resume_id": pdf["id"], "fact_id": fact_id,
+                        "imported_profile_version": imported_profile["version"],
+                        "pending_profile_version": pending_correction["version"],
+                        "approved_profile_version": corrected_profile["version"],
+                        "original_text": _ONBOARDING_WRONG_SKILL, "corrected_text": _ONBOARDING_CORRECTED_SKILL,
+                        "correction_pending_after_first_reload": True,
+                        "correction_approved_after_second_reload": True,
+                        "unrelated_facts_unchanged": True,
+                    }
                 observe_acceptance_step(
-                    6, "PASS", "An extracted fact was corrected and saved as an unapproved pending fact.",
+                    6, "PASS", "The exact imported skill was corrected, independently reviewed and approved, then read back after reload.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "corrected_fact_read_back", "passed": True},
                             {"name": "corrected_fact_remains_pending", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
-                actions.append({"action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback", "result": "PASS"})
+                actions.append({"action": "Both original resume formats persisted; only the corrected import was explicitly approved", "result": "PASS"})
 
-                for fact_text in ("Python", "SQL"):
-                    page.get_by_role("button", name="Add fact", exact=True).click()
-                    new_fact_editor = page.locator("fieldset.fact").last
-                    new_fact_editor.get_by_role("combobox").select_option("skill")
-                    new_fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
-                    new_fact_editor.get_by_label("Fact text", exact=True).fill(fact_text)
-                    new_fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
-                    new_fact_editor.get_by_label("I verified this fact", exact=True).check()
-                    new_fact_editor.get_by_label("I approve its use in documents", exact=True).check()
+                page.get_by_role("button", name="Add fact", exact=True).click()
+                new_fact_editor = page.locator("fieldset.fact").last
+                new_fact_editor.get_by_role("combobox").select_option("skill")
+                new_fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                new_fact_editor.get_by_label("Fact text", exact=True).fill("SQL")
+                new_fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
+                new_fact_editor.get_by_label("I verified this fact", exact=True).check()
+                new_fact_editor.get_by_label("I approve its use in documents", exact=True).check()
                 for question, answer_text in (
                     ("Country", "United States"),
                     ("Remote role", "yes"),
@@ -1470,7 +1616,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 skill_fact_ids = assert_onboarding_profile_facts(profile, pending_fact_ids)
                 python_fact_id = skill_fact_ids["Python"]
                 sql_fact_id = skill_fact_ids["SQL"]
-                actions.append({"action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved", "result": "PASS"})
+                assert python_fact_id == fact_id
+                actions.append({"action": "Only the corrected Python and explicitly entered SQL facts are verified and approved", "result": "PASS"})
                 observe_acceptance_step(
                     7, "PASS", "Only the explicitly reviewed synthetic Python and SQL facts are approved.",
                     evidence_kind="CONTROLLED_FIXTURE",
