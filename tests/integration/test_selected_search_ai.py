@@ -48,6 +48,56 @@ class SelectedSearchAIHarness(unittest.TestCase):
             'request_id':request,'search_profile_id':search,'preview_fingerprint':preview['fingerprint']})
 
 class SelectedSearchAITests(SelectedSearchAIHarness):
+    def test_selected_closure_applies_before_preview_snapshot_and_input_cap(self):
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs).where(m.jobs.c.id == self.cloud)).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(
+                attributes={**row['attributes'], 'status': 'CLOSED'},
+            ))
+        preview = self.preview('cloud')
+        admitted = self.admit('cloud', preview)
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        with self.store.engine.connect() as connection:
+            snapshot = connection.scalar(select(m.ai_evaluation_batches.c.snapshot).where(
+                m.ai_evaluation_batches.c.id == admitted.json()['operation_id'],
+            ))
+            self.assertEqual(list(connection.execute(select(m.applications))), [])
+        self.assertEqual(self.calls, [])
+        self.assertEqual([row['job_id'] for row in preview['candidates']], [self.systems])
+        self.assertEqual([row['job_id'] for row in snapshot['candidates']], [self.systems])
+        self.assertEqual(preview['plan']['scanned_job_count'], 1)
+        self.store.save_ai_cost_policy('fixture', {'minimum_score': 0, 'max_input_candidates': 1,
+            'max_ai_candidates': 1, 'max_document_candidates': 0})
+        self.assertEqual(self.preview('cloud')['plan']['scanned_job_count'], 1)
+
+    def test_selected_job_closing_after_preview_invalidates_admission(self):
+        preview = self.preview('cloud')
+        self.assertEqual([row['job_id'] for row in preview['candidates']], [self.cloud])
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs).where(m.jobs.c.id == self.cloud)).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(
+                attributes={**row['attributes'], 'status': 'FILLED'},
+            ))
+        admitted = self.admit('cloud', preview)
+        self.assertEqual(admitted.status_code, 409, admitted.text)
+        self.assertEqual(admitted.json()['detail']['code'], 'AI_EVALUATION_PREVIEW_CHANGED')
+        with self.store.engine.connect() as connection:
+            self.assertEqual(list(connection.execute(select(m.ai_evaluation_batches))), [])
+        self.assertEqual(self.calls, [])
+
+    def test_selected_job_closing_after_admission_blocks_without_model_calls(self):
+        admitted = self.admit('cloud', self.preview('cloud'))
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs).where(m.jobs.c.id == self.cloud)).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(
+                attributes={**row['attributes'], 'status': 'EXPIRED'},
+            ))
+        status = self.run_worker(admitted.json()['operation_id'])
+        self.assertEqual(status['status'], 'BLOCKED')
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs'], [])
+
     def assert_salary_candidates(self, filters, salaries, expected):
         with self.store.engine.begin() as connection:
             for job_id, salary in salaries.items():
@@ -141,7 +191,8 @@ class SelectedSearchAITests(SelectedSearchAIHarness):
         with self.store.engine.begin() as c:
             row=c.execute(select(m.search_profiles).where(m.search_profiles.c.id=='cloud')).mappings().one()
             criteria=copy.deepcopy(row['criteria'])
-            criteria['job_filters']={'q':'','remote_type':'','provider':'','sort':'score','min_match_score':'90'}
+            criteria['job_filters']={'q':'','remote_type':'','provider':'','sort':'score','min_match_score':'90',
+                                     'include_dismissed':True}
             c.execute(update(m.search_profiles).where(m.search_profiles.c.id=='cloud').values(criteria=criteria))
             # A stale shared score must not suppress the true selected-search winner.
             c.execute(update(m.matches).where(m.matches.c.job_id==self.cloud).values(score=0))
@@ -156,7 +207,8 @@ class SelectedSearchAITests(SelectedSearchAIHarness):
         with self.store.engine.begin() as c:
             row=c.execute(select(m.search_profiles).where(m.search_profiles.c.id=='cloud')).mappings().one()
             criteria=copy.deepcopy(row['criteria'])
-            criteria['job_filters']={'q':'','title':'Infrastructure','remote_type':'','provider':'','sort':'score'}
+            criteria['job_filters']={'q':'','title':'Infrastructure','remote_type':'','provider':'','sort':'score',
+                                     'include_blacklisted':True}
             c.execute(update(m.search_profiles).where(m.search_profiles.c.id=='cloud').values(criteria=criteria))
         self.assertEqual([row['job_id'] for row in self.preview('cloud')['candidates']],[self.systems])
         company=self.store.job(self.systems)['company_id']

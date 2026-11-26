@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from services.discovery.search_history import is_search_history_id, normalize_posting_activity
+
 
 _TERMINAL_STATUS = {
     "COMPLETED": "COMPLETED",
@@ -65,15 +67,16 @@ def build_search_history_record(
         return None
 
     operation_id = _as_text(operation.get("id"))
-    profile_id = _as_text(operation.get("entity_id"))
+    profile_id = operation.get("entity_id")
     attempt = operation.get("attempt_count")
     if (operation_id is None or len(operation_id) > 105
-            or profile_id is None or len(profile_id) > 128
+            or not is_search_history_id(profile_id)
             or type(attempt) is not int or attempt < 1):
         return None
     run_id = f"{operation_id}:{attempt}"
     if len(run_id) > 128:
         return None
+    search_profile_id = params.get("search_profile_id")
 
     state = operation.get("state")
     status = _TERMINAL_STATUS.get(state) if isinstance(state, str) else None
@@ -126,7 +129,7 @@ def build_search_history_record(
             return None
         errors = [*errors, operation_error]
 
-    return {
+    record = {
         "run_id": run_id,
         "profile_id": profile_id,
         "source": source,
@@ -138,6 +141,16 @@ def build_search_history_record(
         **counts,
         "errors": [error.strip() for error in errors],
     }
+    if is_search_history_id(search_profile_id):
+        record["search_profile_id"] = search_profile_id
+    if status == "COMPLETED" and details.get("posting_activity") is not None:
+        try:
+            activity = normalize_posting_activity(details["posting_activity"], counts["results"])
+        except ValueError:
+            return record
+        record["posting_activity"] = activity
+        record["duplicates"] = activity["unchanged"]
+    return record
 
 
 __all__ = ["build_search_history_record"]

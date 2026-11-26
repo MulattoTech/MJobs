@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 import hashlib
 import json
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
@@ -12,6 +12,12 @@ from packages.persistence.store import identity, upsert
 
 STATES = frozenset({'ACTIVE', 'POSSIBLY_ACTIVE', 'REMOVED', 'EXPIRED', 'FILLED', 'UNKNOWN', 'CLOSED'})
 CLOSED_STATES = frozenset({'REMOVED', 'EXPIRED', 'FILLED', 'CLOSED'})
+
+
+def job_has_no_known_closure():
+    """Keep older records with no recorded lifecycle status eligible for search."""
+    status = m.jobs.c.attributes['status'].as_string()
+    return func.coalesce(status, 'UNKNOWN').not_in(sorted(CLOSED_STATES))
 
 
 def status_claim(value, *, default='POSSIBLY_ACTIVE'):

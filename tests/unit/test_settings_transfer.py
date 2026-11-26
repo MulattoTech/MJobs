@@ -25,7 +25,7 @@ class SettingsTransferTests(unittest.TestCase):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def add_search(self, *, profile_id="fixture", search_id="search-original", name="Original"):
+    def add_search(self, *, profile_id="fixture", search_id="search-original", name="Original", window=None):
         save_search_profile(self.store, {
             "id": search_id,
             "profile_id": profile_id,
@@ -34,7 +34,8 @@ class SettingsTransferTests(unittest.TestCase):
             "include_titles": ["Systems Administrator"],
             "optional_keywords": ["Windows Server"],
             "source_ids": [self.source_id],
-            "scheduler": {"enabled": True, "interval_seconds": 1800},
+            "scheduler": {"enabled": True, "interval_seconds": 1800,
+                          **({"window": window} if window is not None else {})},
         })
 
     def test_export_has_versioned_allowlisted_profile_settings_and_no_owner_or_secrets(self):
@@ -65,6 +66,72 @@ class SettingsTransferTests(unittest.TestCase):
         self.assertNotIn("credentials", repr(exported).lower())
         self.assertNotIn("password", repr(exported).lower())
 
+    def test_remote_residence_state_and_null_round_trip_through_settings_transfer(self):
+        for index, state in enumerate(("OK", None)):
+            search_id = f"residence-search-{index}"
+            name = f"Residence {index}"
+            self.add_search(search_id=search_id, name=name)
+            save_search_profile(self.store, {
+                "id": search_id,
+                "profile_id": "fixture",
+                "name": name,
+                "enabled": False,
+                "source_ids": [self.source_id],
+                "remote_residence_state": state,
+            })
+
+        exported = export_settings(self.store, "fixture")
+        criteria_by_name = {
+            search["name"]: search["criteria"]
+            for search in exported["settings"]["search_profiles"]
+        }
+        self.assertEqual(criteria_by_name["Residence 0"]["remote_residence_state"], "OK")
+        self.assertIsNone(criteria_by_name["Residence 1"]["remote_residence_state"])
+
+        import_settings(self.store, "fixture", exported)
+
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+
+    def test_legacy_settings_without_remote_residence_state_remain_absent(self):
+        self.add_search()
+        legacy = export_settings(self.store, "fixture")
+        legacy["schema_version"] = 1
+        original = copy.deepcopy(legacy)
+
+        import_settings(self.store, "fixture", legacy)
+
+        self.assertEqual(legacy, original)
+        criteria = export_settings(self.store, "fixture")["settings"]["search_profiles"][0]["criteria"]
+        self.assertNotIn("remote_residence_state", criteria)
+
+    def test_saved_arrangement_and_visibility_round_trip_and_legacy_stays_absent(self):
+        filters = {"q": "", "remote_type": "HYBRID", "provider": "", "sort": "score"}
+        for name, extra in (("Legacy", {}),
+                            ("Stored", {"arrangement_basis": "STORED", "include_dismissed": True}),
+                            ("Evaluated", {"arrangement_basis": "EVALUATED", "include_blacklisted": False})):
+            save_search_profile(self.store, {
+                "id": name, "profile_id": "fixture", "name": name,
+                "enabled": False, "job_filters": {**filters, **extra},
+            })
+        exported = export_settings(self.store, "fixture")
+        import_settings(self.store, "fixture", exported)
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+        saved = {row["name"]: row["criteria"]["job_filters"]
+                 for row in list_search_profiles(self.store, "fixture")}
+        self.assertNotIn("arrangement_basis", saved["Legacy"])
+        self.assertNotIn("include_dismissed", saved["Legacy"])
+        self.assertNotIn("include_blacklisted", saved["Legacy"])
+        self.assertEqual(saved["Stored"]["arrangement_basis"], "STORED")
+        self.assertIs(saved["Stored"]["include_dismissed"], True)
+        self.assertEqual(saved["Evaluated"]["arrangement_basis"], "EVALUATED")
+        self.assertIs(saved["Evaluated"]["include_blacklisted"], False)
+
+        invalid = copy.deepcopy(exported)
+        invalid["settings"]["search_profiles"][0]["criteria"]["job_filters"]["arrangement_basis"] = "OTHER"
+        with self.assertRaises(ValueError):
+            import_settings(self.store, "fixture", invalid)
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
+
     def test_import_replaces_only_target_profile_settings_and_survives_store_reopen(self):
         self.add_search()
         other_profile = dict(PROFILE)
@@ -85,6 +152,19 @@ class SettingsTransferTests(unittest.TestCase):
         self.store.engine.dispose()
         self.store = Store(f"sqlite:///{(Path(self.directory.name) / 'settings.db').as_posix()}")
         self.assertEqual([row["name"] for row in list_search_profiles(self.store, "fixture")], ["Imported"])
+
+    def test_scheduled_search_window_survives_export_import_round_trip(self):
+        window = {"time_zone": "America/Chicago", "start_local": "06:30", "end_local": "09:15"}
+        self.add_search(window=window)
+        exported = export_settings(self.store, "fixture")
+        self.assertEqual(exported["settings"]["automation_rules"][0], {
+            "kind": "scheduled_search", "search_profile_name": "Original",
+            "enabled": True, "interval_seconds": 1800, "window": window,
+        })
+
+        import_settings(self.store, "fixture", exported)
+
+        self.assertEqual(export_settings(self.store, "fixture"), exported)
 
     def test_invalid_payload_never_partially_replaces_existing_settings(self):
         self.add_search()

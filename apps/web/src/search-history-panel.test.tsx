@@ -100,6 +100,38 @@ describe('search history panel', () => {
     expect(html).not.toContain('<button');
   });
 
+  it('shows a matching saved search and review action only for a search in the current profile', () => {
+    const state: SearchHistoryPanelState = {
+      status: 'ready',
+      response: {
+        ...response,
+        items: [
+          { ...record, search_profile_id: 'search-1' },
+          { ...record, id: 'run-2', search_profile_id: 'foreign-search' },
+          { ...record, id: 'run-3' },
+        ],
+      },
+    };
+    const onReviewJobs = vi.fn();
+    const props = {
+      profileId: 'profile-1', state, onRetry: () => {}, onReviewJobs,
+      searchProfiles: [
+        { id: 'search-1', profile_id: 'profile-1', name: 'Remote IT / Infrastructure' },
+        { id: 'foreign-search', profile_id: 'profile-2', name: 'Private search' },
+      ],
+    };
+    const tree = SearchHistoryPanelView(props);
+    const html = renderToStaticMarkup(<SearchHistoryPanelView {...props} />);
+
+    expect(html).toContain('Remote IT / Infrastructure');
+    expect(html).toContain('Saved search unavailable');
+    expect(html).not.toContain('Private search');
+    const reviewButton = findButtons(tree).find(button => button.props.children === 'Review jobs');
+    expect(reviewButton).toBeDefined();
+    reviewButton?.props.onClick?.();
+    expect(onReviewJobs).toHaveBeenCalledExactlyOnceWith('search-1');
+  });
+
   it('shows unmeasured nullable counts as Unknown and preserves a measured zero', () => {
     const state: SearchHistoryPanelState = {
       status: 'ready',
@@ -113,6 +145,35 @@ describe('search history panel', () => {
     );
 
     expect(html).toContain('<td>Unknown</td><td>0</td><td>Unknown</td>');
+  });
+
+  it('shows authoritative posting activity and marks mixed legacy rows unavailable', () => {
+    const state: SearchHistoryPanelState = {
+      status: 'ready',
+      response: {
+        ...response,
+        items: [
+          { ...record, status: 'COMPLETED', errors: 0, results: 3, new_jobs: 1, duplicates: 2,
+            posting_activity: { new: 1, unchanged: 2, updated: 0 } },
+          { ...record, id: 'legacy-run', status: 'COMPLETED', results: 8, new_jobs: 2, duplicates: 6 },
+          { ...record, id: 'failed-run', status: 'FAILED', results: 5, new_jobs: 2, duplicates: 3 },
+        ],
+      },
+    };
+    const html = renderToStaticMarkup(
+      <SearchHistoryPanelView profileId="profile-1" state={state} onRetry={() => {}} />,
+    );
+
+    expect(html).toContain('New 1 · Unchanged 2 · Updated 0');
+    expect(html).toContain('Unavailable (legacy run)');
+    expect(html).toContain('<th scope="col">Legacy duplicates</th>');
+    const bodyRows = html.match(/<tbody>(.*?)<\/tbody>/s)?.[1];
+    const rows = [...(bodyRows ?? '').matchAll(/<tr>(.*?)<\/tr>/gs)].map(match => match[1]);
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toContain('<td>1</td><td>—</td><td>New 1 · Unchanged 2 · Updated 0</td>');
+    expect(rows[1]).toContain('<td>2</td><td>6</td><td>Unavailable (legacy run)</td>');
+    expect(rows[2]).toContain('<td>3</td><td>Unavailable (legacy run)</td>');
+    expect(rows[2]).toContain('FAILED');
   });
 
   it('offers retry after a load error without exposing the thrown error or changing scope', () => {

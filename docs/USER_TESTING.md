@@ -91,6 +91,32 @@ access itself; the discovery worker remains the egress boundary. Pause/resume
 is persistent. The Greenhouse board was verified live again on 2026-10-01.
 Public listings can change.
 
+### Find and review remote or Texoma IT jobs
+
+1. Select your career profile. You can search before uploading a résumé or
+   configuring an AI provider. Add and approve career facts when you want the
+   match explanation to compare jobs against them.
+2. Open **Sources** and find **Scheduled search profiles**. Use **Remote IT /
+   Infrastructure** for fully remote work with Oklahoma residence eligibility.
+   Use **Texoma Local IT / Support** for on-site and hybrid work in Durant,
+   Denison, and Sherman. Review the editable titles and locations, then save
+   each search separately. Both schedules start off.
+3. Enroll an approved public job source. On the saved search, select an enabled
+   source and choose **Collect** for that search. If a local employer has no
+   supported source, use **Capture a job** in **Jobs** to save its official
+   posting for manual review. Enter its reported location and work arrangement
+   so it can appear in the local search.
+4. Open **Jobs** and select the saved search. Check the posting source, location,
+   freshness, and match explanation. Use **Save job** or **Hide job** to manage
+   the queue. **Open employer application** opens the employer's own page for
+   your manual review. Saved searches exclude postings recorded as closed, filled,
+   expired, or removed. Choose **All jobs** to review their stored records. Use
+   **Posted within** when you want to apply a posting-age limit.
+5. For recurring discovery, enable the schedule and save its cadence. An
+   optional local time window can cross midnight, such as 22:00 to 06:00 in
+   `America/Chicago`. In **Activity → Search History**, review completed and
+   failed runs and use **Review jobs** to reopen the corresponding search.
+
 Collection performs bounded public GET requests, preserves native posting IDs
 and raw snapshots, and records health/backoff. Repeated clicks and scheduler
 ticks cannot override cooldown, active-operation deduplication, or provider

@@ -8,7 +8,7 @@ from packages.domain.automation import SavedSearchRule
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
 from services.discovery.search_semantics import (
-    DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, parse_timestamp,
+    DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, US_STATES, parse_timestamp,
 )
 from services.discovery.skill_taxonomy import normalize_skill_list
 from services.discovery.requirement_parsers import CLEARANCE_LEVELS, WORK_AUTHORIZATION_FLAGS
@@ -29,7 +29,8 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "application_link_status": {"", "AVAILABLE", "UNAVAILABLE"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
-               "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
+               "sort": {"score", "newest", "company", "title", "salary_high", "salary_low",
+                        "application_priority"}}
 UTC_DATE_BOUND = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
     r"(?::[0-9]{2}(?:\.[0-9]{1,6})?)?(?:Z|\+00:00)$"
@@ -54,13 +55,25 @@ def _clean_job_filters(value):
     optional = {"title", "company", "location", "salary_min", "salary_max", "salary_period", "salary_policy", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
                 "clearance_level", "ats_provider", "job_source_id", "application_link_status", "application_pipeline_status",
-                "application_capability"}
+                "application_capability", "include_dismissed", "include_blacklisted", "arrangement_basis"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
         raise ValueError("Saved Jobs query must be text up to 200 characters")
     cleaned = {"q": query}
+    if "arrangement_basis" in value:
+        basis = value["arrangement_basis"]
+        if basis not in ("STORED", "EVALUATED"):
+            raise ValueError("Saved Jobs arrangement basis is invalid")
+        cleaned["arrangement_basis"] = basis
+    # These are Jobs viewing preferences, not discovery or application policy.
+    # Preserve legacy readback shapes; an absent preference does not opt in.
+    for key in ("include_dismissed", "include_blacklisted"):
+        if key in value:
+            if type(value[key]) is not bool:
+                raise ValueError(f"Saved Jobs {key} must be boolean")
+            cleaned[key] = value[key]
     for key in ("title", "company", "location"):
         item = value.get(key, "")
         if not isinstance(item, str) or len(item) > 200:
@@ -287,6 +300,11 @@ def save_search_profile(store, data):
     }
     if job_filters is not None:
         new_criteria["job_filters"] = job_filters
+    if "remote_residence_state" in data:
+        state = data["remote_residence_state"]
+        if state is not None and (not isinstance(state, str) or state.upper() not in US_STATES):
+            raise ValueError("Remote residence must be a U.S. state postal code")
+        new_criteria["remote_residence_state"] = state.upper() if state is not None else None
     radius_values = (new_criteria["radius_miles"], new_criteria["radius_latitude"], new_criteria["radius_longitude"])
     if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
         raise ValueError("Radius filtering requires miles, latitude, and longitude together")
@@ -328,6 +346,9 @@ def save_search_profile(store, data):
                 if job_filters is None:
                     criteria.pop("job_filters", None)
                 else:
+                    previous_filters = criteria.get("job_filters") or {}
+                    if "arrangement_basis" in previous_filters and "arrangement_basis" not in job_filters:
+                        job_filters["arrangement_basis"] = previous_filters["arrangement_basis"]
                     criteria["job_filters"] = job_filters
         else:
             criteria = new_criteria

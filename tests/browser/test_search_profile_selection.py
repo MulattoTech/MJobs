@@ -4,14 +4,16 @@ import tempfile
 import threading
 import time
 import unittest
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.discovery.search_profiles import save_search_profile
@@ -36,6 +38,15 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
                 discover(store, source_origin, "other")
+            with store.engine.begin() as connection:
+                legacy = connection.execute(select(m.jobs).where(
+                    m.jobs.c.title == "Python Developer",
+                )).mappings().one()
+                connection.execute(update(m.jobs).where(m.jobs.c.id == legacy["id"]).values(
+                    location="Remote, United States", remote_type="HYBRID",
+                    description="Maintain our hybrid cloud infrastructure.",
+                    attributes={**legacy["attributes"], "provider": "greenhouse", "remote_indicated": True},
+                ))
             for identifier, profile_id, name, title in (
                     ("python-search", "fixture", "Python remote", "Python Developer"),
                     ("data-search", "fixture", "Data remote", "Data Engineer"),
@@ -44,6 +55,7 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     "id": identifier, "profile_id": profile_id, "name": name,
                     "enabled": True, "include_titles": [title], "remote": "REQUIRED",
                     "employment_types": [], "source_ids": [],
+                    **({"remote_residence_state": "OK"} if identifier == "python-search" else {}),
                 })
             store.engine.dispose()
             store = Store(database_url)
@@ -53,7 +65,7 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
             server = uvicorn.Server(uvicorn.Config(
                 create_app(store, "http://127.0.0.1:1", root,
                            "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
-                log_level="error"))
+                log_level="error", timeout_graceful_shutdown=3))
             thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
             try:
                 thread.start()
@@ -67,11 +79,16 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
+                    deferred_detail = []
+                    held_detail_path = None
 
                     def local_only(route):
-                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                        parsed = urlsplit(route.request.url)
+                        if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif parsed.path == held_detail_path and route.request.method == "GET":
+                            deferred_detail.append(route)
                         else:
                             route.continue_()
 
@@ -90,11 +107,51 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                             response.url.startswith(origin + "/jobs?")
                             and "search_profile_id=python-search" in response.url) as python_response:
                         search.select_option("python-search")
-                    self.assertEqual([job["title"] for job in python_response.value.json()["jobs"]],
-                                     ["Python Developer"])
-                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    python_jobs = python_response.value.json()["jobs"]
+                    self.assertEqual([job["title"] for job in python_jobs], ["Python Developer"])
+                    self.assertEqual(python_jobs[0]["remote_type"], "HYBRID")
+                    self.assertEqual(python_jobs[0]["search_evidence"]["work_arrangement"], "REMOTE")
+                    python_card = page.locator(".job-card").filter(has_text="Python Developer")
+                    detail = page.locator(".job-detail")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    expect(python_card).not_to_contain_text("HYBRID")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+                    expect(detail).not_to_contain_text("Remote, United States · HYBRID")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 
+                    work_location = page.get_by_label("Work location", exact=True)
+                    for facet, matching in (("HYBRID", False), ("REMOTE", True)):
+                        with page.expect_response(lambda response:
+                                response.url.startswith(origin + "/jobs?")
+                                and parse_qs(urlsplit(response.url).query).get("remote_type") == [facet]
+                                and "search_profile_id=python-search" in response.url) as facet_response:
+                            work_location.select_option(facet)
+                        self.assertEqual(bool(facet_response.value.json()["jobs"]), matching)
+                        if matching:
+                            expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                        else:
+                            expect(python_card).to_have_count(0)
+                    work_location.select_option("")
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    python_card.click()
+                    detail.get_by_role("button", name="Hide job", exact=True).click()
+                    expect(python_card).to_have_count(0)
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    detail.get_by_role("button", name="Restore hidden job", exact=True).click()
+                    expect(python_card).to_contain_text("Remote eligibility confirmed for OK")
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+
+                    held_detail_path = f"/jobs/{python_jobs[0]['id']}"
+                    python_card.click()
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "search_profile_id=data-search" in response.url) as data_response:
@@ -103,9 +160,86 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                                      ["Data Engineer"])
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(0)
+                    self.assertEqual(len(deferred_detail), 1)
+                    with page.expect_response(lambda response: urlsplit(response.url).path == held_detail_path):
+                        deferred_detail.pop().continue_()
+                    held_detail_path = None
+                    expect(detail.get_by_role("heading", name="A closer look.")).to_be_visible()
+                    recently_viewed = page.get_by_role("region", name="Recently viewed jobs")
+                    recently_viewed.get_by_role("button", name="Python Developer", exact=False).click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=data-search" in response.url) as restored_data_response:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual([job["title"] for job in restored_data_response.value.json()["jobs"]],
+                                     ["Data Engineer"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(
+                        "data-search")
 
                     search.select_option("")
-                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    expect(search).to_have_value("")
+                    page.reload(wait_until="domcontentloaded")
+                    search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(search).to_have_value("")
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
+                    expect(python_card).not_to_contain_text("Remote eligibility confirmed")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "remote_type=REMOTE" in response.url) as all_remote_response:
+                        work_location.select_option("REMOTE")
+                    self.assertNotIn("Python Developer", [row["title"] for row in all_remote_response.value.json()["jobs"]])
+                    expect(python_card).to_have_count(0)
+                    work_location.select_option("HYBRID")
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    page.get_by_label("Saved search name", exact=True).fill("Stored hybrid snapshot")
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/search-profiles"
+                            and response.request.method == "PUT") as saved_snapshot:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_snapshot.value.status, 200)
+                    self.assertEqual(saved_snapshot.value.request.post_data_json["job_filters"]["arrangement_basis"],
+                                     "STORED")
+                    snapshot_option = search.locator("option", has_text="Stored hybrid snapshot")
+                    expect(snapshot_option).to_have_count(1)
+                    snapshot_id = snapshot_option.get_attribute("value")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(search).to_have_value(snapshot_id)
+                    expect(work_location).to_have_value("HYBRID")
+                    expect(python_card).to_contain_text("Remote, United States · HYBRID")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · HYBRID")
+                    expect(detail.get_by_label("Remote location eligibility")).to_have_count(0)
+                    search.select_option("python-search")
+                    work_location.select_option("REMOTE")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    page.get_by_label("Saved search name", exact=True).fill("Evaluated remote snapshot")
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/search-profiles"
+                            and response.request.method == "PUT") as saved_evaluated:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_evaluated.value.status, 200)
+                    self.assertEqual(saved_evaluated.value.request.post_data_json["job_filters"]["arrangement_basis"],
+                                     "EVALUATED")
+                    evaluated_option = search.locator("option", has_text="Evaluated remote snapshot")
+                    expect(evaluated_option).to_have_count(1)
+                    evaluated_id = evaluated_option.get_attribute("value")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(search).to_have_value(evaluated_id)
+                    expect(work_location).to_have_value("REMOTE")
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    python_card.click()
+                    expect(detail).to_contain_text("Remote, United States · REMOTE")
+                    expect(detail.get_by_label("Remote location eligibility")).to_contain_text(
+                        "Remote eligibility confirmed for OK",
+                    )
+                    search.select_option("")
+                    work_location.select_option("")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
@@ -114,7 +248,39 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(isolated_search.locator("option", has_text="Python remote")).to_have_count(0)
                     isolated_search.select_option("other-search")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    expect(python_card).to_contain_text("Remote, United States · REMOTE")
+                    expect(python_card).not_to_contain_text("Remote eligibility confirmed")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=other-search" in response.url) as other_restored:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual([job["title"] for job in other_restored.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(
+                        "other-search")
+
+                    page.get_by_label("Active profile", exact=True).select_option("fixture")
+                    fixture_search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(fixture_search).to_have_value("")
+
+                    page.goto(origin + "/?salary_min=25&salary_period=HOUR", wait_until="domcontentloaded")
+                    fixture_search = page.get_by_label("Saved search profile", exact=True).last
+                    expect(fixture_search.locator("option", has_text="Python remote")).to_have_count(1)
+                    expect(fixture_search).to_have_value("")
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("HOUR")
+                    hourly_minimum = page.get_by_label("Minimum hourly salary (USD)", exact=True)
+                    expect(hourly_minimum).to_have_value("25")
+                    self.assertEqual(parse_qs(urlsplit(page.url).query).get("salary_min"), ["25"])
+
+                    fixture_search.select_option("python-search")
+                    page.get_by_label("Salary unit", exact=True).select_option("HOUR")
+                    hourly_minimum.fill("25")
+                    expect(hourly_minimum).to_have_value("25")
+                    fixture_search.select_option("")
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("YEAR")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
+                    expect(page).to_have_url(origin + "/")
 
                     self.assertEqual(external, [])
                     context.close()

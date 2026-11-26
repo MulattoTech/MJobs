@@ -1,13 +1,12 @@
 """Pure, bounded saved-search candidate snapshots for explicit advisory work."""
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
-from itertools import islice
 
 from sqlalchemy import select
 
 from packages.persistence import models as m
 from services.ai.consumer import AIJobInput
 from services.ai.cost_controls import CandidateScore
+from services.discovery.jobs_query_policy import resolve_jobs_query
 from services.discovery.matching import build_explanation
 from services.matching.selected_search_scoring import compose_selected_search_match
 
@@ -31,37 +30,8 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
         criteria = search['criteria']
         scope = {'search_profile_id': search['id'], 'name': search['name'],
                  'criteria_digest': _digest(criteria), 'updated_at': search['updated_at']}
-        filters = criteria.get('job_filters') or {}
-        for name in ('q', 'title', 'company', 'location', 'remote_type', 'provider',
-                     'experience_level', 'employment_type', 'education_requirement',
-                     'clearance_level', 'job_source_id', 'ats_provider',
-                     'application_link_status', 'application_pipeline_status', 'application_capability'):
-            if filters.get(name):
-                options[name] = filters[name]
-        for name in ('salary_min', 'salary_max'):
-            if filters.get(name):
-                options[name] = float(filters[name])
-        options['salary_period'] = filters.get('salary_period', 'YEAR')
-        salary_policy = filters.get('salary_policy', 'DEFAULT')
-        options['salary_known_only'] = salary_policy == 'KNOWN_ONLY'
-        options['salary_unknown_allowed'] = True if salary_policy == 'ALLOW_UNKNOWN' else None
-        if filters.get('skill'):
-            options['skill_id'] = filters['skill']
-        minimum = int(filters.get('min_match_score') or 0)
-        if filters.get('posted_within_days'):
-            options['posted_before'] = datetime.now(timezone.utc)
-            options['posted_after'] = options['posted_before'] - timedelta(days=int(filters['posted_within_days']))
-        from services.matching.company_preferences import list_company_preferences
-        from services.tracking.jobs import list_job_tracking
-        options['exclude_company_ids'] = [item['company_id'] for item in
-            list_company_preferences(store, profile_id) if item['status'] == 'BLACKLISTED']
-
-        def visible(rows):
-            while batch := list(islice(rows, 100)):
-                tracking = list_job_tracking(store, profile_id, [row['id'] for row in batch])
-                yield from (row for row in batch if tracking[row['id']]['disposition']
-                            not in ('HIDDEN', 'NOT_INTERESTED'))
-        options.update(search_criteria=criteria, row_filter=visible)
+        options, minimum = resolve_jobs_query(store, profile_id, criteria, advisory=True)
+        minimum = minimum or 0
     rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1, **options)
     if len(rows) > policy.max_input_candidates:
         raise DurableEvaluationError('AI_FUNNEL_INPUT_LIMIT')

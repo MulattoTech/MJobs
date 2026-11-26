@@ -23,6 +23,7 @@ export class SearchHistoryClientError extends Error {
 export type SearchHistoryPageOptions = {
   limit?: number;
   cursor?: string | null;
+  search_profile_id?: string;
 };
 
 export type SearchHistoryClientOptions = {
@@ -40,6 +41,24 @@ export type SearchHistoryClient = {
 type ApiSearchHistoryRecord = Omit<SearchHistoryRecord, 'errors' | 'error_detail'> & {
   errors: string[];
 };
+
+type PostingActivity = { new: number; unchanged: number; updated: number };
+const MAX_CURSOR_LENGTH = 512;
+
+function postingActivityOrUndefined(value: unknown, status: string, results: number | null,
+  duplicates: number | null): PostingActivity | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value) || Object.keys(value).length !== 3 ||
+      !nonnegativeCountOrNull(value.new) || value.new === null ||
+      !nonnegativeCountOrNull(value.unchanged) || value.unchanged === null ||
+      !nonnegativeCountOrNull(value.updated) || value.updated === null ||
+      status !== 'COMPLETED' || results === null || duplicates === null ||
+      value.new > 1_000_000_000 || value.unchanged > 1_000_000_000 || value.updated > 1_000_000_000 ||
+      value.new + value.unchanged + value.updated !== results || value.unchanged !== duplicates) {
+    throw invalidResponse();
+  }
+  return { new: value.new, unchanged: value.unchanged, updated: value.updated };
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -64,31 +83,49 @@ function scopeMismatch(): SearchHistoryClientError {
 }
 
 function requireProfileId(value: string): string {
-  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 128 ||
-      value === '.' || value === '..' || /[\\/\u0000-\u001f\u007f]/.test(value)) {
+  if (!isHistoryId(value) || value === '.' || value === '..' || /[\\/]/.test(value)) {
     throw invalidRequest('Invalid profile identifier.');
   }
   return value;
 }
 
 function validatePageOptions(options: SearchHistoryPageOptions = {}): Required<Pick<SearchHistoryPageOptions, 'limit'>> &
-  Pick<SearchHistoryPageOptions, 'cursor'> {
+  Pick<SearchHistoryPageOptions, 'cursor' | 'search_profile_id'> {
   const limit = options.limit ?? 50;
   const cursor = options.cursor;
+  const search_profile_id = options.search_profile_id;
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
     throw invalidRequest('Search history page size must be between 1 and 100.');
   }
   if (cursor !== undefined && cursor !== null &&
-      (typeof cursor !== 'string' || cursor.length === 0 || cursor.length > 1024 ||
+      (typeof cursor !== 'string' || cursor.length === 0 || cursor.length > MAX_CURSOR_LENGTH ||
         /[\u0000-\u001f\u007f]/.test(cursor))) {
     throw invalidRequest('Invalid search history page cursor.');
   }
-  return { limit, cursor };
+  if (!optionalSearchProfileId(search_profile_id)) {
+    throw invalidRequest('Invalid saved search identifier.');
+  }
+  return { limit, cursor, search_profile_id };
 }
 
 function nonemptyText(value: unknown, maxLength: number): value is string {
   return typeof value === 'string' && !!value.trim() && value.length <= maxLength &&
     !/[\u0000-\u001f\u007f]/.test(value);
+}
+
+function nonemptyCodePointText(value: unknown, maxCodePoints: number): value is string {
+  // A Unicode code point uses at most two UTF-16 code units.
+  return nonemptyText(value, maxCodePoints * 2) && Array.from(value).length <= maxCodePoints;
+}
+
+function isHistoryId(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= 256 &&
+    /[^\p{White_Space}]/u.test(value) && !/[\u0000-\u001f\u007f\ud800-\udfff]/u.test(value) &&
+    Array.from(value).length <= 128;
+}
+
+function optionalSearchProfileId(value: unknown): value is string | undefined {
+  return value === undefined || isHistoryId(value);
 }
 
 function timestampOrNull(value: unknown): value is string | null {
@@ -104,17 +141,22 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
   if (!isRecord(value) ||
       !nonemptyText(value.id, 128) ||
       value.profile_id !== profileId ||
-      !nonemptyText(value.source, 200) ||
+      !nonemptyCodePointText(value.source, 256) ||
       typeof value.query !== 'string' || value.query.length > 2000 || /[\u0000-\u001f\u007f]/.test(value.query) ||
       !(value.filters === null || isRecord(value.filters)) ||
       !timestampOrNull(value.started_at) || !timestampOrNull(value.finished_at) ||
       !nonnegativeCountOrNull(value.results) || !nonnegativeCountOrNull(value.new_jobs) ||
       !nonnegativeCountOrNull(value.duplicates) || !Array.isArray(value.errors) || value.errors.length > 100 ||
       !value.errors.every(error => typeof error === 'string' && !!error.trim() && error.length <= 1000) ||
+      !optionalSearchProfileId(value.search_profile_id) ||
       !['COMPLETED', 'FAILED', 'CANCELLED'].includes(String(value.status))) {
     throw invalidResponse();
   }
   const apiRecord = value as unknown as ApiSearchHistoryRecord;
+  const postingActivity = postingActivityOrUndefined(
+    value.posting_activity, String(value.status), value.results as number | null,
+    value.duplicates as number | null,
+  );
   return {
     id: apiRecord.id,
     profile_id: profileId,
@@ -129,6 +171,8 @@ function normalizeRecord(value: unknown, profileId: string): SearchHistoryRecord
     errors: apiRecord.errors.length,
     status: apiRecord.status,
     error_detail: apiRecord.errors.length ? `${apiRecord.errors.length} recorded error${apiRecord.errors.length === 1 ? '' : 's'}.` : null,
+    ...(apiRecord.search_profile_id === undefined ? {} : { search_profile_id: apiRecord.search_profile_id }),
+    ...(postingActivity === undefined ? {} : { posting_activity: postingActivity }),
   };
 }
 
@@ -137,17 +181,21 @@ function normalizeResponse(
   profileId: string,
   limit: number,
   requestedCursor: string | null | undefined,
+  searchProfileId: string | undefined,
 ): SearchHistoryResponse {
   if (!isRecord(value)) throw invalidResponse();
   if (value.profile_id !== profileId) throw scopeMismatch();
   if (!Array.isArray(value.items) || value.items.length > limit) throw invalidResponse();
   if (!(value.next_cursor === null ||
       (typeof value.next_cursor === 'string' && value.next_cursor.length > 0 &&
-        value.next_cursor.length <= 1024 && !/[\u0000-\u001f\u007f]/.test(value.next_cursor)))) {
+        value.next_cursor.length <= MAX_CURSOR_LENGTH && !/[\u0000-\u001f\u007f]/.test(value.next_cursor)))) {
     throw invalidResponse();
   }
   if (typeof requestedCursor === 'string' && value.next_cursor === requestedCursor) throw invalidResponse();
   const items = value.items.map(item => normalizeRecord(item, profileId));
+  if (searchProfileId !== undefined && items.some(item => item.search_profile_id !== searchProfileId)) {
+    throw scopeMismatch();
+  }
   if (new Set(items.map(item => item.id)).size !== items.length) throw invalidResponse();
   return {
     profile_id: profileId,
@@ -183,9 +231,10 @@ export function createSearchHistoryClient(
     async loadHistory(profileId: string, page: SearchHistoryPageOptions = {}): Promise<SearchHistoryResponse> {
       return withRequestDeadline(async fetchImpl => {
         const selectedProfile = requireProfileId(profileId);
-        const { limit, cursor } = validatePageOptions(page);
+        const { limit, cursor, search_profile_id } = validatePageOptions(page);
         const query = new URLSearchParams({ limit: String(limit) });
         if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+        if (search_profile_id !== undefined) query.set('search_profile_id', search_profile_id);
         const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}/search-history?${query.toString()}`;
         let response: Response;
         try {
@@ -203,7 +252,7 @@ export function createSearchHistoryClient(
         } catch {
           throw invalidResponse();
         }
-        return normalizeResponse(body, selectedProfile, limit, cursor);
+        return normalizeResponse(body, selectedProfile, limit, cursor, search_profile_id);
       }, fetchImpl);
     },
   };

@@ -27,6 +27,9 @@ services:
   scheduler:
     <<: *guard
     cpus: 0.20
+    # The regular probe can take over four seconds at this fixture's CPU cap.
+    healthcheck:
+      timeout: 15s
   source-worker:
     <<: *guard
     cpus: 0.40

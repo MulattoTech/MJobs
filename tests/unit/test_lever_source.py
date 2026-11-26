@@ -12,12 +12,12 @@ from services.discovery.sources.registry import source_adapter
 from services.discovery.sources.errors import SourceError
 
 
-def posting(number=1, *, host='jobs.lever.co', site='example'):
+def posting(number=1, *, host='jobs.lever.co', site='example', workplace_type='remote'):
     identifier = f'00000000-0000-0000-0000-{number:012d}'
     return {'id': identifier, 'text': 'Senior Python Engineer',
             'description': '<p>Python remote role. Full-time.</p>',
             'categories': {'location': 'Remote, United States', 'commitment': 'Full-time'},
-            'workplaceType': 'remote', 'hostedUrl': f'https://{host}/{site}/{identifier}',
+            'workplaceType': workplace_type, 'hostedUrl': f'https://{host}/{site}/{identifier}',
             'applyUrl': f'https://{host}/{site}/{identifier}/apply'}
 
 
@@ -75,6 +75,14 @@ class LeverSourceTests(unittest.TestCase):
                 self.assertEqual(job['remote_type'], 'REMOTE')
                 self.assertIn('Python', job['skills'])
                 self.assertFalse(adapter.capabilities().as_dict()['direct_application'])
+
+    def test_recognized_workplace_type_persists_sanitized_authority_marker(self):
+        adapter = self.adapter()
+        job = adapter.normalize(posting(workplace_type='hybrid'))
+        self.assertEqual(job['remote_type'], 'HYBRID')
+        self.assertEqual(job['attributes']['workplace_type_authority'], 'LEVER_WORKPLACE_TYPE')
+        unrecognized = adapter.normalize(posting(workplace_type='flexible'))
+        self.assertNotIn('workplace_type_authority', unrecognized['attributes'])
 
     def test_full_pages_are_exhausted_before_complete_inventory(self):
         offsets = []

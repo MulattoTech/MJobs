@@ -16,6 +16,7 @@ from sqlalchemy import select
 from apps.api.search_history import create_search_history_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.search_history import record_search_history
 from tests.integration.test_spine import PROFILE
 
 
@@ -36,6 +37,7 @@ class SearchHistoryApiTests(unittest.TestCase):
         self.older["errors"] = ["Synthetic fixture source timed out."]
         self.other = self._run("other-only", "other", "2026-10-08T11:00:00Z")
         self.lister_calls = []
+        self.search_profile_calls = []
         self.invalid_cursor = False
         self.scope_mismatch = None
         app = FastAPI()
@@ -59,6 +61,70 @@ class SearchHistoryApiTests(unittest.TestCase):
             "profile_id": "fixture", "items": [], "next_cursor": None,
         })
 
+    def test_real_history_route_keeps_padded_saved_searches_distinct(self):
+        from apps.api.main import create_app
+
+        app = create_app(self.store, "http://127.0.0.1:1", self.root, operation_mode="FIXTURE")
+        search_ids = (" infra ", "infra", " " + "\U0001f680" * 126 + " ")
+        with TestClient(app) as client:
+            for index, search_id in enumerate(search_ids):
+                saved = client.put("/search-profiles", json={
+                    "id": search_id, "profile_id": "fixture", "name": f"Search {index}",
+                })
+                self.assertEqual(saved.status_code, 200, saved.text)
+                record_search_history(self.store, {
+                    **self.newest, "run_id": f"receipt-{index}", "search_profile_id": search_id,
+                })
+            route = "/profiles/fixture/search-history"
+            history = client.get(route)
+            self.assertEqual(history.status_code, 200, history.text)
+            self.assertEqual({item["search_profile_id"] for item in history.json()["items"]}, set(search_ids))
+            for index, search_id in enumerate(search_ids):
+                with self.subTest(search_id=search_id):
+                    scoped = client.get(route, params={"limit": 1, "search_profile_id": search_id})
+                    self.assertEqual(scoped.status_code, 200, scoped.text)
+                    self.assertEqual([(item["id"], item["search_profile_id"]) for item in scoped.json()["items"]],
+                                     [(f"receipt-{index}", search_id)])
+            for bad_id in (" ", "x\x00", "x\x7f", "x" * 129):
+                self.assertEqual(client.get(route, params={"search_profile_id": bad_id}).status_code, 422)
+
+    def test_real_history_route_paginates_long_unicode_profiles_with_exact_scope(self):
+        from apps.api.main import create_app
+
+        app = create_app(self.store, "http://127.0.0.1:1", self.root, operation_mode="FIXTURE")
+        search_id = " " + "\U0001f680" * 126 + " "
+        with TestClient(app) as client:
+            for index, profile_id in enumerate(("\u00e9" * 40, "\U0001f680" * 128, " other ")):
+                with self.subTest(profile_length=len(profile_id), padded=profile_id != profile_id.strip()):
+                    self.store.save_profile({**PROFILE, "id": profile_id, "email": f"profile-{index}@example.test"})
+                    for run in (self.newest, self.older):
+                        record_search_history(self.store, {
+                            **run, "profile_id": profile_id, "search_profile_id": search_id,
+                        })
+                    route = f"/profiles/{profile_id}/search-history"
+                    for scope in ({"search_profile_id": search_id}, {}):
+                        first = client.get(route, params={"limit": 1, **scope})
+                        self.assertEqual(first.status_code, 200, first.text)
+                        self.assertEqual(first.json()["items"][0]["id"], self.newest["run_id"])
+                        cursor = first.json()["next_cursor"]
+                        self.assertIsInstance(cursor, str)
+                        second = client.get(route, params={"limit": 1, "cursor": cursor, **scope})
+                        self.assertEqual(second.status_code, 200, second.text)
+                        self.assertEqual(second.json()["items"][0]["id"], self.older["run_id"])
+                        self.assertIsNone(second.json()["next_cursor"])
+                        if scope:
+                            malformed = client.get(route, params={"cursor": cursor + "!", **scope})
+                            self.assertEqual(malformed.status_code, 422, malformed.text)
+                            self.assertEqual(malformed.json()["detail"]["code"], "SEARCH_HISTORY_CURSOR_INVALID")
+                            for wrong_route, wrong_scope in (
+                                (route, {"search_profile_id": search_id.strip()}),
+                                (route, {}),
+                                ("/profiles/other/search-history", scope),
+                            ):
+                                rejected = client.get(wrong_route, params={"cursor": cursor, **wrong_scope})
+                                self.assertEqual(rejected.status_code, 422, rejected.text)
+                                self.assertEqual(rejected.json()["detail"]["code"], "SEARCH_HISTORY_CURSOR_INVALID")
+
     def _run(self, run_id, profile_id, finished_at):
         return {
             "run_id": run_id,
@@ -75,8 +141,14 @@ class SearchHistoryApiTests(unittest.TestCase):
             "errors": [],
         }
 
-    def _list_history(self, store, profile_id, *, limit=50, cursor=None):
+    def _list_history(self, store, profile_id, *, limit=50, cursor=None, search_profile_id=None):
         self.lister_calls.append((store, profile_id, limit, cursor))
+        if search_profile_id is not None:
+            self.search_profile_calls.append((store, profile_id, search_profile_id))
+            runs = [run for run in (self.newest, self.older, self.other)
+                    if run["profile_id"] == profile_id
+                    and run.get("search_profile_id") == search_profile_id]
+            return {"profile_id": profile_id, "runs": runs[:limit], "next_cursor": None}
         if self.invalid_cursor:
             raise ValueError("SEARCH_HISTORY_CURSOR_INVALID")
         if self.scope_mismatch == "envelope":
@@ -191,6 +263,31 @@ class SearchHistoryApiTests(unittest.TestCase):
         response = self._get_without_network("/profiles/fixture/search-history?limit=1")
         self.assertEqual(response.status_code, 200, response.text)
         self.assertIsNone(response.json()["items"][0]["duplicates"])
+
+    def test_saved_search_identity_is_optional_in_api_projection(self):
+        self.newest["search_profile_id"] = "remote-it-ok"
+        response = self._get_without_network("/profiles/fixture/search-history?limit=1")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["items"][0]["search_profile_id"], "remote-it-ok")
+
+    def test_exact_saved_search_receipt_lookup_is_profile_scoped_and_before_limit(self):
+        self.newest["search_profile_id"] = "fixture-search"
+        latest = self._get_without_network(
+            "/profiles/fixture/search-history?limit=1&search_profile_id=fixture-search",
+        )
+        foreign = self._get_without_network(
+            "/profiles/other/search-history?limit=1&search_profile_id=fixture-search",
+        )
+
+        self.assertEqual(latest.status_code, 200, latest.text)
+        self.assertEqual([item["id"] for item in latest.json()["items"]], ["fixture-newest"])
+        self.assertEqual(latest.json()["items"][0]["search_profile_id"], "fixture-search")
+        self.assertEqual(foreign.status_code, 200, foreign.text)
+        self.assertEqual(foreign.json()["items"], [])
+        self.assertEqual(self.search_profile_calls, [
+            (self.store, "fixture", "fixture-search"),
+            (self.store, "other", "fixture-search"),
+        ])
 
     def test_invalid_cursor_and_service_scope_mismatch_fail_closed(self):
         before = self._snapshot()

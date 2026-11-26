@@ -769,7 +769,14 @@ class Store:
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
              application_capability=None, exclude_company_ids=None, job_ids=None, search_criteria=None,
-             row_filter=None):
+             row_filter=None, exclude_closed=False, arrangement_basis="STORED", search_at=None,
+             connection=None):
+        if limit is None and job_ids is None:
+            raise ValueError("Jobs query without a result limit requires explicit job IDs")
+        # The general Work location facet follows the arrangement displayed
+        # in a saved search. Exact remote subtype filters still use source data.
+        scoped_arrangement = (remote_type if arrangement_basis == "EVALUATED" and search_criteria is not None
+                              and remote_type in {"REMOTE", "HYBRID", "ONSITE", "UNKNOWN"} else None)
         if salary_period not in {"HOUR", "YEAR"}:
             raise ValueError("Salary period must be HOUR or YEAR")
         if type(salary_known_only) is not bool or (salary_unknown_allowed is not None and type(salary_unknown_allowed) is not bool):
@@ -782,8 +789,8 @@ class Store:
             valid_capabilities = {"FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"}
             if application_capability not in valid_capabilities:
                 raise ValueError("application_capability must be a known application capability")
-        profile = self.profile(profile_id) if profile_id else None
-        with self.engine.connect() as connection:
+        with self.engine.connect() if connection is None else nullcontext(connection) as connection:
+            profile = self.profile(profile_id, connection=connection) if profile_id else None
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
             display_routes = select(m.routes.c.job_id, func.min(m.routes.c.id).label("route_id")).group_by(m.routes.c.job_id).subquery()
             selected_columns = [m.jobs, m.companies.c.name.label("company"), m.routes.c.provider,
@@ -805,6 +812,10 @@ class Store:
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
             if job_ids is not None:
                 statement = statement.where(m.jobs.c.id.in_(job_ids))
+            if exclude_closed:
+                from services.discovery.lifecycle import job_has_no_known_closure
+
+                statement = statement.where(job_has_no_known_closure())
             excluded_companies = sorted({
                 value for value in (exclude_company_ids or [])
                 if isinstance(value, str) and value.strip()
@@ -1138,7 +1149,7 @@ class Store:
                 statement = statement.where(parsed_posted_at >= cutoff)
                 if upper_bound is not None:
                     statement = statement.where(parsed_posted_at <= upper_bound)
-            if remote_type:
+            if remote_type and scoped_arrangement is None:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))
                 else:
@@ -1189,6 +1200,7 @@ class Store:
                 if application_capability is not None or search_criteria is not None or row_filter is not None:
                     ordered_rows = self._select_job_rows(
                         connection, ordered_rows, application_capability, limit, search_criteria, row_filter,
+                        scoped_arrangement=scoped_arrangement, arrangement_basis=arrangement_basis, search_at=search_at,
                     )
                 else:
                     ordered_rows = ordered_rows[:limit]
@@ -1243,13 +1255,15 @@ class Store:
                     rows = (canonical_job_view(dict(row)) for row in result.mappings())
                     return self._select_job_rows(
                         connection, rows, application_capability, limit, search_criteria, row_filter,
+                        scoped_arrangement=scoped_arrangement, arrangement_basis=arrangement_basis, search_at=search_at,
                     )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     @staticmethod
-    def _select_job_rows(connection, rows, expected, limit, search_criteria=None, row_filter=None):
+    def _select_job_rows(connection, rows, expected, limit, search_criteria=None, row_filter=None,
+                         *, scoped_arrangement=None, arrangement_basis="STORED", search_at=None):
         """Apply semantic, capability and caller visibility filters before LIMIT."""
-        if limit <= 0:
+        if limit is not None and limit <= 0:
             return []
         from services.applications.capability_filter import effective_application_capability
         from services.discovery.search_semantics import evaluate_search
@@ -1265,9 +1279,12 @@ class Store:
                 result = dict(row)
                 result.pop("application_route_id", None)
                 if search_criteria is not None:
-                    evidence = evaluate_search(search_criteria, result)
-                    if not evidence["matched"]:
+                    evidence = evaluate_search(search_criteria, result, at=search_at)
+                    if not evidence["matched"] or (
+                            scoped_arrangement is not None and evidence["work_arrangement"] != scoped_arrangement):
                         continue
+                    if arrangement_basis == "STORED":
+                        evidence.pop("work_arrangement", None)
                     result["search_evidence"] = evidence
                 yield result
 
@@ -1275,7 +1292,7 @@ class Store:
         selected = []
         for result in eligible:
             selected.append(result)
-            if len(selected) >= limit:
+            if limit is not None and len(selected) >= limit:
                 break
         return selected
 

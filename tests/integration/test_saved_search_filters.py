@@ -20,6 +20,149 @@ from tests.integration.test_spine import PROFILE
 
 
 class SavedSearchFiltersApiTests(unittest.TestCase):
+    def test_all_jobs_snapshot_retains_stored_arrangement(self):
+        with self.store.engine.begin() as connection:
+            for title, description, stored in (
+                ("Data Engineer", "This role is hybrid.", "REMOTE_US"),
+                ("Python Developer", "Maintain our hybrid cloud infrastructure.", "HYBRID"),
+            ):
+                connection.execute(update(m.jobs).where(m.jobs.c.title == title).values(
+                    location="Remote, United States", description=description, remote_type=stored,
+                    attributes={"provider": "greenhouse", "remote_indicated": True},
+                ))
+        filters = {"q": "", "remote_type": "HYBRID", "provider": "", "sort": "title"}
+        saved = self.client.put("/search-profiles", json={
+            "id": "hybrid-snapshot", "profile_id": "fixture", "name": "Hybrid snapshot",
+            "enabled": False, "job_filters": filters,
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        params = {"profile_id": "fixture", "remote_type": "HYBRID", "sort": "title", "limit": 1}
+        origin = self.client.get("/jobs", params=params).json()["jobs"]
+        restored = self.client.get("/jobs", params={"profile_id": "fixture", "sort": "title", "limit": 1,
+                                                   "search_profile_id": "hybrid-snapshot"})
+        self.assertEqual(restored.status_code, 200, restored.text)
+        self.assertEqual([row["id"] for row in restored.json()["jobs"]], [row["id"] for row in origin])
+        self.assertNotIn("work_arrangement", restored.json()["jobs"][0]["search_evidence"])
+
+        saved = self.client.put("/search-profiles", json={
+            "id": "evaluated-snapshot", "profile_id": "fixture", "name": "Evaluated snapshot",
+            "enabled": False, "job_filters": {**filters, "arrangement_basis": "EVALUATED"},
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        evaluated = self.client.get("/jobs", params={"profile_id": "fixture", "sort": "title", "limit": 1,
+                                                    "search_profile_id": "evaluated-snapshot"})
+        self.assertEqual(evaluated.status_code, 200, evaluated.text)
+        self.assertEqual([row["title"] for row in evaluated.json()["jobs"]], ["Data Engineer"])
+        self.assertEqual(evaluated.json()["jobs"][0]["search_evidence"]["work_arrangement"], "HYBRID")
+
+    def test_saved_search_work_location_facets_use_evaluated_arrangement_before_limit(self):
+        with self.store.engine.begin() as connection:
+            for title, description, stored, posted_at in (
+                ("Data Engineer", "This role is hybrid.", "REMOTE_US", "2026-01-02T00:00:00Z"),
+                ("Python Developer", "Maintain our hybrid cloud infrastructure.", "HYBRID", "2026-01-01T00:00:00Z"),
+            ):
+                connection.execute(update(m.jobs).where(m.jobs.c.title == title).values(
+                    location="Remote, United States", description=description, remote_type=stored,
+                    attributes={"provider": "greenhouse", "remote_indicated": True, "reported_posted_at": posted_at},
+                ))
+        saved = self.client.put("/search-profiles", json={
+            "id": "work-location-facets", "profile_id": "fixture", "name": "Work location",
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+        for sort in ("title", "newest"):
+            params = {"profile_id": "fixture", "sort": sort, "limit": 1}
+            for facet, expected, stored, arrangement in (
+                ("REMOTE", "Python Developer", "HYBRID", "REMOTE"),
+                ("HYBRID", "Data Engineer", "REMOTE_US", "HYBRID"),
+            ):
+                with self.subTest(sort=sort, facet=facet):
+                    response = self.client.get("/jobs", params={
+                        **params, "remote_type": facet, "search_profile_id": "work-location-facets",
+                    })
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()["jobs"]
+                    self.assertEqual([row["title"] for row in rows], [expected])
+                    self.assertEqual(rows[0]["remote_type"], stored)
+                    self.assertEqual(rows[0]["search_evidence"]["work_arrangement"], arrangement)
+            for facet, expected in (("REMOTE", "Data Engineer"), ("HYBRID", "Python Developer"),
+                                    ("REMOTE_US", "Data Engineer")):
+                with self.subTest(sort=sort, facet=facet, scope="All jobs"):
+                    response = self.client.get("/jobs", params={**params, "remote_type": facet})
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()["jobs"]
+                    self.assertEqual([row["title"] for row in rows], [expected])
+                    self.assertNotIn("search_evidence", rows[0])
+
+    def test_saved_search_excludes_closed_postings_before_limit_and_keeps_history(self):
+        with self.store.engine.begin() as connection:
+            earlier = connection.execute(select(m.jobs).where(m.jobs.c.title == "Data Engineer")).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == earlier["id"]).values(
+                attributes={**earlier["attributes"], "status": "CLOSED"},
+            ))
+            legacy = connection.execute(select(m.jobs).where(m.jobs.c.title == "Python Developer")).mappings().one()
+            legacy_attributes = dict(legacy["attributes"])
+            legacy_attributes.pop("status", None)
+            connection.execute(update(m.jobs).where(m.jobs.c.id == legacy["id"]).values(attributes=legacy_attributes))
+        saved = {"id": "closure-search", "profile_id": "fixture", "name": "Open jobs"}
+        self.assertEqual(self.client.put("/search-profiles", json=saved).status_code, 200)
+        query = {"profile_id": "fixture", "sort": "title", "limit": 1}
+        self.assertEqual(self.client.get("/jobs", params=query).json()["jobs"][0]["id"], earlier["id"])
+
+        rows = self.client.get("/jobs", params={**query, "search_profile_id": saved["id"]}).json()["jobs"]
+        self.assertEqual([row["title"] for row in rows], ["Python Developer"])
+        original = self.client.get(f"/jobs/{earlier['id']}")
+        self.assertEqual(original.status_code, 200)
+        self.assertEqual(original.json()["attributes"]["status"], "CLOSED")
+
+        from services.discovery.search_profiles import get_search_profile
+        from workers.tasks import _saved_search_candidate_job_ids
+
+        self.assertEqual(_saved_search_candidate_job_ids(
+            self.store, None, get_search_profile(self.store, saved["id"]),
+            captured_job_ids=[earlier["id"], legacy["id"]],
+        ), (legacy["id"],))
+
+    def test_remote_residence_search_filters_before_limit_and_survives_reopen(self):
+        with self.store.engine.begin() as connection:
+            for title, description in (
+                ("Data Engineer", "Remote within the United States except Oklahoma."),
+                ("Python Developer", "Applicants must reside in Oklahoma or Texas."),
+            ):
+                connection.execute(update(m.jobs).where(m.jobs.c.title == title).values(
+                    remote_type="REMOTE_US", location="Remote, United States", description=description,
+                ))
+        saved = {"id": "residence-search", "profile_id": "fixture", "name": "Remote IT",
+                 "remote": "REQUIRED", "remote_residence_state": "OK"}
+        response = self.client.put("/search-profiles", json=saved)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self.client.put("/search-profiles", json={
+            "id": saved["id"], "profile_id": saved["profile_id"], "name": "Remote infrastructure",
+        }).status_code, 200)
+        self.assertEqual(self.client.put("/search-profiles", json={
+            **saved, "remote_residence_state": "UK",
+        }).status_code, 422)
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                profile = client.get("/search-profiles/residence-search").json()
+                self.assertEqual(profile["name"], "Remote infrastructure")
+                self.assertEqual(profile["criteria"]["remote_residence_state"], "OK")
+                params = {"profile_id": "fixture", "search_profile_id": "residence-search",
+                          "sort": "title", "limit": 1}
+                jobs = client.get("/jobs", params=params).json()["jobs"]
+                self.assertEqual([job["title"] for job in jobs], ["Python Developer"])
+                self.assertEqual(jobs[0]["search_evidence"]["remote_residence"],
+                                 {"state": "OK", "status": "ELIGIBLE"})
+                self.assertEqual(client.get("/jobs", params={**params, "profile_id": "other"}).status_code, 409)
+                cleared = client.put("/search-profiles", json={**saved, "remote_residence_state": None})
+                self.assertEqual(cleared.status_code, 200, cleared.text)
+                self.assertEqual(client.get("/jobs", params=params).json()["jobs"][0]["title"], "Data Engineer")
+        finally:
+            reopened.engine.dispose()
+
     def test_selected_search_filters_before_result_limit(self):
         criteria = {**self._profile(job_filters={"q": "", "remote_type": "", "provider": "", "sort": "title"}),
                     "include_titles": ["Python Developer"], "remote": "ANY"}
@@ -294,6 +437,98 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"]["salary_max"], "")
         self.assertEqual(row["criteria"]["job_filters"]["employment_type"], "")
         self.assertEqual(row["criteria"]["job_filters"]["skill"], "")
+
+    def test_priority_and_visibility_filters_survive_reopen_without_changing_policy(self):
+        from services.matching.company_preferences import (
+            get_company_preference, set_company_preference,
+        )
+        from services.tracking.jobs import read_job_tracking, set_job_disposition
+
+        jobs = self.client.get("/jobs", params={"sort": "title"}).json()["jobs"]
+        hidden_job, visible_job = jobs
+        company_id = hidden_job["company_id"]
+        set_job_disposition(self.store, "fixture", hidden_job["id"], "HIDDEN", "saved-view-hide")
+        set_company_preference(self.store, "fixture", company_id, "BLACKLISTED", "saved-view-blacklist")
+        preference_before = get_company_preference(self.store, "fixture", company_id)
+        tracking_before = read_job_tracking(self.store, "fixture", hidden_job["id"])
+        operations_before = self.store.count("worker_operations")
+        applications_before = self.store.count("applications")
+        filters = {
+            "q": "", "remote_type": "", "provider": "", "sort": "application_priority",
+            "include_dismissed": True, "include_blacklisted": True,
+        }
+        criteria = {**self._profile(job_filters=filters), "include_titles": [], "remote": "ANY"}
+        response = self.client.put("/search-profiles", json=criteria)
+        self.assertEqual(response.status_code, 200, response.text)
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                records = client.get("/search-profiles", params={"profile_id": "fixture"}).json()["search_profiles"]
+                record = next(row for row in records if row["id"] == "saved-filter")
+                saved = record["criteria"]["job_filters"]
+                self.assertEqual(saved["sort"], "application_priority")
+                self.assertIs(saved["include_dismissed"], True)
+                self.assertIs(saved["include_blacklisted"], True)
+                self.assertFalse(record["enabled"])
+                params = {"profile_id": "fixture", "search_profile_id": "saved-filter", "sort": saved["sort"]}
+                self.assertEqual({row["id"] for row in client.get("/jobs", params=params).json()["jobs"]},
+                                 {row["id"] for row in jobs})
+                shown = client.get("/jobs", params={
+                    **params, "include_dismissed": saved["include_dismissed"],
+                    "include_blacklisted": saved["include_blacklisted"],
+                })
+                self.assertEqual(shown.status_code, 200, shown.text)
+                self.assertEqual({row["id"] for row in shown.json()["jobs"]}, {row["id"] for row in jobs})
+                hidden_again = client.get("/jobs", params={**params, "include_dismissed": False})
+                self.assertEqual([row["id"] for row in hidden_again.json()["jobs"]], [visible_job["id"]])
+                self.assertEqual(client.get("/jobs", params={**params, "include_blacklisted": False}).json()["jobs"], [])
+                ai_preview = client.get("/profiles/fixture/ai-cost-plan", params={
+                    "search_profile_id": "saved-filter",
+                })
+                self.assertEqual(ai_preview.status_code, 200, ai_preview.text)
+                self.assertEqual(ai_preview.json()["plan"]["scanned_job_count"], 0)
+                self.assertEqual(ai_preview.json()["candidates"], [])
+                self.assertIs(ai_preview.json()["no_model_calls"], True)
+                self.assertEqual(client.get("/jobs", params={**params, "profile_id": "other"}).status_code, 409)
+                self.assertEqual(client.get("/search-profiles", params={"profile_id": "other"}).json()["search_profiles"], [])
+                enabled = client.put("/search-profiles", json={
+                    "id": record["id"], "profile_id": "fixture", "name": record["name"], "enabled": True,
+                })
+                self.assertEqual(enabled.status_code, 422, enabled.text)
+                self.assertEqual(schedule_due_sources(reopened)["scheduled"], [])
+                self.assertEqual(get_company_preference(reopened, "fixture", company_id), preference_before)
+                self.assertEqual(read_job_tracking(reopened, "fixture", hidden_job["id"]), tracking_before)
+                self.assertEqual(reopened.count("worker_operations"), operations_before)
+                self.assertEqual(reopened.count("applications"), applications_before)
+        finally:
+            reopened.engine.dispose()
+
+    def test_visibility_preferences_reject_untyped_updates_atomically_and_clear_explicitly(self):
+        filters = {
+            "q": "", "remote_type": "", "provider": "", "sort": "application_priority",
+            "include_dismissed": True, "include_blacklisted": True,
+        }
+        payload = self._profile(job_filters=filters)
+        response = self.client.put("/search-profiles", json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
+        before = self.client.get("/search-profiles", params={"profile_id": "fixture"}).json()
+        for key in ("include_dismissed", "include_blacklisted"):
+            for value in (None, 0, 1, "false", "true", [], {}):
+                with self.subTest(key=key, value=value):
+                    invalid = self.client.put("/search-profiles", json={
+                        **payload, "job_filters": {**filters, key: value},
+                    })
+                    self.assertEqual(invalid.status_code, 422, invalid.text)
+                    self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "fixture"}).json(), before)
+        cleared = self.client.put("/search-profiles", json={
+            **payload, "job_filters": {**filters, "include_dismissed": False, "include_blacklisted": False},
+        })
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        row = self.client.get("/search-profiles", params={"profile_id": "fixture"}).json()["search_profiles"][0]
+        self.assertIs(row["criteria"]["job_filters"]["include_dismissed"], False)
+        self.assertIs(row["criteria"]["job_filters"]["include_blacklisted"], False)
 
     def test_saved_job_filters_accept_experience_level_and_legacy_payload(self):
         filters = {"q": "", "title": "", "company": "", "location": "",

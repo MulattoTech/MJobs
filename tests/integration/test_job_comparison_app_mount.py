@@ -85,6 +85,11 @@ class JobComparisonAppMountTests(unittest.TestCase):
                         "requirement_source_ref": f"fixture:{job_id}:requirements",
                     },
                 ))
+                connection.execute(m.routes.insert().values(
+                    id=f"route-{job_id}", job_id=job_id, company_id="comparison-company",
+                    provider="fixture", tenant="comparison-fixture", requisition=job_id,
+                    url=f"https://comparison.example.test/{job_id}",
+                ))
             for ordinal, job_id in enumerate(("job-one", "job-two", "job-stale"), start=1):
                 score = 70.0 + ordinal
                 connection.execute(m.matches.insert().values(

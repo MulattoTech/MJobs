@@ -6,8 +6,9 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
+import httpx
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select
 import uvicorn
@@ -17,7 +18,10 @@ from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.scheduler import schedule_due_search_profiles
 from services.discovery.search_profiles import save_search_profile
+from services.discovery.sources.collect import configure_source
+from services.discovery.sources.greenhouse import Greenhouse
 from services.documents.durable_comparison import queue_comparison
 from services.documents.generate import prepare
 from services.documents.history import application_documents
@@ -31,7 +35,137 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class SearchHistoryConnectedBrowserTests(unittest.TestCase):
+    def test_review_jobs_refreshes_the_already_selected_search_after_background_collection(self):
+        search_id = "scheduled-search"
+        title = "Scheduled Linux Administrator"
+        tenant = "scheduled-fixture"
+        with tempfile.TemporaryDirectory(prefix="mjobs-history-scheduled-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'history.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            source_id = configure_source(store, tenant)
+            save_search_profile(store, {
+                "id": search_id, "profile_id": "fixture", "name": "Scheduled fixture search",
+                "include_titles": [title], "source_ids": [source_id],
+                "scheduler": {"enabled": True, "interval_seconds": 600},
+            })
+
+            def fixture_response(request):
+                self.assertEqual(request.method, "GET")
+                self.assertEqual(request.url.host, "boards-api.greenhouse.io")
+                base = f"/v1/boards/{tenant}"
+                if request.url.path == base:
+                    return httpx.Response(200, json={"name": "Scheduled Fixture Employer"})
+                self.assertEqual(request.url.path, f"{base}/jobs")
+                return httpx.Response(200, json={"jobs": [{
+                    "id": 42, "title": title, "location": {"name": "Remote, United States"},
+                    "content": "<p>Maintain Linux systems.</p>",
+                    "absolute_url": f"https://boards.greenhouse.io/{tenant}/jobs/42",
+                }]})
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            history_path = "/profiles/fixture/search-history"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
+                log_level="error", timeout_graceful_shutdown=3,
+            ))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            unexpected = []
+
+            def scoped(response, path):
+                parsed = urlsplit(response.url)
+                query = parse_qs(parsed.query)
+                return parsed.path == path and query.get("search_profile_id") == [search_id]
+
+            def guarded_browser_request(route):
+                request = route.request
+                if urlsplit(request.url).netloc != urlsplit(origin).netloc or request.method != "GET":
+                    unexpected.append((request.method, request.url))
+                    route.abort()
+                else:
+                    route.continue_()
+
+            try:
+                thread.start()
+                from time import monotonic, sleep
+                deadline = monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or monotonic() > deadline:
+                        self.fail("Isolated scheduled-search browser API did not start")
+                    sleep(0.02)
+
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context()
+                    context.route("**/*", guarded_browser_request)
+                    page = context.new_page()
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.evaluate("""id => {
+                        localStorage.setItem('mjobs-profile', 'fixture');
+                        localStorage.setItem('mjobs-search-profile:fixture', id);
+                    }""", search_id)
+                    with page.expect_response(lambda response: scoped(response, "/jobs")) as old_jobs, \
+                            page.expect_response(lambda response: scoped(response, history_path)) as old_receipt:
+                        page.reload(wait_until="domcontentloaded")
+                    self.assertEqual(old_jobs.value.json()["jobs"], [])
+                    self.assertEqual(old_receipt.value.json()["items"], [])
+                    choice = page.get_by_label("Saved search profile", exact=True)
+                    expect(choice).to_have_value(search_id)
+                    expect(page.get_by_role("region", name="Empty jobs for Scheduled fixture search")).to_contain_text(
+                        "No completed collection has been recorded",
+                    )
+
+                    scheduled = schedule_due_search_profiles(store)["scheduled"]
+                    self.assertEqual([entry["search_profile_id"] for entry in scheduled], [search_id])
+                    op_id = scheduled[0]["operation_id"]
+                    with patch.dict(os.environ, {
+                        "MJOBS_DATABASE_URL": store.url, "MJOBS_OUTPUT_DIR": str(root),
+                        "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1", "MJOBS_OPERATION_MODE": "FIXTURE",
+                    }), patch("services.discovery.sources.greenhouse.Greenhouse", side_effect=lambda tenant, **kwargs:
+                              Greenhouse(tenant, **{**kwargs, "transport": httpx.MockTransport(fixture_response)})):
+                        result = execute_operation(op_id)
+                    self.assertEqual(result["status"], "COMPLETED", result)
+                    expect(page.locator(".job-card").filter(has_text=title)).to_have_count(0)
+                    page.get_by_role("button", name="Activity", exact=True).click()
+                    row = page.get_by_role("table", name="Saved search runs for profile fixture").get_by_role(
+                        "row", name="Scheduled fixture search", exact=False,
+                    )
+
+                    jobs_responses = []
+
+                    def observe_jobs(response):
+                        if scoped(response, "/jobs"):
+                            jobs_responses.append(response)
+
+                    page.on("response", observe_jobs)
+                    with page.expect_response(lambda response: scoped(response, history_path), timeout=5000) as receipt:
+                        row.get_by_role("button", name="Review jobs", exact=True).click()
+                    expect(choice).to_have_value(search_id)
+                    expect(page.locator(".job-card").filter(has_text=title)).to_have_count(1)
+                    self.assertEqual(len(jobs_responses), 1)
+                    self.assertEqual([job["title"] for job in jobs_responses[0].json()["jobs"]], [title])
+                    query = parse_qs(urlsplit(jobs_responses[0].url).query)
+                    self.assertEqual(query["profile_id"], ["fixture"])
+                    self.assertEqual(query["include_blacklisted"], ["false"])
+                    self.assertNotIn("include_dismissed", query)
+                    self.assertEqual([(item["id"], item["search_profile_id"]) for item in receipt.value.json()["items"]],
+                                     [(f"{op_id}:1", search_id)])
+                    self.assertEqual(unexpected, [])
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=15)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), "Isolated scheduled-search browser API did not stop")
+
     def test_completed_fixture_search_history_is_durable_and_profile_scoped(self):
+        saved_search_id = " fixture-search "
         with tempfile.TemporaryDirectory(prefix="mjobs-search-history-browser-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'search-history.db').as_posix()}")
@@ -41,7 +175,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
             store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
                                 "email": "other@example.test"})
             save_search_profile(store, {
-                "id": "fixture-search",
+                "id": saved_search_id,
                 "profile_id": "fixture",
                 "name": "Synthetic systems administrator search",
                 "enabled": True,
@@ -103,8 +237,8 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
 
                         # Select a real saved search before starting a local discovery run.
                         expect(page.get_by_label("Saved search profile", exact=True).locator(
-                            "option[value='fixture-search']")).to_have_count(1)
-                        page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                            f"option[value='{saved_search_id}']")).to_have_count(1)
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search_id)
                         page.get_by_label("Included job titles", exact=True).fill("Python Developer")
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == "/search-profiles"
@@ -114,7 +248,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         expect(page.get_by_role("status").filter(
                             has_text="Saved title and keyword filters")).to_be_visible()
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search_id)
                         expect(page.get_by_label("Included job titles", exact=True)).to_have_value("Python Developer")
                         before = page.request.get(
                             origin + "/profiles/fixture/search-history?limit=50")
@@ -130,7 +264,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
                         queued = queued_response.value
                         self.assertEqual(queued.status, 202, queued.text())
-                        self.assertEqual(queued.request.post_data_json["search_profile_id"], "fixture-search")
+                        self.assertEqual(queued.request.post_data_json["search_profile_id"], saved_search_id)
                         request_id = queued.request.post_data_json["request_id"]
                         operation_id = queued.json()["operation_id"]
                         self.assertTrue(operation_id)
@@ -148,6 +282,12 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             exact=True)).to_be_visible()
                         expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(1)
                         expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/jobs" and
+                                parse_qs(urlsplit(response.url).query).get("q") == ["Data Engineer"]):
+                            page.get_by_label("Search jobs", exact=True).fill("Data Engineer")
+                        page.get_by_label("Sort", exact=True).select_option("company")
+                        expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(0)
                         with store.engine.connect() as connection:
                             operation = connection.execute(select(m.operations).where(
                                 m.operations.c.id == operation_id)).mappings().one()
@@ -175,6 +315,7 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         new_runs = [item for item in history_body["items"]
                                     if item["id"] not in before_ids]
                         self.assertTrue(new_runs, history_body)
+                        self.assertEqual({item["search_profile_id"] for item in new_runs}, {saved_search_id})
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == history_path):
                             page.get_by_role("button", name="Activity", exact=True).click()
@@ -189,10 +330,30 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         table = panel.get_by_role("table", name="Saved search runs for profile fixture")
                         expect(table).to_be_visible()
                         for heading in ("Source", "Query", "Started", "Finished", "Run status",
-                                        "Results", "New jobs", "Duplicates", "Errors",
-                                        "Filters and details"):
+                                        "Results", "New jobs", "Legacy duplicates", "Posting activity",
+                                        "Errors", "Filters and details"):
                             expect(table.get_by_role("columnheader", name=heading, exact=True)).to_be_visible()
 
+                        def reopened_saved_jobs(response):
+                            parsed = urlsplit(response.url)
+                            query = parse_qs(parsed.query, keep_blank_values=True)
+                            return (parsed.path == "/jobs" and query.get("profile_id") == ["fixture"]
+                                    and query.get("search_profile_id") == [saved_search_id]
+                                    and query.get("q", [""]) == [""] and query.get("sort") == ["score"])
+
+                        with page.expect_response(reopened_saved_jobs, timeout=7000) as reopened:
+                            table.get_by_role("button", name="Review jobs", exact=True).click()
+                            expect(page.get_by_label("Search jobs", exact=True)).to_have_value("")
+                            expect(page.get_by_label("Sort", exact=True)).to_have_value("score")
+                        self.assertEqual(reopened.value.status, 200)
+                        self.assertEqual([job["title"] for job in reopened.value.json()["jobs"]],
+                                         ["Python Developer"])
+                        expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(1)
+
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == history_path):
+                            page.get_by_role("button", name="Activity", exact=True).click()
+                        expect(table).to_be_visible()
                         self.assertTrue(all(item["profile_id"] == "fixture" for item in new_runs))
 
                         required_fields = {
@@ -330,6 +491,325 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                     sock.close()
                     store.engine.dispose()
                 self.assertFalse(server_thread.is_alive(), "Search-history API server did not stop")
+
+
+def test_backend_valid_source_labels_survive_api_history_readback_and_reload(record_property):
+    """Read synthetic stored labels through the real API and compiled SPA."""
+    import json
+    from time import monotonic, sleep
+
+    from services.discovery.search_history import record_search_history
+    from services.discovery.search_history_events import build_search_history_record
+
+    labels = {
+        "ascii_201": "A" * 201,
+        "ascii_256": "B" * 256,
+        "mixed_256": "C" * 128 + "\U0001f680" * 128,
+    }
+    saved_search_id = " " + "\U0001f680" * 126 + " "
+    receipt = {
+        "outcome": "NOT_COMPLETED",
+        "fixture_admitted": False,
+        "fixture_history_records": 0,
+        "fixture_writes_before_read_baseline": True,
+        "producer_trim_preserved_labels": False,
+        "source_lengths": {
+            name: {"code_points": len(label),
+                   "utf16_units": len(label.encode("utf-16-le")) // 2}
+            for name, label in labels.items()
+        },
+        "phases": [],
+        "database_unchanged": False,
+        "history_unchanged": False,
+        "applications_unchanged": False,
+        "attempts_unchanged": False,
+        "operations_unchanged": False,
+        "request_count": 0,
+        "request_limit_exceeded": False,
+        "external_requests": 0,
+        "unexpected_mutations": [],
+        "page_error_types": [],
+    }
+    cleanup = {
+        "context_closed": True, "browser_closed": True,
+        "playwright_stopped": True, "api_thread_stopped": True,
+        "socket_closed": True, "database_disposed": True,
+        "temporary_directory_removed": True,
+        "error_types": [], "all_resources_closed": False,
+        "primary_failure_preserved": False,
+    }
+    directory = store = sock = server = server_thread = None
+    playwright = browser = context = None
+    primary_failure = None
+    try:
+        assert (ROOT / "apps/web/dist/index.html").is_file(), "Build apps/web before browser acceptance"
+        directory = tempfile.TemporaryDirectory(prefix="mjobs-history-source-labels-")
+        root = Path(directory.name)
+        cleanup["temporary_directory_removed"] = False
+        store = Store(f"sqlite:///{(root / 'history.db').as_posix()}")
+        cleanup["database_disposed"] = False
+        store.migrate()
+        store.bind_workspace_mode("FIXTURE")
+        store.save_profile(dict(PROFILE))
+        store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                            "email": "other@example.test"})
+        save_search_profile(store, {
+            "id": saved_search_id, "profile_id": "fixture", "name": "Unicode ID receipt search",
+            "include_titles": ["Synthetic title"],
+        })
+
+        expected = {"fixture": {}, "other": {}}
+        fixture_labels = [("fixture", name, label) for name, label in labels.items()]
+        fixture_labels.append(("other", "other_profile", "Other fixture source"))
+        for profile_id, name, label in fixture_labels:
+            # This deliberately seeds terminal metadata; no discovery worker runs.
+            details = {
+                "source": f"  {label}  ", "query": f"MJ236 {name}",
+                "filters": {"remote": "REQUIRED"},
+                "results": 3, "new_jobs": 1, "duplicates": 2, "errors": [],
+            }
+            if name == "ascii_201":
+                details["posting_activity"] = {"new": 1, "unchanged": 1, "updated": 1}
+            run = build_search_history_record({
+                "id": f"mj236-{name}", "kind": "DISCOVER", "entity_id": profile_id,
+                "state": "COMPLETED", "attempt_count": 1,
+                "params": {"search_profile_id": saved_search_id} if name == "ascii_201" else {},
+                "started_at": "2026-11-14T00:00:00Z",
+                "updated_at": "2026-11-14T00:00:01Z",
+            }, details)
+            assert run is not None and run["source"] == label
+            saved = record_search_history(store, run)
+            assert saved["source"] == label
+            if name == "ascii_201":
+                assert saved["posting_activity"] == details["posting_activity"]
+                assert saved["duplicates"] == details["posting_activity"]["unchanged"]
+            else:
+                assert "posting_activity" not in saved and saved["duplicates"] == 2
+            expected[profile_id][saved["run_id"]] = {
+                "id": saved["run_id"],
+                **{key: value for key, value in saved.items() if key != "run_id"},
+            }
+        receipt["fixture_history_records"] = len(fixture_labels)
+        receipt["producer_trim_preserved_labels"] = True
+
+        sock = bound_browser_socket()
+        cleanup["socket_closed"] = False
+        origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+        app = create_app(store, "http://127.0.0.1:1", root,
+                         "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+        server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+        server_thread = threading.Thread(
+            target=server.run, kwargs={"sockets": [sock]}, daemon=True,
+        )
+        cleanup["api_thread_stopped"] = False
+        server_thread.start()
+        deadline = monotonic() + 10
+        while not server.started:
+            assert server_thread.is_alive() and monotonic() <= deadline, "History API did not start"
+            sleep(0.02)
+
+        def database_snapshot():
+            with store.engine.connect() as connection:
+                return {
+                    "history": [dict(row) for row in connection.execute(
+                        select(m.audit).where(m.audit.c.action.in_({
+                            "SEARCH_RUN_COMPLETED", "SEARCH_RUN_FAILED", "SEARCH_RUN_CANCELLED",
+                        })).order_by(m.audit.c.id)).mappings()],
+                    **{
+                        name: [dict(row) for row in connection.execute(
+                            select(table).order_by(table.c.id)).mappings()]
+                        for name, table in (
+                            ("applications", m.applications),
+                            ("attempts", m.attempts),
+                            ("operations", m.operations),
+                        )
+                    },
+                }
+
+        before = database_snapshot()
+        assert len(before["history"]) == 4
+        assert before["applications"] == before["attempts"] == before["operations"] == []
+        receipt["fixture_admitted"] = True
+
+        playwright = sync_playwright().start()
+        cleanup["playwright_stopped"] = False
+        browser = playwright.chromium.launch(headless=True)
+        cleanup["browser_closed"] = False
+        context = browser.new_context()
+        cleanup["context_closed"] = False
+
+        def local_reads_only(route):
+            request = route.request
+            parsed = urlsplit(request.url)
+            receipt["request_count"] += 1
+            if receipt["request_count"] > 500:
+                receipt["request_limit_exceeded"] = True
+                route.abort()
+            elif (parsed.scheme, parsed.netloc) != ("http", urlsplit(origin).netloc):
+                receipt["external_requests"] += 1
+                route.abort()
+            elif request.method != "GET":
+                if len(receipt["unexpected_mutations"]) < 20:
+                    receipt["unexpected_mutations"].append(
+                        {"method": request.method, "path": parsed.path})
+                route.abort()
+            else:
+                route.continue_()
+
+        context.route("**/*", local_reads_only)
+        page = context.new_page()
+        page.set_default_timeout(10000)
+        page.on("pageerror", lambda error: receipt["page_error_types"].append(type(error).__name__))
+        page.goto(origin, wait_until="domcontentloaded")
+        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+        page.reload(wait_until="domcontentloaded")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+
+        def is_scoped_history(response):
+            parsed = urlsplit(response.url)
+            query = parse_qs(parsed.query)
+            return (parsed.path == "/profiles/fixture/search-history"
+                    and query.get("search_profile_id") == [saved_search_id]
+                    and query.get("limit") == ["1"])
+
+        with page.expect_response(is_scoped_history) as scoped:
+            page.get_by_label("Saved search profile", exact=True).last.select_option(saved_search_id)
+        assert scoped.value.status == 200
+        assert scoped.value.json()["items"] == [expected["fixture"]["mj236-ascii_201:1"]]
+
+        def verify_history(response, profile_id, phase):
+            assert response.request.method == "GET"
+            assert response.url == f"{origin}/profiles/{profile_id}/search-history?limit=50"
+            assert response.status == 200
+            body = response.json()
+            assert body["profile_id"] == profile_id and body["next_cursor"] is None
+            assert len(body["items"]) == len(expected[profile_id])
+            assert {item["id"]: item for item in body["items"]} == expected[profile_id]
+            panel = page.get_by_role("region", name="Search history", exact=True)
+            table = panel.get_by_role(
+                "table", name=f"Saved search runs for profile {profile_id}", exact=True)
+            expect(table).to_be_visible()
+            expect(table.locator("tbody tr")).to_have_count(len(expected[profile_id]))
+            legacy_index = table.get_by_role("columnheader", name="Legacy duplicates", exact=True).evaluate(
+                "header => header.cellIndex")
+            activity_index = table.get_by_role("columnheader", name="Posting activity", exact=True).evaluate(
+                "header => header.cellIndex")
+            for item in expected[profile_id].values():
+                row = table.locator("tbody tr").filter(
+                    has=page.get_by_role("cell", name=item["query"], exact=True))
+                expect(row).to_have_count(1)
+                # text_content preserves the exact label, including non-BMP characters.
+                cells = row.get_by_role("cell")
+                assert cells.nth(0).text_content() == item["source"]
+                if "posting_activity" in item:
+                    expect(cells.nth(legacy_index)).to_have_text("—")
+                    expect(cells.nth(activity_index)).to_have_text("New 1 · Unchanged 1 · Updated 1")
+                else:
+                    expect(cells.nth(legacy_index)).to_have_text("2")
+                    expect(cells.nth(activity_index)).to_have_text("Unavailable (legacy run)")
+            receipt["phases"].append({
+                "name": phase, "profile_id": profile_id, "status": response.status,
+                "items": len(body["items"]), "api_labels_exact": True, "ui_labels_exact": True,
+            })
+            return table
+
+        history_url = origin + "/profiles/fixture/search-history?limit=50"
+        with page.expect_response(lambda response:
+                response.url == history_url and response.request.method == "GET") as initial:
+            page.get_by_role("button", name="Activity", exact=True).click()
+        initial_table = verify_history(initial.value, "fixture", "initial_readback")
+        saved_search_cell = initial_table.get_by_role("cell").filter(has_text="Unicode ID receipt search")
+        expect(saved_search_cell.get_by_role("button", name="Review jobs", exact=True)).to_be_visible()
+
+        page.reload(wait_until="domcontentloaded")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+        with page.expect_response(lambda response:
+                response.url == history_url and response.request.method == "GET") as reloaded:
+            page.get_by_role("button", name="Activity", exact=True).click()
+        verify_history(reloaded.value, "fixture", "reload")
+
+        other_url = origin + "/profiles/other/search-history?limit=50"
+        with page.expect_response(lambda response:
+                response.url == other_url and response.request.method == "GET") as other:
+            page.get_by_label("Active profile", exact=True).select_option("other")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("other")
+        other_table = verify_history(other.value, "other", "profile_isolation")
+        for label in labels.values():
+            expect(other_table.get_by_role("cell", name=label, exact=True)).to_have_count(0)
+
+        after = database_snapshot()
+        for name in ("history", "applications", "attempts", "operations"):
+            receipt[f"{name}_unchanged"] = after[name] == before[name]
+            assert receipt[f"{name}_unchanged"], name
+        receipt["database_unchanged"] = after == before
+        assert receipt["database_unchanged"]
+        assert not receipt["request_limit_exceeded"]
+        assert receipt["external_requests"] == 0
+        assert receipt["unexpected_mutations"] == []
+        assert receipt["page_error_types"] == []
+        receipt["outcome"] = "PASS"
+    except BaseException as error:
+        primary_failure = error
+        receipt["outcome"] = "FAIL"
+        receipt["failure_type"] = type(error).__name__
+        raise
+    finally:
+        for key, resource in (("context_closed", context), ("browser_closed", browser)):
+            if resource is not None:
+                try:
+                    resource.close()
+                    cleanup[key] = True
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+        if playwright is not None:
+            try:
+                playwright.stop()
+                cleanup["playwright_stopped"] = True
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if server is not None:
+            server.should_exit = True
+        if server_thread is not None:
+            try:
+                if server_thread.ident is not None:
+                    server_thread.join(timeout=10)
+                cleanup["api_thread_stopped"] = not server_thread.is_alive()
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if sock is not None:
+            try:
+                sock.close()
+                cleanup["socket_closed"] = sock.fileno() == -1
+            except Exception as error:
+                cleanup["error_types"].append(type(error).__name__)
+        if cleanup["api_thread_stopped"]:
+            if store is not None:
+                try:
+                    store.engine.dispose()
+                    cleanup["database_disposed"] = True
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+            if directory is not None:
+                try:
+                    directory.cleanup()
+                    cleanup["temporary_directory_removed"] = not Path(directory.name).exists()
+                except Exception as error:
+                    cleanup["error_types"].append(type(error).__name__)
+        cleanup["primary_failure_preserved"] = primary_failure is not None
+        cleanup["all_resources_closed"] = not cleanup["error_types"] and all(
+            cleanup[key] for key in (
+                "context_closed", "browser_closed", "playwright_stopped",
+                "api_thread_stopped", "socket_closed", "database_disposed",
+                "temporary_directory_removed",
+            )
+        )
+        if not cleanup["all_resources_closed"] and primary_failure is None:
+            receipt["outcome"] = "FAIL_CLEANUP"
+        record_property("search_history_source_label_receipt", json.dumps(receipt, sort_keys=True))
+        record_property("search_history_source_label_cleanup", json.dumps(cleanup, sort_keys=True))
+        if not cleanup["all_resources_closed"] and primary_failure is None:
+            raise AssertionError("Search-history source-label resources did not close")
+
 
 
 if __name__ == "__main__":

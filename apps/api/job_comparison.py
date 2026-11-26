@@ -1,7 +1,6 @@
 """Read-only comparison of explicitly selected, currently scored jobs."""
 
 from collections.abc import Mapping, Sequence
-from datetime import UTC, datetime, timedelta
 from importlib import import_module
 from math import isfinite
 from typing import Any, Protocol
@@ -12,9 +11,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
-from services.discovery.search_semantics import filter_jobs
+from services.discovery.jobs_query_policy import resolve_jobs_query
 from services.discovery.skill_taxonomy import canonical_skill_id, skill_label
-from services.normalization.jobs import canonical_job_view
 
 
 class ComparisonService(Protocol):
@@ -136,38 +134,6 @@ def _required_requirements(attributes: Any) -> list[dict] | None:
     return terms
 
 
-def _saved_filter_members(store, profile_id, job_ids, criteria):
-    """Apply saved list filters to only the selected IDs, without page truncation."""
-    from services.discovery.search_profiles import _clean_job_filters
-
-    try:
-        filters = _clean_job_filters(criteria.get("job_filters"))
-    except (TypeError, ValueError):
-        _error(409, "JOB_COMPARISON_STALE_CONTEXT")
-    if filters is None:
-        return set(job_ids)
-    kwargs = {key: filters.get(key) or None for key in (
-        "remote_type", "provider", "experience_level", "employment_type",
-        "education_requirement", "clearance_level", "job_source_id", "ats_provider",
-        "application_link_status", "application_pipeline_status", "application_capability",
-    )}
-    kwargs.update({key: filters.get(key, "") for key in ("q", "title", "company", "location")})
-    for key in ("salary_min", "salary_max"):
-        kwargs[key] = float(filters[key]) if filters.get(key) else None
-    salary_policy = filters.get("salary_policy", "DEFAULT")
-    kwargs["salary_period"] = filters.get("salary_period", "YEAR")
-    kwargs["salary_known_only"] = salary_policy == "KNOWN_ONLY"
-    kwargs["salary_unknown_allowed"] = True if salary_policy == "ALLOW_UNKNOWN" else None
-    kwargs["min_match_score"] = int(filters["min_match_score"]) if filters.get("min_match_score") else None
-    kwargs["skill_id"] = canonical_skill_id(filters["skill"]) if filters.get("skill") else None
-    if filters.get("posted_within_days"):
-        kwargs["posted_before"] = datetime.now(UTC)
-        kwargs["posted_after"] = kwargs["posted_before"] - timedelta(days=int(filters["posted_within_days"]))
-    return {row["id"] for row in store.jobs(
-        profile_id=profile_id, job_ids=job_ids, limit=len(job_ids), **kwargs,
-    )}
-
-
 def create_job_comparison_router(
     store,
     compare_scored_jobs: ComparisonService | None = None,
@@ -179,12 +145,12 @@ def create_job_comparison_router(
         "/profiles/{profile_id}/search-profiles/{search_profile_id}/jobs/compare"
     )
     def compare_jobs(profile_id: str, search_profile_id: str, request: JobComparisonRequest):
-        try:
-            profile = store.profile(profile_id)
-        except NoResultFound:
-            _error(404, "JOB_COMPARISON_SCOPE_MISMATCH")
+        with store.read_snapshot() as connection:
+            try:
+                profile = store.profile(profile_id, connection=connection)
+            except NoResultFound:
+                _error(404, "JOB_COMPARISON_SCOPE_MISMATCH")
 
-        with store.engine.connect() as connection:
             search = connection.execute(select(m.search_profiles).where(
                 m.search_profiles.c.id == search_profile_id,
                 m.search_profiles.c.profile_id == profile_id,
@@ -192,18 +158,14 @@ def create_job_comparison_router(
             if search is None:
                 _error(409, "JOB_COMPARISON_SCOPE_MISMATCH")
 
-            jobs = connection.execute(select(m.jobs, m.companies.c.name.label("company")).join(
-                m.companies, m.companies.c.id == m.jobs.c.company_id,
-            ).where(m.jobs.c.id.in_(request.job_ids))).mappings().all()
+            try:
+                options, _ = resolve_jobs_query(store, profile_id, search["criteria"], connection=connection)
+                jobs = store.jobs(profile_id=profile_id, job_ids=request.job_ids,
+                                  limit=None, connection=connection, **options)
+            except (TypeError, ValueError):
+                _error(409, "JOB_COMPARISON_STALE_CONTEXT")
             by_job = {row["id"]: row for row in jobs}
             if set(by_job) != set(request.job_ids):
-                _error(409, "JOB_COMPARISON_SCOPE_MISMATCH")
-            # Use the same normalized search semantics as the jobs list. Search
-            # ownership and a current score alone do not establish membership.
-            eligible = filter_jobs(
-                [canonical_job_view(dict(row)) for row in jobs], search["criteria"],
-            )
-            if {row["id"] for row in eligible} != set(request.job_ids):
                 _error(409, "JOB_COMPARISON_SCOPE_MISMATCH")
 
             match_rows = connection.execute(select(m.matches).where(
@@ -245,10 +207,6 @@ def create_job_comparison_router(
                     snapshot["required_requirements"] = requirements
                 snapshots.append(snapshot)
 
-        # Release the snapshot connection before the store's filtered query;
-        # comparisons must not hold one pool slot while waiting for another.
-        if _saved_filter_members(store, profile_id, request.job_ids, search["criteria"]) != set(request.job_ids):
-            _error(409, "JOB_COMPARISON_SCOPE_MISMATCH")
         service = compare_scored_jobs or _comparison_service()
         result = service(
             profile_id=profile_id,

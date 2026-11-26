@@ -172,6 +172,7 @@ def _load_saved_search_for_discovery(store, source_id, profile_id, search_profil
 def _saved_search_candidate_job_ids(store, source_id, search_profile, *, captured_job_ids=None):
     """Filter only the current source or explicitly captured fixture jobs."""
     from services.discovery.cheap_prefilter_pipeline import prefilter_search_profile_postings
+    from services.discovery.lifecycle import job_has_no_known_closure
     from services.discovery.search_semantics import filter_jobs
 
     # Canonical attributes belong to the winning source, which can differ from
@@ -208,6 +209,7 @@ def _saved_search_candidate_job_ids(store, source_id, search_profile, *, capture
             m.jobs.c.attributes["source_id"].as_string() == source_id,
             m.jobs.c.attributes["source_endpoint"].as_string() == m.postings.c.source_url,
         )),
+        job_has_no_known_closure(),
     ).order_by(m.postings.c.id)
     with store.engine.connect() as connection:
         postings = [dict(row) for row in connection.execute(statement).mappings()]
@@ -236,6 +238,7 @@ def execute_operation(operation_id, *, registry_module=None,
         params = operation["params"] if isinstance(operation.get("params"), dict) else {}
         records_search = (operation["kind"] == "DISCOVER"
                           and params.get("rescore_only") is not True)
+        history_posting_activity = None
         # The operation entity is the profile that requested this run. Other
         # profile IDs in a source operation receive refreshed matches, but did
         # not independently request a search and must not inherit its history.
@@ -345,6 +348,7 @@ def execute_operation(operation_id, *, registry_module=None,
                     if collection_validation is not None:
                         collection_stop_reason = "SUCCESS_ARTIFACT_VERIFIED"
                     history_results = collection_result.get("jobs_seen")
+                    history_posting_activity = collection_result.get("posting_activity")
                     _record_supported_collection_candidates(
                         store, operation_id, params["source_id"], profile_ids)
                     if search_profile is not None:
@@ -534,8 +538,8 @@ def execute_operation(operation_id, *, registry_module=None,
             if records_search and history_results is not None:
                 for profile_id in history_profiles:
                     new_count = len(_profile_job_ids(store, profile_id) - before_job_ids.get(profile_id, set()))
-                    # The collector does not expose a duplicate tally. Do not
-                    # infer duplicates from old matches or filtered postings.
+                    # Source duplicates come from persisted source identities,
+                    # independently of newly matched jobs for this profile.
                     history_counts[profile_id] = (new_count, None)
             # A completed synchronous stage may omit an internal checkpoint. Do
             # not report success after the operation budget expires. Application
@@ -736,6 +740,7 @@ def execute_operation(operation_id, *, registry_module=None,
                             "results": history_results,
                             "new_jobs": new_count,
                             "duplicates": duplicate_count,
+                            "posting_activity": history_posting_activity,
                         },
                     )
                     if history_record is not None:

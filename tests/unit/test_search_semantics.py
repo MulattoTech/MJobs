@@ -1,4 +1,12 @@
+from pathlib import Path
+import tempfile
 import unittest
+
+import httpx
+from sqlalchemy import select, update
+
+from packages.persistence import models as m
+from packages.persistence.store import Store
 
 from services.discovery.search_semantics import (
     classify_location,
@@ -10,9 +18,186 @@ from services.discovery.search_semantics import (
     parse_education_requirement,
     parse_salary,
 )
+from services.discovery.sources.collect import collect_source, configure_source
 
 
 class SearchSemanticsTests(unittest.TestCase):
+    def test_collected_arrangements_preserve_role_attendance_and_provider_authority(self):
+        location = "Remote, United States"
+        remote = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Implicit attendance", "<ul><li>Requires on-site attendance every week.</li></ul>", "HYBRID"),
+            ("Passive equipment", "Equipment on-site visits are required for servicing.", "REMOTE_US"),
+            ("Passive attendance", "On-site attendance is required.", "HYBRID"),
+            ("Additional attendance", "This role also requires on-site attendance.", "HYBRID"),
+            ("Regular attendance", "The position regularly requires on-site work.", "HYBRID"),
+            ("Active equipment", "The equipment requires on-site installation.", "REMOTE_US"),
+            ("Customer attendance", "Our customers also require on-site attendance.", "REMOTE_US"),
+            ("Explicit schedule", "This role is hybrid.", "HYBRID"),
+            ("Technical work", "Maintain our hybrid cloud infrastructure.", "REMOTE_US"),
+        )
+        greenhouse_jobs = [
+            {"id": i, "title": title, "content": description, "location": {"name": location},
+             "absolute_url": f"https://job-boards.greenhouse.io/contract/jobs/{i}"}
+            for i, (title, description, _) in enumerate(cases, 1)
+        ]
+        location_cases = (
+            ("Worldwide denial", "Remote Worldwide", "Employees cannot work worldwide."),
+            ("Exclusive region", "Remote Worldwide", "This role is available only in europe."),
+            ("Leading country restriction", "Remote Worldwide", "This position is only available in Canada."),
+            ("Trailing country restriction", "Remote Worldwide", "This position is available only in Canada."),
+            ("Leading state restriction", "Remote Worldwide", "This position is only open within Oklahoma."),
+            ("Trailing state restriction", "Remote Worldwide", "This position is open only within Oklahoma."),
+            ("Unrelated availability", "Remote Worldwide", "Benefits are only available in Canada."),
+            ("State-only role", "NY", "On-site role."),
+        )
+        greenhouse_jobs.extend(
+            {"id": i, "title": title, "content": description, "location": {"name": place},
+             "absolute_url": f"https://job-boards.greenhouse.io/contract/jobs/{i}"}
+            for i, (title, place, description) in enumerate(location_cases, len(cases) + 1)
+        )
+        lever_jobs = []
+        lever_cases = (
+            ("Declared hybrid", "hybrid", "This role is fully remote.", "HYBRID"),
+            ("Declared remote conflict", "remote", "On-site attendance is required.", "HYBRID"),
+            ("Declared remote", "remote", "Maintain our hybrid cloud infrastructure.", "REMOTE"),
+        )
+        for i, (title, workplace, description, _) in enumerate(lever_cases, 1):
+            identifier = f"00000000-0000-0000-0000-{i:012d}"
+            lever_jobs.append({
+                "id": identifier, "text": title, "description": description,
+                "categories": {"location": location}, "workplaceType": workplace,
+                "hostedUrl": f"https://jobs.lever.co/contract/{identifier}",
+            })
+
+        with tempfile.TemporaryDirectory() as directory:
+            url = f"sqlite:///{(Path(directory) / 'contract.db').as_posix()}"
+            store = Store(url)
+            try:
+                store.migrate()
+                for provider, tenant, host, payload in (
+                    ("greenhouse", "contract", "boards-api.greenhouse.io",
+                     {"jobs": greenhouse_jobs, "meta": {"total": len(greenhouse_jobs)}}),
+                    ("lever", "global:contract", "api.lever.co", lever_jobs),
+                ):
+                    def serve(request):
+                        self.assertEqual((request.method, request.url.host), ("GET", host))
+                        return httpx.Response(200, json=payload)
+
+                    source = configure_source(store, tenant, provider=provider)
+                    collect_source(store, source, None, refresh_matches=False, transport=httpx.MockTransport(serve))
+            finally:
+                store.engine.dispose()
+
+            reopened = Store(url)
+            try:
+                with reopened.engine.connect() as connection:
+                    rows = {row["title"]: dict(row) for row in connection.execute(select(m.jobs)).mappings()}
+                for title, _, stored in cases:
+                    with self.subTest(title=title, stage="fresh"):
+                        self.assertEqual(rows[title]["remote_type"], stored)
+                        for state in ("OK", "TX"):
+                            evidence = evaluate_search({**remote, "remote_residence_state": state}, rows[title])
+                            self.assertEqual(evidence["matched"], stored == "REMOTE_US")
+                            self.assertEqual(evidence["work_arrangement"],
+                                             "REMOTE" if stored == "REMOTE_US" else "HYBRID")
+                self.assertTrue(rows["Implicit attendance"]["description"].startswith("- Requires on-site"))
+                for title, stale_type, arrangement in (
+                    ("Explicit schedule", "REMOTE_US", "HYBRID"),
+                    ("Implicit attendance", "REMOTE_US", "HYBRID"),
+                    ("Additional attendance", "REMOTE_US", "HYBRID"),
+                    ("Passive equipment", "HYBRID", "REMOTE"),
+                    ("Technical work", "HYBRID", "REMOTE"),
+                ):
+                    with reopened.engine.begin() as connection:
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == rows[title]["id"])
+                                           .values(remote_type=stale_type))
+                    with self.subTest(title=title, stage="persisted legacy"):
+                        job = reopened.job(rows[title]["id"])
+                        evidence = evaluate_search(remote, job)
+                        self.assertEqual(evidence["work_arrangement"], arrangement)
+                        self.assertEqual(evidence["matched"], arrangement == "REMOTE")
+                for title, workplace, _, arrangement in lever_cases:
+                    with self.subTest(title=title):
+                        job = reopened.job(rows[title]["id"])
+                        self.assertEqual(job["attributes"]["workplace_type_authority"], "LEVER_WORKPLACE_TYPE")
+                        self.assertEqual(job["remote_type"], workplace.upper())
+                        expected = "ELIGIBLE" if arrangement == "REMOTE" else "EXCLUDED"
+                        for state in ("OK", "TX"):
+                            evidence = evaluate_search({**remote, "remote_residence_state": state}, job)
+                            self.assertEqual(evidence["work_arrangement"], arrangement)
+                            self.assertEqual(evidence["matched"], expected == "ELIGIBLE")
+                            self.assertEqual(evidence["remote_residence"]["status"], expected)
+                all_remote = {row["title"] for row in reopened.jobs(remote_type="REMOTE")}
+                self.assertIn("Declared remote conflict", all_remote)
+                region_only = {**rows["Passive equipment"], "location": "United States", "remote_type": "REMOTE_US"}
+                self.assertEqual(evaluate_search({}, region_only)["work_arrangement"], "REMOTE")
+                for title, ok, tx in (
+                    ("Worldwide denial", "UNKNOWN", "UNKNOWN"),
+                    ("Exclusive region", "UNKNOWN", "UNKNOWN"),
+                    ("Leading country restriction", "UNKNOWN", "UNKNOWN"),
+                    ("Trailing country restriction", "UNKNOWN", "UNKNOWN"),
+                    ("Leading state restriction", "ELIGIBLE", "EXCLUDED"),
+                    ("Trailing state restriction", "ELIGIBLE", "EXCLUDED"),
+                    ("Unrelated availability", "ELIGIBLE", "ELIGIBLE"),
+                ):
+                    for state, expected in (("OK", ok), ("TX", tx)):
+                        with self.subTest(title=title, state=state, stage="persisted geography"):
+                            result = evaluate_search({**remote, "remote_residence_state": state}, rows[title])
+                            self.assertEqual(result["matched"], expected == "ELIGIBLE")
+                            self.assertEqual(result["remote_residence"]["status"], expected)
+                local = rows["State-only role"]
+                self.assertEqual((local["attributes"]["state"], local["attributes"]["city"]), ("NY", None))
+                self.assertTrue(evaluate_search({"states": ["NY"], "work_arrangements": ["ONSITE"]}, local)["matched"])
+            finally:
+                reopened.engine.dispose()
+
+    def test_remote_scope_respects_role_denials_and_exclusive_places(self):
+        for description, state, status in (
+            ("Employees cannot work worldwide.", "OK", "UNKNOWN"),
+            ("Employees can’t work anywhere in the world.", "OK", "UNKNOWN"),
+            ("Work worldwide isn’t allowed.", "OK", "UNKNOWN"),
+            ("Employees cannot work worldwide. Employees can work in the United States.", "OK", "ELIGIBLE"),
+            ("Employees cannot work in the United States. Employees can work worldwide.", "OK", "EXCLUDED"),
+            ("Our customers cannot work worldwide.", "OK", "ELIGIBLE"),
+            ("This role is available only in europe.", "OK", "UNKNOWN"),
+            ("This role is available only in toronto.", "OK", "UNKNOWN"),
+            ("This role is available only in CA.", "CA", "UNKNOWN"),
+            ("This role is available only in california.", "CA", "ELIGIBLE"),
+            ("This role is available only in california.", "OK", "EXCLUDED"),
+            ("This position is open only in the U.S.", "OK", "ELIGIBLE"),
+            ("Benefits are only available in europe.", "OK", "ELIGIBLE"),
+        ):
+            with self.subTest(description=description, state=state):
+                location = "Remote Worldwide"
+                attrs = classify_location(location, description)
+                if status == "UNKNOWN" and "world" in description:
+                    self.assertNotEqual(attrs["remote_type"], "REMOTE_WORLDWIDE")
+                for remote_type, attributes in (
+                    (attrs["remote_type"], attrs),
+                    ("REMOTE_WORLDWIDE", {"provider": "greenhouse", "remote_indicated": True}),
+                ):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attributes,
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], status == "ELIGIBLE")
+
+    def test_state_only_local_scope_matches_without_creating_a_city(self):
+        for location, state in (("On-site - NY", "NY"), ("NY", "NY"), ("On-site - TX", "TX")):
+            description = "On-site role."
+            parsed = classify_location(location, description)
+            with self.subTest(location=location, stage="fresh"):
+                self.assertEqual((parsed["state"], parsed["city"]), (state, None))
+            for attrs in (parsed, {}, {"city": state}):
+                with self.subTest(location=location, attributes=attrs):
+                    job = {"location": location, "description": description, "remote_type": "ONSITE",
+                           "attributes": attrs}
+                    local = {"work_arrangements": ["ONSITE"], "states": ["NY"]}
+                    self.assertEqual(evaluate_search(local, job)["matched"], state == "NY")
+                    self.assertFalse(evaluate_search({**local, "states": [state], "cities": [state]}, job)["matched"])
+
     def test_remote_classification_preserves_restrictions(self):
         result = classify_location(
             "Remote - United States",
@@ -27,6 +212,795 @@ class SearchSemanticsTests(unittest.TestCase):
         self.assertEqual(classify_location("Remote Worldwide")["remote_type"], "REMOTE_WORLDWIDE")
         self.assertEqual(classify_location("Hybrid - Austin, TX")["remote_type"], "HYBRID")
         self.assertEqual(classify_location("Austin, TX", "On-site role")["remote_type"], "ONSITE")
+
+    def test_unpunctuated_city_state_uses_a_terminal_postal_code(self):
+        description = "On-site role."
+        for location, city, state in (
+            ("Austin TX", "Austin", "TX"),
+            ("Austin tx", "Austin", "TX"),
+            ("Austin TX 78701", "Austin", "TX"),
+            ("Austin tX 78701 (On-site)", "Austin", "TX"),
+            ("Austin TX 78701-1234 (On-site)", "Austin", "TX"),
+            ("Austin Tx 78701-1234 (On-site)", "Austin", "TX"),
+            ("Round Rock TX (Hybrid)", "Round Rock", "TX"),
+            ("Austin TX 78701 extra", "Austin TX 78701 extra", None),
+            ("Austin tx 78701 extra", "Austin tx 78701 extra", None),
+            ("Austin TX 7870", "Austin TX 7870", None),
+            ("Austin, TX 7870 (On-site)", "Austin", None),
+            ("Seattle", "Seattle", None),
+            ("Remote, United States", None, None),
+        ):
+            with self.subTest(location=location):
+                attrs = classify_location(location, description)
+                self.assertEqual((attrs["city"], attrs["state"]), (city, state))
+                criteria = {"states": ["TX"], "cities": ["Austin", "Round Rock"],
+                            "work_arrangements": ["ONSITE", "HYBRID"]}
+                for attributes in (attrs, {}):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": attrs["remote_type"], "attributes": attributes,
+                    })
+                    self.assertEqual(result["matched"], state == "TX")
+
+    def test_onsite_negation_does_not_override_remote_or_a_separate_requirement(self):
+        location = "Remote, United States"
+        for description, expected_arrangement, expected_status in (
+            ("No on-site attendance is required.", "REMOTE_US", "ELIGIBLE"),
+            ("No regular on-site attendance is required.", "REMOTE_US", "ELIGIBLE"),
+            ("On-site attendance is not required.", "REMOTE_US", "ELIGIBLE"),
+            ("The position never requires on-site work.", "REMOTE_US", "ELIGIBLE"),
+            ("On-site attendance is required.", "HYBRID", "EXCLUDED"),
+            ("No travel is required. On-site attendance is required.", "HYBRID", "EXCLUDED"),
+            ("No on-site attendance is required. The role is hybrid.", "HYBRID", "EXCLUDED"),
+        ):
+            with self.subTest(description=description, stage="classify"):
+                self.assertEqual(classify_location(location, description)["remote_type"], expected_arrangement)
+            for remote_type, attrs in (
+                ("REMOTE_US", {"remote_indicated": True}),
+                ("HYBRID", {"remote_indicated": True, "provider": "greenhouse"}),
+            ):
+                # The evaluator also encounters pre-classified provider records.
+                if remote_type == "REMOTE_US" and description.endswith("The role is hybrid."):
+                    continue
+                with self.subTest(description=description, remote_type=remote_type):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attrs,
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], expected_status)
+                    self.assertEqual(result["matched"], expected_status == "ELIGIBLE")
+
+    def test_role_open_only_in_place_does_not_confirm_unrelated_us_residence(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description in (
+            "This role is open only in Canada.",
+            "This position is available only in Canada.",
+            "This role is available only in Toronto.",
+        ):
+            with self.subTest(description=description):
+                attrs = classify_location("Remote, United States", description)
+                result = evaluate_search(criteria, {
+                    "location": "Remote, United States", "description": description,
+                    "remote_type": attrs["remote_type"], "attributes": attrs,
+                })
+                self.assertFalse(result["matched"])
+                self.assertEqual(result["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
+
+        state_limited = evaluate_search(criteria, {
+            "location": "Remote, United States",
+            "description": "This role is open only in California.",
+            "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True},
+        })
+        self.assertEqual(state_limited["remote_residence"]["status"], "EXCLUDED")
+
+        benefits = evaluate_search(criteria, {
+            "location": "Remote, United States",
+            "description": "Benefits are available only in Canada.",
+            "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True},
+        })
+        self.assertTrue(benefits["matched"])
+        self.assertEqual(benefits["remote_residence"]["status"], "ELIGIBLE")
+
+    def test_equipment_onsite_installation_is_not_employee_attendance(self):
+        location = "Remote, United States"
+        description = "Equipment requires on-site installation."
+        attrs = classify_location(location, description)
+        self.assertEqual(attrs["remote_type"], "REMOTE_US")
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        fresh = evaluate_search(criteria, {
+            "location": location, "description": description,
+            "remote_type": attrs["remote_type"], "attributes": attrs,
+        })
+        self.assertTrue(fresh["matched"])
+        self.assertEqual(fresh["work_arrangement"], "REMOTE")
+
+        legacy = evaluate_search(criteria, {
+            "location": location, "description": description, "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        })
+        self.assertTrue(legacy["matched"])
+        self.assertEqual(legacy["work_arrangement"], "REMOTE")
+
+    def test_onsite_state_only_location_does_not_invent_city(self):
+        attrs = classify_location("On-site - NY")
+        self.assertEqual(attrs["remote_type"], "ONSITE")
+        self.assertEqual(attrs["state"], "NY")
+        self.assertIsNone(attrs["city"])
+        self.assertTrue(evaluate_search({"states": ["NY"], "work_arrangements": ["ONSITE"]}, {
+            "location": "On-site - NY", "remote_type": attrs["remote_type"], "attributes": attrs,
+        })["matched"])
+        self.assertFalse(evaluate_search({"cities": ["NY"], "work_arrangements": ["ONSITE"]}, {
+            "location": "On-site - NY", "remote_type": attrs["remote_type"], "attributes": attrs,
+        })["matched"])
+
+    def test_search_evidence_reports_evaluated_arrangement_without_mutating_row(self):
+        legacy = {
+            "id": "legacy", "location": "Remote, United States",
+            "description": "Maintain hybrid cloud infrastructure.", "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        }
+        hybrid = {
+            "id": "hybrid", "location": "Remote, United States",
+            "description": "This role is hybrid.", "remote_type": "HYBRID",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        }
+        results = filter_jobs([legacy, hybrid], {"work_arrangements": ["REMOTE", "HYBRID"]})
+        by_id = {row["id"]: row for row in results}
+        self.assertEqual(by_id["legacy"]["search_evidence"]["work_arrangement"], "REMOTE")
+        self.assertEqual(by_id["hybrid"]["search_evidence"]["work_arrangement"], "HYBRID")
+        self.assertEqual(by_id["legacy"]["remote_type"], "HYBRID")
+        self.assertEqual(by_id["hybrid"]["remote_type"], "HYBRID")
+        self.assertEqual(legacy["remote_type"], "HYBRID")
+        self.assertEqual(hybrid["remote_type"], "HYBRID")
+
+    def test_exclusive_country_residence_does_not_confirm_us_state_eligibility(self):
+        location = "Remote Worldwide"
+        for description, status in (
+            ("Only Canadian residents may apply.", "UNKNOWN"),
+            ("Only Canada residents are eligible.", "UNKNOWN"),
+            ("This position is open only to Canadian residents.", "UNKNOWN"),
+            ("Only residents of Canada may apply.", "UNKNOWN"),
+            ("Only European residents may apply.", "UNKNOWN"),
+            ("Canadian residents may apply.", "ELIGIBLE"),
+            ("Only U.S. residents may apply.", "ELIGIBLE"),
+            ("Only medical residents may apply.", "ELIGIBLE"),
+            ("Only candidates in good standing may apply.", "ELIGIBLE"),
+        ):
+            with self.subTest(description=description):
+                attrs = classify_location(location, description)
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+                    "location": location, "description": description,
+                    "remote_type": attrs["remote_type"], "attributes": attrs,
+                })
+                self.assertEqual(result["remote_residence"]["status"], status)
+                self.assertEqual(result["matched"], status == "ELIGIBLE")
+
+    def test_explicit_us_denial_overrides_broad_location_evidence(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description, status in (
+            ("Employees cannot work in the United States.", "EXCLUDED"),
+            ("Employees aren\u2019t allowed to work in the U.S.", "EXCLUDED"),
+            ("- Employees cannot work in the United States.", "EXCLUDED"),
+            ("This role is not remote within the United States.", "EXCLUDED"),
+            ("The position isn't available in the United States.", "EXCLUDED"),
+            ("Work in the United States is not allowed.", "EXCLUDED"),
+            ("Our customers cannot work in the United States.", "ELIGIBLE"),
+            ("Applicants aren't required to reside in the United States.", "ELIGIBLE"),
+            ("Employees cannot work worldwide. Remote within the United States.", "ELIGIBLE"),
+            ("Employees cannot work in the United States on Tuesdays. "
+             "Employees may work in the United States.", "ELIGIBLE"),
+        ):
+            for location in ("Remote Worldwide", "Remote, United States"):
+                with self.subTest(location=location, description=description):
+                    attrs = classify_location(location, description)
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description, "attributes": attrs,
+                        "remote_type": attrs["remote_type"],
+                    })
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], status == "ELIGIBLE")
+
+    def test_residence_only_clauses_allow_normalized_posting_list_markers(self):
+        from services.discovery.sources.greenhouse import Greenhouse
+
+        job = Greenhouse("fixture-board").normalize({
+            "id": 42, "title": "Network Administrator", "location": {"name": "Remote, United States"},
+            "content": "<ul><li>California residents only.</li><li>Maintain Linux systems.</li></ul>",
+        })
+        self.assertEqual(job["description"], "- California residents only.\n- Maintain Linux systems.")
+        for description in (job["description"], "Requirements:\n* California residents only.",
+                            "Requirements:\n\u2022 California residents only.", "1) California residents only."):
+            for state, status in (("OK", "EXCLUDED"), ("CA", "ELIGIBLE")):
+                with self.subTest(description=description, state=state):
+                    result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state},
+                                             {**job, "description": description})
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], state == "CA")
+        ordinary = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, {
+            **job, "description": "- California residents only pay state taxes on taxable income.",
+        })
+        self.assertTrue(ordinary["matched"])
+
+    def test_remotive_candidate_location_resolves_complete_state_scopes(self):
+        from services.discovery.sources.remotive import Remotive
+
+        adapter = Remotive()
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for index, (location, status) in enumerate((
+            ("Oklahoma", "ELIGIBLE"),
+            ("Oklahoma, Texas", "ELIGIBLE"),
+            ("TX and AR", "EXCLUDED"),
+            ("CA", "UNKNOWN"),
+            ("Oklahoma City", "UNKNOWN"),
+            ("Oklahoma or approved regions", "UNKNOWN"),
+            ("Remote", "UNKNOWN"),
+        ), 1):
+            with self.subTest(location=location):
+                job = adapter.normalize({
+                    "id": index, "title": "Network Administrator", "description": "Maintain Linux systems.",
+                    "candidate_required_location": location,
+                })
+                self.assertEqual(job["location"], location)
+                self.assertEqual(job["remote_type"], "REMOTE")
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["remote_residence"]["status"], status)
+                self.assertEqual(result["matched"], status == "ELIGIBLE")
+        unproven = evaluate_search(criteria, {
+            "location": "Oklahoma", "description": "", "remote_type": "REMOTE",
+            "attributes": {"provider": "greenhouse", "remote_indicated": True},
+        })
+        self.assertEqual(unproven["remote_residence"]["status"], "UNKNOWN")
+
+    def test_legacy_employer_feed_reclassifies_only_text_inferred_arrangements(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for provider, strategy in (("rss", "RSS"), ("json_feed", "PUBLIC_JSON"),
+                                   ("rss", "PUBLIC_JSON"), ("rss", "FEED")):
+            attributes = {"provider": provider, "collection_strategy": strategy, "source_id": "fixture-feed",
+                          "source_endpoint": "https://employer.example.test/jobs", "remote_indicated": True}
+            for location, description, matched in (
+                ("Remote, United States", "Maintain our hybrid cloud infrastructure.", True),
+                ("Remote, United States", "This role is hybrid.", False),
+                ("Remote, United States", "On-site attendance is required.", False),
+                ("Austin, TX", "On-site role.", False),
+            ):
+                with self.subTest(provider=provider, strategy=strategy, description=description):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": "HYBRID", "attributes": attributes,
+                    })
+                    self.assertEqual(result["matched"], matched)
+        declared = evaluate_search(criteria, {
+            "location": "Remote, United States", "description": "Maintain our hybrid cloud infrastructure.",
+            "remote_type": "HYBRID", "attributes": {
+                "provider": "lever", "workplace_type_authority": "LEVER_WORKPLACE_TYPE", "remote_indicated": True,
+            },
+        })
+        self.assertFalse(declared["matched"])
+        unproven = evaluate_search(criteria, {
+            "location": "Remote, United States", "description": "Maintain our hybrid cloud infrastructure.",
+            "remote_type": "HYBRID", "attributes": {"provider": "rss", "remote_indicated": True},
+        })
+        self.assertFalse(unproven["matched"])
+
+    def test_worldwide_scope_requires_affirmative_whole_clause_evidence(self):
+        for description in ("Employees cannot work worldwide.",
+                            "Employees can't work worldwide.",
+                            "Employees can\u2019t work worldwide.",
+                            "Employees are not allowed to work worldwide.",
+                            "Employees aren't allowed to work worldwide.",
+                            "Employees aren\u2019t allowed to work worldwide.",
+                            "Our customers work worldwide.",
+                            "Our customers' employees can work worldwide.",
+                            "Our clients\u2019 staff can work worldwide.",
+                            "Employees do not work worldwide.",
+                            "Employees cannot work worldwide. This role supports Linux.",
+                            "This role supports Linux; employees cannot work worldwide.",
+                            "Work worldwide is not permitted.",
+                            "Remote worldwide isn't allowed.",
+                            "Remote worldwide isn\u2019t allowed.",
+                            "Remote worldwide isn't possible.",
+                            "Remote worldwide isn\u2019t possible.",
+                            "Work worldwide is prohibited."):
+            with self.subTest(description=description):
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "UNKNOWN")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, job)
+                self.assertFalse(result["matched"])
+                self.assertEqual(result["remote_residence"]["status"], "UNKNOWN")
+
+        for restriction in ("Employees cannot work worldwide.", "Employees can\u2019t work worldwide.",
+                            "Employees aren't allowed to work worldwide."):
+            with self.subTest(restriction=restriction):
+                description = f"{restriction} Remote within the United States."
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_US")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search(
+                    {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
+
+        for description in ("Work worldwide.",
+                            "Employees may work worldwide.",
+                            "Our employees can work worldwide.",
+                            "Employees are allowed to work worldwide.",
+                            "This role is remote worldwide.",
+                            "This position can be worked worldwide."):
+            with self.subTest(description=description, affirmative=True):
+                attributes = classify_location("Remote", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_WORLDWIDE")
+                job = {"location": "Remote", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search(
+                    {"remote": "REQUIRED", "remote_residence_state": "OK"}, job)["matched"])
+
+    def test_remote_classification_uses_geographic_statements_instead_of_code_like_words(self):
+        us = classify_location("Remote", "Work in the United States. We support IT and AI operations.")
+        self.assertEqual((us["remote_type"], us["remote_regions"]), ("REMOTE_US", ["US"]))
+        us_only = classify_location("Remote", "Work from anywhere in the US.")
+        self.assertEqual((us_only["remote_type"], us_only["remote_regions"]), ("REMOTE_US", ["US"]))
+        states = classify_location("Remote", "Fully remote if you reside in one of the following states: Oklahoma, Texas.")
+        self.assertEqual((states["remote_type"], states["remote_regions"]),
+                         ("REMOTE_SPECIFIC_STATES", ["OK", "TX"]))
+
+    def test_us_work_scope_requires_affirmative_role_evidence(self):
+        location = "Remote"
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description, expected in (
+            ("Employees cannot work in the United States.", "EXCLUDED"),
+            ("Employees can\u2019t work in the United States.", "EXCLUDED"),
+            ("Employees aren't allowed to work in the United States.", "EXCLUDED"),
+            ("This role is not remote within the United States.", "EXCLUDED"),
+            ("Work in the United States is not allowed.", "EXCLUDED"),
+            ("Our customers work in the United States.", "UNKNOWN"),
+            ("Our clients' staff can work in the United States.", "UNKNOWN"),
+            ("Applicants aren't required to reside in the United States.", "UNKNOWN"),
+            ("Work in the United States.", "ELIGIBLE"),
+            ("Our employees can work in the United States.", "ELIGIBLE"),
+            ("Applicants must reside in the United States.", "ELIGIBLE"),
+            ("Employees cannot work worldwide. This role is remote within the United States.", "ELIGIBLE"),
+            ("No office visits are required. Employees may work in the U.S.", "ELIGIBLE"),
+        ):
+            attrs = classify_location(location, description)
+            eligible = expected == "ELIGIBLE"
+            with self.subTest(description=description, stage="classify"):
+                self.assertEqual(attrs["remote_type"], "REMOTE_US" if eligible else "UNKNOWN")
+                self.assertEqual(attrs["country"], "US" if eligible else None)
+            for remote_type, attrs_for_run in (
+                (attrs["remote_type"], attrs),
+                ("REMOTE_US", {"provider": "greenhouse", "country": "US", "remote_indicated": True}),
+            ):
+                with self.subTest(description=description, remote_type=remote_type):
+                    result = evaluate_search(criteria, {
+                        "location": location, "description": description,
+                        "remote_type": remote_type, "attributes": attrs_for_run,
+                    })
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": expected})
+                    self.assertEqual(result["matched"], eligible)
+
+    def test_remote_residence_requires_supported_eligibility(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Remote, United States", "", True, None),
+            ("Remote, United States", "Open anywhere in the United States except Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Oklahoma residents are not eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants based in OK may not apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Not available to residents of Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants in OK aren't eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "This role is not open to Oklahoma residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "We are unable to hire in Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "No hiring in Oklahoma.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants residing in TX and AR can apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Candidates residing in OK or TX may apply.", True, None),
+            ("Remote, US", "Applicants must reside in Texas.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants must reside in the United States.", True, None),
+            ("Remote, US", "Applicants must reside in the United States, specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States. This role supports Linux.", True, None),
+            ("Remote, US", "Applicants must reside in the United States. Candidates should have Linux experience.", True, None),
+            ("Remote, US", "Applicants must reside in the United States, specifically in California. Linux support experience required.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S.", True, None),
+            ("Remote, US", "Applicants must reside in the US.", True, None),
+            ("Remote, US", "Applicants must reside in the U.S., specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S. This role supports Linux.", True, None),
+            ("Remote, US", "Applicants must reside in the US, specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the US. This role supports Linux.", True, None),
+            ("Remote, US", "Applicants must reside in the U.S. only in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S. (California only).",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Applicants must reside in the U.S., specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Applicants must reside in the U.S. only in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the U.S. only. Oklahoma residents are not eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants must reside in the United States. This role supports Linux. "
+             "The role is remote within the United States, specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the u.s., specifically in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States or Canada.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the US approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States. Only Pacific time zone applicants are eligible.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Remote within the US. Only applicants in the Pacific time zone may apply.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in the United States. Collaboration hours overlap the Pacific time zone.",
+             True, None),
+            ("Remote, United States", "This position is open only to California residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to California residents only.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to Oklahoma residents only.", True, None),
+            ("Remote, United States", "This position is open to California residents only, with training provided.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents may apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only residents of California may apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only Oklahoma residents may apply.", True, None),
+            ("Remote, United States", "Only candidates with Linux experience may apply.", True, None),
+            ("Remote, United States", "Only California residents are eligible.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents are eligible to apply.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Only California residents are eligible for the training benefit.",
+             True, None),
+            ("Remote, United States", "Only Oklahoma residents are eligible.", True, None),
+            ("Remote, United States", "Only residents of approved hiring regions are eligible.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "Only candidates with Linux experience are eligible.", True, None),
+            ("Remote, United States", "Work on weekdays only during onboarding. "
+             "California residents may apply.", True, None),
+            ("Remote, United States", "This position is open to California residents! "
+             "Training benefits are available to current employees only.", True, None),
+            ("Remote, United States", "California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "California residents only\r\nMaintain Linux systems.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "California residents only\nMaintain Linux systems.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This training coordinator position is open to California residents only.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "The compensation analyst role is open only to California residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Training benefits are available to California residents only", True, None),
+            ("Remote, United States", "Remote in the United States. California residents only.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Benefits are available to California residents only.", True, None),
+            ("Remote, United States", "Oklahoma residents only.", True, None),
+            ("Remote, United States", "Training is open to new employees! "
+             "This position is available to California residents only.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "This position is open to candidates with Linux experience only.", True, None),
+            ("Remote, United States", "Remote within the United States. This position is open only to California residents.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, United States", "Training benefits are available only to employees who complete onboarding.",
+             True, None),
+            ("Remote, United States", "This role is open only to candidates with Linux experience.",
+             True, None),
+            ("Remote, United States", "This position is open only to residents of approved hiring regions.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to candidates based in approved locations.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to candidates in Europe.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to European candidates.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This position is open only to candidates in training.", True, None),
+            ("Remote, United States", "This position is open only to candidates in California.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This role is open only to medical residents.",
+             True, None),
+            ("Remote, United States", "This role is open only to U.S. residents in approved hiring regions.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, United States", "This role is open only to candidates in good standing.",
+             True, None),
+            ("Remote, US", "Applicants must reside in OK, TX.", True, None),
+            ("Remote, US", "Applicants must reside in Oklahoma or Texas.", True, None),
+            ("Remote", "Fully remote options if you reside in one of the following states: Oklahoma, Texas.",
+             True, None),
+            ("Remote, US", "Fully remote options if you reside in one of the following states: Texas, Arizona.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "We cannot hire in AK, OK, or TX.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Applicants must reside in Canada.", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote Canada", "", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote", "Work from anywhere.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Manage worldwide infrastructure.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Our company is based in the United States.", False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote", "Applicants must reside in one of our approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, US", "Applicants must reside in one of our approved states.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, Arizona", "", False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, Arizona", "Applicants must reside in Oklahoma or Texas.",
+             False, "REMOTE_RESIDENCE_EXCLUDED"),
+            ("Remote, US", "Candidates must be based in Oklahoma City.",
+             False, "REMOTE_RESIDENCE_UNKNOWN"),
+            ("Remote, Oklahoma", "", True, None),
+            ("Remote Worldwide", "", True, None),
+        )
+        for location, description, matched, reason in cases:
+            with self.subTest(location=location, description=description):
+                attributes = classify_location(location, description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["matched"], matched, result["reasons"])
+                if reason:
+                    self.assertIn(reason, result["reasons"])
+                else:
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": "ELIGIBLE"})
+
+    def test_leading_only_after_unrelated_sentence_allows_the_named_state(self):
+        location = "Remote, United States"
+        description = "Work on weekdays only during onboarding. Only California residents may apply."
+        attributes = classify_location(location, description)
+        job = {"location": location, "description": description, "attributes": attributes,
+               "remote_type": attributes["remote_type"]}
+        for state, status in (("CA", "ELIGIBLE"), ("OK", "EXCLUDED")):
+            with self.subTest(state=state):
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, job)
+                self.assertEqual(result["remote_residence"], {"state": state, "status": status})
+                self.assertEqual(result["matched"], state == "CA")
+
+    def test_remote_scope_fallback_requires_unqualified_us_geography(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        rows = (
+            ("United States", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("US", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country}", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
+            ("US", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country}. This role supports Linux.", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("US", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country} only in California.", False, "UNKNOWN"),
+            ("U.S.", "This role is remote within the {country} (California only).", False, "UNKNOWN"),
+            ("u.s.", "This role is remote within the {country}, specifically in California.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country}. California residents only.", False, "EXCLUDED"),
+            ("United States", "This role is remote within the {country} or Canada.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country} approved states.", False, "UNKNOWN"),
+            ("United States", "This role is remote within the {country} only.", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country} only.", True, "ELIGIBLE"),
+            ("U.S.", "This role is remote within the {country} only. This role supports Linux.", True, "ELIGIBLE"),
+            ("United States", "This role is remote within the {country} only. This role supports Linux.", True, "ELIGIBLE"),
+        )
+        for country, template, matched, status in rows:
+            description = template.format(country=country)
+            description = description.replace("U.S.. ", "U.S. ")
+            for location in ("Remote", "Remote, US"):
+                with self.subTest(location=location, description=description):
+                    attributes = classify_location(location, description)
+                    result = evaluate_search(criteria, {"location": location, "description": description,
+                                                       "attributes": attributes, "remote_type": attributes["remote_type"]})
+                    self.assertEqual(result["remote_residence"]["status"], status)
+                    self.assertEqual(result["matched"], matched, result["reasons"])
+
+    def test_technical_hybrid_cloud_does_not_override_remote_arrangement(self):
+        technical_phrases = ("Maintain our hybrid cloud infrastructure.",
+                             "Maintain our hybrid model for cloud deployment.")
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description in technical_phrases:
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, United States", description)
+                self.assertEqual(attributes["remote_type"], "REMOTE_US")
+                job = {"location": "Remote, United States", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                self.assertTrue(evaluate_search(criteria, job)["matched"])
+        description = "Hybrid work schedule with three remote days."
+        attributes = classify_location("Remote, United States", description)
+        self.assertEqual(attributes["remote_type"], "HYBRID")
+        self.assertFalse(evaluate_search(criteria, {
+            "location": "Remote, United States", "description": description,
+            "attributes": attributes, "remote_type": attributes["remote_type"],
+        })["matched"])
+
+    def test_hybrid_with_remote_days_is_kept_in_cross_border_local_search(self):
+        description = "Two remote days and three days in the office."
+        for location in ("Durant, OK", "Denison, TX", "Sherman, TX"):
+            with self.subTest(location=location):
+                attributes = classify_location(location, "Hybrid. " + description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, job)["matched"])
+                local_criteria = {"work_arrangements": ["HYBRID", "ONSITE"],
+                                  "states": ["OK", "TX"], "cities": ["Durant", "Denison", "Sherman"]}
+                self.assertTrue(evaluate_search(local_criteria, job)["matched"])
+
+    def test_occasional_required_onsite_work_is_not_fully_remote(self):
+        for description in ("The position requires occasional on-site work.",
+                            "This role requires 3 days per week on-site.",
+                            "Occasional on-site visits may be required."):
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, United States", description)
+                self.assertEqual(attributes["remote_type"], "HYBRID")
+                legacy_job = {"location": "Remote, United States", "description": description,
+                              "remote_type": "REMOTE_US", "attributes": {"remote_indicated": True}}
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, legacy_job)["matched"])
+        optional = classify_location("Remote, United States", "The role does not require on-site work.")
+        self.assertEqual(optional["remote_type"], "REMOTE_US")
+
+    def test_texoma_search_includes_captured_and_older_local_jobs(self):
+        criteria = {"work_arrangements": ["HYBRID", "ONSITE"], "states": ["OK", "TX"],
+                    "cities": ["Durant", "Denison", "Sherman"]}
+        cases = (
+            ("Durant, OK", {"source_type": "MANUAL_USER_ENTRY"}, True),
+            ("Denison, TX", {"state": "IN", "city": "Denison"}, True),
+            ("Denison, IA", {"state": "TX", "city": "Denison"}, False),
+            ("Sherman", {}, False),
+        )
+        for location, attributes, expected in cases:
+            with self.subTest(location=location, attributes=attributes):
+                job = {"location": location, "remote_type": "ONSITE", "attributes": attributes}
+                self.assertEqual(evaluate_search(criteria, job)["matched"], expected)
+
+    def test_location_state_accepts_only_known_arrangement_suffixes(self):
+        criteria = {"work_arrangements": ["HYBRID", "ONSITE"], "states": ["OK", "TX"],
+                    "cities": ["Durant", "Denison", "Sherman"]}
+        for location, expected_city, expected_state, expected_arrangement in (
+            ("Durant, OK (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, Oklahoma (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, OK 74701 (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Durant, Oklahoma 74701-1234 (Hybrid)", "Durant", "OK", "HYBRID"),
+            ("Denison, TX (On-site)", "Denison", "TX", "ONSITE"),
+            ("Durant, OK 74701 extra (Hybrid)", "Durant", None, "HYBRID"),
+            ("Durant, OK (Hiring)", "Durant", None, "UNKNOWN"),
+        ):
+            with self.subTest(location=location):
+                attributes = classify_location(location)
+                self.assertEqual(attributes["city"], expected_city)
+                self.assertEqual(attributes["state"], expected_state)
+                self.assertEqual(attributes["remote_type"], expected_arrangement)
+                job = {"location": location, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                self.assertEqual(evaluate_search(criteria, job)["matched"], expected_state is not None)
+
+    def test_timezone_eligibility_scope_is_distinct_from_work_hours(self):
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        cases = (
+            ("Remote within the United States. Candidates based in the Pacific time-zone may apply.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Candidates based in the Pacific time zone may apply.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Applicants residing in Pacific time-zone are eligible.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Applicants residing in Pacific time zone are eligible.",
+             "UNKNOWN", False),
+            ("Remote within the United States. Collaboration hours overlap the Pacific time-zone.",
+             "ELIGIBLE", True),
+            ("Remote within the United States. We collaborate with teams in the Pacific time zone.",
+             "ELIGIBLE", True),
+            ("Remote within the United States. Working hours follow Pacific time.",
+             "ELIGIBLE", True),
+        )
+        for description, expected_status, expected_match in cases:
+            with self.subTest(description=description):
+                attributes = classify_location("Remote, US", description)
+                job = {"location": "Remote, US", "description": description,
+                       "attributes": attributes, "remote_type": attributes["remote_type"]}
+                result = evaluate_search(criteria, job)
+                self.assertEqual(result["remote_residence"]["status"], expected_status)
+                self.assertEqual(result["matched"], expected_match, result["reasons"])
+
+    def test_explicit_resident_only_policy_supports_only_named_states(self):
+        for state, expected_status, expected_match in (
+            ("OK", "EXCLUDED", False),
+            ("CA", "ELIGIBLE", True),
+        ):
+            with self.subTest(state=state):
+                location = "Remote, United States"
+                description = "This position is open only to California residents."
+                attributes = classify_location(location, description)
+                job = {"location": location, "description": description, "attributes": attributes,
+                       "remote_type": attributes["remote_type"]}
+                result = evaluate_search({"remote": "REQUIRED", "remote_residence_state": state}, job)
+                self.assertEqual(result["remote_residence"]["status"], expected_status)
+                self.assertEqual(result["matched"], expected_match, result["reasons"])
+
+    def test_legacy_hybrid_type_is_reclassified_from_remote_evidence(self):
+        location = "Remote, United States"
+        legacy_job = {"location": location, "remote_type": "HYBRID",
+                      "attributes": {"provider": "greenhouse", "remote_indicated": True}}
+        criteria = {"remote": "REQUIRED", "remote_residence_state": "OK"}
+        for description in ("Maintain our hybrid cloud infrastructure.",
+                            "Maintain our hybrid model for cloud deployment.",
+                            "This role is hybrid cloud engineering."):
+            classified = classify_location(location, description)
+            fresh_job = {"location": location, "description": description,
+                         "remote_type": classified["remote_type"], "attributes": classified}
+            with self.subTest(description=description, collected="fresh"):
+                self.assertEqual(classified["remote_type"], "REMOTE_US")
+                self.assertTrue(evaluate_search(criteria, fresh_job)["matched"])
+            with self.subTest(description=description, collected="legacy"):
+                self.assertTrue(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
+
+        for description in ("Hybrid work schedule with two remote days.", "This role is hybrid.",
+                            "This role is hybrid (three days per week in the office).",
+                            "Hybrid (three days per week in the office).",
+                            "This role (hybrid) includes three days per week onsite.",
+                            "Three days per week in office (hybrid).",
+                            "The work schedule is hybrid: three days in the office.",
+                            "The work schedule is hybrid.",
+                            "The position is hybrid; two days onsite and three remote."):
+            with self.subTest(description=description):
+                genuine_hybrid = {**legacy_job, "description": description}
+                self.assertEqual(classify_location(location, description)["remote_type"], "HYBRID")
+                self.assertFalse(evaluate_search({"remote": "REQUIRED"}, genuine_hybrid)["matched"])
+                self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, genuine_hybrid)["matched"])
+        description = "Fully remote role with no hybrid work requirement."
+        attributes = classify_location(location, description)
+        self.assertEqual(attributes["remote_type"], "REMOTE_US")
+        fresh_remote = {"location": location, "description": description,
+                        "remote_type": attributes["remote_type"], "attributes": attributes}
+        self.assertTrue(evaluate_search(criteria, fresh_remote)["matched"])
+        legacy_remote = {**legacy_job, "description": description}
+        self.assertTrue(evaluate_search(criteria, legacy_remote)["matched"])
+
+        for description in ("Hybrid work is not required.",
+                            "This position does not have a hybrid work requirement."):
+            attributes = classify_location(location, description)
+            fresh = {"location": location, "description": description,
+                     "remote_type": attributes["remote_type"], "attributes": attributes}
+            for kind, job in (("fresh", fresh), ("stored", {**legacy_job, "description": description})):
+                with self.subTest(description=description, kind=kind):
+                    result = evaluate_search(criteria, job)
+                    self.assertTrue(result["matched"])
+                    self.assertEqual(result["remote_residence"], {"state": "OK", "status": "ELIGIBLE"})
+                    if kind == "fresh":
+                        self.assertEqual(attributes["remote_type"], "REMOTE_US")
+
+        for description in ("Fully remote role with no hybrid work requirement. This role is hybrid.",
+                            "Hybrid work is not required. This role is hybrid (three days per week in the office)."):
+            with self.subTest(description=description):
+                attributes = classify_location(location, description)
+                self.assertEqual(attributes["remote_type"], "HYBRID")
+                self.assertFalse(evaluate_search(criteria, {**legacy_job, "description": description})["matched"])
+        onsite = {**legacy_job, "location": "Sherman, TX", "description": "On-site role."}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, onsite)["matched"])
+        self.assertTrue(evaluate_search({"work_arrangements": ["ONSITE"], "states": ["TX"],
+                                         "cities": ["Sherman"]}, onsite)["matched"])
+
+    def test_provider_authority_and_legacy_remote_flags_remain_distinct(self):
+        lever = {"location": "Remote, United States", "description": "Maintain hybrid cloud infrastructure.",
+                 "remote_type": "HYBRID", "attributes": {"provider": "lever",
+                 "workplace_type_authority": "LEVER_WORKPLACE_TYPE", "remote_indicated": True}}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, lever)["matched"])
+        self.assertTrue(evaluate_search({"work_arrangements": ["HYBRID"]}, lever)["matched"])
+
+        # Old Lever rows without authority remain ambiguous: keep their declared possibility.
+        old_lever = {**lever, "attributes": {"provider": "lever", "remote_indicated": True}}
+        self.assertFalse(evaluate_search({"remote": "REQUIRED"}, old_lever)["matched"])
+
+        greenhouse = {"location": "Remote", "description": "Maintain hybrid cloud infrastructure.",
+                     "remote_type": "HYBRID", "attributes": {"provider": "greenhouse",
+                     "remote_indicated": True}}
+        self.assertTrue(evaluate_search({"remote": "REQUIRED"}, greenhouse)["matched"])
+        residence = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"}, greenhouse)
+        self.assertFalse(residence["matched"])
+        self.assertEqual(residence["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
+
+        greenhouse_flag_only = {**greenhouse, "location": "Unknown"}
+        self.assertTrue(evaluate_search({"remote": "REQUIRED"}, greenhouse_flag_only)["matched"])
+        unknown_residence = evaluate_search({"remote": "REQUIRED", "remote_residence_state": "OK"},
+                                            greenhouse_flag_only)
+        self.assertFalse(unknown_residence["matched"])
+        self.assertEqual(unknown_residence["remote_residence"], {"state": "OK", "status": "UNKNOWN"})
 
     def test_employment_type_normalization(self):
         cases = {
