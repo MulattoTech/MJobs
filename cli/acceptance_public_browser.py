@@ -13,7 +13,7 @@ from playwright.sync_api import expect, sync_playwright
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 _MAX_JOBS = 5
-_JOB_CARDS = '.job-list button.job-card[data-job-id]'
+_JOB_CARDS = ".job-card"
 _ENDPOINTS = {
     "wwr": "https://weworkremotely.com/remote-jobs.rss",
     "remotive": "https://remotive.com/api/remote-jobs",
@@ -282,6 +282,7 @@ def _observe_job_list(page, origin, receipt, jobs):
     # Prefer a distinguishing ASCII title word so both the production text
     # index and the local implementation can query the same literal value.
     search_probe = None
+    search_title_hits_visible = False
     for job_id, name in titles.items():
         words = sorted(set(re.findall(r"[A-Za-z]{3,200}", name)), key=lambda word: (-len(word), word))
         word = next((word for word in words if any(word.lower() not in other.lower()
@@ -290,12 +291,13 @@ def _observe_job_list(page, origin, receipt, jobs):
             continue
         candidates = [other_id for other_id, other in titles.items() if word.lower() not in other.lower()]
         result_ids = admitted(read("q", word, lambda: search.fill(word)))
+        search_title_hits_visible = (set(baseline_ids) - set(candidates)).issubset(result_ids)
         search_probe = {"query_sha256": _digest(word), "matching_job_id": job_id,
                         "visible_job_ids": result_ids,
                         "excluded_job_ids": [other for other in candidates if other not in result_ids]}
         restored = read("q", "", lambda: search.fill(""))
         _require(admitted(restored) == baseline_ids, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
-        if job_id in result_ids and search_probe["excluded_job_ids"]:
+        if search_title_hits_visible and search_probe["excluded_job_ids"]:
             break
 
     title_probe = None
@@ -314,25 +316,29 @@ def _observe_job_list(page, origin, receipt, jobs):
         _require(admitted(restored) == baseline_ids, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
         break
 
-    scored = read("sort", "score", lambda: sort.select_option("score"))
-    ranked = []
-    for row in scored:
-        job_id = row["id"]
-        if job_id not in jobs:
-            continue
-        score = row.get("match_score")
-        _require("match_score" in row and (score is None or type(score) is int and 0 <= score <= 100),
-                 "PUBLIC_BROWSER_MATCH_SCORE_INVALID")
+    def scores_for_admitted(rows):
+        scores = []
+        for row in rows:
+            if row["id"] not in jobs:
+                continue
+            score = row.get("match_score")
+            _require("match_score" in row and (score is None or type(score) is int and 0 <= score <= 100),
+                     "PUBLIC_BROWSER_MATCH_SCORE_INVALID")
+            scores.append({"job_id": row["id"], "match_score": score})
+        return scores
+
+    title_sorted = scores_for_admitted(titled)
+    ranked = scores_for_admitted(read("sort", "score", lambda: sort.select_option("score")))
+    for row in ranked:
+        job_id, score = row["job_id"], row["match_score"]
         score_badge = page.locator(f'{_JOB_CARDS}[data-job-id="{job_id}"] .score')
         expect(score_badge).to_be_visible()
         expect(score_badge).to_have_text("Unscored" if score is None else re.compile(rf"^{score}%(?: · .+)?$"))
-        ranked.append({"job_id": job_id, "match_score": score})
     score_values = [row["match_score"] if row["match_score"] is not None else -1 for row in ranked]
     numeric_scores = {score for score in score_values if score >= 0}
-    before_scores = {row["id"]: row["match_score"] for row in titled
-                     if row["id"] in jobs and "match_score" in row}
+    before_scores = {row["job_id"]: row["match_score"] for row in title_sorted}
     after_scores = {row["job_id"]: row["match_score"] for row in ranked}
-    score_order = (set(admitted(scored)) == set(baseline_ids)
+    score_order = (set(before_scores) == set(after_scores) == set(baseline_ids)
                    and before_scores == after_scores
                    and len(numeric_scores) >= 2 and score_values == sorted(score_values, reverse=True))
     read("job_source_id", "", lambda: source.select_option(""))
@@ -346,8 +352,7 @@ def _observe_job_list(page, origin, receipt, jobs):
     return {"schema_version": 1, "source_id": source_id, "admitted_job_ids": list(jobs),
             "source_scoped_job_ids": baseline_ids, "observations": [
                 observation(12, {
-                    "matching_job_visible": bool(cohort_bound and search_probe
-                        and search_probe["matching_job_id"] in search_probe["visible_job_ids"]),
+                    "matching_job_visible": bool(cohort_bound and search_title_hits_visible),
                     "nonmatching_job_hidden": bool(cohort_bound and search_probe
                         and search_probe["excluded_job_ids"]),
                 }, probe=search_probe),
@@ -356,7 +361,8 @@ def _observe_job_list(page, origin, receipt, jobs):
                         and title_probe["visible_job_ids"] == title_probe["expected_job_ids"]),
                     "other_title_hidden": bool(cohort_bound and title_probe and title_probe["excluded_job_ids"]),
                 }, probe=title_probe),
-                observation(14, {"match_sort_order": cohort_bound and score_order}, ranked_jobs=ranked),
+                observation(14, {"match_sort_order": cohort_bound and score_order},
+                            title_sorted_jobs=title_sorted, ranked_jobs=ranked),
             ]}
 
 

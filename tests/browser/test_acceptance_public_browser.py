@@ -34,7 +34,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class PublicJobListObservationTests(unittest.TestCase):
-    def observe(self, *, scope="LIVE_PUBLIC_READ_ONLY", tied=False, wrong_order=False):
+    def observe(self, *, scope="LIVE_PUBLIC_READ_ONLY", tied=False, wrong_order=False,
+                extra_card=None, search_case=None, score_change=False, missing_baseline_score=False):
         origin = "http://127.0.0.1:18100"
         rows = [
             {"id": "public-a", "title": "Data Analyst", "match_score": 50},
@@ -43,6 +44,10 @@ class PublicJobListObservationTests(unittest.TestCase):
             {"id": "not-admitted", "title": "Data Engineer", "match_score": 100},
             {"id": "selected-fixture", "title": "Fixture Job", "match_score": 1},
         ]
+        if search_case == "missing_title_hit":
+            rows[1]["title"] = "Platform Analyst"
+        elif search_case == "description_hit":
+            rows[1]["description"] = "Works with an Analyst."
         job_cohort = {row["id"]: {"detail": row} for row in rows[:3]}
         document = """
             <label>Active profile<select id=profile aria-label='Active profile'><option>profile-a</option></select></label>
@@ -55,16 +60,25 @@ class PublicJobListObservationTests(unittest.TestCase):
                 async function refresh() {
                     const query = new URLSearchParams({profile_id: get('profile'), job_source_id: get('source'),
                         q: get('q'), title: get('title'), sort: get('sort')});
-                    const {jobs, reverse_render} = await (await fetch('/jobs?' + query)).json();
-                    setTimeout(() => document.querySelector('.job-list').replaceChildren(
-                        ...(reverse_render ? jobs.reverse() : jobs).map(job => {
+                    const {jobs, reverse_render, extra_card} = await (await fetch('/jobs?' + query)).json();
+                    setTimeout(() => {
+                        const list = document.querySelector('.job-list');
+                        list.replaceChildren(...(reverse_render ? jobs.reverse() : jobs).map(job => {
                             const card = document.createElement('button');
                             card.className = 'job-card'; card.dataset.jobId = job.id;
                             const score = document.createElement('span');
                             score.className = 'score';
                             score.textContent = job.match_score === null ? 'Unscored' : job.match_score + '%';
                             card.append(score); return card;
-                        })), 20);
+                        }));
+                        if (extra_card) {
+                            const card = document.createElement('article');
+                            card.className = 'job-card';
+                            if (extra_card === 'duplicate_id') card.dataset.jobId = jobs[0].id;
+                            card.textContent = 'Unexpected job card';
+                            list.append(card);
+                        }
+                    }, 20);
                 }
                 document.querySelectorAll('select').forEach(control => control.onchange = refresh);
                 document.querySelectorAll('input').forEach(control => control.oninput = refresh);
@@ -85,12 +99,24 @@ class PublicJobListObservationTests(unittest.TestCase):
             job_source = query.get("job_source_id", [""])[0]
             self.assertIn(job_source, ("", "source-a"))
             terms = [query.get(key, [""])[0].lower() for key in ("q", "title")]
-            matching = [row for row in rows if (not job_source or row["id"] != "selected-fixture")
-                        and all(term in row["title"].lower() for term in terms)]
+            q, title = terms
+            matching = [dict(row) for row in rows if (not job_source or row["id"] != "selected-fixture")
+                        and q in f'{row["title"]} {row.get("description", "")}'.lower()
+                        and title in row["title"].lower()]
+            if search_case == "missing_title_hit" and q:
+                matching = [row for row in matching if row["id"] != "public-b"] if q == "analyst" else []
             by_score = query["sort"] == ["score"]
+            if by_score and score_change:
+                for row in matching:
+                    if row["id"] == "public-a":
+                        row["match_score"] = 65
             matching.sort(key=lambda row: ((-row["match_score"] if row["match_score"] is not None else 1)
                                           if by_score else 0, row["title"]))
-            route.fulfill(json={"jobs": matching, "reverse_render": wrong_order})
+            if not by_score and missing_baseline_score:
+                for row in matching:
+                    if row["id"] == "public-c":
+                        del row["match_score"]
+            route.fulfill(json={"jobs": matching, "reverse_render": wrong_order, "extra_card": extra_card})
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
@@ -114,6 +140,13 @@ class PublicJobListObservationTests(unittest.TestCase):
         self.assertEqual(search["probe"]["excluded_job_ids"], ["public-b", "public-c"])
         self.assertEqual(title["probe"]["visible_job_ids"], ["public-a"])
         self.assertEqual(title["probe"]["excluded_job_ids"], ["public-b", "public-c"])
+        self.assertEqual(sort["title_sorted_jobs"], [
+            {"job_id": "public-a", "match_score": 50},
+            {"job_id": "public-b", "match_score": 95},
+            {"job_id": "public-c", "match_score": None},
+        ])
+        self.assertEqual([row["job_id"] for row in sort["title_sorted_jobs"]],
+                         evidence["source_scoped_job_ids"])
         self.assertEqual(sort["ranked_jobs"], [
             {"job_id": "public-b", "match_score": 95},
             {"job_id": "public-a", "match_score": 50},
@@ -134,6 +167,34 @@ class PublicJobListObservationTests(unittest.TestCase):
     def test_mismatched_dom_order_cannot_be_used_as_evidence(self):
         with self.assertRaises(PlaywrightTimeout):
             self.observe(wrong_order=True)
+
+    def test_all_job_cards_must_have_unique_ids(self):
+        for extra_card in ("missing_id", "duplicate_id"):
+            with self.subTest(extra_card=extra_card), self.assertRaises(PlaywrightTimeout):
+                self.observe(extra_card=extra_card)
+
+    def test_search_with_a_missing_title_match_cannot_pass(self):
+        search, title, sort = self.observe(search_case="missing_title_hit")["observations"]
+        self.assertEqual(search["status"], "PARTIAL")
+        self.assertFalse(search["checks"]["matching_job_visible"])
+        self.assertEqual((title["status"], sort["status"]), ("PASS", "PASS"))
+
+    def test_search_permits_a_description_only_hit(self):
+        search = self.observe(search_case="description_hit")["observations"][0]
+        self.assertEqual(search["status"], "PASS")
+        self.assertEqual(search["probe"]["visible_job_ids"], ["public-a", "public-b"])
+        self.assertEqual(search["probe"]["excluded_job_ids"], ["public-c"])
+
+    def test_sort_requires_unchanged_scores_between_independent_readbacks(self):
+        sort = self.observe(score_change=True)["observations"][2]
+        self.assertEqual(sort["status"], "PARTIAL")
+        self.assertFalse(sort["checks"]["match_sort_order"])
+        self.assertEqual(sort["title_sorted_jobs"][0], {"job_id": "public-a", "match_score": 50})
+        self.assertIn({"job_id": "public-a", "match_score": 65}, sort["ranked_jobs"])
+
+    def test_sort_rejects_a_missing_baseline_score_field(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_MATCH_SCORE_INVALID$"):
+            self.observe(missing_baseline_score=True)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
