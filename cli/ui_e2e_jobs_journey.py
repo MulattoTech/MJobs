@@ -159,12 +159,22 @@ def canonical_posting_count_matches(list_count, postings):
     return len(set(identities)) == list_count and len(identities) == len(set(identities))
 
 
-def visible_posting_count_matches(card_text, posting_count):
-    """Require the exact rendered posting count as a complete number token."""
-    if (not isinstance(card_text, str) or not isinstance(posting_count, int)
-            or isinstance(posting_count, bool) or posting_count < 1):
+def visible_posting_count_footer_matches(card, posting_count):
+    """Require one visible exact count item in the selected card's footer."""
+    if (not isinstance(posting_count, int) or isinstance(posting_count, bool)
+            or posting_count < 1):
         return False
-    return re.search(rf"(?<!\d){posting_count} postings?(?!\w)", card_text) is not None
+    footer = card.locator(".card-foot")
+    if footer.count() != 1 or not footer.is_visible():
+        return False
+    expected = f"{posting_count} posting" + ("" if posting_count == 1 else "s")
+    items = footer.locator(":scope > span")
+    exact_visible_items = 0
+    for index in range(items.count()):
+        item = items.nth(index)
+        if item.is_visible() and item.inner_text().strip() == expected:
+            exact_visible_items += 1
+    return exact_visible_items == 1
 
 
 def open_job_detail_for_selected_card(page, card, title, expect):
@@ -533,9 +543,11 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
     detail_posting_count = len(postings)
     list_posting_count = job_a.get("posting_count")
     visible_count = python_card.count()
-    card_text = python_card.inner_text()
+    footer_count_visible = (visible_count == 1
+                            and visible_posting_count_footer_matches(
+                                python_card, list_posting_count))
     count_visible = (canonical_posting_count_matches(list_posting_count, postings)
-                     and visible_posting_count_matches(card_text, list_posting_count)
+                     and footer_count_visible
                      and detail_posting_count == list_posting_count)
     posting_count = list_posting_count if count_visible else 0
     record(17, "PASS" if count_visible and posting_count > 1 else "PARTIAL",
