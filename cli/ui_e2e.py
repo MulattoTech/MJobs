@@ -33,6 +33,7 @@ from cli.ui_e2e_jobs_journey import (
 _SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
 _SAFE_OPERATION_ERROR = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 _SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+REMOTE_IT_SEARCH_TITLE = "IT Support Specialist"
 _SAFE_ERROR_TYPE_CATEGORIES = {
     "AssertionError": "BUILTIN_ASSERTION_ERROR",
     "AttributeError": "BUILTIN_ATTRIBUTE_ERROR",
@@ -814,6 +815,73 @@ def assert_supported_fixture_search(search, *, profile_id, include_titles, remot
     scheduler = criteria.get("scheduler")
     if not isinstance(scheduler, dict) or scheduler.get("enabled") is not False:
         raise AssertionError("fixture search must keep its background scheduler disabled")
+
+
+def reload_saved_it_search_readback(page, base_url, navigate, *, profile_id, saved_search):
+    """Reuse the journey reload and retain only its scoped search witness."""
+    origin = urlsplit(base_url)
+    active = page.get_by_label("Active profile", exact=True)
+    before_profile = active.input_value()
+    reload_started_ms = None
+
+    def is_search_readback(response):
+        url = urlsplit(response.url)
+        if (reload_started_ms is None or response.request.method != "GET"
+                or (url.scheme, url.netloc) != (origin.scheme, origin.netloc)
+                or url.path != "/search-profiles" or url.fragment
+                or parse_qs(url.query, keep_blank_values=True) != {"profile_id": [profile_id]}):
+            return False
+        started_ms = response.request.timing.get("startTime")
+        return type(started_ms) in (int, float) and started_ms >= reload_started_ms
+
+    reloaded = False
+    try:
+        with page.expect_response(is_search_readback, timeout=10_000) as pending:
+            reload_started_ms = time.time_ns() / 1_000_000
+            page.reload(wait_until="domcontentloaded")
+            reloaded = True
+        response = pending.value
+    except PlaywrightTimeoutError:
+        if not reloaded:
+            raise
+        return None
+    if response.status != 200 or before_profile != profile_id:
+        return None
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    rows = payload.get("search_profiles") if isinstance(payload, dict) else None
+    search_id = saved_search.get("id") if isinstance(saved_search, dict) else None
+    if (not EvidenceJournal._lineage_id(search_id) or not isinstance(rows, list) or len(rows) > 200
+            or any(not isinstance(row, dict) for row in rows)):
+        return None
+    matches = [row for row in rows if row.get("id") == search_id]
+    if len(matches) != 1:
+        return None
+
+    def projection(search):
+        assert_supported_fixture_search(search, profile_id=profile_id,
+            include_titles=[REMOTE_IT_SEARCH_TITLE], remote="REQUIRED")
+        return {"profile_id": search["profile_id"], "search_profile_id": search["id"],
+                "include_titles": list(search["criteria"]["include_titles"]), "remote": search["criteria"]["remote"]}
+
+    try:
+        before, after = projection(saved_search), projection(matches[0])
+        expect(active).to_have_value(profile_id)
+        navigate("Jobs")
+        selector = page.get_by_label("Saved search profile", exact=True).last
+        expect(selector).to_be_visible()
+        option = selector.locator(f'option[value="{search_id}"]')
+        expect(option).to_have_count(1)
+        after_profile, visible_search_id = active.input_value(), option.get_attribute("value")
+    except (AssertionError, PlaywrightTimeoutError):
+        return None
+    if before != after or after_profile != profile_id or visible_search_id != search_id:
+        return None
+    return {"before_active_profile_id": before_profile, "after_active_profile_id": after_profile,
+            "visible_search_profile_id": visible_search_id, "before_reload": before, "after_reload": after}
 
 
 def create_fixture_us_remote_search(put, request, profile_id):
@@ -1827,7 +1895,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 # Jobs-tab filter snapshots are intentionally disabled for scheduling
                 # and cannot be resumed as provider discovery criteria.
                 nonmatching_search = save_sources_fixture_search(
-                    "Synthetic remote IT onboarding search", "IT Support Specialist")
+                    "Synthetic remote IT onboarding search", REMOTE_IT_SEARCH_TITLE)
                 if acceptance_run_id is not None:
                     from cli.acceptance_employer import begin_employer_observation
 
@@ -1880,17 +1948,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 it_search = next(row for row in request(
                     "/search-profiles?profile_id=" + profile_id)["search_profiles"]
                     if row["id"] == nonmatching_search["id"])
-                assert it_search["criteria"]["include_titles"] == ["IT Support Specialist"]
+                assert it_search["criteria"]["include_titles"] == [REMOTE_IT_SEARCH_TITLE]
                 assert it_search["criteria"]["remote"] == "REQUIRED"
-                observe_acceptance_step(
-                    8, "PASS", "Remote IT and Data Engineer searches were saved through the Sources UI.",
-                    evidence_kind="CONTROLLED_FIXTURE",
-                    checks=[{"name": "remote_it_search_read_back", "passed": True},
-                            {"name": "remote_data_search_read_back", "passed": True}],
-                    continuity={"profile_id": profile_id,
-                                "operation_id": discovery_operation_id,
-                                "request_id": discovery_request_id},
-                )
                 observe_acceptance_step(
                     10, "PASS", "Fixture discovery completed and search-scoped jobs were read back.",
                     evidence_kind="CONTROLLED_FIXTURE",
@@ -1912,8 +1971,21 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     remote_search_id = create_fixture_us_remote_search(
                         lambda path, payload: context.request.put(base_url + path, data=payload),
                         request, profile_id)
-                    page.reload(wait_until="domcontentloaded")
+                    it_reload = reload_saved_it_search_readback(page, base_url, navigation,
+                        profile_id=profile_id, saved_search=it_search)
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                    if it_reload is not None:
+                        journal.binding["saved_it_search_reload"] = it_reload
+                    observe_acceptance_step(
+                        8, "PASS" if it_reload is not None else "PARTIAL",
+                        "Saved remote IT criteria and selector were read back after reload in the same profile."
+                        if it_reload is not None else "The saved remote IT search lacked exact post-reload readback.",
+                        evidence_kind="CONTROLLED_FIXTURE",
+                        checks=[{"name": "remote_it_search_read_back", "passed": it_reload is not None},
+                                {"name": "remote_data_search_read_back", "passed": True}],
+                        continuity={"profile_id": profile_id, "operation_id": discovery_operation_id,
+                                    "request_id": discovery_request_id},
+                    )
                     run_fixture_job_observations(
                         page, request, profile_id, navigation, observe_acceptance_step,
                         remote_search_id=remote_search_id,

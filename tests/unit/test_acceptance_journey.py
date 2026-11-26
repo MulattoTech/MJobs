@@ -1741,6 +1741,12 @@ def saved_search_artifact(step=10):
         "continuity": {"profile_id": IDENTITY["profile_id"], "operation_id": "matching-discovery",
                        "request_id": "matching-request"},
         "checks": [{"name": name, "passed": step != 11} for name in journey.REQUIRED_CHECKS[step]]}]
+    if step == 8:
+        readback = {"profile_id": IDENTITY["profile_id"], "search_profile_id": "it-search",
+                    "include_titles": ["IT Support Specialist"], "remote": "REQUIRED"}
+        artifact["saved_it_search_reload"] = {"before_active_profile_id": IDENTITY["profile_id"],
+            "after_active_profile_id": IDENTITY["profile_id"], "visible_search_profile_id": "it-search",
+            "before_reload": copy.deepcopy(readback), "after_reload": copy.deepcopy(readback)}
     return artifact
 
 
@@ -1752,6 +1758,58 @@ def test_ui_saved_search_uses_completed_discover_identity_not_final_submit(step)
     assert rows[0]["continuity"] == artifact["acceptance_observations"][0]["continuity"]
     assert rows[0]["status"] == ("PARTIAL" if step == 11 else "PASS")
     assert artifact["operation_id"] == IDENTITY["operation_id"]
+
+
+@pytest.mark.parametrize("change", ["missing", "no-after", "active-profile", "visible-id", "readback-profile",
+    "readback-id", "title", "remote", "unrelated-search", "it-operation", "replaced-proof-version", "duplicate-proof"])
+def test_step8_requires_exact_saved_it_search_reload_and_preserves_step10_gate(change):
+    artifact = saved_search_artifact(8)
+    receipt = artifact["saved_it_search_reload"]
+    it_proof = artifact["discovery_search_proofs"][0]
+    if change == "missing": artifact.pop("saved_it_search_reload")
+    if change == "no-after": receipt.pop("after_reload")
+    if change == "active-profile": receipt["after_active_profile_id"] = "other-profile"
+    if change == "visible-id": receipt["visible_search_profile_id"] = "other-search"
+    if change == "readback-profile": receipt["after_reload"]["profile_id"] = "other-profile"
+    if change == "readback-id": receipt["after_reload"]["search_profile_id"] = "other-search"
+    if change == "title": receipt["after_reload"]["include_titles"] = ["Data Engineer"]
+    if change == "remote": receipt["after_reload"]["remote"] = "ANY"
+    if change == "unrelated-search":
+        receipt["visible_search_profile_id"] = "data-search"
+        for key in ("before_reload", "after_reload"):
+            receipt[key]["search_profile_id"] = "data-search"
+    if change == "it-operation": it_proof["operation_id"] = artifact["discovery_operation_id"]
+    if change == "replaced-proof-version": it_proof["operation_profile_version"] = "8" * 64
+    if change == "duplicate-proof": artifact["discovery_search_proofs"].append(copy.deepcopy(it_proof))
+    with pytest.raises(ValueError, match="Criterion 8"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE,
+                                      identity=journey._identity(artifact))
+    artifact["acceptance_observations"] = saved_search_artifact(10)["acceptance_observations"]
+    rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE,
+                                         identity=journey._identity(artifact))
+    assert [(row["step"], row["status"]) for row in rows] == [(10, "PASS")]
+
+
+def test_step8_guarded_receipt_is_indexed_and_legacy_replay_withholds_only_step8(tmp_path):
+    path = tmp_path / "journey.json"
+    ui_path = tmp_path / "ui.json"
+    checkpoint = journey.JourneyCheckpoint.create(path, RUN_ID, SOURCE, TARGET)
+    artifact = saved_search_artifact(8)
+    artifact["acceptance_observations"].extend(saved_search_artifact(10)["acceptance_observations"])
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64, persist=False)
+    assert checkpoint.payload()["steps"][7]["verification"]["saved_it_search_reload"] == artifact["saved_it_search_reload"]
+
+    artifact.pop("saved_it_search_reload")
+    emit(ui_path, artifact)
+    retained = ui_path.read_bytes()
+    saved = checkpoint.payload()
+    saved["segments"]["ui"]["sha256"] = hashlib.sha256(retained).hexdigest()
+    emit(path, saved)
+    replay = journey.JourneyCheckpoint.resume(path, RUN_ID, SOURCE, TARGET).payload()["steps"]
+    assert (replay[7]["status"], replay[7]["credit_withheld"], replay[9]["status"]) == (
+        "PARTIAL", "SAVED_IT_SEARCH_RELOAD_NOT_RECORDED", "PASS")
+    assert ui_path.read_bytes() == retained
 
 
 @pytest.mark.parametrize("change", ["missing-proof", "duplicate-proof", "replaced-proof", "missing-top-request",

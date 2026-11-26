@@ -37,7 +37,7 @@ IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
 PUBLIC_JOB_LIST_STEPS = frozenset({12, 13, 14})
 APPLICATION_RECEIPTS = {36: "prepared_document_pair", 53: "application_audit_trace"}
 RESUME_COMPARISON_RECEIPT = "generated_resume_comparison"
-UI_RECEIPTS = {34: RESUME_COMPARISON_RECEIPT, **APPLICATION_RECEIPTS}
+UI_RECEIPTS = {8: "saved_it_search_reload", 34: RESUME_COMPARISON_RECEIPT, **APPLICATION_RECEIPTS}
 CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
@@ -496,6 +496,35 @@ def _ui_discovery_identity(artifact, identity):
             or any(not isinstance(title, str) or not title.strip() or len(title) > 500 for title in titles)):
         raise ValueError("Saved-search discovery proof profile or completed readback mismatch")
     return {**identity, **pair}
+
+
+def _validate_saved_it_search_reload(artifact, identity):
+    receipt = artifact.get(UI_RECEIPTS[8])
+    profile_id = identity["profile_id"]
+    fields = {"before_active_profile_id", "after_active_profile_id", "visible_search_profile_id",
+              "before_reload", "after_reload"}
+    if (not isinstance(receipt, dict) or set(receipt) != fields
+            or receipt["before_active_profile_id"] != profile_id or receipt["after_active_profile_id"] != profile_id):
+        raise ValueError("Criterion 8 requires the saved IT search's same-profile reload witness")
+    search_id = receipt["visible_search_profile_id"]
+    expected = {"profile_id": profile_id, "search_profile_id": search_id,
+                "include_titles": [ui_e2e.REMOTE_IT_SEARCH_TITLE], "remote": "REQUIRED"}
+    if (not isinstance(search_id, str) or not SAFE_ID.fullmatch(search_id)
+            or receipt["before_reload"] != expected or receipt["after_reload"] != expected):
+        raise ValueError("Criterion 8 saved IT search identity or criteria changed after reload")
+    # The Step 8 row retains the matching Data discovery pair for backwards
+    # continuity; its reload witness must instead bind the earlier IT search.
+    proofs = [proof for proof in artifact["discovery_search_proofs"] if proof.get("search_profile_id") == search_id]
+    if len(proofs) != 1:
+        raise ValueError("Criterion 8 reload witness requires the exact saved IT discovery search")
+    proof = proofs[0]
+    version = proof.get("profile_version")
+    if (proof.get("profile_id") != profile_id or proof.get("result") != "PASS" or proof.get("filtered_titles") != []
+            or not isinstance(version, str) or not re.fullmatch(r"[a-f0-9]{64}", version)
+            or proof.get("operation_profile_version") != version
+            or any(not isinstance(proof.get(key), str) or not SAFE_ID.fullmatch(proof[key])
+                   or proof[key] == identity[key] for key in ("operation_id", "request_id"))):
+        raise ValueError("Criterion 8 reload witness does not match the earlier same-profile IT discovery")
 
 
 def _validate_continuity(continuity, identity, step, status, segment):
@@ -1532,6 +1561,8 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
             if step in APPLICATION_RECEIPTS:
                 _validate_application_receipt(step, artifact, continuity, lineage[step],
                                               run_id=run_id, source_commit=source["commit"])
+            if segment == "ui" and step == 8:
+                _validate_saved_it_search_reload(artifact, expected_identity)
         result.append({"step": step, "status": status, "observable_result": observable,
                        "evidence_kind": kind, "source_commit": source["commit"],
                        "run_id": run_id, "continuity": dict(continuity), "checks": copy.deepcopy(checks)})
@@ -1828,10 +1859,12 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 report_row["verification"]["command"] = "cli.acceptance_public_browser.run (source-scoped UI list)"
                 report_row["verification"]["public_job_list_lineage"] = copy.deepcopy(artifact["public_job_list_lineage"])
             if row["step"] in legacy_missing_receipts:
-                reason = ("RESUME_COMPARISON_RECEIPT_NOT_RECORDED" if row["step"] == 34
-                          else "APPLICATION_RECEIPT_NOT_RECORDED")
+                reason = {
+                    8: "SAVED_IT_SEARCH_RELOAD_NOT_RECORDED",
+                    34: "RESUME_COMPARISON_RECEIPT_NOT_RECORDED",
+                }.get(row["step"], "APPLICATION_RECEIPT_NOT_RECORDED")
                 report_row.update(producer_status="PASS", credit_withheld=reason)
-            if row["status"] == "PASS" and row["step"] in UI_RECEIPTS:
+            if name == "ui" and row["status"] == "PASS" and row["step"] in UI_RECEIPTS:
                 field = UI_RECEIPTS[row["step"]]
                 report_row["verification"][field] = copy.deepcopy(artifact[field])
             if "job_id" in row["continuity"]:

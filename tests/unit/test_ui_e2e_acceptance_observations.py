@@ -1,8 +1,11 @@
 """Safety and lineage checks for numbered UI acceptance observations."""
 
+from contextlib import contextmanager
+from copy import deepcopy
 from pathlib import Path
 import hashlib
 import json
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
@@ -48,6 +51,72 @@ def test_saved_job_readback_reloads_and_reselects_before_checking_scoped_state(m
         call.expect().to_be_visible(),
         call.request("/jobs/job-b?profile_id=profile-b"),
     ]
+
+
+@pytest.mark.parametrize("change", [None, "no-response", "pre-reload-response", "missing-row", "different-id",
+    "profile", "title", "remote", "duplicate", "active-profile", "selector-id", "hidden-selector", "read-status"])
+def test_saved_it_search_reload_requires_exact_scoped_criteria_and_visible_selector(monkeypatch, change):
+    page, active, selector, option, navigate = (Mock() for _ in range(5))
+    origin, profile_id, search_id = "http://127.0.0.1:18700", "profile-b", "it-search"
+    before = {"id": search_id, "profile_id": profile_id, "enabled": True, "source_ids": [], "criteria": {
+        "include_titles": ["IT Support Specialist"], "remote": "REQUIRED", "employment_types": [],
+        "scheduler": {"enabled": False}}}
+    after = deepcopy(before)
+    rows = [after]
+    if change == "missing-row": rows.clear()
+    if change == "different-id": after["id"] = "other-search"
+    if change == "profile": after["profile_id"] = "other-profile"
+    if change == "title": after["criteria"]["include_titles"] = ["Data Engineer"]
+    if change == "remote": after["criteria"]["remote"] = "ANY"
+    if change == "duplicate": rows.append(deepcopy(after))
+    start_time = 9_999 if change == "pre-reload-response" else 10_001
+    monkeypatch.setattr(ui_e2e.time, "time_ns", lambda: 10_000_000_000)
+    response = SimpleNamespace(url=f"{origin}/search-profiles?profile_id={profile_id}",
+        request=SimpleNamespace(method="GET", timing={"startTime": start_time}),
+        status=500 if change == "read-status" else 200,
+        json=lambda: {"search_profiles": rows})
+    active.input_value.side_effect = [profile_id, "other-profile" if change == "active-profile" else profile_id]
+    option.get_attribute.return_value = "other-search" if change == "selector-id" else search_id
+    selector.last = selector
+    selector.locator.return_value = option
+    page.get_by_label.side_effect = lambda name, **_: active if name == "Active profile" else selector
+
+    @contextmanager
+    def wait_for_readback(match, *, timeout):
+        assert timeout == 10_000 and not page.reload.called
+        assert not match(response)
+        yield SimpleNamespace(value=response)
+        page.reload.assert_called_once_with(wait_until="domcontentloaded")
+        for url, method in ((response.url.replace(profile_id, "other-profile"), "GET"),
+                            (response.url.replace(origin, "http://127.0.0.1:18701"), "GET"),
+                            (response.url + f"&profile_id={profile_id}", "GET"), (response.url, "PUT")):
+            assert not match(SimpleNamespace(url=url, request=SimpleNamespace(method=method)))
+        if change in {"no-response", "pre-reload-response"}:
+            if change == "pre-reload-response":
+                assert not match(response)
+            raise ui_e2e.PlaywrightTimeoutError("synthetic missing reload response")
+        assert match(response)
+
+    page.expect_response.side_effect = wait_for_readback
+    assertions = {item: Mock() for item in (active, selector, option)}
+    if change == "hidden-selector":
+        assertions[selector].to_be_visible.side_effect = AssertionError("selector not visible")
+    monkeypatch.setattr(ui_e2e, "expect", assertions.__getitem__)
+    receipt = ui_e2e.reload_saved_it_search_readback(page, origin, navigate,
+        profile_id=profile_id, saved_search=before)
+    page.reload.assert_called_once_with(wait_until="domcontentloaded")
+    if change is not None:
+        assert receipt is None
+        return
+    expected = {"search_profile_id": search_id, "profile_id": profile_id,
+                "include_titles": ["IT Support Specialist"], "remote": "REQUIRED"}
+    assert receipt == {"before_active_profile_id": profile_id, "after_active_profile_id": profile_id,
+                       "visible_search_profile_id": search_id, "before_reload": expected, "after_reload": expected}
+    navigate.assert_called_once_with("Jobs")
+    assertions[active].to_have_value.assert_called_once_with(profile_id)
+    assertions[selector].to_be_visible.assert_called_once_with()
+    selector.locator.assert_called_once_with('option[value="it-search"]')
+    assertions[option].to_have_count.assert_called_once_with(1)
 
 
 @pytest.mark.parametrize("invalid", [
