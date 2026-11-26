@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from cli.acceptance_public_source import run
@@ -22,6 +22,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.discovery.search_profiles import get_search_profile, save_search_profile
+from services.discovery.sources.collect import configure_source
 from services.documents.generate import prepare
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
@@ -139,13 +140,32 @@ class SameProfilePublicObservationIntegrationTests(unittest.TestCase):
                 endpoints = set(connection.execute(select(m.postings.c.source).where(
                     m.postings.c.job_id == job_id)).scalars())
                 self.assertIn(expected_endpoint, endpoints)
-        scoped = self.client.get('/jobs', params={
+        competing_source_id = configure_source(self.store, 'competing-fixture-source')
+        competing_job = next(job for job in self.store.jobs('fixture') if job['title'] == 'Python Developer')
+        competing_job_id = competing_job['id']
+        self.assertNotIn(competing_job_id, matching_ids | nonmatching_ids)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == competing_job_id).values(
+                title='Senior Python Engineer',
+                attributes={**competing_job['attributes'], 'source_id': competing_source_id}))
+
+        search_params = {
             'profile_id': 'fixture', 'search_profile_id': 'remote-it-search',
-        })
+        }
+        unscoped = self.client.get('/jobs', params=search_params)
+        self.assertEqual(unscoped.status_code, 200, unscoped.text)
+        unscoped_ids = {job['id'] for job in unscoped.json()['jobs']}
+        self.assertIn(competing_job_id, unscoped_ids)
+        self.assertTrue(matching_ids <= unscoped_ids)
+        self.assertFalse(nonmatching_ids & unscoped_ids)
+
+        scoped = self.client.get('/jobs', params={**search_params,
+            'job_source_id': saved_search['source_ids'][0]})
         self.assertEqual(scoped.status_code, 200, scoped.text)
         visible_ids = {job['id'] for job in scoped.json()['jobs']}
-        self.assertTrue(matching_ids & visible_ids)
+        self.assertTrue(matching_ids <= visible_ids)
         self.assertFalse(nonmatching_ids & visible_ids)
+        self.assertNotIn(competing_job_id, visible_ids)
         return result
 
     def test_wwr_collection_preserves_application_and_persists_same_profile_jobs(self):
