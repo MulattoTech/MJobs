@@ -302,17 +302,23 @@ class AgentSupervisor:
         issue = claim.get("issue")
         if not issue:
             return ""
-        result = _run(
-            ["gh", "issue", "view", str(issue), "--repo", "MulattoTech/MJobs",
-             "--json", "number,title,state,body"],
-            self.root,
-            timeout=12,
+        unavailable = (
+            f"Issue #{issue} acceptance could not be injected. If needed, run "
+            f"'gh issue view {issue} --repo MulattoTech/MJobs' before coding."
         )
-        if result.returncode:
-            return (
-                f"Issue #{issue} acceptance could not be injected. If needed, run "
-                f"'gh issue view {issue} --repo MulattoTech/MJobs' before coding."
+        try:
+            result = _run(
+                ["gh", "issue", "view", str(issue), "--repo", "MulattoTech/MJobs",
+                 "--json", "number,title,state,body"],
+                self.root,
+                timeout=12,
             )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # The optional issue lookup must not destroy the already-bound
+            # lane's prompt or worktree preview. Never invent acceptance text.
+            return unavailable
+        if result.returncode:
+            return unavailable
         try:
             payload = json.loads(result.stdout)
             body = str(payload.get("body") or "")

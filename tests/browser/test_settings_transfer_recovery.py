@@ -12,7 +12,7 @@ from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from packages.persistence.store import Store
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.scheduler import schedule_due_search_profiles
@@ -59,7 +59,7 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
             server = uvicorn.Server(uvicorn.Config(create_app(
                 store, "http://127.0.0.1:1", root, "redis://127.0.0.1:1/0",
                 operation_mode="PERSONAL"), log_level="critical"))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={"sockets": [sock]}, daemon=True)
             external = []
             try:
                 thread.start()

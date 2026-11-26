@@ -81,7 +81,7 @@ class RemotiveLinkSafetyBrowserTests(unittest.TestCase):
                         page.get_by_label("Active profile", exact=True).select_option(str(PROFILE["id"]))
                         for title, expected_url in (("Unsafe Link Engineer", ""), ("Valid Link Engineer", valid)):
                             page.get_by_role("button", name=re.compile(r"^Jobs(?:\s|$)")).click()
-                            page.get_by_role("button", name=re.compile(title)).click()
+                            page.locator(".job-list").get_by_role("button", name=re.compile(title)).click()
                             expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
                             expect(page.locator(f'a[href="{unsafe}"]')).to_have_count(0)
                             link = page.get_by_role("link", name="Open employer application ↗", exact=True)

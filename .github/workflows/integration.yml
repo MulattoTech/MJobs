@@ -6,6 +6,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      shards:
+        description: Full-suite shard count for manual benchmarking only
+        type: choice
+        options: ['3', '4', '6', '8', '10', '12']
+        default: '8'
+      postgres_template:
+        description: Opt-in disposable database template benchmark with independent equivalence proof
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -20,7 +30,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        shard: [0, 1, 2]
+        shard: ${{ fromJSON(inputs.shards == '3' && '[0,1,2]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '6' && '[0,1,2,3,4,5]' || inputs.shards == '10' && '[0,1,2,3,4,5,6,7,8,9]' || inputs.shards == '12' && '[0,1,2,3,4,5,6,7,8,9,10,11]' || inputs.shards == '8' && '[0,1,2,3,4,5,6,7]' || '[0,1,2]') }}
     services:
       postgres:
         image: postgres:17
@@ -30,14 +40,14 @@ jobs:
           POSTGRES_DB: mjobs_test
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U mjobs -d mjobs_test"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+          --health-cmd "pg_isready -h 127.0.0.1 -U mjobs -d mjobs_test"
+          --health-interval 1s --health-timeout 5s --health-retries 60
       redis:
         image: redis:7
         ports: ['6379:6379']
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+          --health-interval 1s --health-timeout 5s --health-retries 60
     env:
       MJOBS_TEST_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
       MJOBS_WORKER_RECOVERY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_worker_recovery
@@ -63,8 +73,10 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: |
+            requirements.lock
             requirements.txt
             .github/test-requirements.txt
+            .github/docs-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
@@ -85,7 +97,10 @@ jobs:
       - name: Execute each integration test file in exactly one isolated shard
         env:
           SHARD: ${{ matrix.shard }}
-        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count 3
+          SHARD_COUNT: ${{ strategy.job-total }}
+          MJOBS_CI_POSTGRES_TEMPLATE: ${{ inputs.postgres_template && '1' || '0' }}
+          MJOBS_CI_POSTGRES_DUMP_CONTAINER: ${{ job.services.postgres.id }}
+        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count "$SHARD_COUNT" --hosted
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
         env:
@@ -95,17 +110,22 @@ jobs:
         if: always()
         with:
           name: integration-results-${{ matrix.shard }}
-          path: outputs/ci/integration-*.xml
+          path: |
+            outputs/ci/integration-*.xml
+            outputs/ci/integration-*-collection.json
+            outputs/ci/postgres-template-proof.json
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: error
   required:
     name: Integration / PostgreSQL and Redis
     needs: shard
     if: always()
     runs-on: ubuntu-24.04
-    timeout-minutes: 2
+    timeout-minutes: 5
     env:
       RESULT: ${{ needs.shard.result }}
+      SHARD_COUNT: ${{ inputs.shards || '3' }}
+      POSTGRES_TEMPLATE: ${{ inputs.postgres_template && '1' || '0' }}
     steps:
       - name: Require all integration shards to have passed
         run: |
@@ -114,3 +134,15 @@ jobs:
             exit 1
           fi
           echo 'Every integration shard passed with isolated PostgreSQL and Redis.'
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: integration-results-*
+          path: outputs/ci/matrix
+      - name: Reconcile every exact integration test identity and requested template proof
+        run: |
+          proof=()
+          if [ "$POSTGRES_TEMPLATE" = 1 ]; then proof+=(--postgres-template); fi
+          python -m tools.ci.shard_evidence --suite integration --count "$SHARD_COUNT" --directory outputs/ci/matrix --hosted "${proof[@]}"

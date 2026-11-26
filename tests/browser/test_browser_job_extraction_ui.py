@@ -18,6 +18,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -64,6 +65,7 @@ class BrowserJobExtractionUiTests(unittest.TestCase):
             outside_requests = []
             extraction_posts = []
             unrelated_posts = []
+            visits = VisitOracle(self, store, origin, [(profile_id, job["id"])])
             failed_requests = []
             page_errors = []
             browser = None
@@ -87,6 +89,9 @@ class BrowserJobExtractionUiTests(unittest.TestCase):
                         if urlsplit(request.url).netloc != urlsplit(origin).netloc:
                             outside_requests.append(request.url)
                             route.abort()
+                            return
+                        if visits.admit(request):
+                            route.continue_()
                             return
                         if request.method == "POST":
                             if request.url == origin + preview_path:
@@ -115,9 +120,11 @@ class BrowserJobExtractionUiTests(unittest.TestCase):
                     page.get_by_role("navigation", name="Main navigation").get_by_role(
                         "button", name=re.compile(r"^Jobs\s+\d+$"),
                     ).click()
-                    page.get_by_role(
-                        "button", name=job["title"], exact=False,
-                    ).first.click()
+                    with visits.response(page) as view_response:
+                        page.get_by_role(
+                            "button", name=job["title"], exact=False,
+                        ).first.click()
+                    visits.verify(view_response.value)
 
                     panel = page.get_by_role("region", name="Review captured job details")
                     expect(panel).to_be_visible()
@@ -229,6 +236,7 @@ class BrowserJobExtractionUiTests(unittest.TestCase):
                     expect(confirm_button).to_be_enabled()
 
                     self.assertEqual(table_counts(), before_preview)
+                    visits.finish()
                     self.assertEqual(unrelated_posts, [])
                     self.assertEqual(outside_requests, [])
                     self.assertEqual(failed_requests, [])

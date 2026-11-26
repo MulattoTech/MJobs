@@ -14,6 +14,8 @@ import time
 import unittest
 from urllib.parse import urlsplit
 
+from tests.browser.visit_oracle import VisitOracle
+
 from fastapi.testclient import TestClient
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
@@ -220,6 +222,7 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
             ai_requests = []
             submission_requests = []
             blocked_writes = []
+            visits = VisitOracle(self, store, origin, [('fixture', 'selected-job'), ('fixture', 'other-job')])
             profile_reads = []
             profile_writes = []
             explanation_reads = []
@@ -264,6 +267,8 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                                 route.abort()
                         elif path.endswith("/match-explanation") and request.method == "GET":
                             explanation_reads.append(request.url)
+                            route.continue_()
+                        elif visits.admit(request):
                             route.continue_()
                         elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, request.url))
@@ -341,8 +346,10 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                         urlsplit(response.url).path ==
                         "/profiles/fixture/search-profiles/selected-search/jobs/selected-job/match-explanation"
                     ) as selected_explanation:
-                        page.locator(".job-card").filter(
-                            has_text="Cloud Systems Engineer").click()
+                        with visits.response(page) as view_response:
+                            page.locator(".job-card").filter(
+                                has_text="Cloud Systems Engineer").click()
+                        visits.verify(view_response.value)
                     selected_body = selected_explanation.value.json()
                     self.assertEqual(selected_body["profile_id"], "fixture")
                     self.assertEqual(selected_body["search_profile_id"], "selected-search")
@@ -372,8 +379,10 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                         urlsplit(response.url).path ==
                         "/profiles/fixture/search-profiles/other-search/jobs/other-job/match-explanation"
                     ) as other_explanation:
-                        page.locator(".job-card").filter(
-                            has_text="Network Operations Engineer").click()
+                        with visits.response(page) as view_response:
+                            page.locator(".job-card").filter(
+                                has_text="Network Operations Engineer").click()
+                        visits.verify(view_response.value)
                     other_body = other_explanation.value.json()
                     self.assertEqual(other_body["search_profile_id"], "other-search")
                     self.assertEqual(other_body["job_id"], "other-job")
@@ -387,6 +396,7 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                     self.assertEqual(len(profile_writes), 1)
                     self.assertGreaterEqual(len(profile_reads), 3)
                     self.assertGreaterEqual(len(explanation_reads), 2)
+                    visits.finish()
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(ai_requests, [])

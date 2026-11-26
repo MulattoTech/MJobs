@@ -28,13 +28,20 @@ jobs:
             requirements.lock
             requirements.txt
             .github/test-requirements.txt
+            .github/docs-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
       - name: Check bounded Python quality
         run: |
           python -m ruff check apps/api/application_multipage_state.py services/operations/pipeline_workbench.py services/operations/pipeline_actions.py
           python -m mypy --config-file pyproject.toml
-      - name: Execute unit regressions
+      - name: Execute complete unit inventory once
+        env:
+          PYTEST_PLUGINS: tools.ci.unit_shard_selection
+          MJOBS_CI_UNIT_SHARD_INDEX: '0'
+          MJOBS_CI_UNIT_SHARD_COUNT: '1'
         run: python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml
+      - name: Reconcile complete unit inventory
+        run: python -m tools.ci.unit_shard_evidence --directory outputs/ci --count 1 --output outputs/ci/unit.xml --single --hosted
       - name: Enforce scoped Python coverage (synthetic AI fixtures only)
         run: |
           python -m coverage run --branch --source=services/ai -m pytest -q tests/unit/test_ai_prompt_versioning.py tests/unit/test_ai_providers.py tests/unit/test_ai_structured_output.py tests/unit/test_ai_task_configuration.py tests/unit/test_ci_coverage_gate.py
@@ -58,11 +65,12 @@ jobs:
           name: unit-results
           path: |
             outputs/ci/unit.xml
+            outputs/ci/unit-collection.json
             outputs/ci/backend-coverage.json
             outputs/ci/backend-coverage-gate.json
             outputs/ci/provider-task-matrix.json
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: error
   web:
     name: Web / Vitest and production build
     runs-on: ubuntu-24.04
@@ -113,7 +121,9 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
-      - run: python -m pip install -r .github/test-requirements.txt -r .github/docs-requirements.txt
+      # This runner only checks repository policy and builds static docs.
+      # Keep PyYAML aligned with the full pinned test toolchain.
+      - run: python -m pip install PyYAML==6.0.3 -r .github/docs-requirements.txt
       - run: python -m tools.ci.check_repository
       - run: python -m tools.site.build
       - name: Whitespace check
@@ -132,6 +142,8 @@ jobs:
           python - <<'PY'
           import json,os
           results=json.loads(os.environ['RESULTS'])
+          if set(results) != {'python','web','repository'}:
+              raise SystemExit('Required fast gate inventory mismatch')
           failures={name:job['result'] for name,job in results.items() if job['result']!='success'}
           if failures:raise SystemExit('Required gates failed, skipped or cancelled: '+str(failures))
           print('All required fast gates passed.')
