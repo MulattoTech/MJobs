@@ -219,6 +219,23 @@ def test_duplicate_count_requires_distinct_source_posting_identities():
     assert not canonical_posting_count_matches(3, [*postings[:-1], {"source": "Employer"}])
 
 
+def test_remote_match_explanation_shows_recorded_job_regions_not_profile_location():
+    from services.discovery.matching import build_explanation
+
+    result = build_explanation(
+        {"skills": ["Python"], "remote_type": "REMOTE_SPECIFIC_STATES",
+         "attributes": {"skill_evidence": "description_mentions",
+                        "remote_regions": ["OK", "TX", "TX", "\n"]}},
+        {"facts": [], "contact": {"country": "United States", "state": "Oklahoma"}},
+    )
+    factor = next(row for row in result["components"]["fit_factors"]
+                  if row["id"] == "remote_location")
+
+    assert "Recorded job regions: OK, TX." in factor["explanation"]
+    assert "Oklahoma" not in factor["explanation"]
+    assert factor["score_effect"] == "NONE"
+
+
 def test_observation_accepts_job_and_document_lineage_with_bounded_lists():
     observation = build_observation(
         step=34, status="PASS", observable_result="Base and tailored versions compared.",

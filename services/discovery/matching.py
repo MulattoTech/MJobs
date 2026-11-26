@@ -77,6 +77,30 @@ def _state_code(value):
     return _STATE_CODES_BY_NAME.get(normalized)
 
 
+def _remote_region_evidence(regions):
+    """Render bounded job-side region evidence without exposing profile location."""
+    labels = []
+    seen = set()
+    for value in regions:
+        if not isinstance(value, str):
+            continue
+        label = " ".join("".join(char for char in value if char.isprintable()).split())
+        if not label:
+            continue
+        if len(label) > 64:
+            label = label[:61].rstrip() + "..."
+        key = label.casefold()
+        if key not in seen:
+            seen.add(key)
+            labels.append(label)
+    if not labels:
+        return ""
+    shown = labels[:6]
+    remainder = len(labels) - len(shown)
+    suffix = f", and {remainder} more" if remainder else ""
+    return "Recorded job regions: " + ", ".join(shown) + suffix + "."
+
+
 def _remote_location_fit_factor(job, profile):
     attributes = job.get("attributes") or {}
     remote_type = str(job.get("remote_type") or "UNKNOWN").upper()
@@ -161,6 +185,9 @@ def _remote_location_fit_factor(job, profile):
             "The known remote-work regions do not include the selected profile's country; "
             "this informational result does not reduce the score."
         )
+    region_evidence = _remote_region_evidence(regions)
+    if region_evidence:
+        explanation = f"{explanation} {region_evidence}"
     return {
         "id": "remote_location", "label": "Remote work region",
         "status": status, "explanation": explanation, "score_effect": "NONE",
