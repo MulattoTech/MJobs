@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import tempfile
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -26,6 +27,15 @@ class FixtureGuardTests(TestCase):
 
     def recovery_labelled(self, **overrides):
         return self.labelled(**{guard.MODE_LABEL: guard.RECOVERY_MODE}, **overrides)
+
+    def recovery_resources(self, **overrides):
+        labels = {guard.PROJECT_LABEL: self.PROJECT, guard.TOKEN_LABEL: self.TOKEN,
+                  guard.EXPIRY_LABEL: self.LEASE, guard.MODE_LABEL: guard.RECOVERY_MODE}
+        labels.update(overrides)
+        return ([{"Name": f"{self.PROJECT}_{name}", "Labels": dict(labels)}
+                 for name in guard.VOLUMES],
+                [{"Name": f"{self.PROJECT}_{name}", "Labels": dict(labels)}
+                 for name in guard.NETWORKS])
 
     def test_reject_unowned_container_before_destructive_command(self):
         with patch.object(guard, "containers", return_value=[
@@ -76,6 +86,7 @@ class FixtureGuardTests(TestCase):
              "expires": self.LEASE, "token": "b" * 32, "containers": 3},
         ]
         with patch.object(guard, "inventory", return_value=rows), \
+             patch.object(guard, "recovery_resource_inventory", return_value=[]), \
              patch.object(guard, "cleanup") as cleanup:
             guard.sweep(apply=False)
             cleanup.assert_not_called()
@@ -87,7 +98,7 @@ class FixtureGuardTests(TestCase):
                                      "POSTGRES_PASSWORD": "production-pass"}):
             env = guard.fixture_environment(self.PROJECT, self.TOKEN, 1234567890, 18741)
         self.assertNotIn("COMPOSE_FILE", env)
-        self.assertNotEqual(env["POSTGRES_PASSWORD"], "production-pass")
+        self.assertTrue(env["POSTGRES_PASSWORD"] != "production-pass")
         self.assertEqual(env["COMPOSE_PROJECT_NAME"], self.PROJECT)
         self.assertEqual(env["MJOBS_OPERATION_MODE"], "FIXTURE")
         self.assertEqual(env["MJOBS_COMPOSE_MOCK"], "1")
@@ -104,6 +115,7 @@ class FixtureGuardTests(TestCase):
         self.assertEqual(default_files, expected[:2])
         self.assertEqual(recovery_files, expected)
         self.assertEqual(recovery_files[0], str(guard.COMPOSE.resolve()))
+        self.assertNotIn("--env-file", default)
 
     def test_recovery_child_environment_gets_exact_compose_list_and_fixture_mode(self):
         expected = os.pathsep.join(guard.compose_files(recovery_mode=True))
@@ -116,8 +128,78 @@ class FixtureGuardTests(TestCase):
         self.assertEqual(env["MJOBS_OPERATION_MODE"], "FIXTURE")
         self.assertEqual(env["MJOBS_COMPOSE_MOCK"], "1")
         self.assertNotEqual(env["POSTGRES_PASSWORD"], "production-pass")
+        self.assertEqual(env["MJOBS_EXTERNAL_SUBMISSIONS_ENABLED"], "0")
+        self.assertEqual(env["MJOBS_OPENAI_API_KEY"], "")
+        self.assertEqual(env["MJOBS_OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertEqual(env.get("OPENAI_API_KEY"), "")
+
+    def test_recovery_environment_drops_poisoned_host_values_and_uses_controlled_dotenv(self):
+        secret = "POISON-SECRET-MUST-NOT-ESCAPE"
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp)), \
+                patch.dict(os.environ, {
+                    "COMPOSE_FILE": "foreign-compose.yml",
+                    "COMPOSE_ENV_FILES": "foreign.env",
+                    "OPENAI_API_KEY": secret,
+                    "AZURE_OPENAI_API_KEY": secret,
+                    "POSTGRES_PASSWORD": "POISON_DB_PASSWORD",
+                    "MJOBS_CREDENTIAL_ENCRYPTION_KEY": "POISON_VAULT_KEY",
+                    "MJOBS_OPENAI_API_KEY": secret,
+                    "MJOBS_OPENAI_BASE_URL": "https://production.invalid/v1",
+                    "MJOBS_PUBLIC_HOST": "production.invalid",
+                    "MJOBS_EXTERNAL_SUBMISSIONS_ENABLED": "1",
+                    "HTTPS_PROXY": "http://proxy.invalid:8080",
+                    "DOCKER_CONTEXT": "default",
+                }, clear=False):
+            env = guard.fixture_environment(self.PROJECT, self.TOKEN, 1234567890, 18741,
+                                            recovery_mode=True)
+            path = guard.recovery_environment_file(self.PROJECT, self.TOKEN, 1234567890,
+                                                   environment=env)
+            text = path.read_text(encoding="utf-8")
+            recovery_args = guard.compose_args(self.PROJECT, recovery_mode=True)
+        self.assertEqual(env["DOCKER_CONTEXT"], "default")
+        self.assertEqual(env["COMPOSE_FILE"], os.pathsep.join(guard.compose_files(True)))
+        self.assertTrue("HTTPS_PROXY" not in env)
+        self.assertEqual(env.get("OPENAI_API_KEY"), "")
+        self.assertEqual(env["MJOBS_OPENAI_API_KEY"], "")
+        self.assertEqual(env["MJOBS_OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertEqual(env["MJOBS_PUBLIC_HOST"], "")
+        self.assertEqual(env["MJOBS_EXTERNAL_SUBMISSIONS_ENABLED"], "0")
+        self.assertTrue(secret not in text)
+        self.assertTrue("production.invalid" not in text)
+        env_file_index = recovery_args.index("--env-file")
+        self.assertEqual(recovery_args[env_file_index + 1], str(path))
+        self.assertEqual(env["COMPOSE_ENV_FILES"], str(path))
+
+    def test_recovery_rejects_poisoned_controlled_dotenv_without_echoing_values(self):
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp)):
+            env = guard.fixture_environment(self.PROJECT, self.TOKEN, 1234567890, 18741,
+                                            recovery_mode=True)
+            path = guard.recovery_environment_file(self.PROJECT, self.TOKEN, 1234567890,
+                                                   environment=env)
+            content = path.read_text(encoding="utf-8").replace(
+                "MJOBS_OPENAI_API_KEY=", "MJOBS_OPENAI_API_KEY=DOTENV-POISON")
+            content = content.replace("POSTGRES_PASSWORD=", "POSTGRES_PASSWORD=DOTENV-DB-POISON")
+            content = content.replace("MJOBS_OPENAI_BASE_URL=http://127.0.0.1:9/v1",
+                                      "MJOBS_OPENAI_BASE_URL=https://production.invalid/v1")
+            path.write_text(content, encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "identity mismatch") as error:
+                guard.recovery_environment_file(self.PROJECT, self.TOKEN, 1234567890,
+                                                environment=env)
+            self.assertNotIn("DOTENV-POISON", str(error.exception))
+
+    def test_docker_failure_omits_secret_stderr(self):
+        secret = "DOCKER-STDERR-SECRET"
+        with patch.object(guard.subprocess, "run", return_value=Mock(
+                returncode=1, stderr=f"failed with {secret}")):
+            with self.assertRaises(RuntimeError) as error:
+                guard.docker("compose", "config")
+        self.assertNotIn(secret, str(error.exception))
 
     def test_recovery_run_uses_same_mode_for_start_child_watchdog_and_failure_cleanup(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
         args = argparse.Namespace(ttl_minutes=60, max_fixtures=1, port=18741,
                                   build=False, recovery=True,
                                   command=["--", "python", "-m", "cli.compose_recovery"])
@@ -132,6 +214,7 @@ class FixtureGuardTests(TestCase):
              patch.object(guard, "containers", return_value=[]), \
              patch.object(guard, "project_resources", return_value={
                  "containers": [], "volumes": [], "networks": []}), \
+             patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp.name)), \
              patch.object(guard, "spawn_watchdog", return_value=watchdog) as spawn, \
              patch.object(guard, "docker", side_effect=fake_docker), \
              patch.object(guard, "cleanup") as cleanup, \
@@ -151,6 +234,13 @@ class FixtureGuardTests(TestCase):
         self.assertTrue(spawn.call_args.kwargs["recovery_mode"])
         self.assertTrue(cleanup.call_args.kwargs["recovery_mode"])
         self.assertEqual(cleanup.call_args.kwargs["env"]["COMPOSE_FILE"], expected_files)
+        self.assertEqual(cleanup.call_args.kwargs["env"]["COMPOSE_ENV_FILES"],
+                         up_kwargs["env"]["COMPOSE_ENV_FILES"])
+        self.assertEqual(cleanup.call_args.kwargs["env"]["MJOBS_EXTERNAL_SUBMISSIONS_ENABLED"], "0")
+        self.assertEqual(cleanup.call_args.kwargs["env"]["MJOBS_OPENAI_API_KEY"], "")
+        up_args = next(call for call, _ in docker_calls if "up" in call)
+        self.assertIn("--env-file", up_args)
+        self.assertEqual(child_env.get("OPENAI_API_KEY"), "")
         watchdog.terminate.assert_called_once()
 
     def test_recovery_cleanup_rejects_default_or_mixed_mode_container_before_docker(self):
@@ -162,29 +252,99 @@ class FixtureGuardTests(TestCase):
 
     def test_recovery_cleanup_checks_token_expiry_and_mode_labels_on_resources(self):
         row = self.recovery_labelled()
-        labels = {guard.PROJECT_LABEL: self.PROJECT, guard.TOKEN_LABEL: self.TOKEN,
-                  guard.EXPIRY_LABEL: self.LEASE, guard.MODE_LABEL: guard.RECOVERY_MODE}
+        volumes, networks = self.recovery_resources()
         network_ids = [f"network-{index}" for index, _ in enumerate(guard.NETWORKS)]
         def fake_docker(*args, **kwargs):
             if args[:2] == ("volume", "ls"):
                 return "\n".join(f"{self.PROJECT}_{name}" for name in guard.VOLUMES)
             if args[:2] == ("volume", "inspect"):
-                return "\n".join([json.dumps(labels)] * len(guard.VOLUMES))
+                return "\n".join(json.dumps(resource) for resource in volumes)
             if args[:2] == ("network", "ls"):
                 return "\n".join(network_ids)
-            if args[:2] == ("network", "inspect") and args[2] == "--format" and args[3] == "{{.Name}}":
-                return "\n".join(f"{self.PROJECT}_{name}" for name in guard.NETWORKS)
             if args[:2] == ("network", "inspect") and args[2] == "--format":
-                return "\n".join([json.dumps(labels)] * len(network_ids))
+                return "\n".join(json.dumps(resource) for resource in networks)
             self.fail(f"Unexpected command: {args}")
         with patch.object(guard, "containers", return_value=[row]), \
                 patch.object(guard, "docker", side_effect=fake_docker):
             self.assertTrue(guard.verify_owned(self.PROJECT, self.TOKEN, recovery_mode=True))
 
+    def test_recovery_cleanup_accepts_owned_resource_only_partial_start(self):
+        volumes, networks = self.recovery_resources()
+        with patch.object(guard, "containers", return_value=[]), \
+                patch.object(guard, "inspect_resources", side_effect=[volumes, networks]):
+            self.assertEqual(guard.verify_owned(self.PROJECT, self.TOKEN, recovery_mode=True),
+                             self.LEASE)
+
+    def test_recovery_resource_only_cleanup_rejects_mixed_unowned_or_ambiguous_resources(self):
+        good_volumes, good_networks = self.recovery_resources()
+        bad_cases = [
+            ("volume", {guard.TOKEN_LABEL: "b" * 32}, None, "resource ownership"),
+            ("network", {guard.MODE_LABEL: "default"}, None, "resource ownership"),
+            ("volume", {guard.EXPIRY_LABEL: "8888888888"}, None, "ambiguous fixture lease"),
+            ("network", {guard.PROJECT_LABEL: "mjobs-fixture-ffffffffffff"}, None, "resource ownership"),
+            ("volume", {}, f"{self.PROJECT}_foreign", "resource ownership"),
+        ]
+        for kind, changes, name, message in bad_cases:
+            with self.subTest(case=message):
+                volumes = [dict(row, Name=name or row["Name"],
+                                Labels={**row["Labels"], **changes})
+                           for row in good_volumes]
+                networks = [dict(row, Name=name or row["Name"],
+                                 Labels={**row["Labels"], **changes})
+                            for row in good_networks]
+                with patch.object(guard, "containers", return_value=[]), \
+                        patch.object(guard, "inspect_resources",
+                                     side_effect=[volumes if kind == "volume" else good_volumes,
+                                                  networks if kind == "network" else good_networks]):
+                    with self.assertRaisesRegex(RuntimeError, message):
+                        guard.verify_owned(self.PROJECT, self.TOKEN, recovery_mode=True)
+
+    def test_recovery_cleanup_noop_when_failed_start_created_no_resources(self):
+        with patch.object(guard, "containers", return_value=[]), \
+                patch.object(guard, "inspect_resources", side_effect=[[], []]), \
+                patch.object(guard, "docker") as docker:
+            self.assertFalse(guard.verify_owned(self.PROJECT, self.TOKEN, recovery_mode=True))
+            docker.assert_not_called()
+
+    def test_recovery_resource_only_cleanup_uses_validated_project_and_config_set(self):
+        volumes, networks = self.recovery_resources()
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        calls = []
+        with patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp.name)), \
+                patch.object(guard, "containers", return_value=[]), \
+                patch.object(guard, "inspect_resources", side_effect=[volumes, networks]), \
+                patch.object(guard, "docker",
+                             side_effect=lambda *args, **kwargs: calls.append((args, kwargs)) or ""):
+            guard.cleanup(self.PROJECT, self.TOKEN, recovery_mode=True)
+        down, options = calls[-1]
+        files = tuple(down[index + 1] for index, item in enumerate(down[:-1]) if item == "--file")
+        self.assertEqual(files, guard.compose_files(recovery_mode=True))
+        self.assertIn("--env-file", down)
+        self.assertEqual(options["env"]["MJOBS_DEV_GUARD_TOKEN"], self.TOKEN)
+        self.assertEqual(options["env"]["MJOBS_DEV_GUARD_EXPIRES"], self.LEASE)
+        self.assertEqual(options["env"]["MJOBS_EXTERNAL_SUBMISSIONS_ENABLED"], "0")
+
+    def test_recovery_inventory_and_expiry_sweep_find_resource_only_project(self):
+        volumes, networks = self.recovery_resources()
+        with patch.object(guard, "containers", return_value=[]), \
+                patch.object(guard, "inspect_resources", side_effect=[volumes, networks]):
+            rows = guard.recovery_resource_inventory()
+        self.assertEqual(rows, [{"project": self.PROJECT, "containers": 0,
+                                 "resources": len(volumes) + len(networks),
+                                 "managed": True, "expires": self.LEASE,
+                                 "token": self.TOKEN, "mode": guard.RECOVERY_MODE}])
+        with patch.object(guard, "inventory", return_value=[]), \
+                patch.object(guard, "recovery_resource_inventory", return_value=rows), \
+                patch.object(guard, "time") as clock, patch.object(guard, "cleanup") as cleanup:
+            clock.time.return_value = int(self.LEASE) + 1
+            guard.sweep(apply=True)
+        cleanup.assert_called_once_with(self.PROJECT, self.TOKEN, recovery_mode=True)
+
     def test_recovery_cleanup_uses_same_root_first_compose_list(self):
         row = self.recovery_labelled()
         calls = []
-        with patch.object(guard, "verify_owned") as verify, \
+        with patch.object(guard, "verify_owned", return_value=self.LEASE) as verify, \
                 patch.object(guard, "containers", return_value=[row]), \
                 patch.object(guard, "docker", side_effect=lambda *args, **kwargs: calls.append((args, kwargs)) or ""):
             guard.cleanup(self.PROJECT, self.TOKEN, recovery_mode=True)
@@ -205,6 +365,7 @@ class FixtureGuardTests(TestCase):
                                  "expires": self.LEASE, "token": self.TOKEN,
                                  "mode": guard.RECOVERY_MODE}])
         with patch.object(guard, "inventory", return_value=rows), \
+                patch.object(guard, "recovery_resource_inventory", return_value=[]), \
                 patch.object(guard, "time") as clock, patch.object(guard, "cleanup") as cleanup:
             clock.time.return_value = int(self.LEASE) + 1
             guard.sweep(apply=True)
@@ -220,10 +381,14 @@ class FixtureGuardTests(TestCase):
     def test_recovery_watchdog_spawn_carries_mode_flag(self):
         output = Mock()
         with patch.object(Path, "mkdir"), patch("builtins.open", return_value=output), \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(tempfile.gettempdir()) / "fixture-test-env"), \
                 patch.object(guard.subprocess, "Popen") as popen:
             guard.spawn_watchdog(self.PROJECT, self.TOKEN, 1234567890, recovery_mode=True)
         self.assertEqual(popen.call_args.args[0][-1], "--recovery")
         self.assertEqual(popen.call_args.kwargs["stdin"], guard.subprocess.DEVNULL)
+        self.assertNotIn("OPENAI_API_KEY", popen.call_args.kwargs["env"])
+        self.assertNotIn("HTTPS_PROXY", popen.call_args.kwargs["env"])
+        self.assertIn("COMPOSE_ENV_FILES", popen.call_args.kwargs["env"])
 
     def test_run_parser_defaults_to_existing_mode_and_accepts_explicit_recovery(self):
         with patch.object(guard, "run", return_value=0) as run:
@@ -291,7 +456,10 @@ class FixtureGuardTests(TestCase):
         yaml = guard.RECOVERY_OVERRIDE.read_text(encoding="utf-8")
         self.assertIn('restart: "on-failure:1"', yaml)
         self.assertEqual(yaml.count("restart:"), 1)
+        self.assertIn('MJOBS_EXTERNAL_SUBMISSIONS_ENABLED: "0"', yaml)
+        self.assertIn("source-egress:", yaml)
         self.assertEqual(yaml.count("labels: *recovery-labels"),
                          len(guard.SERVICES) + len(guard.VOLUMES) + len(guard.NETWORKS))
         for service in guard.SERVICES - {"worker"}:
-            self.assertIn(f"  {service}:\n    labels: *recovery-labels", yaml)
+            self.assertIn(f"  {service}:\n", yaml)
+            self.assertIn("labels: *recovery-labels", yaml)

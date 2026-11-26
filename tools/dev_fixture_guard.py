@@ -6,6 +6,8 @@ cleanup. Unlabelled legacy fixtures, personal stacks and production are untouche
 import argparse
 import base64
 from collections import defaultdict
+import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
@@ -14,6 +16,7 @@ import secrets
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +28,7 @@ TOKEN_LABEL = "com.mjobs.dev.guard"
 EXPIRY_LABEL = "com.mjobs.dev.expires"
 MODE_LABEL = "com.mjobs.dev.guard.mode"
 RECOVERY_MODE = "recovery"
+RECOVERY_ENV_ROOT = Path(tempfile.gettempdir()) / "mjobs-dev-fixture-guard"
 PROJECT_LABEL = "com.docker.compose.project"
 SERVICE_LABEL = "com.docker.compose.service"
 SERVICES = frozenset({
@@ -36,6 +40,47 @@ VOLUMES = frozenset({
     "runtime-database", "migration-backups",
 })
 NETWORKS = frozenset({"private", "ui", "source-egress"})
+DOCKER_ENV_KEYS = (
+    "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "COMSPEC",
+    "USERPROFILE", "HOME", "APPDATA", "LOCALAPPDATA",
+    "PROGRAMFILES", "PROGRAMW6432",
+    "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS_VERIFY",
+    "DOCKER_CERT_PATH", "DOCKER_CONFIG", "DOCKER_API_VERSION",
+)
+RECOVERY_ENV_VALUES = {
+    "MJOBS_COMPOSE_MOCK": "1",
+    "MJOBS_OPERATION_MODE": "FIXTURE",
+    "MJOBS_EXTERNAL_SUBMISSIONS_ENABLED": "0",
+    "MJOBS_EXTERNAL_SUBMISSION_ENABLED": "0",
+    "MJOBS_PUBLIC_HOST": "",
+    "MJOBS_DEPLOY_SHA": "",
+    "MJOBS_NOTIFICATIONS_ENABLED": "0",
+    "MJOBS_OLLAMA_BASE_URL": "http://127.0.0.1:9",
+    "MJOBS_OPENAI_BASE_URL": "http://127.0.0.1:9/v1",
+    "MJOBS_OPENAI_API_KEY": "",
+    "MJOBS_OPENAI_COMPATIBLE_BASE_URL": "http://127.0.0.1:9/v1",
+    "MJOBS_OPENAI_COMPATIBLE_API_KEY": "",
+    "MJOBS_LOCAL_AI_BASE_URL": "http://127.0.0.1:9/v1",
+    "MJOBS_LOCAL_AI_API_KEY": "",
+    "MJOBS_AZURE_OPENAI_BASE_URL": "http://127.0.0.1:9",
+    "MJOBS_AZURE_OPENAI_API_KEY": "",
+    "OPENAI_API_KEY": "",
+    "OPENAI_BASE_URL": "http://127.0.0.1:9/v1",
+    "AZURE_OPENAI_API_KEY": "",
+    "AZURE_OPENAI_ENDPOINT": "http://127.0.0.1:9",
+}
+
+
+def recovery_synthetic_credentials(token):
+    if not re.fullmatch(r"[0-9a-f]{32}", token):
+        raise ValueError("Invalid disposable fixture token")
+    key = bytes.fromhex(token)
+    password = hmac.new(key, b"mjobs-fixture-postgres", hashlib.sha256).digest()[:24]
+    vault_key = hmac.new(key, b"mjobs-fixture-vault", hashlib.sha256).digest()
+    return {
+        "POSTGRES_PASSWORD": base64.urlsafe_b64encode(password).decode("ascii").rstrip("="),
+        "MJOBS_CREDENTIAL_ENCRYPTION_KEY": base64.urlsafe_b64encode(vault_key).decode("ascii"),
+    }
 
 
 def docker(*args, env=None, timeout=90):
@@ -48,8 +93,7 @@ def docker(*args, env=None, timeout=90):
         raise RuntimeError("Docker command could not complete") from exc
     if result.returncode:
         raise RuntimeError(
-            f"Docker command failed ({result.returncode}): "
-            + result.stderr[-1000:].strip()
+            f"Docker command failed ({result.returncode}); stderr omitted"
         )
     return result.stdout.strip()
 
@@ -86,11 +130,114 @@ def compose_files(recovery_mode=False):
     return tuple(str(path.resolve()) for path in files)
 
 
+def inspect_resources(kind, project=None, recovery_mode=False, include_named=False):
+    if kind not in ("volume", "network"):
+        raise ValueError("Unsupported fixture resource type")
+    filters = ["--filter", f"label={PROJECT_LABEL}"]
+    if project is not None:
+        filters = ["--filter", f"label={PROJECT_LABEL}={project}"]
+    if recovery_mode:
+        filters.extend(["--filter", f"label={MODE_LABEL}={RECOVERY_MODE}"])
+    ids = docker(kind, "ls", "-q", *filters).split()
+    if project is not None and include_named:
+        named = docker(kind, "ls", "-q", "--filter", f"name={project}_").split()
+        ids = list(dict.fromkeys([*ids, *named]))
+    if not ids:
+        return []
+    lines = docker(kind, "inspect", "--format", "{{json .}}", *ids).splitlines()
+    if len(lines) != len(ids):
+        raise RuntimeError(f"{kind} inspection count mismatch")
+    rows = [json.loads(line) for line in lines]
+    if any(not isinstance(row, dict) or not isinstance(row.get("Labels"), dict)
+           for row in rows):
+        raise RuntimeError(f"{kind} labels were unavailable")
+    return rows
+
+
+def recovery_env_path(project):
+    if not PATTERN.fullmatch(project):
+        raise ValueError("Not an isolated MJobs fixture project")
+    return RECOVERY_ENV_ROOT / f"{project}.env"
+
+
+def recovery_environment_file(project, token, expiry, environment=None):
+    """Create or verify the private synthetic dotenv shared by recovery lifecycle commands."""
+    path = recovery_env_path(project)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    expected = {"MJOBS_DEV_GUARD_TOKEN": token,
+                "MJOBS_DEV_GUARD_EXPIRES": str(expiry)}
+    expected.update(recovery_synthetic_credentials(token))
+    if path.is_symlink():
+        raise RuntimeError("Refusing cleanup: recovery dotenv is not a regular file")
+    if path.exists():
+        values = read_recovery_dotenv(path)
+        if (set(values) != set(recovery_dotenv_values({}))
+                or any(values.get(key) != value for key, value in expected.items())
+                or any(values.get(key) != value for key, value in RECOVERY_ENV_VALUES.items())):
+            raise RuntimeError("Refusing cleanup: recovery dotenv identity mismatch")
+        return path
+
+    if environment is None:
+        environment = fixture_environment(project, token, expiry, 18741,
+                                          recovery_mode=True)
+    values = recovery_dotenv_values(environment)
+    if (set(values) != set(recovery_dotenv_values({}))
+            or any(values.get(key) != value for key, value in expected.items())
+            or any(values.get(key) != value for key, value in RECOVERY_ENV_VALUES.items())):
+        raise RuntimeError("Refusing cleanup: recovery dotenv identity mismatch")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Exclusive creation prevents a stale or foreign file from being replaced.
+    descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            for key, value in sorted(values.items()):
+                if "\n" in value or "\r" in value:
+                    raise ValueError("Invalid recovery dotenv value")
+                stream.write(f"{key}={value}\n")
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
+def read_recovery_dotenv(path):
+    values = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        key, separator, value = line.partition("=")
+        if not separator or key in values:
+            raise RuntimeError("Refusing cleanup: invalid recovery dotenv")
+        values[key] = value
+    return values
+
+
+def controlled_docker_environment(environment=None):
+    source = os.environ if environment is None else environment
+    return {key: str(source[key]) for key in DOCKER_ENV_KEYS if source.get(key)}
+
+
+def recovery_dotenv_values(environment):
+    keys = {
+        "MJOBS_DEV_GUARD_TOKEN", "MJOBS_DEV_GUARD_EXPIRES",
+        "POSTGRES_PASSWORD", "MJOBS_CREDENTIAL_ENCRYPTION_KEY",
+        "MJOBS_PORT", "MJOBS_IMAGE", "MJOBS_BROWSER_PROFILE",
+        "MJOBS_WORKER_LOG_LEVEL", "MJOBS_SUBMISSION_HOURLY_LIMIT",
+        "MJOBS_SUBMISSION_DAILY_LIMIT", "MJOBS_SUBMISSION_COMPANY_LIMIT",
+        "MJOBS_SOURCE_COLLECTION_CONCURRENCY", "MJOBS_COMPANY_DISCOVERY_CONCURRENCY",
+        "MJOBS_AI_CONCURRENCY", "MJOBS_DOCUMENT_GENERATION_CONCURRENCY",
+        "MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "MJOBS_TRANSIENT_RETENTION_CONFIG",
+        "MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS", "MJOBS_MOCK_SCENARIO",
+        *RECOVERY_ENV_VALUES.keys(),
+    }
+    return {key: str(environment.get(key, "")) for key in keys}
+
+
 def verify_owned(project, token, recovery_mode=False):
     if not PATTERN.fullmatch(project) or not re.fullmatch(r"[0-9a-f]{32}", token):
         raise ValueError("Invalid disposable project identity")
     rows = containers(project)
-    if not rows:
+    if not rows and not recovery_mode:
         raise RuntimeError("No labelled containers to establish fixture ownership")
     expected_mode = RECOVERY_MODE if recovery_mode else None
     for row in rows:
@@ -99,28 +246,43 @@ def verify_owned(project, token, recovery_mode=False):
                 or row.get(MODE_LABEL) != expected_mode):
             raise RuntimeError("Refusing cleanup: project contains an unowned container")
     expiries = {row.get(EXPIRY_LABEL) for row in rows}
-    if len(expiries) != 1 or not next(iter(expiries)):
-        raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
-    if recovery_mode:
-        expected_labels = {
-            PROJECT_LABEL: project,
-            TOKEN_LABEL: token,
-            EXPIRY_LABEL: next(iter(expiries)),
-            MODE_LABEL: RECOVERY_MODE,
-        }
     # Compose-created volumes and networks are scoped to the exact generated
     # project. Refuse additional resources that might belong to another operator.
+    if recovery_mode:
+        resources = [("volume", row) for row in
+                     inspect_resources("volume", project, include_named=True)]
+        resources.extend(("network", row) for row in
+                         inspect_resources("network", project, include_named=True))
+        if not rows and not resources:
+            # A failed compose up may have created nothing; there is nothing to reap.
+            return False
+        expected_labels = {
+            PROJECT_LABEL: project, TOKEN_LABEL: token,
+            MODE_LABEL: RECOVERY_MODE,
+        }
+        for kind, row in resources:
+            labels = row["Labels"]
+            expected_names = VOLUMES if kind == "volume" else NETWORKS
+            if (row.get("Name") not in {f"{project}_{part}" for part in expected_names}
+                    or any(labels.get(key) != value for key, value in expected_labels.items())
+                    or not labels.get(EXPIRY_LABEL)):
+                raise RuntimeError("Refusing cleanup: recovery resource ownership mismatch")
+            expiries.add(labels[EXPIRY_LABEL])
+        if not resources and not rows:
+            return False
+        if (len(expiries) != 1 or not next(iter(expiries))
+                or any(row.get(EXPIRY_LABEL) != next(iter(expiries)) for row in rows)
+                or any(row["Labels"].get(EXPIRY_LABEL) != next(iter(expiries))
+                       for _, row in resources)):
+            raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
+        return next(iter(expiries))
+
+    if len(expiries) != 1 or not next(iter(expiries)):
+        raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
     names = docker("volume", "ls", "-q", "--filter",
                    f"label={PROJECT_LABEL}={project}").splitlines()
-    if any(name not in {f"{project}_{part}" for part in VOLUMES}
-           for name in names):
+    if any(name not in {f"{project}_{part}" for part in VOLUMES} for name in names):
         raise RuntimeError("Refusing cleanup: unexpected project volume")
-    if recovery_mode and names:
-        labels = docker("volume", "inspect", "--format", "{{json .Labels}}", *names).splitlines()
-        if len(labels) != len(names) or any(
-                any(json.loads(line).get(key) != value for key, value in expected_labels.items())
-                for line in labels):
-            raise RuntimeError("Refusing cleanup: recovery volume ownership mismatch")
     network_ids = docker("network", "ls", "-q", "--filter",
                          f"label={PROJECT_LABEL}={project}").split()
     if network_ids:
@@ -129,13 +291,6 @@ def verify_owned(project, token, recovery_mode=False):
         if any(name not in {f"{project}_{part}" for part in NETWORKS}
                for name in network_names):
             raise RuntimeError("Refusing cleanup: unexpected project network")
-        if recovery_mode:
-            labels = docker("network", "inspect", "--format", "{{json .Labels}}",
-                            *network_ids).splitlines()
-            if len(labels) != len(network_ids) or any(
-                    any(json.loads(line).get(key) != value for key, value in expected_labels.items())
-                    for line in labels):
-                raise RuntimeError("Refusing cleanup: recovery network ownership mismatch")
     return True
 
 
@@ -144,32 +299,56 @@ def compose_args(project, recovery_mode=False):
         raise ValueError("Not an isolated MJobs fixture project")
     files = compose_files(recovery_mode)
     file_args = tuple(part for path in files for part in ("--file", path))
-    return ("compose", *file_args, "--project-directory", str(ROOT),
+    env_args = ("--env-file", str(recovery_env_path(project))) if recovery_mode else ()
+    return ("compose", *env_args, *file_args, "--project-directory", str(ROOT),
             "--project-name", project, "--profile", "fixture")
 
 
 def cleanup(project, token, env=None, recovery_mode=False):
-    verify_owned(project, token, recovery_mode=recovery_mode)
+    owned = verify_owned(project, token, recovery_mode=recovery_mode)
+    if recovery_mode and not owned:
+        path = recovery_env_path(project)
+        if path.exists() and not path.is_symlink():
+            values = read_recovery_dotenv(path)
+            expected_expiry = values.get("MJOBS_DEV_GUARD_EXPIRES")
+            recovery_environment_file(project, token, expected_expiry, environment=env)
+            path.unlink(missing_ok=True)
+        return
     # Compose interpolates its config even for "down". Supply non-production,
     # cleanup-only placeholders if the independent watchdog has no parent env.
     # Never read or reuse production secrets when reaping an expired fixture.
     rows = containers(project)
-    expiries = {row.get(EXPIRY_LABEL) for row in rows}
-    if len(expiries) != 1 or not next(iter(expiries)):
-        raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
+    if recovery_mode:
+        expiry = str(owned)
+    else:
+        expiries = {row.get(EXPIRY_LABEL) for row in rows}
+        if len(expiries) != 1 or not next(iter(expiries)):
+            raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
+        expiry = next(iter(expiries))
     compose_env = dict(os.environ if env is None else env)
+    env_file = None
+    if recovery_mode:
+        env_file = recovery_environment_file(project, token, owned, environment=env)
+        compose_env = controlled_docker_environment(env)
+        compose_env.update(read_recovery_dotenv(env_file))
+        compose_env["COMPOSE_ENV_FILES"] = str(env_file)
     compose_env.update({
         "MJOBS_DEV_GUARD_TOKEN": token,
-        "MJOBS_DEV_GUARD_EXPIRES": next(iter(expiries)),
+        "MJOBS_DEV_GUARD_EXPIRES": expiry,
     })
-    if env is None:
+    if env is None and not recovery_mode:
         compose_env["POSTGRES_PASSWORD"] = "fixture-cleanup-only"
         compose_env["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "fixture-cleanup-only"
     compose_env.pop("COMPOSE_FILE", None)
     # Only newly generated, token-labelled projects reach this call. Preserve
     # images/build cache; delete the disposable project's own test volumes.
+    if recovery_mode:
+        compose_env["MJOBS_DEV_GUARD_TOKEN"] = token
+        compose_env["MJOBS_DEV_GUARD_EXPIRES"] = expiry
     docker(*compose_args(project, recovery_mode), "down", "--remove-orphans", "--volumes",
            env=compose_env, timeout=180)
+    if recovery_mode and env_file is not None:
+        env_file.unlink(missing_ok=True)
 
 
 def inventory():
@@ -205,9 +384,42 @@ def inventory():
     return result
 
 
+def recovery_resource_inventory():
+    resource_grouped = defaultdict(list)
+    for kind in ("volume", "network"):
+        for resource in inspect_resources(kind, recovery_mode=True):
+            labels = resource["Labels"]
+            project = labels.get(PROJECT_LABEL, "")
+            if PATTERN.fullmatch(project):
+                resource_grouped[project].append((kind, resource))
+    result = []
+    for project, resources in sorted(resource_grouped.items()):
+        tokens = {row["Labels"].get(TOKEN_LABEL) for _, row in resources}
+        expiries = {row["Labels"].get(EXPIRY_LABEL) for _, row in resources}
+        valid_names = all(
+            row.get("Name") in {f"{project}_{part}" for part in
+                                 (VOLUMES if kind == "volume" else NETWORKS)}
+            and row["Labels"].get(MODE_LABEL) == RECOVERY_MODE
+            for kind, row in resources)
+        token = next(iter(tokens)) if len(tokens) == 1 else None
+        expiry = next(iter(expiries)) if len(expiries) == 1 else None
+        managed = (valid_names and len(tokens) == 1 and bool(re.fullmatch(r"[0-9a-f]{32}", token or ""))
+                   and len(expiries) == 1 and bool(expiry))
+        result.append({
+            "project": project, "containers": 0, "resources": len(resources),
+            "managed": managed, "expires": expiry if managed else None,
+            "token": token if managed else None, "mode": RECOVERY_MODE,
+        })
+    return result
+
+
 def sweep(apply=False):
     now = int(time.time())
-    for row in inventory():
+    rows = inventory()
+    known_projects = {row["project"] for row in rows}
+    rows.extend(row for row in recovery_resource_inventory()
+                if row["project"] not in known_projects)
+    for row in rows:
         if not row["managed"]:
             continue
         try:
@@ -232,7 +444,8 @@ def choose_port():
 
 
 def fixture_environment(project, token, expiry, port, recovery_mode=False):
-    env = os.environ.copy()
+    env = ({key: os.environ[key] for key in DOCKER_ENV_KEYS if os.environ.get(key)}
+           if recovery_mode else os.environ.copy())
     # Never reuse production credentials for isolated synthetic test data.
     env.update({
         "COMPOSE_PROJECT_NAME": project,
@@ -246,10 +459,28 @@ def fixture_environment(project, token, expiry, port, recovery_mode=False):
         "MJOBS_CREDENTIAL_ENCRYPTION_KEY": base64.urlsafe_b64encode(
             secrets.token_bytes(32)).decode("ascii"),
     })
+    if recovery_mode:
+        env.update(RECOVERY_ENV_VALUES)
+        env.update(recovery_synthetic_credentials(token))
+        env["MJOBS_IMAGE"] = "mjobs-local:spine"
+        env.setdefault("MJOBS_BROWSER_PROFILE", "")
+        env.setdefault("MJOBS_WORKER_LOG_LEVEL", "WARNING")
+        env.setdefault("MJOBS_SUBMISSION_HOURLY_LIMIT", "3")
+        env.setdefault("MJOBS_SUBMISSION_DAILY_LIMIT", "10")
+        env.setdefault("MJOBS_SUBMISSION_COMPANY_LIMIT", "1")
+        env.setdefault("MJOBS_SOURCE_COLLECTION_CONCURRENCY", "2")
+        env.setdefault("MJOBS_COMPANY_DISCOVERY_CONCURRENCY", "1")
+        env.setdefault("MJOBS_AI_CONCURRENCY", "1")
+        env.setdefault("MJOBS_DOCUMENT_GENERATION_CONCURRENCY", "1")
+        env.setdefault("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "1")
+        env.setdefault("MJOBS_TRANSIENT_RETENTION_CONFIG", "")
+        env.setdefault("MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS", "86400")
+        env.setdefault("MJOBS_MOCK_SCENARIO", "baseline")
     # Explicit -f flags are used; never inherit a caller's other Compose stack.
     env.pop("COMPOSE_FILE", None)
     if recovery_mode:
         env["COMPOSE_FILE"] = os.pathsep.join(compose_files(recovery_mode=True))
+        env["COMPOSE_ENV_FILES"] = str(recovery_env_path(project))
     return env
 
 
@@ -268,6 +499,10 @@ def spawn_watchdog(project, token, expiry, recovery_mode=False):
                project, token, str(expiry)]
     if recovery_mode:
         command.append("--recovery")
+        watchdog_env = controlled_docker_environment()
+        watchdog_env["COMPOSE_FILE"] = os.pathsep.join(compose_files(recovery_mode=True))
+        watchdog_env["COMPOSE_ENV_FILES"] = str(recovery_env_path(project))
+        kwargs["env"] = watchdog_env
     try:
         return subprocess.Popen(
             command, **kwargs)
@@ -296,7 +531,14 @@ def run(args):
     expiry = int(time.time()) + args.ttl_minutes * 60
     port = args.port or choose_port()
     env = fixture_environment(project, token, expiry, port, recovery_mode=recovery_mode)
-    watchdog = spawn_watchdog(project, token, expiry, recovery_mode=recovery_mode)
+    if recovery_mode:
+        recovery_environment_file(project, token, expiry, environment=env)
+    try:
+        watchdog = spawn_watchdog(project, token, expiry, recovery_mode=recovery_mode)
+    except Exception:
+        if recovery_mode:
+            cleanup(project, token, env=env, recovery_mode=True)
+        raise
     cleaned = False
     try:
         print(f"Starting disposable {project} on 127.0.0.1:{port}", flush=True)
