@@ -18,7 +18,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwrig
 
 from apps.api.main import create_app
 from cli.acceptance_journey import join_public_browser
-from cli.acceptance_public_browser import _digest, _observe_job_list
+from cli.acceptance_public_browser import _digest, _JobListEvidenceError, _observe_job_list
 from cli.acceptance_public_browser import run as observe_public_browser
 from cli.acceptance_public_source import run as collect_public_jobs
 from fixtures.browser_ports import bound_browser_socket
@@ -196,7 +196,7 @@ class PublicJobListObservationTests(unittest.TestCase):
         self.assertIn({"job_id": "public-a", "match_score": 65}, sort["ranked_jobs"])
 
     def test_sort_rejects_a_missing_baseline_score_field(self):
-        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_MATCH_SCORE_INVALID$"):
+        with self.assertRaisesRegex(_JobListEvidenceError, "^PUBLIC_BROWSER_MATCH_SCORE_INVALID$"):
             self.observe(missing_baseline_score=True)
 
 
@@ -275,6 +275,8 @@ class PublicBrowserListIsolationTests(unittest.TestCase):
         """
         pages = []
         later_pages = []
+        score_reads = []
+        score_fault = fault.split("-")[1:] if fault.startswith("score-") else []
 
         def browser_response(route):
             request = route.request
@@ -287,12 +289,25 @@ class PublicBrowserListIsolationTests(unittest.TestCase):
                         script = "document.querySelector('#sort').value = 'title';"
                     if fault == "egress":
                         script += "fetch('https://blocked.invalid/probe').catch(() => {});"
-                    if fault == "integrity":
+                    if fault == "integrity" or score_fault:
                         script += f"""document.querySelector('#source').onchange = () =>
-                            fetch('/jobs?profile_id=profile-a&job_source_id={source_id}&sort=score');"""
+                            fetch('/jobs?profile_id=profile-a&job_source_id={source_id}&sort=' +
+                                  document.querySelector('#sort').value);
+                            document.querySelector('#sort').onchange =
+                                document.querySelector('#source').onchange;"""
                 route.fulfill(content_type="text/html", body=document + f"<script>{script}</script>")
             elif url.path == "/jobs":
-                route.fulfill(json={"jobs": [{"id": job_id}, {"id": job_id}]})
+                by_sort = parse_qs(url.query)["sort"][0]
+                score_reads.append(by_sort)
+                row = {"id": job_id, "match_score": 80}
+                if score_fault and score_fault[0] == by_sort:
+                    if score_fault[1] == "invalid":
+                        row["match_score"] = True
+                    else:
+                        del row["match_score"]
+                duplicate = fault == "integrity" or (fault == "score-title-combined" and score_reads == [
+                    "score", "title", "score"])
+                route.fulfill(json={"jobs": [row, row] if duplicate else [row]})
             else:
                 route.fulfill(json=api_payloads[url.path])
 
@@ -341,6 +356,8 @@ class PublicBrowserListIsolationTests(unittest.TestCase):
                 browser_context.return_value.__enter__.return_value = playwright
                 evidence = observe_public_browser(origin, baseline, public, runtime_identity=runtime)
         self.assertEqual(len(later_pages), int(employer))
+        if score_fault:
+            self.assertEqual(score_reads, ["score", "title", "score"])
         return evidence, baseline, public, runtime
 
     def test_list_selector_failure_keeps_public_proof_and_runs_later_employer_segment(self):
@@ -364,6 +381,20 @@ class PublicBrowserListIsolationTests(unittest.TestCase):
     def test_malformed_list_identity_remains_fatal(self):
         with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID$"):
             self.run_browser("integrity", employer=True)
+
+    def test_optional_score_failures_keep_base_proof_and_withhold_list_credit(self):
+        for order in ("title", "score"):
+            for fault in ("missing", "invalid"):
+                with self.subTest(order=order, fault=fault):
+                    evidence, baseline, public, runtime = self.run_browser(f"score-{order}-{fault}")
+                    self.assertNotIn("job_list_observation", evidence)
+                    joined = join_public_browser(baseline, public, evidence, _digest(public), _digest(evidence), runtime)
+                    self.assertEqual([(row["step"], row["status"]) for row in joined["acceptance_observations"]],
+                                     [(11, "PASS"), (16, "PASS")])
+
+    def test_missing_baseline_score_does_not_mask_ranked_identity_failure(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID$"):
+            self.run_browser("score-title-combined", employer=True)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),

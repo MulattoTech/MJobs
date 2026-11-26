@@ -328,19 +328,23 @@ def _observe_job_list(page, origin, receipt, jobs):
         _require(admitted(restored) == baseline_ids, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
         break
 
+    scored = read("sort", "score", lambda: sort.select_option("score"))
+    score_cohort_bound = cohort_bound and set(admitted(scored)) == set(baseline_ids)
+
     def scores_for_admitted(rows):
         scores = []
         for row in rows:
             if row["id"] not in jobs:
                 continue
             score = row.get("match_score")
-            _require("match_score" in row and (score is None or type(score) is int and 0 <= score <= 100),
-                     "PUBLIC_BROWSER_MATCH_SCORE_INVALID")
+            if "match_score" not in row or not (score is None or type(score) is int and 0 <= score <= 100):
+                _require(score_cohort_bound, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
+                raise _JobListEvidenceError("PUBLIC_BROWSER_MATCH_SCORE_INVALID")
             scores.append({"job_id": row["id"], "match_score": score})
         return scores
 
     title_sorted = scores_for_admitted(titled)
-    ranked = scores_for_admitted(read("sort", "score", lambda: sort.select_option("score")))
+    ranked = scores_for_admitted(scored)
     for row in ranked:
         job_id, score = row["job_id"], row["match_score"]
         score_badge = page.locator(f'{_JOB_CARDS}[data-job-id="{job_id}"] .score')
