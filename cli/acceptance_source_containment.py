@@ -854,6 +854,10 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         result = super().__call__(stage, context)
         if stage in {"finalize", "cleanup"}:
             result["child_source_cleanup"] = self.cleanup_owned_child_sources(context)
+            # Child readbacks can consume the runway in the parent's earlier proof.
+            self._verify_targets()
+            self._ensure_lease()
+            result["lease_expires_at"] = self._lease_expiry.isoformat()
         elif stage == "release" and self._child_frozen is not None:
             result["child_lineage_sha256"] = self._child_frozen["lineage_sha256"]
             result["child_acceptance_result"] = self._child_frozen["acceptance_result"]
