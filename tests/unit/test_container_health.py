@@ -224,11 +224,10 @@ print("fresh heartbeat accepted without worker dependencies")
         self.assertEqual(scheduler["healthcheck"]["test"], [
             "CMD", "python", "-m", "services.runtime_health", "scheduler",
         ])
-        self.assertEqual(scheduler["healthcheck"]["timeout"], "4s")
-        self.assertGreaterEqual(
-            int(scheduler["healthcheck"]["start_period"].rstrip("s")), 30,
-        )
-        self.assertEqual(scheduler["healthcheck"]["retries"], 5)
+        self.assertEqual(scheduler["healthcheck"]["interval"], "10s")
+        self.assertEqual(scheduler["healthcheck"]["timeout"], "15s")
+        self.assertEqual(scheduler["healthcheck"]["start_period"], "90s")
+        self.assertEqual(scheduler["healthcheck"]["retries"], 6)
 
     def test_api_compose_healthcheck_uses_full_readiness(self):
         compose = yaml.safe_load(Path("compose.yml").read_text(encoding="utf-8"))
