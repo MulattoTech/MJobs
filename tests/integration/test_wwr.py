@@ -1,18 +1,24 @@
 """Integration and contract tests for the We Work Remotely global job-source adapter (MJ-REQ-017.S02)."""
 from pathlib import Path
 from copy import deepcopy
+import os
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from xml.etree import ElementTree
 
 import httpx
+from fastapi.testclient import TestClient
 from workers.operations import OperationCancelled
+from workers.tasks import execute_operation
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from apps.api.main import create_app
+from services.discovery.search_history import list_search_history
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
@@ -86,6 +92,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
         self.requests = []
 
@@ -359,6 +366,50 @@ class WeWorkRemotelyTests(unittest.TestCase):
             for row in before[table.name]:
                 self.assertIn(row, after[table.name])
         self.assertEqual(self.store.count('job_postings'), 2)
+
+    def test_mixed_feed_discovery_records_quarantined_id_as_partial(self):
+        base = {"title": "Acme: Engineer", "link": "https://weworkremotely.com/remote-jobs/acme"}
+        ambiguous = {"title": "Example: Engineer", "link": "https://weworkremotely.com/remote-jobs/ambiguous"}
+        payload = self.duplicate_fixture([base, ambiguous, base, {**ambiguous, "description": "Different"}])
+        transport = httpx.MockTransport(lambda request: httpx.Response(200, content=payload))
+        source_id = configure_source(self.store, "default", provider="wwr")
+        with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                   operation_mode="FIXTURE")) as client:
+            queued = client.post(f"/sources/{source_id}/collect",
+                                 json={"profile_id": "fixture", "request_id": "wwr-mixed-feed"})
+            self.assertEqual(queued.status_code, 202, queued.text)
+        operation_id = queued.json()["operation_id"]
+
+        def local_adapter(source, **options):
+            return source_adapter(source, **{**options, "transport": transport})
+
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.store.url, "MJOBS_OPERATION_MODE": "FIXTURE"}), \
+             patch("services.discovery.sources.collect.source_adapter", side_effect=local_adapter):
+            execute_operation(operation_id)
+
+        with self.store.engine.connect() as db:
+            operation = db.execute(select(m.operations.c.state, m.operations.c.error).where(
+                m.operations.c.id == operation_id)).one()
+            source = db.execute(select(m.job_sources.c.health_status, m.job_sources.c.jobs_seen,
+                                       m.job_sources.c.last_error).where(m.job_sources.c.id == source_id)).one()
+            quality = db.execute(select(m.source_quality_observations.c.enumerated,
+                                        m.source_quality_observations.c.accepted,
+                                        m.source_quality_observations.c.succeeded).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).one()
+            audit = db.execute(select(m.audit.c.payload).where(m.audit.c.entity_id == source_id,
+                m.audit.c.action == "SOURCE_COLLECTION_COMPLETE")).scalar_one()
+            postings = db.execute(select(m.postings.c.application_url)).scalars().all()
+        self.assertEqual(postings, [base["link"]])
+        history, = list_search_history(self.store, "fixture")["runs"]
+        self.assertEqual((history["status"], history["results"], history["new_jobs"], history["duplicates"]),
+                         ("COMPLETED", 1, 1, None))
+        # A complete operation can yield a partial source collection. Feed
+        # repeats count once, and the quarantined identity counts as rejected.
+        self.assertEqual(
+            {"operation": tuple(operation), "source": tuple(source), "quality": tuple(quality), "audit": audit},
+            {"operation": ("COMPLETED", None), "source": ("PARTIAL", 1, None), "quality": (2, 1, True),
+             "audit": {"jobs_seen": 1, "rejected": 1, "provider": "wwr"}},
+        )
 
     # ── Error handling ──────────────────────────────────────────────────
 
