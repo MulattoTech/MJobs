@@ -8,7 +8,7 @@ import re
 from urllib.parse import parse_qs, quote, urlsplit
 
 import httpx
-from playwright.sync_api import expect, sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, expect, sync_playwright
 
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
@@ -23,6 +23,18 @@ _ENDPOINTS = {
 def _require(condition: bool, code: str) -> None:
     if not condition:
         raise ValueError(code)
+
+
+class _JobListEvidenceError(ValueError):
+    """An optional list control or assertion could not establish evidence."""
+
+
+def _expect_job_list(check, *args):
+    # Catch only a Playwright assertion for an optional list control or badge.
+    try:
+        check(*args)
+    except AssertionError as error:
+        raise _JobListEvidenceError("PUBLIC_BROWSER_JOB_LIST_SELECTOR_MISMATCH") from error
 
 
 def _digest(value) -> str:
@@ -258,10 +270,10 @@ def _observe_job_list(page, origin, receipt, jobs):
     title = page.get_by_label("Job title", exact=True)
     sort = page.get_by_label("Sort", exact=True)
     expect(profile).to_have_value(receipt["profile_id"])
-    expect(source).to_have_value("")
-    expect(search).to_have_value("")
-    expect(title).to_have_value("")
-    expect(sort).to_have_value("score")
+    _expect_job_list(expect(source).to_have_value, "")
+    _expect_job_list(expect(search).to_have_value, "")
+    _expect_job_list(expect(title).to_have_value, "")
+    _expect_job_list(expect(sort).to_have_value, "score")
     parameters = {"profile_id": receipt["profile_id"], "job_source_id": "",
                   "q": "", "title": "", "sort": "score"}
 
@@ -332,8 +344,9 @@ def _observe_job_list(page, origin, receipt, jobs):
     for row in ranked:
         job_id, score = row["job_id"], row["match_score"]
         score_badge = page.locator(f'{_JOB_CARDS}[data-job-id="{job_id}"] .score')
-        expect(score_badge).to_be_visible()
-        expect(score_badge).to_have_text("Unscored" if score is None else re.compile(rf"^{score}%(?: · .+)?$"))
+        _expect_job_list(expect(score_badge).to_be_visible)
+        _expect_job_list(expect(score_badge).to_have_text,
+                         "Unscored" if score is None else re.compile(rf"^{score}%(?: · .+)?$"))
     score_values = [row["match_score"] if row["match_score"] is not None else -1 for row in ranked]
     numeric_scores = {score for score in score_values if score >= 0}
     before_scores = {row["job_id"]: row["match_score"] for row in title_sorted}
@@ -383,6 +396,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
     external_requests = []
     blocked_writes = []
     page_errors = []
+    job_list_observation = None
     employer_observation = None
     with httpx.Client(base_url=origin, timeout=10, trust_env=False,
                       follow_redirects=False) as api:
@@ -423,18 +437,21 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                     route.continue_()
 
             context.route("**/*", local_read_only)
+            def open_jobs_page(page):
+                page.set_default_timeout(10_000)
+                page.add_init_script(
+                    "localStorage.setItem('mjobs-profile', " + json.dumps(profile_id) + ");"
+                )
+                page.on("pageerror", lambda error: page_errors.append(str(error)[:200]))
+                page.goto(origin, wait_until="domcontentloaded")
+                expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                page.get_by_role("navigation").get_by_role(
+                    "button", name=re.compile(r"^Jobs\b")
+                ).click()
+
             page = context.new_page()
-            page.set_default_timeout(10_000)
-            page.add_init_script(
-                "localStorage.setItem('mjobs-profile', " + json.dumps(profile_id) + ");"
-            )
-            page.on("pageerror", lambda error: page_errors.append(str(error)[:200]))
-            page.goto(origin, wait_until="domcontentloaded")
+            open_jobs_page(page)
             profile_select = page.get_by_label("Active profile", exact=True)
-            expect(profile_select).to_have_value(profile_id)
-            page.get_by_role("navigation").get_by_role(
-                "button", name=re.compile(r"^Jobs\b")
-            ).click()
             expect(page.locator(".job-list")).to_be_visible()
 
             for job_id in job_ids:
@@ -552,7 +569,17 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                         "claim_scope": "SOURCE_REPORTED_LOCATION_ONLY; NOT_WORK_AUTHORIZATION"}
                         if restriction else None),
                 })
-            job_list_observation = _observe_job_list(page, origin, receipt, jobs)
+            list_page = context.new_page()
+            try:
+                open_jobs_page(list_page)
+                job_list_observation = _observe_job_list(list_page, origin, receipt, jobs)
+            except (_JobListEvidenceError, PlaywrightTimeoutError):
+                # Missing optional evidence has no Step 12–14 acceptance credit.
+                pass
+            finally:
+                list_page.close()
+            _require(not external_requests, "PUBLIC_BROWSER_EXTERNAL_EGRESS_ATTEMPTED")
+            _require(not page_errors, "PUBLIC_BROWSER_PAGE_ERROR")
             employer_capture = public_artifact.get("employer_observation")
             if isinstance(employer_capture, dict) and employer_capture.get("status") == "COMPLETE":
                 from cli.ui_e2e import validate_employer_verification_witness
@@ -620,7 +647,6 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
             "after_sha256": _digest(after),
         },
         "observations": public_checks,
-        "job_list_observation": job_list_observation,
         "acceptance_observations": [
             {"step": 11, "status": step11_status,
              "checks": {"public_jobs_visible_in_same_profile_ui": visible_11},
@@ -634,6 +660,8 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                              "selected_application_job_id")}},
         ],
     }
+    if job_list_observation is not None:
+        evidence["job_list_observation"] = job_list_observation
     if employer_observation is not None:
         evidence["employer_observation"] = employer_observation
     evidence["sha256"] = _digest(evidence)

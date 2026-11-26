@@ -17,13 +17,16 @@ from fastapi.testclient import TestClient
 from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwright
 
 from apps.api.main import create_app
-from cli.acceptance_public_browser import _observe_job_list
+from cli.acceptance_journey import join_public_browser
+from cli.acceptance_public_browser import _digest, _observe_job_list
 from cli.acceptance_public_browser import run as observe_public_browser
 from cli.acceptance_public_source import run as collect_public_jobs
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.pipeline import discover
+from services.discovery.sources.collect import _legacy_company_label
+from services.discovery.sources.remotive import Remotive
 from services.documents.generate import prepare
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
@@ -195,6 +198,172 @@ class PublicJobListObservationTests(unittest.TestCase):
     def test_sort_rejects_a_missing_baseline_score_field(self):
         with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_MATCH_SCORE_INVALID$"):
             self.observe(missing_baseline_score=True)
+
+
+class PublicBrowserListIsolationTests(unittest.TestCase):
+    def run_browser(self, fault, *, employer=False):
+        origin = "http://127.0.0.1:18100"
+        endpoint = "https://remotive.com/api/remote-jobs"
+        raw = RAW_REMOTIVE_PAYLOAD["jobs"][0]
+        normalized = Remotive().normalize(raw)
+        company, company_id = _legacy_company_label("remotive", raw)
+        source_id, job_id = "b" * 64, "public-job"
+        source_job_id = identity(company_id, normalized["requisition"])
+        snapshot = {"id": "snapshot", "sha256": _digest(raw)}
+        posting = {"id": identity(source_id, source_job_id), "source_job_id": source_job_id,
+                   "job_id": job_id, "source": endpoint, "source_url": raw["url"],
+                   "raw": raw, "fetched_at": "2026-01-01T00:00:00Z", "snapshots": [snapshot]}
+        native_id = normalized["attributes"]["native_posting_id"]
+        job = {"id": job_id, "title": normalized["title"], "company": company,
+               "company_id": company_id, "location": raw["candidate_required_location"],
+               "remote_type": "REMOTE_US", "provider": "remotive", "postings": [posting],
+               "attributes": {"fictional": False, "native_posting_id": native_id,
+                              "source_id": source_id, "provider": "remotive"}}
+        baseline = {"source": {"commit": "a" * 40}, "profile_id": "profile-a",
+                    "application_id": "application-a", "operation_id": "operation-a",
+                    "request_id": "request-a", "selected_application_job_id": "fixture-job",
+                    "selected_application_route_id": "route-a", "application_document_ids": [],
+                    "target_origin": origin}
+        public = {**baseline, "result": "PASS", "external_submission_enabled": False,
+                  "timestamp": "2026-01-01T00:00:00Z", "acceptance_run_id": "synthetic-run",
+                  "collection_operation_id": "collection-a", "collection_request_id": "collect-a",
+                  "source_id": source_id, "endpoint": endpoint, "provider": "remotive",
+                  "execution_scope": "LIVE_PUBLIC_READ_ONLY", "profile_version": "version-a",
+                  "observed_real_job_ids": [job_id], "observations": [{
+                      "job_id": job_id, "source_id": source_id, "source_endpoint": endpoint,
+                      "fictional": False, "native_posting_id": native_id,
+                      "postings": [{"posting_id": posting["id"], "raw_sha256": snapshot["sha256"],
+                                    "fetched_at": posting["fetched_at"], "snapshots": [snapshot]}],
+                  }]}
+        if employer:
+            public.update(employer_verification_requested=True, employer_observation={"status": "COMPLETE"})
+        runtime = {"source_manifest_sha256": "c" * 64, "dockerfile_sha256": "d" * 64,
+                   "images": {}, "frontend_assets": {}}
+        api_payloads = {
+            "/profiles/profile-a": {"id": "profile-a", "version": "version-a"},
+            "/profiles/profile-a/applications/application-a": {
+                "id": "application-a", "profile_id": "profile-a", "job_id": "fixture-job", "route_id": "route-a"},
+            "/profiles/profile-a/applications/application-a/documents": {"documents": []},
+            f"/jobs/{job_id}": job,
+        }
+
+        def api_response(request):
+            self.assertEqual(request.method, "GET")
+            return httpx.Response(200, json=api_payloads[request.url.path])
+
+        document = f"""
+            <label>Active profile<select aria-label="Active profile"><option>profile-a</option></select></label>
+            <nav><button id="jobs-tab">Jobs</button></nav>
+            <label>Job source<select id="source" aria-label="Job source"><option value="">All</option>
+                <option value="{source_id}">Source</option></select></label>
+            <label>Search jobs<input></label><label>Job title<input></label>
+            <label>Sort<select id="sort" aria-label="Sort"><option>score</option><option>title</option></select></label>
+            <div class="job-list"><button class="job-card" data-job-id="{job_id}">
+                <span class="eyebrow">{company}</span><span class="job-card-title">{job['title']}</span>
+                <span role="group" aria-label="Job route provenance">remotive.com/api/remote-jobs
+                    APPLICATION PROVIDER remotive</span></button></div>
+            <section class="job-detail" hidden><span class="eyebrow">{company}</span><h2>{job['title']}</h2>
+                {job['location']} {job['remote_type']}
+                <div class="provenance">{endpoint}<a href="{raw['url']}">Source</a> SHA256 {snapshot['sha256']}</div>
+            </section>
+            <script>
+                document.querySelector('.job-card').onclick = async () => {{
+                    await fetch('/jobs/{job_id}?profile_id=profile-a');
+                    document.querySelector('.job-detail').hidden = false;
+                }};
+            </script>
+        """
+        pages = []
+        later_pages = []
+
+        def browser_response(route):
+            request = route.request
+            self.assertEqual(request.method, "GET")
+            url = urlsplit(request.url)
+            if url.path == "/":
+                script = ""
+                if len(pages) == 2:
+                    if fault in {"selector", "egress"}:
+                        script = "document.querySelector('#sort').value = 'title';"
+                    if fault == "egress":
+                        script += "fetch('https://blocked.invalid/probe').catch(() => {});"
+                    if fault == "integrity":
+                        script += f"""document.querySelector('#source').onchange = () =>
+                            fetch('/jobs?profile_id=profile-a&job_source_id={source_id}&sort=score');"""
+                route.fulfill(content_type="text/html", body=document + f"<script>{script}</script>")
+            elif url.path == "/jobs":
+                route.fulfill(json={"jobs": [{"id": job_id}, {"id": job_id}]})
+            else:
+                route.fulfill(json=api_payloads[url.path])
+
+        def observe_later(page, *_args):
+            self.assertIs(page, pages[0])
+            self.assertTrue(pages[1].is_closed())
+            self.assertTrue(page.locator("section.job-detail").is_visible())
+            self.assertEqual(page.get_by_label("Sort").input_value(), "score")
+            later_pages.append(page)
+            return {"synthetic_later_segment": True}
+
+        api = httpx.Client(base_url=origin, transport=httpx.MockTransport(api_response))
+        with sync_playwright() as playwright:
+            chromium = playwright.chromium
+            launch = chromium.launch
+
+            def launch_routed(**kwargs):
+                browser = launch(**kwargs)
+                new_context = browser.new_context
+
+                def create_context(**options):
+                    context = new_context(**options)
+                    install_route, new_page = context.route, context.new_page
+
+                    def route_with_synthetic_loopback(pattern, handler):
+                        install_route(pattern, handler)
+                        install_route(origin + "/**", browser_response)
+
+                    def track_page():
+                        page = new_page()
+                        pages.append(page)
+                        return page
+
+                    context.route = route_with_synthetic_loopback
+                    context.new_page = track_page
+                    return context
+
+                browser.new_context = create_context
+                return browser
+
+            with (patch.object(chromium, "launch", launch_routed),
+                  patch("cli.acceptance_public_browser.sync_playwright") as browser_context,
+                  patch("cli.acceptance_public_browser.httpx.Client", return_value=api),
+                  patch("cli.ui_e2e.validate_employer_verification_witness"),
+                  patch("cli.acceptance_public_employer.observe_browser", side_effect=observe_later)):
+                browser_context.return_value.__enter__.return_value = playwright
+                evidence = observe_public_browser(origin, baseline, public, runtime_identity=runtime)
+        self.assertEqual(len(later_pages), int(employer))
+        return evidence, baseline, public, runtime
+
+    def test_list_selector_failure_keeps_public_proof_and_runs_later_employer_segment(self):
+        evidence, *_ = self.run_browser("selector", employer=True)
+        self.assertNotIn("job_list_observation", evidence)
+        self.assertEqual([(row["step"], row["status"]) for row in evidence["acceptance_observations"]],
+                         [(11, "PASS"), (16, "PASS")])
+        self.assertEqual(evidence["employer_observation"], {"synthetic_later_segment": True})
+
+    def test_list_timeout_admits_only_base_public_steps(self):
+        evidence, baseline, public, runtime = self.run_browser("timeout")
+        self.assertNotIn("job_list_observation", evidence)
+        joined = join_public_browser(baseline, public, evidence, _digest(public), _digest(evidence), runtime)
+        self.assertEqual([(row["step"], row["status"]) for row in joined["acceptance_observations"]],
+                         [(11, "PASS"), (16, "PASS")])
+
+    def test_probe_egress_is_fatal_even_when_list_selector_fails(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_EXTERNAL_EGRESS_ATTEMPTED$"):
+            self.run_browser("egress", employer=True)
+
+    def test_malformed_list_identity_remains_fatal(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID$"):
+            self.run_browser("integrity", employer=True)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
