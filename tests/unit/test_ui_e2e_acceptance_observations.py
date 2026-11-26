@@ -12,7 +12,7 @@ from cli.ui_e2e_jobs_journey import (
     canonical_posting_count_matches,
     match_sort_matches_readback,
     open_job_detail_for_selected_card,
-    visible_posting_count_matches,
+    visible_posting_count_footer_matches,
 )
 
 
@@ -221,11 +221,69 @@ def test_duplicate_count_requires_distinct_source_posting_identities():
     assert not canonical_posting_count_matches(3, [*postings[:-1], {"source": "Employer"}])
 
 
-def test_visible_duplicate_count_requires_an_exact_numeric_token():
-    assert visible_posting_count_matches("2 postings", 2)
-    assert visible_posting_count_matches("Found 12 postings", 12)
-    assert not visible_posting_count_matches("12 postings", 2)
-    assert not visible_posting_count_matches("2 postings", 12)
+def test_visible_duplicate_count_must_be_one_exact_item_in_selected_card_footer():
+    class Item:
+        def __init__(self, text, visible=True):
+            self.text = text
+            self.visible = visible
+
+        def is_visible(self):
+            return self.visible
+
+        def inner_text(self):
+            return self.text
+
+    class Items:
+        def __init__(self, items):
+            self.items = items
+
+        def count(self):
+            return len(self.items)
+
+        def nth(self, index):
+            return self.items[index]
+
+    class Footer:
+        def __init__(self, items, visible=True):
+            self.items = items
+            self.visible = visible
+
+        def count(self):
+            return 1
+
+        def is_visible(self):
+            return self.visible
+
+        def locator(self, selector):
+            assert selector == ":scope > span"
+            return Items(self.items)
+
+    class MissingFooter:
+        def count(self):
+            return 0
+
+    class Card:
+        def __init__(self, footer, card_text="Top badge says 2 postings, footer says one source"):
+            self.footer = footer
+            self.card_text = card_text
+
+        def locator(self, selector):
+            assert selector == ".card-foot"
+            return self.footer
+
+        def inner_text(self):
+            return self.card_text
+
+    # The whole card can contain the expected wording outside its footer; it earns no credit.
+    wrong_footer = Card(Footer([Item("1 posting")]))
+    assert "2 postings" in wrong_footer.inner_text()
+    assert visible_posting_count_footer_matches(wrong_footer, 2) is False
+    assert visible_posting_count_footer_matches(
+        Card(Footer([Item("2 postings"), Item("2 postings")])), 2) is False
+    assert visible_posting_count_footer_matches(Card(MissingFooter()), 2) is False
+    assert visible_posting_count_footer_matches(Card(Footer([Item("2 postings")])), 2)
+    assert not visible_posting_count_footer_matches(
+        Card(Footer([Item("2 postings", visible=False)])), 2)
 
 
 def test_remote_card_selection_creates_detail_region_before_opening_and_reading_it():
