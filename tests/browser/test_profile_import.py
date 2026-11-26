@@ -12,6 +12,7 @@ import unittest
 from unittest.mock import patch
 from urllib.parse import urlsplit
 
+from fastapi.testclient import TestClient
 from playwright.sync_api import sync_playwright, expect
 from reportlab.pdfgen import canvas
 import uvicorn
@@ -76,6 +77,77 @@ def resume_pdf(extra=''):
     pdf.drawText(text)
     pdf.save()
     return stream.getvalue()
+
+
+class ProfileImportCorrectionApiTests(unittest.TestCase):
+    """Run durable import and correction coverage without requiring web/dist."""
+
+    def test_corrected_extracted_fact_is_verified_and_survives_fresh_readback(self):
+        with tempfile.TemporaryDirectory(prefix='mjobs-profile-correction-api-') as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'profile.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('PERSONAL')
+            store.save_profile(PROFILE)
+            client = TestClient(create_app(
+                store, 'http://127.0.0.1:1', root, operation_mode='PERSONAL'))
+            try:
+                upload = client.post(
+                    f"/profiles/{PROFILE['id']}/resumes", content=resume_pdf(),
+                    headers={'X-Filename': 'base.pdf', 'Content-Type': 'application/pdf'})
+                self.assertEqual(upload.status_code, 201, upload.text)
+                resume_id = upload.json()['id']
+                extraction_endpoint = f"/profiles/{PROFILE['id']}/resumes/{resume_id}/extract"
+                admitted = client.post(extraction_endpoint)
+                self.assertEqual(admitted.status_code, 202, admitted.text)
+
+                from workers.tasks import execute_operation
+                with patch.dict(os.environ, {
+                    'MJOBS_DATABASE_URL': store.url,
+                    'MJOBS_OUTPUT_DIR': str(root),
+                    'MJOBS_OPERATION_MODE': 'PERSONAL',
+                }):
+                    self.assertEqual(
+                        execute_operation(admitted.json()['operation_id'])['status'], 'COMPLETED')
+                extracted = client.get(
+                    extraction_endpoint + '/queued/' + admitted.json()['operation_id'])
+                self.assertEqual(extracted.status_code, 200, extracted.text)
+                facts = extracted.json()['result']['facts']
+                responsibility = next(fact for fact in facts if fact['kind'] == 'responsibility')
+                self.assertFalse(responsibility['verified'])
+                self.assertFalse(responsibility['user_approved'])
+                corrected_text = 'Maintained support routing for a fictional service team.'
+                responsibility.update(
+                    text=corrected_text,
+                    source='Applicant correction after reviewing the uploaded resume',
+                    verified=True,
+                    user_approved=True,
+                )
+                current = client.get(f"/profiles/{PROFILE['id']}")
+                self.assertEqual(current.status_code, 200, current.text)
+                payload = dict(PROFILE, expected_version=current.json()['version'], facts=facts)
+                saved = client.put('/profiles', json=payload)
+                self.assertEqual(saved.status_code, 200, saved.text)
+
+                reopened = Store(store.url)
+                try:
+                    persisted = reopened.profile(PROFILE['id'])
+                    corrected = next(fact for fact in persisted['facts']
+                                     if fact['kind'] == 'responsibility')
+                    self.assertEqual(corrected['text'], corrected_text)
+                    self.assertEqual(corrected['source'],
+                                     'Applicant correction after reviewing the uploaded resume')
+                    self.assertTrue(corrected['verified'])
+                    self.assertTrue(corrected['user_approved'])
+                    pending = [fact for fact in persisted['facts'] if fact['id'] != corrected['id']]
+                    self.assertTrue(pending)
+                    self.assertTrue(all(not fact['verified'] and not fact['user_approved']
+                                        for fact in pending))
+                finally:
+                    reopened.engine.dispose()
+            finally:
+                client.close()
+                store.engine.dispose()
 
 
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
@@ -272,6 +344,45 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_role('button', name='Save profile', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
                     self.assertEqual(len(store.profile(profile_id)['facts']), count)
+                    # Correct one imported fact, then explicitly verify and
+                    # approve only that reviewed wording. Other extracted
+                    # facts remain pending after the same durable save.
+                    corrected_text = 'Maintained support routing for a fictional service team.'
+                    responsibility = page.locator('fieldset.fact').filter(
+                        has_text='Maintained support@example.invalid routing.')
+                    responsibility.get_by_label('Fact text', exact=True).fill(corrected_text)
+                    responsibility.get_by_label('Evidence / source', exact=True).fill(
+                        'Applicant correction after reviewing the uploaded resume')
+                    responsibility.get_by_label('I verified this fact', exact=True).check()
+                    responsibility.get_by_label(
+                        'I approve its use in documents', exact=True).check()
+                    with page.expect_response(lambda response: response.request.method == 'PUT'
+                            and response.url == origin + '/profiles') as corrected_save:
+                        page.get_by_role('button', name='Save profile', exact=True).click()
+                    self.assertEqual(corrected_save.value.status, 200, corrected_save.value.text())
+                    corrected_profile = store.profile(profile_id)
+                    corrected_fact = next(f for f in corrected_profile['facts']
+                                          if f['kind'] == 'responsibility')
+                    self.assertEqual(corrected_fact['text'], corrected_text)
+                    self.assertEqual(corrected_fact['source'],
+                                     'Applicant correction after reviewing the uploaded resume')
+                    self.assertTrue(corrected_fact['verified'])
+                    self.assertTrue(corrected_fact['user_approved'])
+                    remaining_pending = [f for f in corrected_profile['facts']
+                                         if f['id'] != corrected_fact['id']]
+                    self.assertTrue(remaining_pending)
+                    self.assertTrue(all(not f['verified'] and not f['user_approved']
+                                        for f in remaining_pending))
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='Profile', exact=True).click()
+                    corrected_after_reload = page.locator('fieldset.fact').filter(
+                        has_text=corrected_text)
+                    expect(corrected_after_reload.get_by_label(
+                        'Fact text', exact=True)).to_have_value(corrected_text)
+                    expect(corrected_after_reload.get_by_label(
+                        'I verified this fact', exact=True)).to_be_checked()
+                    expect(corrected_after_reload.get_by_label(
+                        'I approve its use in documents', exact=True)).to_be_checked()
                     page.get_by_label('Resume collection', exact=True).select_option(label='Engineering')
                     page.get_by_label('Choose a resume (up to 10 MiB)').set_input_files(
                         {'name':'updated.pdf','mimeType':'application/pdf','buffer':resume_pdf('Built documented systems.')})
