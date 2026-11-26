@@ -265,6 +265,12 @@ def build_observation(*, step, status, observable_result, evidence_kind,
     }
 
 
+def reset_annual_salary_filters(page):
+    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Salary availability", exact=True).select_option("DEFAULT")
+
+
 def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                                  record_observed_jobs=None):
     """Exercise and observe fixture-backed Jobs UI behavior, without live providers."""
@@ -454,9 +460,7 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                           and isinstance(row.get("criteria"), dict)
                           and isinstance(row["criteria"].get("remote_regions"), list)
                           and row["criteria"]["remote_regions"]), None)
-    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")
-    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("")
-    page.get_by_label("Salary availability", exact=True).select_option("ANY")
+    reset_annual_salary_filters(page)
     remote_rows = request("/jobs?profile_id=" + profile_id + "&remote_type=REMOTE").get("jobs", [])
     if remote_rows:
         expect(page.locator(".job-card-title")).to_have_text(
