@@ -79,6 +79,15 @@ def resume_pdf(extra=''):
     return stream.getvalue()
 
 
+def fact_editor_with_text(page, expected_text):
+    """Resolve the current React fact editor after each controlled rerender."""
+    for fact in page.locator('fieldset.fact').all():
+        textarea = fact.locator('textarea')
+        if textarea.count() == 1 and textarea.input_value() == expected_text:
+            return fact
+    raise AssertionError(f'No editable career fact has the expected text: {expected_text!r}')
+
+
 class ProfileImportCorrectionApiTests(unittest.TestCase):
     """Run durable import and correction coverage without requiring web/dist."""
 
@@ -348,14 +357,16 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     # approve only that reviewed wording. Other extracted
                     # facts remain pending after the same durable save.
                     corrected_text = 'Maintained support routing for a fictional service team.'
-                    responsibility = page.locator('fieldset.fact').filter(
-                        has_text='Maintained support@example.invalid routing.')
-                    responsibility.get_by_label('Fact text', exact=True).fill(corrected_text)
-                    responsibility.get_by_label('Evidence / source', exact=True).fill(
+                    original_text = 'Maintained support@example.invalid routing.'
+                    responsibility = fact_editor_with_text(page, original_text)
+                    responsibility.locator('textarea').fill(corrected_text)
+                    responsibility = fact_editor_with_text(page, corrected_text)
+                    responsibility.locator('input[type="text"]').fill(
                         'Applicant correction after reviewing the uploaded resume')
-                    responsibility.get_by_label('I verified this fact', exact=True).check()
-                    responsibility.get_by_label(
-                        'I approve its use in documents', exact=True).check()
+                    responsibility = fact_editor_with_text(page, corrected_text)
+                    responsibility.locator('input[type="checkbox"]').nth(0).check()
+                    responsibility = fact_editor_with_text(page, corrected_text)
+                    responsibility.locator('input[type="checkbox"]').nth(1).check()
                     with page.expect_response(lambda response: response.request.method == 'PUT'
                             and response.url == origin + '/profiles') as corrected_save:
                         page.get_by_role('button', name='Save profile', exact=True).click()
@@ -375,14 +386,10 @@ class ProfileImportBrowserTests(unittest.TestCase):
                                         for f in remaining_pending))
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('button', name='Profile', exact=True).click()
-                    corrected_after_reload = page.locator('fieldset.fact').filter(
-                        has_text=corrected_text)
-                    expect(corrected_after_reload.get_by_label(
-                        'Fact text', exact=True)).to_have_value(corrected_text)
-                    expect(corrected_after_reload.get_by_label(
-                        'I verified this fact', exact=True)).to_be_checked()
-                    expect(corrected_after_reload.get_by_label(
-                        'I approve its use in documents', exact=True)).to_be_checked()
+                    corrected_after_reload = fact_editor_with_text(page, corrected_text)
+                    expect(corrected_after_reload.locator('textarea')).to_have_value(corrected_text)
+                    expect(corrected_after_reload.locator('input[type="checkbox"]').nth(0)).to_be_checked()
+                    expect(corrected_after_reload.locator('input[type="checkbox"]').nth(1)).to_be_checked()
                     page.get_by_label('Resume collection', exact=True).select_option(label='Engineering')
                     page.get_by_label('Choose a resume (up to 10 MiB)').set_input_files(
                         {'name':'updated.pdf','mimeType':'application/pdf','buffer':resume_pdf('Built documented systems.')})
