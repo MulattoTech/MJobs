@@ -20,11 +20,12 @@ class FixtureGuardTests(TestCase):
     DOCKER_CONTEXT = "desktop-linux"
     DOCKER_ENDPOINT = "npipe:////./pipe/dockerdesktoplinuxengine"
 
-    def recovery_environment(self, expiry=1234567890, port=18741):
+    def recovery_environment(self, expiry=1234567890, port=18741, mock_scenario=None):
         return guard.fixture_environment(
             self.PROJECT, self.TOKEN, expiry, port, recovery_mode=True,
             image_ref=self.IMAGE_REF, image_id=self.IMAGE_ID,
-            docker_context=self.DOCKER_CONTEXT, docker_endpoint=self.DOCKER_ENDPOINT)
+            docker_context=self.DOCKER_CONTEXT, docker_endpoint=self.DOCKER_ENDPOINT,
+            mock_scenario=mock_scenario)
 
     def write_recovery_dotenv(self, root, expiry=1234567890):
         env = self.recovery_environment(expiry=expiry)
@@ -40,6 +41,40 @@ class FixtureGuardTests(TestCase):
             for controlled_env in (env, guard.read_recovery_dotenv(dotenv)):
                 with patch.dict(os.environ, controlled_env, clear=True):
                     self.assertEqual(configured_browser_profile(), "default")
+
+    def test_recovery_scenario_ignores_inherited_overlays_and_checks_dotenv(self):
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp)), \
+                patch.dict(os.environ, {"MJOBS_MOCK_SCENARIO": "coverage",
+                                        "COMPOSE_FILE": "foreign.yml",
+                                        "COMPOSE_ENV_FILES": "foreign.env"}):
+            self.assertEqual(self.recovery_environment()["MJOBS_MOCK_SCENARIO"], "baseline")
+            env = self.recovery_environment(mock_scenario="native-greenhouse")
+            dotenv = guard.recovery_environment_file(
+                self.PROJECT, self.TOKEN, 1234567890, environment=env)
+            self.assertEqual(guard.read_recovery_dotenv(dotenv)["MJOBS_MOCK_SCENARIO"],
+                             "native-greenhouse")
+            self.assertEqual(env["COMPOSE_ENV_FILES"], str(dotenv))
+            self.assertEqual(env["COMPOSE_FILE"], os.pathsep.join(guard.compose_files(True)))
+            with self.assertRaisesRegex(RuntimeError, "differs from admitted environment"):
+                guard.recovery_environment_file(
+                    self.PROJECT, self.TOKEN, 1234567890,
+                    environment=self.recovery_environment(mock_scenario="native-lever"))
+            dotenv.write_text(dotenv.read_text().replace("native-greenhouse", "coverage"))
+            with self.assertRaisesRegex(RuntimeError, "dotenv identity is invalid"):
+                guard.recovery_environment_file(self.PROJECT, self.TOKEN, 1234567890)
+
+    def test_mock_scenario_rejected_before_docker_or_dotenv_on_bad_admission(self):
+        for recovery, scenario in ((False, "native-lever"), (True, "coverage")):
+            with self.subTest(recovery=recovery, scenario=scenario), \
+                    patch.object(guard, "docker") as docker, \
+                    patch.object(guard, "recovery_environment_file") as dotenv:
+                args = argparse.Namespace(recovery=recovery, build=False, mock_scenario=scenario,
+                                          command=["python"])
+                with self.assertRaisesRegex(ValueError, "mock scenario"):
+                    guard.run(args)
+                docker.assert_not_called()
+                dotenv.assert_not_called()
 
     def labelled(self, **overrides):
         row = {
@@ -287,7 +322,7 @@ class FixtureGuardTests(TestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         args = argparse.Namespace(ttl_minutes=60, max_fixtures=1, port=18741,
-                                  build=False, recovery=True,
+                                  build=False, recovery=True, mock_scenario="native-lever",
                                   image_ref=self.IMAGE_REF, image_id=self.IMAGE_ID,
                                   docker_context=self.DOCKER_CONTEXT,
                                   command=["--", "python", "-m", "cli.compose_recovery"])
@@ -327,6 +362,7 @@ class FixtureGuardTests(TestCase):
         self.assertNotIn("--build", up)
         for environment in (child_env, up_kwargs["env"], cleanup.call_args.kwargs["env"]):
             self.assertEqual(environment["DOCKER_HOST"], self.DOCKER_ENDPOINT)
+            self.assertEqual(environment["MJOBS_MOCK_SCENARIO"], "native-lever")
             self.assertNotIn("DOCKER_CONTEXT", environment)
         self.assertEqual(spawn.call_args.args[0], project)
         self.assertTrue(spawn.call_args.kwargs["recovery_mode"])

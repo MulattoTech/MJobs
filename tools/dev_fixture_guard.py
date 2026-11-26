@@ -28,6 +28,7 @@ TOKEN_LABEL = "com.mjobs.dev.guard"
 EXPIRY_LABEL = "com.mjobs.dev.expires"
 MODE_LABEL = "com.mjobs.dev.guard.mode"
 RECOVERY_MODE = "recovery"
+RECOVERY_MOCK_SCENARIOS = ("baseline", "native-greenhouse", "native-lever")
 IMAGE_ID_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
 IMAGE_REF_PATTERN = re.compile(r"[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\Z")
 DOCKER_CONTEXT_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\Z")
@@ -176,6 +177,7 @@ def validate_recovery_dotenv_values(project, token, expiry, values):
     if (set(values) != set(recovery_dotenv_values({}))
             or any(values.get(key) != value for key, value in expected.items())
             or any(values.get(key) != value for key, value in RECOVERY_ENV_VALUES.items())
+            or values.get("MJOBS_MOCK_SCENARIO") not in RECOVERY_MOCK_SCENARIOS
             or not IMAGE_REF_PATTERN.fullmatch(image_ref)
             or not IMAGE_ID_PATTERN.fullmatch(image_id)
             or values.get("MJOBS_IMAGE") != image_id
@@ -525,8 +527,10 @@ def choose_port():
 
 def fixture_environment(project, token, expiry, port, recovery_mode=False, *,
                        image_ref=None, image_id=None, docker_context=None,
-                       docker_endpoint=None):
+                       docker_endpoint=None, mock_scenario=None):
     if recovery_mode:
+        if mock_scenario is not None and mock_scenario not in RECOVERY_MOCK_SCENARIOS:
+            raise ValueError("Unsupported recovery mock scenario")
         if (not IMAGE_REF_PATTERN.fullmatch(image_ref or "")
                 or not IMAGE_ID_PATTERN.fullmatch(image_id or "")
                 or not DOCKER_CONTEXT_PATTERN.fullmatch(docker_context or "")
@@ -567,7 +571,7 @@ def fixture_environment(project, token, expiry, port, recovery_mode=False, *,
         env.setdefault("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "1")
         env.setdefault("MJOBS_TRANSIENT_RETENTION_CONFIG", "")
         env.setdefault("MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS", "86400")
-        env.setdefault("MJOBS_MOCK_SCENARIO", "baseline")
+        env["MJOBS_MOCK_SCENARIO"] = "baseline" if mock_scenario is None else mock_scenario
     # Explicit -f flags are used; never inherit a caller's other Compose stack.
     env.pop("COMPOSE_FILE", None)
     if recovery_mode:
@@ -596,6 +600,7 @@ def spawn_watchdog(project, token, expiry, recovery_mode=False):
         values = read_recovery_dotenv(path)
         watchdog_env = controlled_docker_environment(
             endpoint=values["MJOBS_RECOVERY_DOCKER_ENDPOINT"])
+        watchdog_env["MJOBS_MOCK_SCENARIO"] = values["MJOBS_MOCK_SCENARIO"]
         watchdog_env["COMPOSE_FILE"] = os.pathsep.join(compose_files(recovery_mode=True))
         watchdog_env["COMPOSE_ENV_FILES"] = str(path)
         kwargs["env"] = watchdog_env
@@ -614,18 +619,21 @@ def run(args):
     image_ref = getattr(args, "image_ref", None)
     image_id = getattr(args, "image_id", None)
     docker_context = getattr(args, "docker_context", None)
+    mock_scenario = getattr(args, "mock_scenario", None)
     expected_endpoint = None
     recovery_docker_env = None
     if recovery_mode:
         if args.build:
             raise ValueError("Recovery mode requires a prebuilt image and forbids --build")
+        if mock_scenario is not None and mock_scenario not in RECOVERY_MOCK_SCENARIOS:
+            raise ValueError("Unsupported recovery mock scenario")
         if image_ref is None or image_id is None or docker_context is None:
             raise ValueError("Recovery mode requires --image-ref, --image-id and --docker-context")
         _, expected_endpoint, recovery_docker_env = validate_local_docker_context(docker_context)
         validate_local_campaign_image(image_ref, image_id, recovery_docker_env)
     else:
-        if any(value is not None for value in (image_ref, image_id, docker_context)):
-            raise ValueError("Image and Docker context selection are recovery-only options")
+        if any(value is not None for value in (image_ref, image_id, docker_context, mock_scenario)):
+            raise ValueError("Image, Docker context and mock scenario selection are recovery-only options")
         # Expired fixtures owned by this utility are safely reaped on the next run.
         sweep(apply=True)
     running = containers(running=True, env=recovery_docker_env)
@@ -644,7 +652,7 @@ def run(args):
     env = fixture_environment(project, token, expiry, port, recovery_mode=recovery_mode,
                               image_ref=image_ref, image_id=image_id,
                               docker_context=docker_context,
-                              docker_endpoint=expected_endpoint)
+                              docker_endpoint=expected_endpoint, mock_scenario=mock_scenario)
     if recovery_mode:
         recovery_environment_file(project, token, expiry, environment=env)
     try:
@@ -706,6 +714,8 @@ def main(argv=None):
     r.add_argument("--recovery", action="store_true",
                    help="Use the separately bounded restart-count recovery overlay")
     r.add_argument("--image-ref", help="Recovery-only local tagged campaign image to admit")
+    r.add_argument("--mock-scenario", choices=RECOVERY_MOCK_SCENARIOS,
+                   help="Recovery-only synthetic mock ATS scenario (default: baseline)")
     r.add_argument("--image-id", help="Recovery-only immutable sha256 image ID from the build receipt")
     r.add_argument("--docker-context", help="Recovery-only local Docker context to bind")
     r.add_argument("command", nargs=argparse.REMAINDER)
