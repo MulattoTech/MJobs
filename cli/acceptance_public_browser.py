@@ -296,7 +296,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                 source_postings = job_record["source_postings"]
                 title = job["title"]
                 company = job["company"]
-                card = page.locator("button.job-card").filter(has_text=company).filter(has_text=title)
+                card = page.locator(f'.job-list button.job-card[data-job-id="{job_id}"]')
                 expect(card).to_have_count(1)
                 expect(card).to_be_visible()
                 expect(card.locator(".eyebrow")).to_have_text(company)
