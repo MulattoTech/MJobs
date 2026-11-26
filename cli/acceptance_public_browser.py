@@ -13,6 +13,7 @@ from playwright.sync_api import expect, sync_playwright
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 _MAX_JOBS = 5
+_JOB_CARDS = '.job-list button.job-card[data-job-id]'
 _ENDPOINTS = {
     "wwr": "https://weworkremotely.com/remote-jobs.rss",
     "remotive": "https://remotive.com/api/remote-jobs",
@@ -219,6 +220,146 @@ def _join_postings(job: dict, observation: dict, provider: str) -> list[dict]:
     return joined
 
 
+def _job_list_readback(page, origin, parameters, action):
+    def matches(response):
+        url = urlsplit(response.url)
+        query = parse_qs(url.query, keep_blank_values=True)
+        return (response.request.method == "GET" and url.path == "/jobs"
+                and f"{url.scheme}://{url.netloc}" == origin
+                and all(query.get(key, [""]) == [value] for key, value in parameters.items())
+                and query.get("search_profile_id", [""]) == [""])
+
+    with page.expect_response(matches) as pending:
+        action()
+    response = pending.value
+    _require(response.status == 200, "PUBLIC_BROWSER_JOB_LIST_READBACK_FAILED")
+    payload = response.json()
+    rows = payload.get("jobs") if isinstance(payload, dict) else None
+    _require(isinstance(rows, list) and len(rows) <= 200 and all(isinstance(row, dict) for row in rows),
+             "PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID")
+    ids = [_identity(row.get("id"), "listed_job_id") for row in rows]
+    _require(len(set(ids)) == len(ids), "PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID")
+    # A response can arrive before React commits the new list. Wait for the
+    # complete ordered list so stale or duplicated cards cannot supply proof.
+    page.wait_for_function("""({selector, ids}) => {
+        const cards = [...document.querySelectorAll(selector)];
+        return cards.length === ids.length && cards.every((card, i) =>
+            card.dataset.jobId === ids[i] && card.getClientRects().length > 0 &&
+            getComputedStyle(card).visibility === 'visible');
+    }""", arg={"selector": _JOB_CARDS, "ids": ids}, timeout=10_000)
+    return rows
+
+
+def _observe_job_list(page, origin, receipt, jobs):
+    """Exercise the public list; keep only canonical IDs admitted by collection."""
+    profile = page.get_by_label("Active profile", exact=True)
+    source = page.get_by_label("Job source", exact=True)
+    search = page.get_by_label("Search jobs", exact=True)
+    title = page.get_by_label("Job title", exact=True)
+    sort = page.get_by_label("Sort", exact=True)
+    expect(profile).to_have_value(receipt["profile_id"])
+    expect(source).to_have_value("")
+    expect(search).to_have_value("")
+    expect(title).to_have_value("")
+    expect(sort).to_have_value("score")
+    parameters = {"profile_id": receipt["profile_id"], "job_source_id": "",
+                  "q": "", "title": "", "sort": "score"}
+
+    def read(key, value, action):
+        parameters[key] = value
+        return _job_list_readback(page, origin, parameters, action)
+
+    def admitted(rows):
+        return [row["id"] for row in rows if row["id"] in jobs]
+
+    source_id = receipt["source_id"]
+    scoped = admitted(read("job_source_id", source_id, lambda: source.select_option(source_id)))
+    titled = read("sort", "title", lambda: sort.select_option("title"))
+    baseline_ids = admitted(titled)
+    cohort_bound = set(scoped) == set(baseline_ids) == set(jobs)
+    titles = {job_id: jobs[job_id]["detail"]["title"] for job_id in baseline_ids}
+
+    # Prefer a distinguishing ASCII title word so both the production text
+    # index and the local implementation can query the same literal value.
+    search_probe = None
+    for job_id, name in titles.items():
+        words = sorted(set(re.findall(r"[A-Za-z]{3,200}", name)), key=lambda word: (-len(word), word))
+        word = next((word for word in words if any(word.lower() not in other.lower()
+                    for other_id, other in titles.items() if other_id != job_id)), None)
+        if word is None:
+            continue
+        candidates = [other_id for other_id, other in titles.items() if word.lower() not in other.lower()]
+        result_ids = admitted(read("q", word, lambda: search.fill(word)))
+        search_probe = {"query_sha256": _digest(word), "matching_job_id": job_id,
+                        "visible_job_ids": result_ids,
+                        "excluded_job_ids": [other for other in candidates if other not in result_ids]}
+        restored = read("q", "", lambda: search.fill(""))
+        _require(admitted(restored) == baseline_ids, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
+        if job_id in result_ids and search_probe["excluded_job_ids"]:
+            break
+
+    title_probe = None
+    for name in titles.values():
+        if not (0 < len(name) <= 200 and name == name.strip()):
+            continue
+        expected = [job_id for job_id in baseline_ids if name.casefold() in titles[job_id].casefold()]
+        if len(expected) == len(baseline_ids):
+            continue
+        result_ids = admitted(read("title", name, lambda: title.fill(name)))
+        title_probe = {"title_sha256": _digest(name), "expected_job_ids": expected,
+                       "visible_job_ids": result_ids,
+                       "excluded_job_ids": [job_id for job_id in baseline_ids if job_id not in expected
+                                            and job_id not in result_ids]}
+        restored = read("title", "", lambda: title.fill(""))
+        _require(admitted(restored) == baseline_ids, "PUBLIC_BROWSER_JOB_LIST_COHORT_CHANGED")
+        break
+
+    scored = read("sort", "score", lambda: sort.select_option("score"))
+    ranked = []
+    for row in scored:
+        job_id = row["id"]
+        if job_id not in jobs:
+            continue
+        score = row.get("match_score")
+        _require("match_score" in row and (score is None or type(score) is int and 0 <= score <= 100),
+                 "PUBLIC_BROWSER_MATCH_SCORE_INVALID")
+        score_badge = page.locator(f'{_JOB_CARDS}[data-job-id="{job_id}"] .score')
+        expect(score_badge).to_be_visible()
+        expect(score_badge).to_have_text("Unscored" if score is None else re.compile(rf"^{score}%(?: · .+)?$"))
+        ranked.append({"job_id": job_id, "match_score": score})
+    score_values = [row["match_score"] if row["match_score"] is not None else -1 for row in ranked]
+    numeric_scores = {score for score in score_values if score >= 0}
+    before_scores = {row["id"]: row["match_score"] for row in titled
+                     if row["id"] in jobs and "match_score" in row}
+    after_scores = {row["job_id"]: row["match_score"] for row in ranked}
+    score_order = (set(admitted(scored)) == set(baseline_ids)
+                   and before_scores == after_scores
+                   and len(numeric_scores) >= 2 and score_values == sorted(score_values, reverse=True))
+    read("job_source_id", "", lambda: source.select_option(""))
+    expect(profile).to_have_value(receipt["profile_id"])
+
+    def observation(step, checks, **details):
+        status = "NOT_RUN" if receipt["execution_scope"] != "LIVE_PUBLIC_READ_ONLY" else (
+            "PASS" if all(checks.values()) else "PARTIAL")
+        return {"step": step, "status": status, "checks": checks, **details}
+
+    return {"schema_version": 1, "source_id": source_id, "admitted_job_ids": list(jobs),
+            "source_scoped_job_ids": baseline_ids, "observations": [
+                observation(12, {
+                    "matching_job_visible": bool(cohort_bound and search_probe
+                        and search_probe["matching_job_id"] in search_probe["visible_job_ids"]),
+                    "nonmatching_job_hidden": bool(cohort_bound and search_probe
+                        and search_probe["excluded_job_ids"]),
+                }, probe=search_probe),
+                observation(13, {
+                    "filtered_job_visible": bool(cohort_bound and title_probe
+                        and title_probe["visible_job_ids"] == title_probe["expected_job_ids"]),
+                    "other_title_hidden": bool(cohort_bound and title_probe and title_probe["excluded_job_ids"]),
+                }, probe=title_probe),
+                observation(14, {"match_sort_order": cohort_bound and score_order}, ranked_jobs=ranked),
+            ]}
+
+
 def run(base_url: str, baseline: dict, public_artifact: dict, *,
         runtime_identity: dict) -> dict:
     """Open collected jobs in the local UI without making or enabling writes.
@@ -405,6 +546,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
                         "claim_scope": "SOURCE_REPORTED_LOCATION_ONLY; NOT_WORK_AUTHORIZATION"}
                         if restriction else None),
                 })
+            job_list_observation = _observe_job_list(page, origin, receipt, jobs)
             employer_capture = public_artifact.get("employer_observation")
             if isinstance(employer_capture, dict) and employer_capture.get("status") == "COMPLETE":
                 from cli.ui_e2e import validate_employer_verification_witness
@@ -472,6 +614,7 @@ def run(base_url: str, baseline: dict, public_artifact: dict, *,
             "after_sha256": _digest(after),
         },
         "observations": public_checks,
+        "job_list_observation": job_list_observation,
         "acceptance_observations": [
             {"step": 11, "status": step11_status,
              "checks": {"public_jobs_visible_in_same_profile_ui": visible_11},

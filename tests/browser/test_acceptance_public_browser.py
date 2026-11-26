@@ -9,12 +9,15 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import uvicorn
 from fastapi.testclient import TestClient
+from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwright
 
 from apps.api.main import create_app
+from cli.acceptance_public_browser import _observe_job_list
 from cli.acceptance_public_browser import run as observe_public_browser
 from cli.acceptance_public_source import run as collect_public_jobs
 from fixtures.browser_ports import bound_browser_socket
@@ -28,6 +31,109 @@ from workers.tasks import execute_operation
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+class PublicJobListObservationTests(unittest.TestCase):
+    def observe(self, *, scope="LIVE_PUBLIC_READ_ONLY", tied=False, wrong_order=False):
+        origin = "http://127.0.0.1:18100"
+        rows = [
+            {"id": "public-a", "title": "Data Analyst", "match_score": 50},
+            {"id": "public-b", "title": "Observability Engineer", "match_score": 50 if tied else 95},
+            {"id": "public-c", "title": "Support Specialist", "match_score": None},
+            {"id": "not-admitted", "title": "Data Engineer", "match_score": 100},
+            {"id": "selected-fixture", "title": "Fixture Job", "match_score": 1},
+        ]
+        job_cohort = {row["id"]: {"detail": row} for row in rows[:3]}
+        document = """
+            <label>Active profile<select id=profile aria-label='Active profile'><option>profile-a</option></select></label>
+            <label>Job source<select id=source aria-label='Job source'><option value=''>All</option><option>source-a</option></select></label>
+            <label>Search jobs<input id=q></label><label>Job title<input id=title></label>
+            <label>Sort<select id=sort aria-label='Sort'><option>score</option><option>title</option></select></label>
+            <div class=job-list></div>
+            <script>
+                const get = id => document.getElementById(id).value;
+                async function refresh() {
+                    const query = new URLSearchParams({profile_id: get('profile'), job_source_id: get('source'),
+                        q: get('q'), title: get('title'), sort: get('sort')});
+                    const {jobs, reverse_render} = await (await fetch('/jobs?' + query)).json();
+                    setTimeout(() => document.querySelector('.job-list').replaceChildren(
+                        ...(reverse_render ? jobs.reverse() : jobs).map(job => {
+                            const card = document.createElement('button');
+                            card.className = 'job-card'; card.dataset.jobId = job.id;
+                            const score = document.createElement('span');
+                            score.className = 'score';
+                            score.textContent = job.match_score === null ? 'Unscored' : job.match_score + '%';
+                            card.append(score); return card;
+                        })), 20);
+                }
+                document.querySelectorAll('select').forEach(control => control.onchange = refresh);
+                document.querySelectorAll('input').forEach(control => control.oninput = refresh);
+            </script>
+        """
+
+        def respond(route):
+            request = route.request
+            url = urlsplit(request.url)
+            self.assertEqual(f"{url.scheme}://{url.netloc}", origin)
+            self.assertEqual(request.method, "GET")
+            if url.path == "/":
+                route.fulfill(content_type="text/html", body=document)
+                return
+            self.assertEqual(url.path, "/jobs")
+            query = parse_qs(url.query)
+            self.assertEqual(query["profile_id"], ["profile-a"])
+            job_source = query.get("job_source_id", [""])[0]
+            self.assertIn(job_source, ("", "source-a"))
+            terms = [query.get(key, [""])[0].lower() for key in ("q", "title")]
+            matching = [row for row in rows if (not job_source or row["id"] != "selected-fixture")
+                        and all(term in row["title"].lower() for term in terms)]
+            by_score = query["sort"] == ["score"]
+            matching.sort(key=lambda row: ((-row["match_score"] if row["match_score"] is not None else 1)
+                                          if by_score else 0, row["title"]))
+            route.fulfill(json={"jobs": matching, "reverse_render": wrong_order})
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.route("**/*", respond)
+                page.goto(origin)
+                return _observe_job_list(page, origin, {
+                    "profile_id": "profile-a", "source_id": "source-a", "execution_scope": scope,
+                }, job_cohort)
+            finally:
+                browser.close()
+
+    def test_search_filter_and_sort_stay_bound_to_admitted_canonical_ids(self):
+        evidence = self.observe()
+        self.assertEqual(evidence["source_id"], "source-a")
+        self.assertEqual(evidence["admitted_job_ids"], ["public-a", "public-b", "public-c"])
+        self.assertEqual([row["status"] for row in evidence["observations"]], ["PASS"] * 3)
+        search, title, sort = evidence["observations"]
+        self.assertEqual(search["probe"]["visible_job_ids"], ["public-a"])
+        self.assertEqual(search["probe"]["excluded_job_ids"], ["public-b", "public-c"])
+        self.assertEqual(title["probe"]["visible_job_ids"], ["public-a"])
+        self.assertEqual(title["probe"]["excluded_job_ids"], ["public-b", "public-c"])
+        self.assertEqual(sort["ranked_jobs"], [
+            {"job_id": "public-b", "match_score": 95},
+            {"job_id": "public-a", "match_score": 50},
+            {"job_id": "public-c", "match_score": None},
+        ])
+        self.assertNotIn("not-admitted", json.dumps(evidence))
+        self.assertNotIn("selected-fixture", json.dumps(evidence))
+
+    def test_controlled_transport_never_claims_live_pass(self):
+        receipt = self.observe(scope="CONTROLLED_TRANSPORT")
+        self.assertEqual([row["status"] for row in receipt["observations"]], ["NOT_RUN"] * 3)
+        self.assertTrue(all(all(row["checks"].values()) for row in receipt["observations"]))
+
+    def test_only_tied_scores_cannot_prove_match_sort(self):
+        receipt = self.observe(tied=True)
+        self.assertEqual([row["status"] for row in receipt["observations"]], ["PASS", "PASS", "PARTIAL"])
+
+    def test_mismatched_dom_order_cannot_be_used_as_evidence(self):
+        with self.assertRaises(PlaywrightTimeout):
+            self.observe(wrong_order=True)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
