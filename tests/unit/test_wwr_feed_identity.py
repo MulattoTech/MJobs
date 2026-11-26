@@ -27,6 +27,7 @@ def test_conflicting_id_is_excluded_without_losing_other_listings(reverse):
     batch = adapter.search()
     assert [item.raw["link"] for item in batch.items] == [first["link"], second["link"]]
     assert not batch.complete_inventory
+    assert batch.quarantined_id_count == 1
     assert adapter.health() == "PARTIAL"
     assert adapter.fetch("second")["link"] == second["link"]
     with pytest.raises(SourceError, match="SOURCE_DUPLICATE_JOB_ID"):

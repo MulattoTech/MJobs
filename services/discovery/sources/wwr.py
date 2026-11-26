@@ -7,6 +7,7 @@ source registry integration.
 
 Requirement: MJ-REQ-017.S02
 """
+from dataclasses import dataclass
 from html import unescape
 import re
 import threading
@@ -254,6 +255,13 @@ def _posting_id_from_guid(guid: str) -> str:
         return path.rsplit("/", 1)[-1] if "/" in path else path
     except Exception:
         return guid
+
+
+@dataclass(frozen=True)
+class WWRSearchBatch(SearchBatch):
+    """WWR listings and the number of distinct IDs excluded for conflicts."""
+
+    quarantined_id_count: int = 0
 
 
 class WeWorkRemotely:
@@ -516,7 +524,7 @@ class WeWorkRemotely:
 
     def search(self, category=None, search_term=None, limit=None):
         """Collect unambiguous WWR listings before applying client-side filters."""
-        items, _ = self._read_feed_items()
+        items, conflicts = self._read_feed_items()
         all_items = list(items.values())
 
         # Client-side filtering (RSS does not support query params)
@@ -544,11 +552,12 @@ class WeWorkRemotely:
             )
             source_items.append(SourceItem(raw, company))
 
-        return SearchBatch(
+        return WWRSearchBatch(
             endpoint=FEED_URL,
             items=tuple(source_items),
             source_company=None,
             complete_inventory=False,
+            quarantined_id_count=len(conflicts),
         )
 
     def fetch(self, job_id):

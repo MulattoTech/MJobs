@@ -18,13 +18,14 @@ from sqlalchemy import select, update
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from apps.api.main import create_app
+from services.agents.acceptance import CollectionContract
 from services.discovery.search_history import list_search_history
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
 from services.discovery.sources.wwr import WeWorkRemotely, SourceError, _extract_company_title, _posting_id_from_guid
-from services.discovery.sources.collect import configure_source, collect_source
+from services.discovery.sources.collect import SourceCollectionContractError, configure_source, collect_source
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
 
@@ -330,13 +331,13 @@ class WeWorkRemotelyTests(unittest.TestCase):
                  'link': 'https://weworkremotely.com/remote-jobs/new-synthetic-identity'}
         source = configure_source(self.store, 'default', provider='wwr')
 
-        def collect(rows):
+        def collect(rows, **options):
             with self.store.engine.begin() as connection:
                 connection.execute(update(m.job_sources).where(m.job_sources.c.id == source)
                                    .values(last_attempt=None, backoff_until=None))
             payload = self.duplicate_fixture(rows)
             return collect_source(self.store, source, 'fixture', transport=httpx.MockTransport(
-                lambda _: httpx.Response(200, content=payload)))
+                lambda _: httpx.Response(200, content=payload)), **options)
 
         def persisted_rows():
             with self.store.engine.connect() as connection:
@@ -359,8 +360,17 @@ class WeWorkRemotelyTests(unittest.TestCase):
                         m.job_sources.c.id == source)).mappings().one()
                 self.assertEqual(state['health_status'], 'FAILED')
                 self.assertEqual(state['last_error'], 'SOURCE_DUPLICATE_JOB_ID')
+        for contract, stop_reason in (
+                (CollectionContract('items', expected_count=1), 'STRUCTURE_INVALID'),
+                (CollectionContract('items', expected_count=2), 'COUNT_MISMATCH'),
+                (CollectionContract('items', count_key='total'), 'COUNT_UNKNOWN')):
+            with self.subTest(stop_reason=stop_reason):
+                with self.assertRaises(SourceCollectionContractError) as failure:
+                    collect([fresh, *duplicate], collection_contract=contract)
+                self.assertEqual(failure.exception.stop_reason, stop_reason)
+                self.assertEqual(persisted_rows(), before)
         result = collect([fresh, *duplicate])
-        self.assertEqual(result['jobs_seen'], 1)
+        self.assertEqual((result['jobs_seen'], result['rejected']), (1, 1))
         after = persisted_rows()
         for table in (m.postings, m.posting_snapshots, m.posting_value_candidates):
             for row in before[table.name]:
