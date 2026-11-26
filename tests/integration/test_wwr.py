@@ -1,24 +1,31 @@
 """Integration and contract tests for the We Work Remotely global job-source adapter (MJ-REQ-017.S02)."""
 from pathlib import Path
 from copy import deepcopy
+import os
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from xml.etree import ElementTree
 
 import httpx
+from fastapi.testclient import TestClient
 from workers.operations import OperationCancelled
+from workers.tasks import execute_operation
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from apps.api.main import create_app
+from services.agents.acceptance import CollectionContract
+from services.discovery.search_history import list_search_history
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
 from services.discovery.sources.wwr import WeWorkRemotely, SourceError, _extract_company_title, _posting_id_from_guid
-from services.discovery.sources.collect import configure_source, collect_source
+from services.discovery.sources.collect import SourceCollectionContractError, configure_source, collect_source
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
 
@@ -86,6 +93,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
         self.requests = []
 
@@ -269,8 +277,8 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertEqual(adapter.fetch('synthetic-identity')['description'], base['description'])
         self.assertEqual(adapter.health(), 'HEALTHY')
 
-    def test_search_rejects_conflicts_even_when_filters_or_limits_hide_them(self):
-        """An ambiguous full feed must not appear healthy because a caller selects a subset."""
+    def test_search_excludes_conflicts_before_filters_or_limits(self):
+        """Filtering cannot restore a variant or hide the adapter's partial health."""
         base = {'title': 'Synthetic Acme: Engineer', 'description': 'Original work.',
                 'guid': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
                 'link': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
@@ -282,17 +290,19 @@ class WeWorkRemotelyTests(unittest.TestCase):
                  'category': 'Design'}
 
         for reverse in (False, True):
-            for kwargs in ({}, {'limit': 1}, {'category': 'Design'},
-                           {'search_term': 'Fresh Only'}):
+            for kwargs, expected in (({}, [fresh['link']]), ({'limit': 1}, [fresh['link']]),
+                                     ({'category': 'Design'}, [fresh['link']]),
+                                     ({'search_term': 'Fresh Only'}, [fresh['link']]),
+                                     ({'category': 'Programming'}, []),
+                                     ({'search_term': 'Different work'}, [])):
                 with self.subTest(reverse=reverse, filter=kwargs):
                     pair = [conflicting, base] if reverse else [base, conflicting]
                     payload = self.duplicate_fixture([fresh, *pair])
                     adapter = WeWorkRemotely(transport=httpx.MockTransport(
                         lambda _: httpx.Response(200, content=payload)))
-                    with self.assertRaises(SourceError) as raised:
-                        adapter.search(**kwargs)
-                    self.assertEqual(raised.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
-                    self.assertEqual(adapter.health(), 'SOURCE_DUPLICATE_JOB_ID')
+                    batch = adapter.search(**kwargs)
+                    self.assertEqual([item.raw['link'] for item in batch.items], expected)
+                    self.assertEqual(adapter.health(), 'PARTIAL')
 
     def test_search_coalesces_only_exact_repeats_and_preserves_first_seen_order(self):
         first = {'title': 'Synthetic Acme: Engineer', 'description': 'Same role.',
@@ -312,7 +322,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertEqual(len(limited.items), 1)
         self.assertEqual(limited.items[0].raw['description'], 'Same role.')
 
-    def test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting(self):
+    def test_collection_preserves_prior_posting_and_admits_only_unambiguous_rows(self):
         base = {'title': 'Synthetic Acme: Engineer', 'description': 'Python systems.',
                 'guid': 'https://weworkremotely.com/remote-jobs/synthetic-identity',
                 'link': 'https://weworkremotely.com/remote-jobs/synthetic-identity'}
@@ -321,13 +331,13 @@ class WeWorkRemotelyTests(unittest.TestCase):
                  'link': 'https://weworkremotely.com/remote-jobs/new-synthetic-identity'}
         source = configure_source(self.store, 'default', provider='wwr')
 
-        def collect(rows):
+        def collect(rows, **options):
             with self.store.engine.begin() as connection:
                 connection.execute(update(m.job_sources).where(m.job_sources.c.id == source)
                                    .values(last_attempt=None, backoff_until=None))
             payload = self.duplicate_fixture(rows)
             return collect_source(self.store, source, 'fixture', transport=httpx.MockTransport(
-                lambda _: httpx.Response(200, content=payload)))
+                lambda _: httpx.Response(200, content=payload)), **options)
 
         def persisted_rows():
             with self.store.engine.connect() as connection:
@@ -342,7 +352,7 @@ class WeWorkRemotelyTests(unittest.TestCase):
             with self.subTest(reverse=reverse):
                 duplicate = [base, {**base, 'description': 'Conflicting work.'}]
                 with self.assertRaises(SourceError) as failure:
-                    collect([fresh, *(duplicate[::-1] if reverse else duplicate)])
+                    collect(duplicate[::-1] if reverse else duplicate)
                 self.assertEqual(failure.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
                 self.assertEqual(persisted_rows(), before)
                 with self.store.engine.connect() as connection:
@@ -350,8 +360,66 @@ class WeWorkRemotelyTests(unittest.TestCase):
                         m.job_sources.c.id == source)).mappings().one()
                 self.assertEqual(state['health_status'], 'FAILED')
                 self.assertEqual(state['last_error'], 'SOURCE_DUPLICATE_JOB_ID')
-        collect([base, deepcopy(base)])
-        self.assertEqual(self.store.count('job_postings'), 1)
+        for contract, stop_reason in (
+                (CollectionContract('items', expected_count=1), 'STRUCTURE_INVALID'),
+                (CollectionContract('items', expected_count=2), 'COUNT_MISMATCH'),
+                (CollectionContract('items', count_key='total'), 'COUNT_UNKNOWN')):
+            with self.subTest(stop_reason=stop_reason):
+                with self.assertRaises(SourceCollectionContractError) as failure:
+                    collect([fresh, *duplicate], collection_contract=contract)
+                self.assertEqual(failure.exception.stop_reason, stop_reason)
+                self.assertEqual(persisted_rows(), before)
+        result = collect([fresh, *duplicate])
+        self.assertEqual((result['jobs_seen'], result['rejected']), (1, 1))
+        after = persisted_rows()
+        for table in (m.postings, m.posting_snapshots, m.posting_value_candidates):
+            for row in before[table.name]:
+                self.assertIn(row, after[table.name])
+        self.assertEqual(self.store.count('job_postings'), 2)
+
+    def test_mixed_feed_discovery_records_quarantined_id_as_partial(self):
+        base = {"title": "Acme: Engineer", "link": "https://weworkremotely.com/remote-jobs/acme"}
+        ambiguous = {"title": "Example: Engineer", "link": "https://weworkremotely.com/remote-jobs/ambiguous"}
+        payload = self.duplicate_fixture([base, ambiguous, base, {**ambiguous, "description": "Different"}])
+        transport = httpx.MockTransport(lambda request: httpx.Response(200, content=payload))
+        source_id = configure_source(self.store, "default", provider="wwr")
+        with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                   operation_mode="FIXTURE")) as client:
+            queued = client.post(f"/sources/{source_id}/collect",
+                                 json={"profile_id": "fixture", "request_id": "wwr-mixed-feed"})
+            self.assertEqual(queued.status_code, 202, queued.text)
+        operation_id = queued.json()["operation_id"]
+
+        def local_adapter(source, **options):
+            return source_adapter(source, **{**options, "transport": transport})
+
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.store.url, "MJOBS_OPERATION_MODE": "FIXTURE"}), \
+             patch("services.discovery.sources.collect.source_adapter", side_effect=local_adapter):
+            execute_operation(operation_id)
+
+        with self.store.engine.connect() as db:
+            operation = db.execute(select(m.operations.c.state, m.operations.c.error).where(
+                m.operations.c.id == operation_id)).one()
+            source = db.execute(select(m.job_sources.c.health_status, m.job_sources.c.jobs_seen,
+                                       m.job_sources.c.last_error).where(m.job_sources.c.id == source_id)).one()
+            quality = db.execute(select(m.source_quality_observations.c.enumerated,
+                                        m.source_quality_observations.c.accepted,
+                                        m.source_quality_observations.c.succeeded).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).one()
+            audit = db.execute(select(m.audit.c.payload).where(m.audit.c.entity_id == source_id,
+                m.audit.c.action == "SOURCE_COLLECTION_COMPLETE")).scalar_one()
+            postings = db.execute(select(m.postings.c.application_url)).scalars().all()
+        self.assertEqual(postings, [base["link"]])
+        history, = list_search_history(self.store, "fixture")["runs"]
+        self.assertEqual((history["status"], history["results"], history["new_jobs"], history["duplicates"]),
+                         ("COMPLETED", 1, 1, None))
+        # A complete operation can yield a partial source collection. Feed
+        # repeats count once, and the quarantined identity counts as rejected.
+        self.assertEqual(
+            {"operation": tuple(operation), "source": tuple(source), "quality": tuple(quality), "audit": audit},
+            {"operation": ("COMPLETED", None), "source": ("PARTIAL", 1, None), "quality": (2, 1, True),
+             "audit": {"jobs_seen": 1, "rejected": 1, "provider": "wwr"}},
+        )
 
     # ── Error handling ──────────────────────────────────────────────────
 
