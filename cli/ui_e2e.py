@@ -22,6 +22,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_pla
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
+from cli.acceptance_audit import application_audit_trace
 from cli.compose_recovery import collect_persisted_job_inventory
 from cli import local_persistence_acceptance as persistence
 from cli.ui_e2e_jobs_journey import (
@@ -3114,12 +3115,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     },
                     stage_lineage={**final_lineage, "step": 52},
                 )
-                audit_history = request(f"/profiles/{profile_id}/audit-history")
+                audit_path = f"/profiles/{quote(profile_id, safe='')}/audit-history"
+                with page.expect_response(lambda response:
+                        response.request.method == "GET" and response.url == base_url + audit_path) as loaded_audit:
+                    navigation("Activity")
+                assert loaded_audit.value.ok
+                audit_history = loaded_audit.value.json()
                 scoped_audit_events = [event for event in audit_history["events"]
                                        if event.get("application_id") == identifier]
-                event_types = {event.get("type") for event in scoped_audit_events}
-                audit_ui = None
-                navigation("Activity")
                 audit_ui = page.get_by_role("region", name="Audit history", exact=True)
                 expect(audit_ui).to_contain_text("Data Engineer")
                 has_scoped_audit_events = bool(scoped_audit_events)
@@ -3132,27 +3135,38 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     and "onboarding@example.invalid" not in value
                     for event in scoped_audit_events for value in event.values()
                     if isinstance(value, str))
-                sequence_complete = {
-                    "APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED",
-                    "APPLICATION_STATUS_REPORTED"} <= event_types
+                try:
+                    audit_trace = application_audit_trace(
+                        audit_history, run_id=acceptance_run_id, source_commit=journal.binding["source"]["commit"],
+                        profile_id=profile_id, application_id=identifier)
+                except ValueError:
+                    audit_trace = None
+                if audit_trace is not None:
+                    audit_items = audit_ui.get_by_role("list", name="Audit history", exact=True).get_by_role("listitem")
+                    for event in audit_trace["events"]:
+                        index = event["index"]
+                        visible = audit_items.nth(index)
+                        expect(visible.locator("strong")).to_have_text(audit_history["events"][index]["summary"])
+                        for label in ("Data Engineer", "Example Systems Inc.", event["type"]):
+                            expect(visible).to_contain_text(label)
+                    journal.binding["application_audit_trace"] = audit_trace
+                ui_audit_text = audit_ui.inner_text()
                 record_application_step(
-                    53, "The B audit timeline shows submission, confirmation and reported tracking with redacted values.",
+                    53, "The B audit timeline shows redacted submission, confirmation and status events in order.",
                     {
                         "audit_sequence_complete": _paired_evidence(
-                            all(value in audit_ui.inner_text() for value in (
-                                "Application submitted", "confirmed", "status reported")),
-                            sequence_complete),
+                            audit_trace is not None, audit_trace is not None),
                         "audit_scope_matches_application": _paired_evidence(
-                            "Data Engineer" in audit_ui.inner_text()
-                            and "Example Systems Inc." in audit_ui.inner_text(),
-                            len(scoped_audit_events) >= 3
+                            "Data Engineer" in ui_audit_text
+                            and "Example Systems Inc." in ui_audit_text,
+                            audit_history.get("profile_id") == profile_id and len(scoped_audit_events) >= 3
                             and all(event["application_id"] == identifier
                                     and event["subject"] == "Data Engineer"
                                     and event["company"] == "Example Systems Inc."
                                     for event in scoped_audit_events)),
                         "audit_values_redacted": _paired_evidence(
-                            REVIEWED_FIXTURE_ANSWER not in audit_ui.inner_text()
-                            and "onboarding@example.invalid" not in audit_ui.inner_text(),
+                            REVIEWED_FIXTURE_ANSWER not in ui_audit_text
+                            and "onboarding@example.invalid" not in ui_audit_text,
                             exact_public_event_shape and no_answer_values),
                     },
                     stage_lineage={**final_lineage, "step": 53},
