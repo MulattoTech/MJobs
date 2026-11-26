@@ -101,6 +101,7 @@ def test_real_evidence_journal_persists_step_and_exact_stage_lineage(tmp_path):
         assertions=assertions_for(36),
         runtime_identity=RUNTIME,
         stage_lineage=lineage(36, kind="PREPARE"),
+        document_ids=["resume-B", "letter-B"],
     )
 
     assert result["status"] == "PASS"
@@ -112,6 +113,16 @@ def test_real_evidence_journal_persists_step_and_exact_stage_lineage(tmp_path):
     assert payload["selected_application_job_id"] == "job-B"
     assert payload["stage_lineage"] == [lineage(36, kind="PREPARE")]
     assert payload["acceptance_observations"][0] == result
+    assert result["continuity"]["document_ids"] == ["resume-B", "letter-B"]
+
+
+@pytest.mark.parametrize("document_ids", [
+    None, ["resume-B"], ["resume-B", "resume-B"], ["resume-B", "other-letter"],
+])
+def test_prepare_step_requires_both_distinct_selected_documents(document_ids):
+    result = record(Journal(), 36, document_ids=document_ids)
+    assert result["status"] == "PARTIAL"
+    assert "document_ids" not in result["continuity"]
 
 
 @pytest.mark.parametrize("missing", ["runtime_identity", "stage_lineage"])

@@ -84,7 +84,7 @@ def _validate_lineage(step, lineage):
 
 
 def record_application_step(journal, step, *, observable_result, assertions,
-                            runtime_identity, stage_lineage=None, document_id=None):
+                            runtime_identity, stage_lineage=None, document_id=None, document_ids=None):
     """Record one application step from paired UI/readback evidence.
 
     The helper determines PASS itself. Missing or mismatched runtime, identity,
@@ -134,10 +134,12 @@ def record_application_step(journal, step, *, observable_result, assertions,
 
     documents = set(getattr(journal, "application_document_ids", []))
     document_ok = True
-    if step in {41, 42}:
-        document_ok = (isinstance(document_id, str) and _SAFE_ID.fullmatch(document_id) is not None
-                       and document_id in documents)
-    elif document_id is not None:
+    if step == 36:
+        document_ok = (document_id is None and isinstance(document_ids, list) and len(document_ids) == 2
+                       and all(isinstance(item, str) and _SAFE_ID.fullmatch(item) and item in documents
+                               for item in document_ids)
+                       and document_ids[0] != document_ids[1])
+    elif step in {41, 42} or document_id is not None:
         document_ok = (isinstance(document_id, str) and _SAFE_ID.fullmatch(document_id) is not None
                        and document_id in documents)
 
@@ -155,6 +157,8 @@ def record_application_step(journal, step, *, observable_result, assertions,
             continuity[key] = value
     if document_ok and document_id is not None:
         continuity["document_id"] = document_id
+    if step == 36 and document_ok:
+        continuity["document_ids"] = list(document_ids)
 
     if lineage_ok:
         record_lineage = getattr(journal, "record_stage_lineage", None)

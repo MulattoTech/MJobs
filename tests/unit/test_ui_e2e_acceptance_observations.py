@@ -54,7 +54,8 @@ def test_saved_job_readback_reloads_and_reselects_before_checking_scoped_state(m
     "old-revision", "other-profile", "other-job", "other-application", "wrong-profile-version",
     "duplicate-current", "wrong-application-readback", "missing-id",
 ])
-def test_prepared_resume_revision_rejects_unbound_or_ambiguous_readback(invalid):
+@pytest.mark.parametrize("kind", ["resume", "cover-letter"])
+def test_prepared_document_pair_rejects_unbound_or_ambiguous_readback(invalid, kind):
     application = {
         "id": "application-b", "profile_id": "profile-b", "job_id": "job-b",
         "profile_version": "reviewed", "document_version": 2,
@@ -63,10 +64,16 @@ def test_prepared_resume_revision_rejects_unbound_or_ambiguous_readback(invalid)
         "id": "resume-b", "application_id": "application-b", "profile_id": "profile-b",
         "job_id": "job-b", "profile_version": "reviewed", "kind": "resume", "version": 2,
     }
+    letter = {**resume, "id": "letter-b", "kind": "cover-letter"}
+    selected, other = (resume, letter) if kind == "resume" else (letter, resume)
     scope = {"application_id": "application-b", "profile_id": "profile-b", "job_id": "job-b"}
-    assert ui_e2e.prepared_resume_revision(
-        application, [{**resume, "version": 1}, {**resume, "kind": "cover-letter"}, resume], **scope,
-    ) == resume
+    assert ui_e2e.prepared_document_pair(
+        application, [{**resume, "version": 1}, {**letter, "version": 1}, resume, letter], **scope,
+    ) == {"resume": "resume-b", "cover-letter": "letter-b"}
+    assert ui_e2e.prepared_document_pair(application, [other], **scope) is None
+    assert ui_e2e.prepared_document_pair(
+        application, [{**selected, "id": other["id"]}, other], **scope,
+    ) is None
     if invalid == "wrong-application-readback":
         application["id"] = "application-a"
     changes = {
@@ -77,10 +84,10 @@ def test_prepared_resume_revision_rejects_unbound_or_ambiguous_readback(invalid)
         "wrong-profile-version": {"profile_version": "stale"},
         "missing-id": {"id": None},
     }
-    documents = [{**resume, **changes.get(invalid, {})}]
+    documents = [{**selected, **changes.get(invalid, {})}, other]
     if invalid == "duplicate-current":
-        documents.append({**resume, "id": "another-resume"})
-    assert ui_e2e.prepared_resume_revision(application, documents, **scope) is None
+        documents.append({**selected, "id": "another-document"})
+    assert ui_e2e.prepared_document_pair(application, documents, **scope) is None
 
 
 def test_observation_has_exact_runner_contract_shape_and_matching_run_id():
@@ -539,7 +546,7 @@ def test_application_helper_records_through_real_evidence_journal(tmp_path):
         acceptance_run_id=RUN_ID)
     journal.record_application_readback(
         profile_id="profile-B", application_id="app-B", job_id="job-B",
-        documents=[{"id": "doc-B"}])
+        documents=[{"id": "resume-B"}, {"id": "letter-B"}])
     lineage = {"step": 36, "operation_id": "a" * 64,
                "request_id": "prepare-36", "operation_kind": "PREPARE",
                "application_id": "app-B", "profile_id": "profile-B",
@@ -550,12 +557,14 @@ def test_application_helper_records_through_real_evidence_journal(tmp_path):
                     for name in REQUIRED_CHECKS_BY_STEP[36]},
         runtime_identity={"source_manifest_sha256": "b" * 64,
                           "images": {"api": "sha256:" + "c" * 64}},
-        stage_lineage=lineage)
+        stage_lineage=lineage, document_ids=["resume-B", "letter-B"])
 
     assert result["status"] == "PASS"
     assert journal.payload()["stage_lineage"] == [lineage]
     assert journal.payload()["acceptance_observations"][0]["continuity"] == {
-        "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B"}
+        "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B",
+        "document_ids": ["resume-B", "letter-B"],
+    }
 
 
 @pytest.mark.parametrize("rendered, expected, matches", [

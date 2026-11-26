@@ -557,22 +557,26 @@ def reload_saved_job_readback(page, reselect_job, request, profile_id, job_id):
     return detail.get("id") == job_id and (detail.get("tracking") or {}).get("disposition") == "SAVED"
 
 
-def prepared_resume_revision(application, documents, *, application_id, profile_id, job_id):
+def prepared_document_pair(application, documents, *, application_id, profile_id, job_id):
     version = application.get("document_version")
     pins = {"application_id": application_id, "profile_id": profile_id, "job_id": job_id}
     if (application.get("id") != application_id or application.get("profile_id") != profile_id
             or application.get("job_id") != job_id or type(version) is not int or version < 1):
         return None
-    matches = [row for row in documents if row.get("kind") == "resume" and row.get("version") == version]
-    if len(matches) != 1:
-        return None
-    resume = matches[0]
-    if (not EvidenceJournal._lineage_id(resume.get("id"))
-            or not application_profile_version_matches(
-                {"id": profile_id, "version": resume.get("profile_version")}, application)
-            or any(resume.get(key) != value for key, value in pins.items())):
-        return None
-    return resume
+    pair = {}
+    for kind in ("resume", "cover-letter"):
+        matches = [row for row in documents if row.get("kind") == kind
+                   and type(row.get("version")) is int and row["version"] == version]
+        if len(matches) != 1:
+            return None
+        document = matches[0]
+        if (not EvidenceJournal._lineage_id(document.get("id"))
+                or not application_profile_version_matches(
+                    {"id": profile_id, "version": document.get("profile_version")}, application)
+                or any(document.get(key) != value for key, value in pins.items())):
+            return None
+        pair[kind] = document["id"]
+    return pair if pair["resume"] != pair["cover-letter"] else None
 
 
 def prepare_ui_artifact_directory(base_url, evidence_path, acceptance_run_id=None):
@@ -1241,7 +1245,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         )
 
     def record_application_step(step, observable_result, assertions, *,
-                                stage_lineage=None, document_id=None):
+                                stage_lineage=None, document_id=None, document_ids=None):
         if acceptance_run_id is None:
             return None
         from cli.acceptance_applications import record_application_step as record
@@ -1249,7 +1253,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         return record(
             journal, step, observable_result=observable_result,
             assertions=assertions, runtime_identity=runtime_identity,
-            stage_lineage=stage_lineage, document_id=document_id,
+            stage_lineage=stage_lineage, document_id=document_id, document_ids=document_ids,
         )
 
     def _paired_evidence(ui, readback):
@@ -1981,35 +1985,45 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 assert first_application_readback["state"] == "PREPARED"
                 assert application_profile_version_matches(profile, first_application_readback)
                 assert first_application_readback["profile_version"] == profile["version"]
-                resume_revision = prepared_resume_revision(
+                document_pair = prepared_document_pair(
                     first_application_readback, first_documents, application_id=identifier,
                     profile_id=profile_id, job_id=first_prepare["lineage"]["job_id"])
                 revision_visible = False
-                if resume_revision is not None:
-                    version = resume_revision["version"]
+                if document_pair is not None:
+                    version = first_application_readback["document_version"]
                     review = page.get_by_role("region", name="Application review", exact=True)
                     expect(review.get_by_text(re.compile(rf"^Saved version {version} · "))).to_be_visible()
+                    expect(review.get_by_text(
+                        f"Validated saved preview · version {version}", exact=True)).to_be_visible()
                     expect(page.get_by_text(re.compile(rf"^Document revision {version} · "))).to_be_visible()
-                    resume_history = page.get_by_role("region", name=f"resume version {version}", exact=True)
-                    resume_path = (f"/profiles/{quote(profile_id, safe='')}"
-                                   f"/documents/{quote(resume_revision['id'], safe='')}/txt")
-                    expect(resume_history.get_by_role("link", name="Download TXT", exact=True)
-                           ).to_have_attribute("href", resume_path)
+                    for kind, document_id in document_pair.items():
+                        history = page.get_by_role("region", name=f"{kind} version {version}", exact=True)
+                        download = history.get_by_role("link", name="Download TXT", exact=True)
+                        document_path = (f"/profiles/{quote(profile_id, safe='')}"
+                                         f"/documents/{quote(document_id, safe='')}/txt")
+                        expect(download).to_be_visible()
+                        expect(download).to_have_attribute("href", document_path)
                     revision_visible = True
+                    journal.binding["prepared_document_pair"] = {
+                        "application_id": identifier, "profile_id": profile_id,
+                        "job_id": first_application_readback["job_id"],
+                        "profile_version": first_application_readback["profile_version"],
+                        "document_version": version, "documents": document_pair,
+                    }
                 record_application_step(
-                    36, "The prepared B application and its selected resume revision were checked.",
+                    36, "The prepared B application and its selected resume and cover letter revision were checked.",
                     {
                         "application_prepared_readback": _paired_evidence(
                             page.get_by_role("heading", name="Application details", exact=True).is_visible()
                             and revision_visible,
-                            first_application_readback["state"] == "PREPARED" and resume_revision is not None),
+                            first_application_readback["state"] == "PREPARED" and document_pair is not None),
                         "profile_job_pins_match": _paired_evidence(
                             page.get_by_label("Active profile", exact=True).input_value() == profile_id,
                             first_application_readback["profile_id"] == profile_id
                             and first_application_readback["job_id"] == application["job_id"]),
                     },
                     stage_lineage=first_prepare["lineage"],
-                    document_id=resume_revision["id"] if resume_revision is not None else None,
+                    document_ids=list(document_pair.values()) if document_pair is not None else None,
                 )
 
                 navigation("Applications")
