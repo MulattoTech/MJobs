@@ -3,6 +3,8 @@ import hashlib
 from contextlib import ExitStack
 from io import BytesIO
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -20,6 +22,27 @@ from tests.integration.test_spine import PROFILE
 
 
 class JourneyDocumentProvenanceTests(unittest.TestCase):
+    def test_cover_letter_proof_guards_remain_active_under_python_optimization(self):
+        script = """
+from cli.acceptance_documents import prove_unique_cover_letter_artifacts
+prove_unique_cover_letter_artifacts(
+    lambda path: {"uploaded": []}, lambda path: b"", profile_id="fixture",
+    cases={}, base_revision_id="base", base_sha256="", base_bytes=b"",
+    approved_by_case={}, pending_sentinels=(),
+)
+"""
+        result = subprocess.run(
+            [sys.executable, "-O", "-c", script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "uniqueness proof requires exactly two job contexts",
+            result.stderr,
+        )
+
     def test_truthful_application_documents_and_uploaded_base_survive_upload_and_reopen(self):
         with ExitStack() as stack:
             directory = stack.enter_context(
