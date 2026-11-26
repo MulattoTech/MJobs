@@ -27,17 +27,33 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 filename = f"synthetic-onboarding.{format}"
                 digest = hashlib.sha256(original).hexdigest()
                 row = {"id": f"resume-{format}", "profile_id": "profile-a", "filename": filename,
-                       "format": format, "sha256": digest}
+                       "format": format, "sha256": digest, "revision_id": f"revision-{format}",
+                       "series_id": f"series-{format}", "version": 1}
                 args = dict(profile_id="profile-a", filename=filename, format=format, original=original)
-                self.assertEqual(ui_e2e.resume_original_receipt(row, **args, download=original), {
+                self.assertEqual(ui_e2e.resume_original_receipt(row, row, **args, download=original), {
                     "format": format, "profile_id": "profile-a", "resume_id": row["id"],
+                    "revision_id": row["revision_id"], "series_id": row["series_id"], "version": 1,
                     "input_sha256": digest, "download_sha256": digest,
                 })
                 with self.assertRaises(AssertionError):
-                    ui_e2e.resume_original_receipt(row, **args, download=original[:-1])
+                    ui_e2e.resume_original_receipt(row, row, **args, download=original[:-1])
                 with self.assertRaises(AssertionError):
                     ui_e2e.resume_original_receipt(
-                        {**row, "profile_id": "profile-b"}, **args, download=original)
+                        row, {**row, "profile_id": "profile-b"}, **args, download=original)
+                for key, value in (("revision_id", "other-revision"), ("series_id", "other-series"),
+                                   ("version", 2)):
+                    with self.subTest(mismatched_pin=key), self.assertRaisesRegex(AssertionError, "revision changed"):
+                        ui_e2e.resume_original_receipt(row, {**row, key: value}, **args, download=original)
+
+    def test_all_visible_resume_suggestions_must_match_and_be_unchecked(self):
+        durable = [{"kind": "skill", "text": "Pythno"}, {"kind": "summary", "text": "Source summary"}]
+        visible = [{**row, "checked": False} for row in durable]
+        ui_e2e.assert_visible_resume_suggestions(durable, visible[::-1])
+        for changes in ({"text": "Wrong summary"}, {"kind": "skill"}, {"checked": True}):
+            with self.subTest(changes=changes), self.assertRaises(AssertionError):
+                ui_e2e.assert_visible_resume_suggestions(durable, [visible[0], {**visible[1], **changes}])
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_visible_resume_suggestions(durable, [visible[0], visible[0]])
 
     def test_correction_preserves_fact_identity_flags_and_unrelated_facts(self):
         wrong = {"fact_id": "skill-1", "kind": "skill", "text": "Pythno", "verified": False,

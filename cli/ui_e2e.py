@@ -1,5 +1,6 @@
 """Connected browser acceptance against the actual local Compose deployment."""
 import argparse
+from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import io
@@ -911,15 +912,30 @@ def _onboarding_fixture_docx():
     return stream.getvalue()
 
 
-def resume_original_receipt(row, *, profile_id, filename, format, original, download):
+def resume_original_receipt(upload, row, *, profile_id, filename, format, original, download):
     digest = hashlib.sha256(original).hexdigest()
-    assert row.get("profile_id") == profile_id and EvidenceJournal._lineage_id(row.get("id"))
-    assert row.get("filename") == filename and row.get("format") == format
-    assert row.get("sha256") == digest and download == original, "uploaded original failed byte readback"
+    keys = ("id", "revision_id", "series_id", "version")
+    pins = {key: upload.get(key) for key in keys}
+    assert all(EvidenceJournal._lineage_id(pins[key]) for key in keys[:-1])
+    assert type(pins["version"]) is int and pins["version"] >= 1
+    assert type(row.get("version")) is int
+    assert pins == {key: row.get(key) for key in keys}, "uploaded revision changed after reload"
+    for record in (upload, row):
+        assert record.get("profile_id") == profile_id
+        assert record.get("filename") == filename and record.get("format") == format
+        assert record.get("sha256") == digest
+    assert download == original, "uploaded original failed byte readback"
     return {
-        "format": format, "profile_id": profile_id, "resume_id": row["id"],
+        "format": format, "profile_id": profile_id, "resume_id": pins["id"],
+        "revision_id": pins["revision_id"], "series_id": pins["series_id"], "version": pins["version"],
         "input_sha256": digest, "download_sha256": hashlib.sha256(download).hexdigest(),
     }
+
+
+def assert_visible_resume_suggestions(durable, visible):
+    assert all(row["checked"] is False for row in visible), "visible suggestion was already selected"
+    assert Counter((row["kind"], row["text"]) for row in visible) == Counter(
+        (row["kind"], row["text"]) for row in durable), "visible suggestions differ from the durable extraction"
 
 
 def assert_onboarding_fact_revision(before, after, fact_id, **changes):
@@ -1436,12 +1452,13 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     row = stored.value.json()
                     expect(resume_row_for(row)).to_be_visible()
                     expect(page.get_by_label("Choose a resume (up to 10 MiB)")).to_be_enabled()
-                    uploaded[format] = (row["id"], filename, data)
+                    uploaded[format] = (row, filename, data)
 
                 reload_profile_editor()
                 originals = request(resumes_path)["resumes"]
                 original_receipts = []
-                for format, (resume_id, filename, data) in uploaded.items():
+                for format, (stored_row, filename, data) in uploaded.items():
+                    resume_id = stored_row["id"]
                     matches = [row for row in originals if row["id"] == resume_id]
                     assert len(matches) == 1
                     resume_path = f"{resumes_path}/{quote(resume_id, safe='')}"
@@ -1452,14 +1469,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     original_response = context.request.get(base_url + original_link.get_attribute("href"))
                     assert original_response.ok
                     original_receipts.append(resume_original_receipt(
-                        matches[0], profile_id=profile_id, filename=filename, format=format,
+                        stored_row, matches[0], profile_id=profile_id, filename=filename, format=format,
                         original=data, download=original_response.body()))
                 assert len({row["resume_id"] for row in original_receipts}) == 2
                 assert len({row["input_sha256"] for row in original_receipts}) == 2
                 if acceptance_run_id is not None:
                     journal.binding["resume_original_readbacks"] = original_receipts
 
-                pdf = next(row for row in originals if row["id"] == uploaded["pdf"][0])
+                pdf = next(row for row in originals if row["id"] == uploaded["pdf"][0]["id"])
                 extract_path = f"{resumes_path}/{quote(pdf['id'], safe='')}/extract/queued"
                 with page.expect_response(lambda response:
                         response.request.method == "POST"
@@ -1481,13 +1498,23 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 suggested_facts = extracted["result"]["facts"]
                 wrong_skill, = [fact for fact in suggested_facts
                                 if fact["kind"] == "skill" and fact["text"] == _ONBOARDING_WRONG_SKILL]
-                expect(review.locator("label.fact-suggestion").filter(
-                    has_text=_ONBOARDING_WRONG_SKILL)).to_be_visible()
-                suggestions = review.locator('label.fact-suggestion:has(strong) input[type="checkbox"]')
+                suggestion_rows = review.locator("label.fact-suggestion:has(strong)")
+                suggestions = suggestion_rows.get_by_role("checkbox")
                 expect(suggestions).to_have_count(len(suggested_facts))
                 for suggestion in suggestions.all():
                     expect(suggestion).to_be_visible()
                     expect(suggestion).not_to_be_checked()
+                visible_suggestions = suggestion_rows.evaluate_all("""rows => rows.map(row => {
+                    const description = row.querySelector(':scope > span');
+                    return {
+                        kind: description.querySelector(':scope > strong').textContent,
+                        text: Array.from(description.childNodes)
+                            .filter(node => node.nodeType === Node.TEXT_NODE)
+                            .map(node => node.textContent).join('').trim(),
+                        checked: row.querySelector(':scope > input').checked,
+                    };
+                })""")
+                assert_visible_resume_suggestions(suggested_facts, visible_suggestions)
                 for suggestion in suggestions.all():
                     suggestion.check()
                 expect(review.get_by_role("button", name="Add selected to profile editor", exact=True)).to_be_enabled()
@@ -1514,6 +1541,12 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         "profile_id": profile_id, "resume_id": pdf["id"], "sha256": pdf["sha256"],
                         "label": pdf["label"], "version": pdf["version"], "filename": pdf["filename"],
                         "operation_id": operation_id, "suggested_fact_ids": sorted(pending_fact_ids),
+                        "matched_suggestions": [
+                            {"fact_id": fact["id"], "kind": fact["kind"],
+                             "text_sha256": hashlib.sha256(fact["text"].encode("utf-8")).hexdigest(),
+                             "unchecked": True}
+                            for fact in suggested_facts
+                        ],
                     }
                 observe_acceptance_step(
                     4, "PASS", "Both synthetic originals matched their saved download bytes after reload.",
