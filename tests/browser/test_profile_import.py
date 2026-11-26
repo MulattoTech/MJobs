@@ -81,6 +81,11 @@ def resume_pdf(extra=''):
 
 def fact_editor_with_text(page, expected_text):
     """Resolve the current React fact editor after each controlled rerender."""
+    page.wait_for_function(
+        "expected => Array.from(document.querySelectorAll('fieldset.fact textarea'))"
+        ".some(textarea => textarea.value === expected)",
+        arg=expected_text,
+    )
     for fact in page.locator('fieldset.fact').all():
         textarea = fact.locator('textarea')
         if textarea.count() == 1 and textarea.input_value() == expected_text:
@@ -361,7 +366,7 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     responsibility = fact_editor_with_text(page, original_text)
                     responsibility.locator('textarea').fill(corrected_text)
                     responsibility = fact_editor_with_text(page, corrected_text)
-                    responsibility.locator('input[type="text"]').fill(
+                    responsibility.get_by_label('Evidence / source', exact=True).fill(
                         'Applicant correction after reviewing the uploaded resume')
                     responsibility = fact_editor_with_text(page, corrected_text)
                     responsibility.locator('input[type="checkbox"]').nth(0).check()
