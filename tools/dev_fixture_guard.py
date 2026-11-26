@@ -8,7 +8,6 @@ import base64
 from collections import defaultdict
 import hashlib
 import hmac
-import ipaddress
 import json
 import os
 from pathlib import Path
@@ -193,6 +192,8 @@ def recovery_environment_file(project, token, expiry, environment=None):
     if path.exists():
         values = read_recovery_dotenv(path)
         validate_recovery_dotenv_values(project, token, expiry, values)
+        if environment is not None and values != recovery_dotenv_values(environment):
+            raise RuntimeError("Refusing recovery: controlled dotenv differs from admitted environment")
         return path
 
     if environment is None:
@@ -226,41 +227,32 @@ def read_recovery_dotenv(path):
     return values
 
 
-def controlled_docker_environment(environment=None, context_name=None):
+def controlled_docker_environment(environment=None, context_name=None, *, endpoint=None):
     source = os.environ if environment is None else environment
     result = {key: str(source[key]) for key in DOCKER_ENV_KEYS if source.get(key)}
     if context_name is not None:
         if not DOCKER_CONTEXT_PATTERN.fullmatch(context_name):
             raise ValueError("Invalid local Docker context name")
         result["DOCKER_CONTEXT"] = context_name
+    if endpoint is not None:
+        if context_name is not None:
+            raise ValueError("Docker context discovery and endpoint binding are exclusive")
+        result["DOCKER_HOST"] = normalize_local_docker_endpoint(endpoint)
     return result
 
 
 def normalize_local_docker_endpoint(endpoint):
     if not isinstance(endpoint, str) or not endpoint or endpoint.strip() != endpoint:
         raise ValueError("Docker endpoint is missing or ambiguous")
-    normalized = endpoint.replace("\\", "/").lower()
-    if re.fullmatch(r"npipe:/{2,4}\./pipe/[a-z0-9._-]+", normalized):
-        return normalized
-    if re.fullmatch(r"unix:///var/run/docker\.sock", normalized) or re.fullmatch(
-            r"unix:///run/user/[0-9]+/docker\.sock", normalized):
-        return normalized
-    if normalized.startswith("tcp://"):
-        try:
-            from urllib.parse import urlsplit
-            parsed = urlsplit(normalized)
-            host = parsed.hostname or ""
-            port = parsed.port
-            local = host == "localhost" or ipaddress.ip_address(host).is_loopback
-        except (ValueError, TypeError):
-            local, port = False, None
-        if (local and port is not None and parsed.username is None and parsed.password is None
-                and parsed.path in ("", "/") and not parsed.query and not parsed.fragment):
-            return f"tcp://{parsed.hostname.lower()}:{port}"
+    pipe = re.fullmatch(r"npipe:/{2,4}\./pipe/([a-z0-9._-]+)", endpoint.lower())
+    if pipe:
+        return f"npipe:////./pipe/{pipe[1]}"
+    if re.fullmatch(r"unix:///(?:var/run|run/user/[0-9]+)/docker\.sock", endpoint):
+        return endpoint
     raise ValueError("Docker context must resolve to an unambiguous local engine endpoint")
 
 
-def validate_local_docker_context(context_name, expected_endpoint=None, environment=None):
+def validate_local_docker_context(context_name, environment=None):
     if not isinstance(context_name, str) or not DOCKER_CONTEXT_PATTERN.fullmatch(context_name):
         raise ValueError("Recovery mode requires an explicit Docker context")
     docker_env = controlled_docker_environment(environment, context_name=context_name)
@@ -270,13 +262,10 @@ def validate_local_docker_context(context_name, expected_endpoint=None, environm
     endpoint = docker("context", "inspect", context_name, "--format",
                       "{{.Endpoints.docker.Host}}", env=docker_env).strip()
     normalized = normalize_local_docker_endpoint(endpoint)
-    if expected_endpoint is not None:
-        if normalize_local_docker_endpoint(expected_endpoint) != normalized:
-            raise RuntimeError("Docker context endpoint changed during recovery")
-    return context_name, normalized, docker_env
+    return context_name, normalized, controlled_docker_environment(docker_env, endpoint=normalized)
 
 
-def validate_local_campaign_image(image_ref, image_id, environment, check_tag=True):
+def validate_local_campaign_image(image_ref, image_id, environment):
     if (not isinstance(image_ref, str) or not IMAGE_REF_PATTERN.fullmatch(image_ref)
             or not isinstance(image_id, str) or not IMAGE_ID_PATTERN.fullmatch(image_id)):
         raise ValueError("Recovery mode requires an explicit tagged local image and immutable image ID")
@@ -284,11 +273,10 @@ def validate_local_campaign_image(image_ref, image_id, environment, check_tag=Tr
                          env=environment).strip()
     if resolved_id != image_id:
         raise RuntimeError("Selected campaign image ID is not present locally")
-    if check_tag:
-        tagged_id = docker("image", "inspect", "--format", "{{.Id}}", image_ref,
-                           env=environment).strip()
-        if tagged_id != image_id:
-            raise RuntimeError("Selected local campaign image tag does not match its immutable ID")
+    tagged_id = docker("image", "inspect", "--format", "{{.Id}}", image_ref,
+                       env=environment).strip()
+    if tagged_id != image_id:
+        raise RuntimeError("Selected local campaign image tag does not match its immutable ID")
     return image_id
 
 
@@ -381,24 +369,22 @@ def compose_args(project, recovery_mode=False):
             "--project-name", project, "--profile", "fixture")
 
 
-def cleanup(project, token, env=None, recovery_mode=False):
+def cleanup(project, token, env=None, recovery_mode=False, *, expected_expiry=None):
     env_file = None
     if recovery_mode:
         env_file = recovery_env_path(project)
         if env_file.is_symlink() or not env_file.is_file():
             raise RuntimeError("Refusing recovery cleanup: controlled dotenv is missing or unsafe")
         values = read_recovery_dotenv(env_file)
-        expiry = values.get("MJOBS_DEV_GUARD_EXPIRES")
-        recovery_environment_file(project, token, expiry)
-        context_name = values["MJOBS_RECOVERY_DOCKER_CONTEXT"]
+        expiry = values.get("MJOBS_DEV_GUARD_EXPIRES", "")
+        if not re.fullmatch(r"[0-9]+", expiry):
+            raise RuntimeError("Refusing recovery cleanup: invalid recorded fixture lease")
+        validate_recovery_dotenv_values(
+            project, token, expiry if expected_expiry is None else expected_expiry, values)
         expected_endpoint = values["MJOBS_RECOVERY_DOCKER_ENDPOINT"]
-        if env is not None and env.get("DOCKER_CONTEXT") != context_name:
+        if env is not None and env.get("DOCKER_HOST") != expected_endpoint:
             raise RuntimeError("Refusing recovery cleanup: caller engine differs from fixture engine")
-        _, _, docker_env = validate_local_docker_context(
-            context_name, expected_endpoint=expected_endpoint, environment=env)
-        validate_local_campaign_image(values["MJOBS_RECOVERY_IMAGE_REF"],
-                                      values["MJOBS_RECOVERY_IMAGE_ID"],
-                                      docker_env, check_tag=False)
+        docker_env = controlled_docker_environment(env, endpoint=expected_endpoint)
         owned = verify_owned(project, token, recovery_mode=True, env=docker_env)
         if not owned:
             if env is not None:
@@ -409,10 +395,11 @@ def cleanup(project, token, env=None, recovery_mode=False):
     # Compose interpolates its config even for "down". Supply non-production,
     # cleanup-only placeholders if the independent watchdog has no parent env.
     # Never read or reuse production secrets when reaping an expired fixture.
-    rows = containers(project, env=docker_env if recovery_mode else env)
     if recovery_mode:
-        expiry = str(owned)
+        if owned != expiry:
+            raise RuntimeError("Refusing recovery cleanup: observed fixture lease differs from recorded lease")
     else:
+        rows = containers(project, env=env)
         expiries = {row.get(EXPIRY_LABEL) for row in rows}
         if len(expiries) != 1 or not next(iter(expiries)):
             raise RuntimeError("Refusing cleanup: ambiguous fixture lease")
@@ -544,7 +531,7 @@ def fixture_environment(project, token, expiry, port, recovery_mode=False, *,
                 or not DOCKER_CONTEXT_PATTERN.fullmatch(docker_context or "")
                 or normalize_local_docker_endpoint(docker_endpoint) != docker_endpoint):
             raise ValueError("Recovery mode requires admitted local context and image identities")
-        env = controlled_docker_environment(context_name=docker_context)
+        env = controlled_docker_environment(endpoint=docker_endpoint)
     else:
         env = os.environ.copy()
     # Never reuse production credentials for isolated synthetic test data.
@@ -608,7 +595,7 @@ def spawn_watchdog(project, token, expiry, recovery_mode=False):
         recovery_environment_file(project, token, expiry)
         values = read_recovery_dotenv(path)
         watchdog_env = controlled_docker_environment(
-            context_name=values.get("MJOBS_RECOVERY_DOCKER_CONTEXT"))
+            endpoint=values["MJOBS_RECOVERY_DOCKER_ENDPOINT"])
         watchdog_env["COMPOSE_FILE"] = os.pathsep.join(compose_files(recovery_mode=True))
         watchdog_env["COMPOSE_ENV_FILES"] = str(path)
         kwargs["env"] = watchdog_env
@@ -630,12 +617,12 @@ def run(args):
     expected_endpoint = None
     recovery_docker_env = None
     if recovery_mode:
+        if args.build:
+            raise ValueError("Recovery mode requires a prebuilt image and forbids --build")
         if image_ref is None or image_id is None or docker_context is None:
             raise ValueError("Recovery mode requires --image-ref, --image-id and --docker-context")
         _, expected_endpoint, recovery_docker_env = validate_local_docker_context(docker_context)
         validate_local_campaign_image(image_ref, image_id, recovery_docker_env)
-        # Recovery cleanup is scoped to the explicitly admitted local engine.
-        sweep(apply=True, recovery_only=True, env=recovery_docker_env)
     else:
         if any(value is not None for value in (image_ref, image_id, docker_context)):
             raise ValueError("Image and Docker context selection are recovery-only options")
@@ -669,10 +656,8 @@ def run(args):
     cleaned = False
     try:
         print(f"Starting disposable {project} on 127.0.0.1:{port}", flush=True)
-        build_flag = "--build" if args.build else "--no-build"
+        build_flag = "--build" if args.build and not recovery_mode else "--no-build"
         if recovery_mode:
-            validate_local_docker_context(docker_context, expected_endpoint=expected_endpoint,
-                                          environment=env)
             validate_local_campaign_image(image_ref, image_id, env)
         docker(*compose_args(project, recovery_mode), "up", "--detach", "--wait",
                "--wait-timeout", "180", build_flag, env=env, timeout=600)
@@ -698,7 +683,10 @@ def watchdog(project, token, expiry, recovery_mode=False):
     if seconds > 0:
         time.sleep(seconds)
     try:
-        cleanup(project, token, recovery_mode=recovery_mode)
+        if recovery_mode:
+            cleanup(project, token, env=os.environ, recovery_mode=True, expected_expiry=expiry)
+        else:
+            cleanup(project, token)
     except (RuntimeError, ValueError) as exc:
         # Normal foreground completion has already removed the project.
         print(f"Watchdog cleanup skipped: {exc}", flush=True)

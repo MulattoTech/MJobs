@@ -176,8 +176,8 @@ class FixtureGuardTests(TestCase):
                                                    environment=env)
             text = path.read_text(encoding="utf-8")
             recovery_args = guard.compose_args(self.PROJECT, recovery_mode=True)
-        self.assertEqual(env["DOCKER_CONTEXT"], self.DOCKER_CONTEXT)
-        self.assertTrue("DOCKER_HOST" not in env)
+        self.assertEqual(env["DOCKER_HOST"], self.DOCKER_ENDPOINT)
+        self.assertNotIn("DOCKER_CONTEXT", env)
         self.assertEqual(env["COMPOSE_FILE"], os.pathsep.join(guard.compose_files(True)))
         self.assertTrue("HTTPS_PROXY" not in env)
         self.assertEqual(env.get("OPENAI_API_KEY"), "")
@@ -240,16 +240,28 @@ class FixtureGuardTests(TestCase):
                                  ("context", "inspect", self.DOCKER_CONTEXT,
                                   "--format", "{{.Endpoints.docker.Host}}")])
 
+    def test_context_discovery_returns_socket_binding_without_context_override(self):
+        poisoned = {"DOCKER_CONTEXT": "other", "DOCKER_HOST": "ssh://remote.invalid",
+                    "DOCKER_TLS_VERIFY": "1"}
+        with patch.object(guard, "docker", side_effect=[
+                self.DOCKER_CONTEXT, "npipe:////./pipe/dockerDesktopLinuxEngine"]) as docker:
+            context, endpoint, env = guard.validate_local_docker_context(
+                self.DOCKER_CONTEXT, environment=poisoned)
+        self.assertEqual(context, self.DOCKER_CONTEXT)
+        self.assertEqual(endpoint, self.DOCKER_ENDPOINT)
+        self.assertEqual(env, {"DOCKER_HOST": self.DOCKER_ENDPOINT})
+        for call in docker.call_args_list:
+            self.assertEqual(call.kwargs["env"], {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})
+
     def test_image_admission_rejects_stale_tag_and_missing_immutable_id(self):
         with patch.object(guard, "docker", side_effect=[self.IMAGE_ID, "sha256:" + "d" * 64]):
             with self.assertRaisesRegex(RuntimeError, "tag does not match"):
                 guard.validate_local_campaign_image(
-                    self.IMAGE_REF, self.IMAGE_ID, {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})
+                    self.IMAGE_REF, self.IMAGE_ID, {"DOCKER_HOST": self.DOCKER_ENDPOINT})
         with patch.object(guard, "docker", return_value=""):
             with self.assertRaisesRegex(RuntimeError, "ID is not present locally"):
                 guard.validate_local_campaign_image(
-                    self.IMAGE_REF, self.IMAGE_ID, {"DOCKER_CONTEXT": self.DOCKER_CONTEXT},
-                    check_tag=False)
+                    self.IMAGE_REF, self.IMAGE_ID, {"DOCKER_HOST": self.DOCKER_ENDPOINT})
 
     def test_image_admission_rejects_invalid_ref_or_digest_without_docker(self):
         with patch.object(guard, "docker") as docker:
@@ -258,7 +270,7 @@ class FixtureGuardTests(TestCase):
                 with self.subTest(image_ref=image_ref, image_id=image_id):
                     with self.assertRaises(ValueError):
                         guard.validate_local_campaign_image(
-                            image_ref, image_id, {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})
+                            image_ref, image_id, {"DOCKER_HOST": self.DOCKER_ENDPOINT})
             docker.assert_not_called()
 
     def test_recovery_run_uses_same_mode_for_start_child_watchdog_and_failure_cleanup(self):
@@ -276,10 +288,10 @@ class FixtureGuardTests(TestCase):
         def fake_docker(*command, **kwargs):
             docker_calls.append((command, kwargs))
             return ""
-        with patch.object(guard, "sweep"), \
+        with patch.object(guard, "sweep") as sweep, \
              patch.object(guard, "validate_local_docker_context",
                           return_value=(self.DOCKER_CONTEXT, self.DOCKER_ENDPOINT,
-                                        {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})), \
+                                        {"DOCKER_HOST": self.DOCKER_ENDPOINT})), \
              patch.object(guard, "validate_local_campaign_image", return_value=self.IMAGE_ID), \
              patch.object(guard, "containers", return_value=[]), \
              patch.object(guard, "project_resources", return_value={
@@ -291,6 +303,7 @@ class FixtureGuardTests(TestCase):
              patch.object(guard.subprocess, "run", return_value=child) as run_child:
             code = guard.run(args)
         self.assertEqual(code, 7)
+        sweep.assert_not_called()
         project = next(kwargs["env"]["COMPOSE_PROJECT_NAME"]
                        for _, kwargs in docker_calls if "COMPOSE_PROJECT_NAME" in kwargs["env"])
         child_env = run_child.call_args.kwargs["env"]
@@ -300,6 +313,11 @@ class FixtureGuardTests(TestCase):
         self.assertEqual(tuple(up[index + 1] for index, item in enumerate(up[:-1]) if item == "--file"),
                          guard.compose_files(recovery_mode=True))
         self.assertEqual(up_kwargs["env"]["COMPOSE_FILE"], expected_files)
+        self.assertIn("--no-build", up)
+        self.assertNotIn("--build", up)
+        for environment in (child_env, up_kwargs["env"], cleanup.call_args.kwargs["env"]):
+            self.assertEqual(environment["DOCKER_HOST"], self.DOCKER_ENDPOINT)
+            self.assertNotIn("DOCKER_CONTEXT", environment)
         self.assertEqual(spawn.call_args.args[0], project)
         self.assertTrue(spawn.call_args.kwargs["recovery_mode"])
         self.assertTrue(cleanup.call_args.kwargs["recovery_mode"])
@@ -330,7 +348,7 @@ class FixtureGuardTests(TestCase):
 
         with patch.object(guard, "validate_local_docker_context",
                           return_value=(self.DOCKER_CONTEXT, self.DOCKER_ENDPOINT,
-                                        {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})), \
+                                        {"DOCKER_HOST": self.DOCKER_ENDPOINT})), \
                 patch.object(guard, "validate_local_campaign_image",
                              side_effect=RuntimeError("stale image")), \
                 patch.object(guard, "sweep") as sweep, \
@@ -339,6 +357,17 @@ class FixtureGuardTests(TestCase):
                 guard.run(args)
         sweep.assert_not_called()
         docker.assert_not_called()
+
+    def test_recovery_build_is_rejected_before_preflight_or_writes(self):
+        args = argparse.Namespace(build=True, recovery=True, command=["python"])
+        with patch.object(guard, "docker") as docker, \
+                patch.object(guard, "sweep") as sweep, \
+                patch.object(guard, "recovery_environment_file") as dotenv:
+            with self.assertRaisesRegex(ValueError, "forbids --build"):
+                guard.run(args)
+        docker.assert_not_called()
+        sweep.assert_not_called()
+        dotenv.assert_not_called()
 
     def test_recovery_cleanup_rejects_default_or_mixed_mode_container_before_docker(self):
         with patch.object(guard, "containers", return_value=[self.labelled()]), \
@@ -409,25 +438,22 @@ class FixtureGuardTests(TestCase):
         self.addCleanup(temp.cleanup)
         calls = []
         with patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp.name)), \
-                patch.object(guard, "validate_local_docker_context",
-                             return_value=(self.DOCKER_CONTEXT, self.DOCKER_ENDPOINT,
-                                           {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})), \
-                patch.object(guard, "validate_local_campaign_image",
-                             return_value=self.IMAGE_ID), \
                 patch.object(guard, "containers", return_value=[]), \
                 patch.object(guard, "inspect_resources", side_effect=[volumes, networks]), \
                 patch.object(guard, "docker",
                              side_effect=lambda *args, **kwargs: calls.append((args, kwargs)) or ""):
             self.write_recovery_dotenv(Path(temp.name), expiry=int(self.LEASE))
             guard.cleanup(self.PROJECT, self.TOKEN, recovery_mode=True)
-        down, options = calls[-1]
+        self.assertEqual(len(calls), 1)
+        down, options = calls[0]
+        self.assertIn("down", down)
         files = tuple(down[index + 1] for index, item in enumerate(down[:-1]) if item == "--file")
         self.assertEqual(files, guard.compose_files(recovery_mode=True))
         self.assertIn("--env-file", down)
         self.assertEqual(options["env"]["MJOBS_DEV_GUARD_TOKEN"], self.TOKEN)
         self.assertEqual(options["env"]["MJOBS_DEV_GUARD_EXPIRES"], self.LEASE)
         self.assertEqual(options["env"]["MJOBS_IMAGE"], self.IMAGE_ID)
-        self.assertEqual(options["env"]["DOCKER_CONTEXT"], self.DOCKER_CONTEXT)
+        self.assertEqual(options["env"]["DOCKER_HOST"], self.DOCKER_ENDPOINT)
         self.assertEqual(options["env"]["MJOBS_EXTERNAL_SUBMISSIONS_ENABLED"], "0")
 
     def test_recovery_inventory_and_expiry_sweep_find_resource_only_project(self):
@@ -450,7 +476,7 @@ class FixtureGuardTests(TestCase):
     def test_recovery_sweep_carries_admitted_engine_into_cleanup(self):
         row = {"project": self.PROJECT, "managed": True, "expires": "1",
                "token": self.TOKEN, "containers": 0, "mode": guard.RECOVERY_MODE}
-        engine = {"DOCKER_CONTEXT": self.DOCKER_CONTEXT}
+        engine = {"DOCKER_HOST": self.DOCKER_ENDPOINT}
         with patch.object(guard, "inventory", return_value=[row]), \
                 patch.object(guard, "recovery_resource_inventory", return_value=[]), \
                 patch.object(guard, "time") as clock, patch.object(guard, "cleanup") as cleanup:
@@ -467,7 +493,7 @@ class FixtureGuardTests(TestCase):
         with patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp.name)), \
                 patch.object(guard, "validate_local_docker_context",
                              return_value=(self.DOCKER_CONTEXT, self.DOCKER_ENDPOINT,
-                                           {"DOCKER_CONTEXT": self.DOCKER_CONTEXT})), \
+                                           {"DOCKER_HOST": self.DOCKER_ENDPOINT})), \
                 patch.object(guard, "validate_local_campaign_image",
                              return_value=self.IMAGE_ID), \
                 patch.object(guard, "verify_owned", return_value=self.LEASE) as verify, \
@@ -475,8 +501,10 @@ class FixtureGuardTests(TestCase):
                 patch.object(guard, "docker", side_effect=lambda *args, **kwargs: calls.append((args, kwargs)) or ""):
             self.write_recovery_dotenv(Path(temp.name), expiry=int(self.LEASE))
             guard.cleanup(self.PROJECT, self.TOKEN, recovery_mode=True)
-        verify.assert_called_once_with(self.PROJECT, self.TOKEN, recovery_mode=True,
-                                      env={"DOCKER_CONTEXT": self.DOCKER_CONTEXT})
+        verify.assert_called_once()
+        self.assertEqual(verify.call_args.args, (self.PROJECT, self.TOKEN))
+        self.assertEqual(verify.call_args.kwargs["env"]["DOCKER_HOST"], self.DOCKER_ENDPOINT)
+        self.assertNotIn("DOCKER_CONTEXT", verify.call_args.kwargs["env"])
         down, options = calls[-1]
         files = tuple(down[index + 1] for index, item in enumerate(down[:-1]) if item == "--file")
         self.assertEqual(files, guard.compose_files(recovery_mode=True))
@@ -493,8 +521,19 @@ class FixtureGuardTests(TestCase):
             self.write_recovery_dotenv(Path(temp.name), expiry=int(self.LEASE))
             with self.assertRaisesRegex(RuntimeError, "caller engine differs"):
                 guard.cleanup(self.PROJECT, self.TOKEN,
-                              env={"DOCKER_CONTEXT": "different-local-context"},
+                              env={"DOCKER_HOST": "npipe:////./pipe/other"},
                               recovery_mode=True)
+        docker.assert_not_called()
+
+    def test_recovery_cleanup_rejects_mismatched_resource_lease_before_down(self):
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp)), \
+                patch.object(guard, "verify_owned", return_value="42"), \
+                patch.object(guard, "docker") as docker:
+            _, dotenv = self.write_recovery_dotenv(Path(temp))
+            with self.assertRaisesRegex(RuntimeError, "observed fixture lease differs"):
+                guard.cleanup(self.PROJECT, self.TOKEN, recovery_mode=True)
+            self.assertTrue(dotenv.is_file())
         docker.assert_not_called()
 
     def test_inventory_recovers_recovery_mode_for_expiry_sweep(self):
@@ -533,6 +572,8 @@ class FixtureGuardTests(TestCase):
         self.assertNotIn("OPENAI_API_KEY", popen.call_args.kwargs["env"])
         self.assertNotIn("HTTPS_PROXY", popen.call_args.kwargs["env"])
         self.assertIn("COMPOSE_ENV_FILES", popen.call_args.kwargs["env"])
+        self.assertEqual(popen.call_args.kwargs["env"]["DOCKER_HOST"], self.DOCKER_ENDPOINT)
+        self.assertNotIn("DOCKER_CONTEXT", popen.call_args.kwargs["env"])
 
     def test_run_parser_defaults_to_existing_mode_and_accepts_explicit_recovery(self):
         with patch.object(guard, "run", return_value=0) as run:
@@ -544,7 +585,8 @@ class FixtureGuardTests(TestCase):
     def test_watchdog_recovery_flag_routes_to_matching_cleanup_mode(self):
         with patch.object(guard.time, "sleep"), patch.object(guard, "cleanup") as cleanup:
             guard.watchdog(self.PROJECT, self.TOKEN, 1, recovery_mode=True)
-        cleanup.assert_called_once_with(self.PROJECT, self.TOKEN, recovery_mode=True)
+        cleanup.assert_called_once_with(self.PROJECT, self.TOKEN, env=os.environ,
+                                        recovery_mode=True, expected_expiry=1)
 
     def test_watchdog_cli_parses_explicit_recovery_mode(self):
         with patch.object(guard, "watchdog") as watchdog:
