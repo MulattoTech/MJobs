@@ -9,6 +9,12 @@ from docx import Document
 from pypdf import PdfReader
 
 
+def _require(condition: bool, message: str) -> None:
+    """Keep acceptance guards active even when Python runs with ``-O``."""
+    if not condition:
+        raise AssertionError(message)
+
+
 def prove_unique_cover_letter_artifacts(
     get_json,
     get_bytes,
@@ -30,18 +36,21 @@ def prove_unique_cover_letter_artifacts(
     ``base_bytes`` is the exact upload captured before either application was
     prepared.
     """
-    assert len(cases) == 2, "uniqueness proof requires exactly two job contexts"
-    assert set(cases) == set(approved_by_case)
+    _require(len(cases) == 2, "uniqueness proof requires exactly two job contexts")
+    _require(set(cases) == set(approved_by_case),
+             "approved facts must be declared for each job context")
     base_path = f"/profiles/{profile_id}/document-library/{base_revision_id}"
-    assert hashlib.sha256(base_bytes).hexdigest() == base_sha256
-    assert get_bytes(base_path) == base_bytes, "uploaded base resume changed"
+    _require(hashlib.sha256(base_bytes).hexdigest() == base_sha256,
+             "uploaded base resume hash does not match its recorded digest")
+    _require(get_bytes(base_path) == base_bytes, "uploaded base resume changed")
     library = get_json(f"/profiles/{profile_id}/document-library")
     base_row = next(
         (row for row in library["uploaded"] if row["revision_id"] == base_revision_id),
         None,
     )
-    assert base_row is not None, "original uploaded revision disappeared"
-    assert base_row["sha256"] == base_sha256
+    _require(base_row is not None, "original uploaded revision disappeared")
+    _require(base_row["sha256"] == base_sha256,
+             "original uploaded revision digest changed")
 
     evidence = {}
     for label, expected in cases.items():
@@ -49,14 +58,17 @@ def prove_unique_cover_letter_artifacts(
         application = get_json(
             f"/profiles/{profile_id}/applications/{application_id}"
         )
-        assert application["id"] == application_id
-        assert application["profile_id"] == profile_id
-        assert application["job_id"] == expected["job_id"]
+        _require(application["id"] == application_id,
+                 f"{label}: application identity changed")
+        _require(application["profile_id"] == profile_id,
+                 f"{label}: application profile changed")
+        _require(application["job_id"] == expected["job_id"],
+                 f"{label}: application job changed")
 
         job = get_json(f"/jobs/{expected['job_id']}?profile_id={profile_id}")
-        assert job["id"] == expected["job_id"]
-        assert job["title"] == expected["title"]
-        assert job["company"] == expected["company"]
+        _require(job["id"] == expected["job_id"], f"{label}: job identity changed")
+        _require(job["title"] == expected["title"], f"{label}: job title changed")
+        _require(job["company"] == expected["company"], f"{label}: job company changed")
 
         payload = get_json(
             f"/profiles/{profile_id}/applications/{application_id}/documents"
@@ -65,22 +77,33 @@ def prove_unique_cover_letter_artifacts(
         letter = next(
             (row for row in rows if row["id"] == expected["document_id"]), None
         )
-        assert letter is not None, f"{label}: expected cover-letter revision is missing"
-        assert letter["version"] == expected["version"]
-        assert letter["profile_id"] == profile_id
-        assert letter["job_id"] == expected["job_id"]
-        assert letter["profile_version"] == application["profile_version"]
-        assert letter["fact_ids"] == expected["fact_ids"]
-        assert {row["fact_id"] for row in letter["facts_used"]} == set(expected["fact_ids"])
-        assert letter["preview_error"] is None
-        assert letter["preview_text"]
+        _require(letter is not None,
+                 f"{label}: expected cover-letter revision is missing")
+        _require(letter["version"] == expected["version"],
+                 f"{label}: cover-letter version changed")
+        _require(letter["profile_id"] == profile_id,
+                 f"{label}: cover-letter profile changed")
+        _require(letter["job_id"] == expected["job_id"],
+                 f"{label}: cover-letter job changed")
+        _require(letter["profile_version"] == application["profile_version"],
+                 f"{label}: cover-letter profile version changed")
+        _require(letter["fact_ids"] == expected["fact_ids"],
+                 f"{label}: cover-letter fact selection changed")
+        _require({row["fact_id"] for row in letter["facts_used"]}
+                 == set(expected["fact_ids"],),
+                 f"{label}: cover-letter facts used changed")
+        _require(letter["preview_error"] is None,
+                 f"{label}: cover-letter preview failed")
+        _require(bool(letter["preview_text"]),
+                 f"{label}: cover-letter preview is empty")
 
         extracted = {}
         hashes = {}
         for format in ("txt", "pdf", "docx"):
             data = get_bytes(f"/profiles/{profile_id}/documents/{letter['id']}/{format}")
             digest = hashlib.sha256(data).hexdigest()
-            assert digest == letter["sha256"][format], f"{label}: {format} hash mismatch"
+            _require(digest == letter["sha256"][format],
+                     f"{label}: {format} hash mismatch")
             hashes[format] = digest
             if format == "txt":
                 text = data.decode("utf-8")
@@ -89,16 +112,21 @@ def prove_unique_cover_letter_artifacts(
             else:
                 text = "\n".join(row.text for row in Document(BytesIO(data)).paragraphs)
             normalized = re.sub(r"\s+", " ", text)
-            assert f"Application for {expected['title']} at {expected['company']}" in normalized
+            _require(f"Application for {expected['title']} at {expected['company']}"
+                     in normalized, f"{label}: {format} lacks job-specific context")
             if expected.get("responsibility"):
-                assert expected["responsibility"] in normalized
+                _require(expected["responsibility"] in normalized,
+                         f"{label}: {format} lacks the expected responsibility")
             for fact in approved_by_case[label]:
-                assert fact in normalized, f"{label}: approved fact missing from {format}"
+                _require(fact in normalized,
+                         f"{label}: approved fact missing from {format}")
             for sentinel in pending_sentinels:
-                assert sentinel not in normalized, f"{label}: pending fact leaked into {format}"
+                _require(sentinel not in normalized,
+                         f"{label}: pending fact leaked into {format}")
             extracted[format] = text
 
-        assert letter["preview_text"].strip() == extracted["txt"].strip()
+        _require(letter["preview_text"].strip() == extracted["txt"].strip(),
+                 f"{label}: saved preview differs from the text artifact")
         evidence[label] = {
             "application_id": application_id,
             "profile_id": profile_id,
@@ -111,12 +139,14 @@ def prove_unique_cover_letter_artifacts(
 
     labels = list(cases)
     first, second = evidence[labels[0]], evidence[labels[1]]
-    assert first["job_id"] != second["job_id"], "cases must target different jobs"
-    assert first["application_id"] != second["application_id"]
-    assert first["document_id"] != second["document_id"]
-    assert first["sha256"]["txt"] != second["sha256"]["txt"], (
-        "distinct job contexts produced byte-identical cover letters"
-    )
+    _require(first["job_id"] != second["job_id"],
+             "cases must target different jobs")
+    _require(first["application_id"] != second["application_id"],
+             "distinct jobs must have distinct applications")
+    _require(first["document_id"] != second["document_id"],
+             "distinct jobs must have distinct cover-letter documents")
+    _require(first["sha256"]["txt"] != second["sha256"]["txt"],
+             "distinct job contexts produced byte-identical cover letters")
     evidence["base_upload"] = {
         "revision_id": base_revision_id,
         "sha256": base_sha256,

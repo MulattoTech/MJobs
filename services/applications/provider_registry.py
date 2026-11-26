@@ -93,7 +93,9 @@ class ApplicationAdapterRegistry:
             return None
         try:
             return factory()
-        except ImportError:
+        except Exception:
+            # Optional adapters are untrusted extension points. An unavailable
+            # or broken factory must fail closed instead of aborting selection.
             return None
 
     def normalize_route(self, provider: object, route: object) -> dict | None:
@@ -108,7 +110,12 @@ class ApplicationAdapterRegistry:
         except (TypeError, ValueError):
             return None
         adapter_route["provider"] = provider_id
-        normalized = adapter.normalize_route(adapter_route)
+        try:
+            normalized = adapter.normalize_route(adapter_route)
+        except Exception:
+            # Provider parser exceptions can contain supplied route data and
+            # cannot make an otherwise unsupported route eligible.
+            return None
         if not isinstance(normalized, Mapping) or normalized.get("provider") != provider_id:
             return None
         if provider_id == "generic_html" and "tenant" in adapter_route:
@@ -122,7 +129,10 @@ class ApplicationAdapterRegistry:
         adapter = self.get(provider)
         if adapter is None:
             return None
-        declared = adapter.capabilities()
+        try:
+            declared = adapter.capabilities()
+        except Exception:
+            return None
         return dict(declared) if isinstance(declared, Mapping) else None
 
 
