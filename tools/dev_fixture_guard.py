@@ -52,6 +52,7 @@ DOCKER_ENV_KEYS = (
 RECOVERY_ENV_VALUES = {
     "MJOBS_COMPOSE_MOCK": "1",
     "MJOBS_OPERATION_MODE": "FIXTURE",
+    "MJOBS_BROWSER_PROFILE": "default",
     "MJOBS_EXTERNAL_SUBMISSIONS_ENABLED": "0",
     "MJOBS_EXTERNAL_SUBMISSION_ENABLED": "0",
     "MJOBS_PUBLIC_HOST": "",
@@ -284,7 +285,7 @@ def recovery_dotenv_values(environment):
     keys = {
         "MJOBS_DEV_GUARD_TOKEN", "MJOBS_DEV_GUARD_EXPIRES",
         "POSTGRES_PASSWORD", "MJOBS_CREDENTIAL_ENCRYPTION_KEY",
-        "MJOBS_PORT", "MJOBS_IMAGE", "MJOBS_BROWSER_PROFILE",
+        "MJOBS_PORT", "MJOBS_IMAGE",
         "MJOBS_WORKER_LOG_LEVEL", "MJOBS_SUBMISSION_HOURLY_LIMIT",
         "MJOBS_SUBMISSION_DAILY_LIMIT", "MJOBS_SUBMISSION_COMPANY_LIMIT",
         "MJOBS_SOURCE_COLLECTION_CONCURRENCY", "MJOBS_COMPANY_DISCOVERY_CONCURRENCY",
@@ -555,7 +556,6 @@ def fixture_environment(project, token, expiry, port, recovery_mode=False, *,
         env["MJOBS_RECOVERY_IMAGE_ID"] = image_id
         env["MJOBS_RECOVERY_DOCKER_CONTEXT"] = docker_context
         env["MJOBS_RECOVERY_DOCKER_ENDPOINT"] = docker_endpoint
-        env.setdefault("MJOBS_BROWSER_PROFILE", "")
         env.setdefault("MJOBS_WORKER_LOG_LEVEL", "WARNING")
         env.setdefault("MJOBS_SUBMISSION_HOURLY_LIMIT", "3")
         env.setdefault("MJOBS_SUBMISSION_DAILY_LIMIT", "10")

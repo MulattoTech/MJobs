@@ -7,6 +7,7 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from services.applications.browser_profiles import configured_browser_profile
 from tools import dev_fixture_guard as guard
 
 
@@ -30,6 +31,15 @@ class FixtureGuardTests(TestCase):
         path = guard.recovery_environment_file(
             self.PROJECT, self.TOKEN, expiry, environment=env)
         return env, path
+
+    def test_recovery_browser_profile_validates_in_controlled_process_and_dotenv(self):
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(guard, "RECOVERY_ENV_ROOT", Path(temp)), \
+                patch.dict(os.environ, {"MJOBS_BROWSER_PROFILE": "personal-profile"}):
+            env, dotenv = self.write_recovery_dotenv(Path(temp))
+            for controlled_env in (env, guard.read_recovery_dotenv(dotenv)):
+                with patch.dict(os.environ, controlled_env, clear=True):
+                    self.assertEqual(configured_browser_profile(), "default")
 
     def labelled(self, **overrides):
         row = {
