@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+from unittest.mock import Mock
 
 import pytest
 
@@ -19,6 +20,67 @@ from cli.ui_e2e_jobs_journey import (
 
 RUN_ID = "01a1b028-0834-7130-b5ac-b7625e151716"
 SOURCE_COMMIT = "7caf4e380bc8b5dc75024895ab400e770015a3ec"
+
+
+@pytest.mark.parametrize(("detail", "saved"), [
+    ({"id": "job-b", "tracking": {"disposition": "SAVED"}}, True),
+    ({"id": "job-a", "tracking": {"disposition": "SAVED"}}, False),
+    ({"id": "job-b", "tracking": {"disposition": "ACTIVE"}}, False),
+])
+def test_saved_job_readback_reloads_and_reselects_before_checking_scoped_state(monkeypatch, detail, saved):
+    from unittest.mock import call
+
+    flow = Mock()
+    flow.request.return_value = detail
+    monkeypatch.setattr(ui_e2e, "expect", flow.expect)
+    assert ui_e2e.reload_saved_job_readback(
+        flow.page, flow.reselect, flow.request, "profile-b", "job-b",
+    ) is saved
+    assert flow.mock_calls == [
+        call.page.reload(wait_until="domcontentloaded"),
+        call.page.get_by_label("Active profile", exact=True),
+        call.expect(flow.page.get_by_label.return_value),
+        call.expect().to_have_value("profile-b"),
+        call.reselect("job-b"),
+        call.page.locator("section.job-detail"),
+        call.page.locator().get_by_text("Current status: SAVED", exact=True),
+        call.expect(flow.page.locator.return_value.get_by_text.return_value),
+        call.expect().to_be_visible(),
+        call.request("/jobs/job-b?profile_id=profile-b"),
+    ]
+
+
+@pytest.mark.parametrize("invalid", [
+    "old-revision", "other-profile", "other-job", "other-application", "wrong-profile-version",
+    "duplicate-current", "wrong-application-readback", "missing-id",
+])
+def test_prepared_resume_revision_rejects_unbound_or_ambiguous_readback(invalid):
+    application = {
+        "id": "application-b", "profile_id": "profile-b", "job_id": "job-b",
+        "profile_version": "reviewed", "document_version": 2,
+    }
+    resume = {
+        "id": "resume-b", "application_id": "application-b", "profile_id": "profile-b",
+        "job_id": "job-b", "profile_version": "reviewed", "kind": "resume", "version": 2,
+    }
+    scope = {"application_id": "application-b", "profile_id": "profile-b", "job_id": "job-b"}
+    assert ui_e2e.prepared_resume_revision(
+        application, [{**resume, "version": 1}, {**resume, "kind": "cover-letter"}, resume], **scope,
+    ) == resume
+    if invalid == "wrong-application-readback":
+        application["id"] = "application-a"
+    changes = {
+        "old-revision": {"version": 1},
+        "other-profile": {"profile_id": "profile-a"},
+        "other-job": {"job_id": "job-a"},
+        "other-application": {"application_id": "application-a"},
+        "wrong-profile-version": {"profile_version": "stale"},
+        "missing-id": {"id": None},
+    }
+    documents = [{**resume, **changes.get(invalid, {})}]
+    if invalid == "duplicate-current":
+        documents.append({**resume, "id": "another-resume"})
+    assert ui_e2e.prepared_resume_revision(application, documents, **scope) is None
 
 
 def test_observation_has_exact_runner_contract_shape_and_matching_run_id():
