@@ -280,3 +280,48 @@ def test_public_verify_executes_actual_parser_and_checks_nonzero_offline(tmp_pat
     with pytest.raises(RuntimeError, match='exit code 2') as error:
         backup.run_public_cli('verify', archive, environment=os.environ.copy())
     assert 'database.dump' not in str(error.value)  # Child diagnostics stay captured.
+
+def test_configuration_digest_preserves_default_dotenv(tmp_path):
+    from cli.local_persistence_acceptance import configuration_env_sha256
+    data = b"LOCAL_SYNTHETIC_SETTING=preserved\n"
+    (tmp_path / ".env").write_bytes(data)
+    assert configuration_env_sha256(tmp_path, {}) == hashlib.sha256(data).hexdigest()
+
+
+@pytest.mark.parametrize("mutation", ["none", "foreign", "partial", "expired",
+                                     "changed", "socket", "compose"])
+def test_configuration_digest_binds_guard_recovery_dotenv(tmp_path, monkeypatch, mutation):
+    import time
+    from cli.local_persistence_acceptance import configuration_env_sha256
+    from tools import dev_fixture_guard as guard
+
+    monkeypatch.setattr(guard, "RECOVERY_ENV_ROOT", tmp_path / "guard")
+    project = "mjobs-fixture-012345abcdef"
+    token = "a" * 32
+    expiry = int(time.time()) + 600
+    env = guard.fixture_environment(project, token, expiry, 18700, recovery_mode=True,
+        image_ref="mjobs-req292:sha-32b7bb67", image_id="sha256:" + "a" * 64,
+        docker_context="desktop-linux", docker_endpoint="npipe:////./pipe/dockerdesktoplinuxengine")
+    path = guard.recovery_environment_file(project, token, expiry, environment=env)
+    (tmp_path / ".env").write_text("WRONG=local checkout override\n", encoding="utf-8")
+    if mutation == "none":
+        expected = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert configuration_env_sha256(tmp_path, env) == expected
+        assert configuration_env_sha256(tmp_path, env) == expected
+        return
+    if mutation == "foreign":
+        env["COMPOSE_ENV_FILES"] = str(tmp_path / ".env")
+    elif mutation == "partial":
+        env = {"COMPOSE_ENV_FILES": str(path)}
+    elif mutation == "expired":
+        monkeypatch.setattr(time, "time", lambda: expiry + 1)
+    elif mutation == "changed":
+        with path.open("a", encoding="utf-8") as out:
+            out.write("WRONG=synthetic marker\n")
+    elif mutation == "socket":
+        env["DOCKER_HOST"] = "npipe:////./pipe/other"
+    else:
+        env["COMPOSE_FILE"] = str(tmp_path / "compose.yml")
+    with pytest.raises(ValueError, match="admitted recovery dotenv") as error:
+        configuration_env_sha256(tmp_path, env)
+    assert "synthetic marker" not in str(error.value) and token not in str(error.value)
