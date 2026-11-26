@@ -911,6 +911,15 @@ def expect_visible_with_onboarding_diagnostics(locator, blocked_requests, **kwar
         raise
 
 
+def expect_audit_event_row(items, event, summary):
+    row = items.nth(event["index"])
+    expect(row).to_be_visible()
+    expect(row).to_have_attribute("data-audit-event-id", event["id"])
+    expect(row.locator("strong")).to_have_text(summary)
+    for label in ("Data Engineer", "Example Systems Inc.", event["type"]):
+        expect(row).to_contain_text(label)
+
+
 def answer_bank_confirmation_locator(answer_group, question_number):
     """Locate the confirmation div by its aria-label (it is not a region role)."""
     return answer_group.locator(
@@ -3144,11 +3153,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 if audit_trace is not None:
                     audit_items = audit_ui.get_by_role("list", name="Audit history", exact=True).get_by_role("listitem")
                     for event in audit_trace["events"]:
-                        index = event["index"]
-                        visible = audit_items.nth(index)
-                        expect(visible.locator("strong")).to_have_text(audit_history["events"][index]["summary"])
-                        for label in ("Data Engineer", "Example Systems Inc.", event["type"]):
-                            expect(visible).to_contain_text(label)
+                        expect_audit_event_row(audit_items, event, audit_history["events"][event["index"]]["summary"])
                     journal.binding["application_audit_trace"] = audit_trace
                 ui_audit_text = audit_ui.inner_text()
                 record_application_step(
