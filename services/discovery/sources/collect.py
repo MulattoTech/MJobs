@@ -25,11 +25,10 @@ from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
 from services.discovery.sources.contract import (
-    CollectionStrategy, SourceAdapter, SourceCapabilities, SourceCapability,
+    CollectionStrategy, QuarantinedSearchBatch, SourceAdapter, SourceCapabilities, SourceCapability,
 )
 from services.discovery.sources.greenhouse import Greenhouse, SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
-from services.discovery.sources.wwr import WWRSearchBatch
 from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
 
 
@@ -580,7 +579,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         observed_endpoint = batch.endpoint
         available = True
         collection_result = None
-        quarantined = batch.quarantined_id_count if isinstance(batch, WWRSearchBatch) else 0
+        quarantined = batch.quarantined_id_count if isinstance(batch, QuarantinedSearchBatch) else 0
         enumerated = len(batch.items) + quarantined
         complete_inventory = batch.complete_inventory and not quarantined
         normalized = []

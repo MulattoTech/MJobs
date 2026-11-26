@@ -343,7 +343,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     ui_baseline = {
         "id": "fixture", "name": "Alex Fixture", "email": "alex@example.test",
         "profile_id": "profile-1", "application_id": "application-1",
-        "operation_id": "operation-1", "request_id": "request-1",
+        "operation_id": "9" * 64, "request_id": "request-1",
         "source": source, "acceptance_run_id": run_id, "timestamp": timestamp,
         "result": "PASS", "mode": "ONBOARDING_FIXTURE",
         "target_origin": "http://127.0.0.1:18777", "external_submission_enabled": False,
@@ -361,6 +361,15 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         "discovery_operation_id": "discovery-operation-1",
         "discovery_request_id": "discovery-request-1",
         "discovery_search_proofs": [{
+            "search_profile_id": "it-search-1",
+            "operation_id": "it-discovery-operation-1",
+            "request_id": "it-discovery-request-1",
+            "profile_id": "profile-1",
+            "profile_version": "f" * 64,
+            "operation_profile_version": "f" * 64,
+            "filtered_titles": [],
+            "result": "PASS",
+        }, {
             "search_profile_id": "data-search-1",
             "operation_id": "discovery-operation-1",
             "request_id": "discovery-request-1",
@@ -371,6 +380,48 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
             "result": "PASS",
         }],
     }
+
+    # These are synthetic producer-shaped receipts for verifier tests only.
+    # Preserve the distinct earlier IT search and selected application stages.
+    if 8 in step_numbers:
+        readback = {"profile_id": "profile-1", "search_profile_id": "it-search-1",
+                    "include_titles": [journey.ui_e2e.REMOTE_IT_SEARCH_TITLE], "remote": "REQUIRED"}
+        ui_baseline["saved_it_search_reload"] = {
+            "before_active_profile_id": "profile-1", "after_active_profile_id": "profile-1",
+            "visible_search_profile_id": "it-search-1",
+            "before_reload": deepcopy(readback), "after_reload": deepcopy(readback),
+        }
+    application_scope = {"profile_id": "profile-1", "application_id": "application-1",
+                         "job_id": "mock-job-1"}
+    if 34 in step_numbers:
+        ui_baseline["generated_resume_comparison"] = {
+            **application_scope,
+            "documents": {
+                "base": {"id": "base-1", "version": 1, "profile_version": "f" * 64,
+                         "sha256": "a" * 64},
+                "tailored": {"id": "tailored-1", "version": 2, "profile_version": "f" * 64,
+                             "sha256": "b" * 64},
+            },
+            "omitted": {"fact_id": "sql-fact", "kind": "skill",
+                        "text_sha256": hashlib.sha256(b"SQL").hexdigest()},
+        }
+    if 36 in step_numbers:
+        ui_baseline["prepared_document_pair"] = {
+            **application_scope, "profile_version": "f" * 64, "document_version": 2,
+            "documents": {"resume": "resume-1", "cover-letter": "letter-1"},
+        }
+    if 53 in step_numbers:
+        from cli.acceptance_audit import application_audit_trace
+
+        events = [
+            {"id": str(index + 1) * 32, "type": kind, "application_id": "application-1",
+             "timestamp": f"2025-12-31T23:59:{59-index:02d}+00:00"}
+            for index, kind in enumerate(("APPLICATION_STATUS_REPORTED", "APPLICATION_CONFIRMED",
+                                         "APPLICATION_SUBMITTED"))
+        ]
+        ui_baseline["application_audit_trace"] = application_audit_trace(
+            {"profile_id": "profile-1", "events": events}, run_id=run_id,
+            source_commit=source["commit"], profile_id="profile-1", application_id="application-1")
 
     def inventory(job_ids, schema_version=recovery_inventory_schema):
         jobs = [{"job_id": job_id, "canonical_sha256": hashlib.sha256(job_id.encode()).hexdigest(),
@@ -404,7 +455,8 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     monkeypatch.setattr(journey, "_identity", synthetic_identity)
     identity = journey._identity(ui_baseline)
     stage_lineage = [
-        {"step": number, "operation_id": "operation-1", "request_id": "request-1",
+        {"step": number, "operation_id": "8" * 64 if number < 44 else ui_baseline["operation_id"],
+         "request_id": "prepare-request-1" if number < 44 else ui_baseline["request_id"],
          "operation_kind": "PREPARE" if number < 44 else "APPLY_MOCK",
          "application_id": "application-1", "profile_id": "profile-1", "job_id": "mock-job-1"}
         for number in step_numbers if 36 <= number <= 53
@@ -417,6 +469,13 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         if number in {8, 10}:
             return {"profile_id": "profile-1", "operation_id": "discovery-operation-1",
                     "request_id": "discovery-request-1"}
+        if number in {34, 36, 53}:
+            scoped = dict(application_scope)
+            if number == 34:
+                scoped["document_ids"] = ["base-1", "tailored-1"]
+            elif number == 36:
+                scoped["document_ids"] = ["resume-1", "letter-1"]
+            return scoped
         identifiers = (journey.IDENTIFIERS if not 17 <= number <= 22
                        else ("profile_id",))
         value = {key: ui_baseline[key] for key in identifiers}
@@ -609,7 +668,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     monitor_payload = {
         "timestamp": timestamp, "source": source, "acceptance_run_id": run_id,
         "profile_id": "profile-1", "application_id": "application-1",
-        "operation_id": "operation-1", "request_id": "request-1",
+        "operation_id": ui_baseline["operation_id"], "request_id": ui_baseline["request_id"],
         "result": "PARTIAL", "external_submission_enabled": False,
         "monitoring_binding": monitoring_binding, "refresh_operation": refresh_operation,
         "refresh_receipt": refresh_receipt, "job_inventory": monitoring_source_baseline["job_inventory"],

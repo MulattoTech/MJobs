@@ -66,6 +66,13 @@ class SearchBatch:
     complete_inventory: bool = False
 
 
+@dataclass(frozen=True)
+class QuarantinedSearchBatch(SearchBatch):
+    """Search results with distinct provider identities excluded for conflicts."""
+
+    quarantined_id_count: int = 0
+
+
 class SourceAdapter(Protocol):
     def search(self) -> SearchBatch: ...
     def fetch(self, job_id: int) -> dict: ...

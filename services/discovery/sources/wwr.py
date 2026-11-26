@@ -24,7 +24,7 @@ from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
-    CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
+    CollectionStrategy, QuarantinedSearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
 from services.discovery.search_semantics import (
@@ -258,10 +258,8 @@ def _posting_id_from_guid(guid: str) -> str:
 
 
 @dataclass(frozen=True)
-class WWRSearchBatch(SearchBatch):
+class WWRSearchBatch(QuarantinedSearchBatch):
     """WWR listings and the number of distinct IDs excluded for conflicts."""
-
-    quarantined_id_count: int = 0
 
 
 class WeWorkRemotely:
