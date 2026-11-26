@@ -1229,6 +1229,94 @@ class PublicSourceObservationTests(unittest.TestCase):
                 self.assertEqual(result['result'], 'FAIL')
                 self.assertEqual(result['error_code'], 'BASELINE_SELECTION_CHANGED')
 
+    def test_final_selection_drift_does_not_replace_first_error_or_cleanup_error(self):
+        self.api.state = 'BLOCKED'
+        self.api.after_collection = lambda: self.api.fixture.update(
+            match={'secret_payload': 'PRIVATE_SELECTION_SENTINEL'})
+        def containment(stage, _context):
+            return dict(PROOF, token='other-owner' if stage == 'cleanup' else PROOF['token'])
+
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['error_code'], 'PUBLIC_COLLECTION_BLOCKED')
+        self.assertEqual(result['failure_phase'], 'collection')
+        self.assertEqual(result['cleanup'], {'status': 'PRESERVED_OWNERSHIP_CHANGED'})
+        self.assertEqual(result['cleanup_error_code'], 'SOURCE_OWNERSHIP_CHANGED')
+        self.assertEqual(result['final_selection_error_code'], 'BASELINE_SELECTION_CHANGED')
+        self.assertEqual(result['selection_failures'], [{
+            'phase': 'final', 'witness': 'selection', 'check': 'digest',
+            'changed': {'job': ['match']}, 'error_code': 'BASELINE_SELECTION_CHANGED',
+        }])
+        self.assertTrue(self.api.source['enabled'])
+        self.assertNotIn('PRIVATE_SELECTION_SENTINEL', self.path.read_text(encoding='utf-8'))
+
+    def test_selection_read_failure_does_not_claim_digest_drift(self):
+        read_failed = False
+        original = self.api.request
+
+        def request(method, path, **kwargs):
+            nonlocal read_failed
+            if (method, path) == ('GET', '/operations/public-operation'):
+                read_failed = True
+            if read_failed and (method, path) == ('GET', '/jobs/fixture-job'):
+                raise OSError('PRIVATE_SELECTION_SENTINEL')
+            return original(method, path, **kwargs)
+
+        self.api.request = request
+        result = self.observe()
+        self.assertEqual(result['error_code'], 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID')
+        self.assertEqual(result['failure_phase'], 'after_collection')
+        self.assertEqual(result['cleanup'], {'status': 'RESTORED_DISABLED'})
+        self.assertEqual(result['final_selection_error_code'], 'SELECTION_READ_FAILED')
+        self.assertEqual(result['selection_failures'], [
+            {'phase': phase, 'witness': 'job', 'check': 'read', 'error_code': 'SELECTION_READ_FAILED'}
+            for phase in ('after_collection', 'final')])
+        self.assertNotIn('PRIVATE_SELECTION_SENTINEL', self.path.read_text(encoding='utf-8'))
+
+    def test_final_read_failure_has_its_own_code_when_collection_succeeded(self):
+        original = self.api.request
+
+        def request(method, path, **kwargs):
+            if ((method, path) == ('GET', '/jobs/fixture-job')
+                    and self.api.source is not None and not self.api.source['enabled']):
+                raise OSError('PRIVATE_SELECTION_SENTINEL')
+            return original(method, path, **kwargs)
+
+        self.api.request = request
+        result = self.observe()
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['failure_phase'], 'final')
+        self.assertEqual(result['error_code'], 'SELECTION_READ_FAILED')
+        self.assertEqual(result['cleanup'], {'status': 'RESTORED_DISABLED'})
+        self.assertEqual(result['final_selection_error_code'], 'SELECTION_READ_FAILED')
+        self.assertNotIn('PRIVATE_SELECTION_SENTINEL', self.path.read_text(encoding='utf-8'))
+
+    def test_scope_expiry_after_collection_preserves_policy_and_first_failure(self):
+        expired = False
+
+        def containment(stage, _context):
+            return dict(PROOF, lease_expires_at=STAMP if expired else PROOF['lease_expires_at'])
+
+        self.api.after_collection = lambda: self.api.fixture.update(
+            match={'private_digest_input': 'not in the evidence'})
+        original = self.api.request
+
+        def request(method, path, **kwargs):
+            nonlocal expired
+            value = original(method, path, **kwargs)
+            if (method, path) == ('GET', '/operations/public-operation'):
+                expired = True
+            return value
+
+        self.api.request = request
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_INVALID')
+        self.assertEqual(result['failure_phase'], 'collection')
+        self.assertEqual(result['cleanup'], {'status': 'PRESERVED_OWNERSHIP_CHANGED'})
+        self.assertEqual(result['cleanup_error_code'], 'SOURCE_CONTAINMENT_LOST')
+        self.assertEqual(result['final_selection_error_code'], 'BASELINE_SELECTION_CHANGED')
+        self.assertTrue(self.api.source['enabled'])
+        self.assertEqual(sum(method == 'PUT' for method, _, _ in self.api.calls), 1)
+
     def test_snapshot_corruption_and_fictional_jobs_cannot_prove_real_collection(self):
         for field in ('snapshot', 'fictional', 'stale-fetch'):
             with self.subTest(field=field):
