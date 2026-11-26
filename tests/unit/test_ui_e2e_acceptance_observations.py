@@ -11,6 +11,8 @@ from cli.ui_e2e_jobs_journey import (
     build_observation,
     canonical_posting_count_matches,
     match_sort_matches_readback,
+    open_job_detail_for_selected_card,
+    visible_posting_count_matches,
 )
 
 
@@ -217,6 +219,48 @@ def test_duplicate_count_requires_distinct_source_posting_identities():
     assert not canonical_posting_count_matches(2, postings)
     assert not canonical_posting_count_matches(3, postings + [postings[0]])
     assert not canonical_posting_count_matches(3, [*postings[:-1], {"source": "Employer"}])
+
+
+def test_visible_duplicate_count_requires_an_exact_numeric_token():
+    assert visible_posting_count_matches("2 postings", 2)
+    assert visible_posting_count_matches("Found 12 postings", 12)
+    assert not visible_posting_count_matches("12 postings", 2)
+    assert not visible_posting_count_matches("2 postings", 12)
+
+
+def test_remote_card_selection_creates_detail_region_before_opening_and_reading_it():
+    events = []
+
+    class DetailRegion:
+        def get_by_role(self, role, **kwargs):
+            events.append(("get_by_role", role, kwargs))
+            return "remote-heading"
+
+    class Page:
+        def locator(self, selector):
+            events.append(("locator", selector))
+            return detail_region
+
+    class Card:
+        def click(self):
+            events.append(("click",))
+
+    class VisibilityAssertion:
+        def to_be_visible(self):
+            events.append(("visible",))
+
+    def expect(locator):
+        events.append(("expect", locator))
+        return VisibilityAssertion()
+
+    detail_region = DetailRegion()
+    result = open_job_detail_for_selected_card(
+        Page(), Card(), "Remote Systems Administrator", expect)
+
+    assert result is detail_region
+    assert [event[0] for event in events] == [
+        "locator", "click", "get_by_role", "expect", "visible",
+    ]
 
 
 def test_remote_match_explanation_shows_recorded_job_regions_not_profile_location():
