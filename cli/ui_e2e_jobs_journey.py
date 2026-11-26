@@ -159,6 +159,22 @@ def canonical_posting_count_matches(list_count, postings):
     return len(set(identities)) == list_count and len(identities) == len(set(identities))
 
 
+def visible_posting_count_matches(card_text, posting_count):
+    """Require the exact rendered posting count as a complete number token."""
+    if (not isinstance(card_text, str) or not isinstance(posting_count, int)
+            or isinstance(posting_count, bool) or posting_count < 1):
+        return False
+    return re.search(rf"(?<!\d){posting_count} postings?(?!\w)", card_text) is not None
+
+
+def open_job_detail_for_selected_card(page, card, title, expect):
+    """Open a selected job card, then return its detail region after heading readback."""
+    detail_region = page.locator("section.job-detail")
+    card.click()
+    expect(detail_region.get_by_role("heading", name=title, exact=True)).to_be_visible()
+    return detail_region
+
+
 def build_observation(*, step, status, observable_result, evidence_kind,
                       source_commit, run_id, continuity=None, checks=None):
     """Validate and project one step observation onto the runner-owned schema."""
@@ -477,9 +493,8 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
         restrictions = (remote_detail.get("attributes") or {}).get("remote_regions", [])
         remote_card = page.locator(".job-card").filter(has_text=remote_job.get("title", ""))
         if remote_card.count() == 1:
-            remote_card.click()
-            expect(detail_region.get_by_role(
-                "heading", name=remote_job.get("title"), exact=True)).to_be_visible()
+            remote_detail_region = open_job_detail_for_selected_card(
+                page, remote_card, remote_job.get("title"), expect)
             factor = next((row for row in (remote_detail.get("match") or {})
                            .get("components", {}).get("fit_factors", [])
                            if isinstance(row, dict) and row.get("id") == "remote_location"), None)
@@ -488,9 +503,9 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                                  and bool(restrictions) and isinstance(factor, dict)
                                  and bool(set(value.casefold() for value in restrictions
                                               if isinstance(value, str)) & allowed_regions)
-                                 and detail_region.get_by_text(
+                                 and remote_detail_region.get_by_text(
                                      "Remote work region", exact=False).count() == 1
-                                 and detail_region.get_by_text(
+                                 and remote_detail_region.get_by_text(
                                      factor.get("explanation", ""), exact=False).count() > 0)
     record(16, "PASS" if remote_filter_matches and remote_type_visible
            and remote_restrictions_available and remote_ui_visible else "PARTIAL",
@@ -520,7 +535,7 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
     visible_count = python_card.count()
     card_text = python_card.inner_text()
     count_visible = (canonical_posting_count_matches(list_posting_count, postings)
-                     and f"{list_posting_count} posting" in card_text
+                     and visible_posting_count_matches(card_text, list_posting_count)
                      and detail_posting_count == list_posting_count)
     posting_count = list_posting_count if count_visible else 0
     record(17, "PASS" if count_visible and posting_count > 1 else "PARTIAL",
