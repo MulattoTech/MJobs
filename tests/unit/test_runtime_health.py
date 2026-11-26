@@ -40,13 +40,13 @@ class RuntimeHealthTests(unittest.TestCase):
         redis = FakeRedis()
         publish_scheduler_heartbeat(redis, at=now - timedelta(seconds=600), interval_seconds=300)
 
-        with patch("services.runtime_health.Worker.all", return_value=[]):
+        with patch("rq.Worker.all", return_value=[]):
             still_fresh = read_runtime_health(redis, now=now)
         redis.values[SCHEDULER_HEARTBEAT_KEY] = json.dumps({
             "timestamp": (now - timedelta(seconds=631)).isoformat(),
             "interval_seconds": 300,
         })
-        with patch("services.runtime_health.Worker.all", return_value=[]):
+        with patch("rq.Worker.all", return_value=[]):
             stale = read_runtime_health(redis, now=now)
 
         self.assertTrue(still_fresh["scheduler"])
@@ -67,7 +67,7 @@ class RuntimeHealthTests(unittest.TestCase):
             worker.last_heartbeat = now - timedelta(seconds=405)
             workers.append(worker)
 
-        with patch("services.runtime_health.Worker.all", return_value=workers):
+        with patch("rq.Worker.all", return_value=workers):
             result = read_runtime_health(redis, now=now)
 
         self.assertEqual(result, {
@@ -90,7 +90,7 @@ class RuntimeHealthTests(unittest.TestCase):
         worker.last_heartbeat = now
         worker.worker_ttl = 420
 
-        with patch("services.runtime_health.Worker.all", return_value=[worker]):
+        with patch("rq.Worker.all", return_value=[worker]):
             result = read_runtime_health(redis, now=now)
 
         self.assertFalse(result["scheduler"])
@@ -107,7 +107,7 @@ class RuntimeHealthTests(unittest.TestCase):
             if value != "not-a-timestamp":
                 timestamp = json.dumps({"timestamp": value, "interval_seconds": 30})
             redis = FakeRedis({SCHEDULER_HEARTBEAT_KEY: timestamp})
-            with patch("services.runtime_health.Worker.all", return_value=workers):
+            with patch("rq.Worker.all", return_value=workers):
                 result = read_runtime_health(redis, now=now)
             self.assertFalse(result["scheduler"], value)
 
@@ -128,8 +128,8 @@ class RuntimeHealthTests(unittest.TestCase):
             worker.worker_ttl = 420
             workers.append(worker)
 
-        with patch("services.runtime_health.Worker.all", return_value=workers):
-            result = read_runtime_health(redis, now=now)
+            with patch("rq.Worker.all", return_value=workers):
+                result = read_runtime_health(redis, now=now)
 
         self.assertFalse(result["workers"]["mjobs-application"])
         self.assertFalse(result["workers"]["mjobs-company-discovery"])
@@ -155,7 +155,7 @@ class RuntimeHealthTests(unittest.TestCase):
         worker_with_naive_heartbeat.last_heartbeat = datetime(2026, 10, 11, 12, 0)
         worker_with_naive_heartbeat.worker_ttl = 420
 
-        with patch("services.runtime_health.Worker.all", return_value=[
+        with patch("rq.Worker.all", return_value=[
             worker_with_malformed_heartbeat, worker_without_heartbeat,
             worker_with_naive_heartbeat,
         ]):
