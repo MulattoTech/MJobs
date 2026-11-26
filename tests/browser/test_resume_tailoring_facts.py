@@ -44,7 +44,6 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                         select(func.count()).select_from(table),
                     ).scalar_one() for table in m.metadata.sorted_tables}
 
-            before_review = persisted_counts()
             before_documents = application_documents(store, application_id)
 
             sock = bound_browser_socket()
@@ -84,13 +83,31 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     page.reload()
                     expect(page.locator('.job-grid .job-list .job-card').first).to_be_visible()
-                    page.locator('.job-grid .job-list .job-card').first.click()
+                    view_url = f'{origin}/profiles/fixture/jobs/{job["id"]}/view'
+                    with page.expect_response(lambda response:
+                            response.url == view_url and response.request.method == 'POST') as viewed:
+                        page.locator('.job-grid .job-list .job-card').first.click()
+                    self.assertEqual(viewed.value.status, 201)
+                    self.assertEqual(viewed.value.json()['profile_id'], 'fixture')
+                    self.assertEqual(viewed.value.json()['job_id'], job['id'])
+                    with store.engine.connect() as connection:
+                        visits = connection.execute(
+                            select(m.profile_job_views.c.profile_id,
+                                   m.profile_job_views.c.job_id).where(
+                                m.profile_job_views.c.profile_id == 'fixture',
+                            )
+                        ).mappings().all()
+                    self.assertEqual(
+                        [(row['profile_id'], row['job_id']) for row in visits],
+                        [('fixture', job['id'])],
+                    )
                     page.get_by_label('Order approved skills for this job', exact=True).check()
                     page.set_default_timeout(5000)
                     expect(page.get_by_label('Choose resume facts', exact=True)).to_be_visible()
                     page.get_by_label('Choose resume facts', exact=True).check()
                     wording = 'Supported network routing for 10 sites since 2020.'
                     page.get_by_label('Rewrite this experience: ' + experience['text'], exact=True).fill(wording)
+                    before_review = persisted_counts()
                     review = page.get_by_role('region', name='Resume rewrite review preview', exact=True)
                     with page.expect_response(lambda response:
                             response.url.endswith('/resume-rewrite-review-preview')
