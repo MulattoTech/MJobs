@@ -537,24 +537,36 @@ def test_public_stage_requires_explicit_provider_and_containment_callback(tmp_pa
     ui.assert_not_called()
 
 
-@pytest.mark.parametrize("browser_enabled", [False, True])
-def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path, browser_enabled):
+@pytest.mark.parametrize("browser_mode", [None, "legacy", "job-list"])
+def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path, browser_mode):
     events = []
+    state = baseline()
+    state["acceptance_observations"].extend(
+        {**observation(step), "checks": [{"name": name, "passed": True}
+            for name in sorted(journey.REQUIRED_CHECKS[step])]}
+        for step in sorted(journey.PUBLIC_JOB_LIST_STEPS))
+    public = public_artifact()
+    browser = public_browser_artifact(state, public)
+    if browser_mode == "job-list":
+        public, browser = public_job_list_artifacts(state)
+
+    def ui_run(url, path, **kwargs):
+        emit(path, {**state, "timestamp": journey.utc_now()})
+
     def public_run(url, original, path, **kwargs):
         assert kwargs["provider"] == "wwr" and kwargs["acceptance_run_id"] == RUN_ID
         assert original["application_id"] == IDENTITY["application_id"]
         events.append("public")
-        emit(path, public_artifact())
+        emit(path, {**public, "timestamp": journey.utc_now()})
 
     def recapture(original, public, target):
-        assert public["observed_real_job_ids"] == ["real-job-1"]
-        return {**original, "job_inventory": inventory(("mock-job-1", "real-job-1")),
+        return {**original, "job_inventory": inventory(("mock-job-1", *public["observed_real_job_ids"])),
                 "selected_application_job_id": "mock-job-1",
                 "selected_application_route_id": "mock-route-1"}
 
     def browser_run(url, original, public, **kwargs):
         events.append("browser")
-        return public_browser_artifact(original, public)
+        return _seal_browser({**browser, "timestamp_utc": journey.utc_now()})
 
     def recovery(path, output, *args):
         events.append("recovery")
@@ -567,15 +579,15 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
     with patch.object(journey, "current_source", return_value=SOURCE), \
             patch.object(journey, "preflight", return_value=RUNTIME), \
             patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
-            patch.object(journey, "_public_browser_module", return_value=SimpleNamespace(run=browser_run) if browser_enabled else None), \
+            patch.object(journey, "_public_browser_module", return_value=SimpleNamespace(run=browser_run) if browser_mode else None), \
             patch.object(journey, "recapture_public_baseline", side_effect=recapture), \
-            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.ui_e2e, "run", side_effect=ui_run), \
             patch.object(journey.recovery, "run", side_effect=recovery):
         report = invoke(tmp_path, public_source_provider="wwr",
                         public_source_preflight=lambda stage, context: events.append(stage))
-    assert events == (["public", "browser", "release", "recovery"] if browser_enabled else ["public", "release", "recovery"])
-    assert report["steps"][10]["status"] == ("PASS" if browser_enabled else "PARTIAL")
-    if browser_enabled:
+    assert events == (["public", "browser", "release", "recovery"] if browser_mode else ["public", "release", "recovery"])
+    assert report["steps"][10]["status"] == ("PASS" if browser_mode else "PARTIAL")
+    if browser_mode:
         assert report["steps"][15]["status"] == "PASS"
         assert report["steps"][10]["verification"]["evidence_artifact"] == "public-observations.json"
         joined = json.loads((tmp_path / "public-observations.json").read_text())
@@ -585,12 +597,25 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
         assert report["steps"][10]["credit_withheld"] == "PUBLIC_BROWSER_NOT_OBSERVED"
     assert report["steps"][10]["observation"]["evidence_kind"] == "PUBLIC_READ_ONLY"
     assert report["selected_application_job_id"] == "mock-job-1"
-    assert report["observed_real_job_ids"] == ["real-job-1"]
+    assert report["observed_real_job_ids"] == public["observed_real_job_ids"]
     assert report["result"] == "PARTIAL"
     restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr").payload()
     assert restored["steps"][10]["verification"]["resume_imported"] is True
     assert restored["derived_baseline"] == report["derived_baseline"]
-    if browser_enabled:
+    for step in sorted(journey.PUBLIC_JOB_LIST_STEPS):
+        saved = report["steps"][step - 1]
+        if browser_mode == "job-list":
+            assert saved["status"] == "PASS"
+            assert saved["verification"]["evidence_artifact"] == "public-observations.json"
+            assert saved["verification"]["public_job_list_lineage"]["job_ids"] == public["observed_real_job_ids"]
+        else:
+            assert saved["status"] == "PARTIAL"
+            assert saved["producer_status"] == "PASS"
+            assert saved["credit_withheld"] == "PUBLIC_JOB_LIST_NOT_OBSERVED"
+        assert restored["steps"][step - 1]["status"] == saved["status"]
+        assert restored["steps"][step - 1]["verification"]["resume_imported"] is True
+    assert report["steps"][24]["status"] == "NOT_RUN"
+    if browser_mode:
         browser_path = tmp_path / "public-browser.json"
         encoded = browser_path.read_bytes()
         browser_path.write_bytes(encoded + b" ")
@@ -1212,6 +1237,138 @@ def public_browser_artifact(state, public):
                                  {"step": 16, "status": "PASS", "checks": {"source_remote_restriction_visible": True}}])
     value["sha256"] = journey.digest(value)
     return value
+
+
+def _seal_browser(value):
+    value.pop("sha256", None)
+    value["sha256"] = hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+    return value
+
+
+def public_job_list_artifacts(state, provider="wwr", scope="LIVE_PUBLIC_READ_ONLY"):
+    public = public_artifact(provider)
+    source = public["source_id"]
+    first, second = "real-job-1", "real-job-2"
+    endpoint = {"wwr": "https://weworkremotely.com/remote-jobs.rss",
+                "remotive": "https://remotive.com/api/remote-jobs"}[provider]
+    title = "Técnico Platform"
+    selected = [(second, "Support Engineer", 2), (first, title, 1)]
+    public.update(endpoint=endpoint, observed_real_job_ids=[first, second], execution_scope=scope,
+                  profile_version="c" * 64)
+    public["observations"] = [{"job_id": job_id, "source_id": source, "source_endpoint": endpoint,
+        "fictional": False, "native_posting_id": native if provider == "remotive" else f"post-{native}",
+        "postings": [{"posting_id": f"posting-{native}"}]} for job_id, _, native in selected]
+    browser = public_browser_artifact(state, public)
+    browser["endpoint"] = endpoint
+    browser["observations"] = []
+    for (_, name, _), proof in zip(selected, public["observations"]):
+        native = proof["native_posting_id"]
+        detail = {"id": proof["job_id"], "title": name, "company": "Example",
+                  "native_posting_id": native, "source_posting_ids": [proof["postings"][0]["posting_id"]]}
+        browser["observations"].append({"job_id": proof["job_id"], "source_id": source, "source_endpoint": endpoint,
+            "native_posting_id": str(native), "title": name, "company": "Example",
+            "selected_job_api_readback_sha256": _seal_browser(detail)["sha256"],
+            "checks": {"active_profile_matches": True, "canonical_job_id_bound_to_selected_detail_readback": True,
+                       "native_posting_id_bound_to_source_snapshot": True}})
+    status = "PASS" if scope == "LIVE_PUBLIC_READ_ONLY" else "NOT_RUN"
+    if status == "NOT_RUN":
+        for row in browser["acceptance_observations"]:
+            row["status"] = status
+    browser["job_list_observation"] = {"schema_version": 1, "source_id": source,
+        "admitted_job_ids": [first, second], "source_scoped_job_ids": [first, second], "observations": [
+            {"step": 12, "status": status, "checks": {"matching_job_visible": True, "nonmatching_job_hidden": True},
+             "probe": {"query_sha256": journey.digest("Platform"), "matching_job_id": first,
+                       "visible_job_ids": [first], "excluded_job_ids": [second]}},
+            {"step": 13, "status": status, "checks": {"filtered_job_visible": True, "other_title_hidden": True},
+             "probe": {"title_sha256": hashlib.sha256(json.dumps(title, ensure_ascii=False).encode("utf-8")).hexdigest(),
+                       "expected_job_ids": [first], "visible_job_ids": [first], "excluded_job_ids": [second]}},
+            {"step": 14, "status": status, "checks": {"match_sort_order": True},
+             "ranked_jobs": [{"job_id": second, "match_score": 91}, {"job_id": first, "match_score": 60}]},
+        ]}
+    return public, _seal_browser(browser)
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_public_job_list_joins_exact_profile_cohort_for_search_filter_and_match_sort(provider):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, provider)
+    joined = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    rows = journey.numbered_observations(joined, segment="public_browser", run_id=RUN_ID,
+                                         source=SOURCE, identity=journey._identity(state))
+    assert [(row["step"], row["status"]) for row in rows] == [(11, "PASS"), (16, "PASS"),
+                                                             (12, "PASS"), (13, "PASS"), (14, "PASS")]
+    for row in rows[2:]:
+        assert row["continuity"] == {"profile_id": state["profile_id"],
+            "operation_id": public["collection_operation_id"], "request_id": public["collection_request_id"]}
+    assert joined["public_job_list_lineage"]["job_ids"] == public["observed_real_job_ids"]
+
+
+@pytest.mark.parametrize("change", ["source-id", "endpoint", "profile", "profile-version", "inventory-version",
+    "malformed-profile-version", "submission-enabled", "operation", "source-policy",
+    "job-substitution", "scoped-duplicate", "native-id", "posting", "card-title", "missing-card", "bad-query",
+    "forged-search-negative", "query-outside-cohort", "filter-expected", "filter-outside-cohort", "wrong-rank-order",
+    "wrong-source-order", "increasing-score", "score-tie", "bool-score", "duplicate-step", "fake-status"])
+def test_public_job_list_rejects_resealed_unbound_or_contradictory_receipts(change):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    receipt = browser["job_list_observation"]
+    search, title, sort = receipt["observations"]
+    if change == "source-id": receipt["source_id"] = "different-source"
+    if change == "endpoint": browser["endpoint"] = "https://example.invalid"
+    if change == "profile": browser["profile_id"] = public["profile_id"] = "other-profile"
+    if change == "profile-version": browser["baseline_readback"]["profile_version"] = "other-version"
+    if change == "inventory-version": state["job_inventory"]["profile_version"] = "d" * 64
+    if change == "malformed-profile-version": browser["baseline_readback"]["profile_version"] = public["profile_version"] = 1
+    if change == "submission-enabled": public["external_submission_enabled"] = True
+    if change == "operation": browser["collection_operation_id"] = "different-operation"
+    if change == "source-policy": public["source_policy_sha256"] = "different-policy"
+    if change == "job-substitution": receipt["admitted_job_ids"][0] = "mock-job-1"
+    if change == "scoped-duplicate": receipt["source_scoped_job_ids"][0] = receipt["source_scoped_job_ids"][1]
+    if change == "native-id": browser["observations"][0]["native_posting_id"] = "other-post"
+    if change == "posting": public["observations"][0]["postings"][0]["posting_id"] = "other-posting"
+    if change == "card-title": browser["observations"][0]["title"] = "Forged Title"
+    if change == "missing-card": browser["observations"].pop()
+    if change == "bad-query": search["probe"]["query_sha256"] = journey.digest("Impersonation")
+    if change == "forged-search-negative": search["probe"]["excluded_job_ids"] = ["real-job-1"]
+    if change == "query-outside-cohort": search["probe"]["visible_job_ids"].append("other-job")
+    if change == "filter-expected": title["probe"]["expected_job_ids"].append("real-job-2")
+    if change == "filter-outside-cohort": title["probe"]["visible_job_ids"].append("mock-job-1")
+    if change == "wrong-rank-order": sort["ranked_jobs"].reverse()
+    if change == "wrong-source-order": public["observations"].reverse()
+    if change == "increasing-score": sort["ranked_jobs"][0]["match_score"] = 40
+    if change == "score-tie": sort["ranked_jobs"][0]["match_score"] = 60
+    if change == "bool-score": sort["ranked_jobs"][0]["match_score"] = True
+    if change == "duplicate-step": sort["step"] = 13
+    if change == "fake-status": search["checks"]["nonmatching_job_hidden"] = False
+    with pytest.raises(ValueError):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+
+
+@pytest.mark.parametrize("scope,step11_status,expected", [
+    ("CONTROLLED_TRANSPORT", "NOT_RUN", "NOT_RUN"), ("LIVE_PUBLIC_READ_ONLY", "PARTIAL", "PARTIAL")])
+def test_public_job_list_requires_live_positive_step11_visibility(scope, step11_status, expected):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, scope=scope)
+    if step11_status == "PARTIAL":
+        browser["acceptance_observations"][0].update(status=step11_status,
+            checks={"public_jobs_visible_in_same_profile_ui": False})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert [row["status"] for row in joined["acceptance_observations"] if row["step"] in {12, 13, 14}] == [expected] * 3
+
+
+def test_numbered_public_list_requires_entire_group_and_collection_identity():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    evidence = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    for mutation in ("missing-lineage", "missing-row", "application-pair"):
+        altered = copy.deepcopy(evidence)
+        if mutation == "missing-lineage": altered.pop("public_job_list_lineage")
+        if mutation == "missing-row": altered["acceptance_observations"].pop()
+        if mutation == "application-pair": altered["acceptance_observations"][-1]["continuity"]["operation_id"] = IDENTITY["operation_id"]
+        with pytest.raises(ValueError):
+            journey.numbered_observations(altered, segment="public_browser", run_id=RUN_ID,
+                                          source=SOURCE, identity=journey._identity(state))
 
 
 def test_public_browser_join_requires_both_provenance_and_visible_checks():

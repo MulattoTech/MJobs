@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EMPTY_HASH = hashlib.sha256(b"").hexdigest()
 STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
+PUBLIC_JOB_LIST_STEPS = frozenset({12, 13, 14})
 CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
@@ -684,6 +685,174 @@ def public_employer_identity(identity, joined):
             "observed_job_ids": sorted(set(identity.get("observed_job_ids", [])) | set(lineage["job_ids"]))}
 
 
+def _public_browser_digest(value):
+    # The read-only browser producer hashes UTF-8 without ASCII escaping.
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+
+
+def _public_job_list_titles(public, browser):
+    """Recover the titles sealed with the earlier selected-card readbacks."""
+    from cli.acceptance_public_source import ENDPOINTS
+
+    admitted = _bounded_identity_ids(public.get("observed_real_job_ids"), 5, "public job list identity")
+    provider = public.get("provider")
+    endpoint = ENDPOINTS.get(provider) if isinstance(provider, str) else None
+    if not endpoint or public.get("endpoint") != endpoint or browser.get("endpoint") != endpoint:
+        raise ValueError("Public job list endpoint mismatch")
+
+    def indexed(rows):
+        if not isinstance(rows, list) or len(rows) != len(admitted) or any(not isinstance(row, dict) for row in rows):
+            raise ValueError("Public job list requires one posting and browser witness per selected job")
+        ids = _bounded_identity_ids([row.get("job_id") for row in rows], 5, "public job list witness")
+        if set(ids) != set(admitted):
+            raise ValueError("Public job list witness cohort mismatch")
+        return dict(zip(ids, rows))
+
+    collected = indexed(public.get("observations"))
+    cards = indexed(browser.get("observations"))
+    titles = {}
+    for job_id, proof in collected.items():
+        card = cards[job_id]
+        native = proof.get("native_posting_id")
+        title, company = card.get("title"), card.get("company")
+        checks, postings = card.get("checks"), proof.get("postings")
+        native_valid = (type(native) is int and 0 < native < 10**128
+                        or isinstance(native, str) and SAFE_ID.fullmatch(native) is not None)
+        if (proof.get("fictional") is not False or not native_valid
+                or card.get("native_posting_id") != str(native)
+                or any(row.get("source_id") != public["source_id"] or row.get("source_endpoint") != endpoint
+                       for row in (proof, card))
+                or not all(isinstance(value, str) and 0 < len(value) <= 200 for value in (title, company))
+                or not isinstance(checks, dict)
+                or checks.get("active_profile_matches") is not True
+                or checks.get("canonical_job_id_bound_to_selected_detail_readback") is not True
+                or checks.get("native_posting_id_bound_to_source_snapshot") is not True
+                or not isinstance(postings, list) or not 1 <= len(postings) <= 20
+                or any(not isinstance(posting, dict) for posting in postings)):
+            raise ValueError("Public job list card or source provenance mismatch")
+        posting_ids = _bounded_identity_ids([posting.get("posting_id") for posting in postings], 20, "public job posting")
+        if card.get("selected_job_api_readback_sha256") != _public_browser_digest({
+                "id": job_id, "title": title, "company": company,
+                "native_posting_id": native, "source_posting_ids": posting_ids}):
+            raise ValueError("Public job list selected card readback mismatch")
+        titles[job_id] = title
+    return admitted, titles
+
+
+def _join_public_job_list(baseline, public, browser, step11_pass):
+    """Admit only bounded list assertions about the same collected cohort."""
+    report = browser["job_list_observation"]
+    if (not isinstance(report, dict) or set(report) != {"schema_version", "source_id", "admitted_job_ids",
+            "source_scoped_job_ids", "observations"} or type(report["schema_version"]) is not int
+            or report["schema_version"] != 1 or report["source_id"] != public["source_id"]):
+        raise ValueError("Public job list receipt or source is invalid")
+    live = public.get("execution_scope") == "LIVE_PUBLIC_READ_ONLY"
+    version = public.get("profile_version")
+    inventory = baseline.get("job_inventory") or {}
+    if (public.get("external_submission_enabled") is not False or public.get("profile_id") != baseline["profile_id"]
+            or not isinstance(version, str) or re.fullmatch(r"[0-9a-f]{64}", version) is None
+            or inventory.get("profile_version", version) != version):
+        raise ValueError("Public job list profile version or submission boundary mismatch")
+    if live:
+        validate_public_artifact(public, baseline, public["provider"], public["acceptance_run_id"])
+    elif public.get("execution_scope") != "CONTROLLED_TRANSPORT":
+        raise ValueError("Public job list execution scope is invalid")
+    admitted, titles = _public_job_list_titles(public, browser)
+    if report["admitted_job_ids"] != admitted or public["selected_application_job_id"] in admitted:
+        raise ValueError("Public job list admitted cohort mismatch")
+
+    def subset(value, parent, *, ordered=True):
+        ids = [] if value == [] else _bounded_identity_ids(value, len(parent), "public job list indices")
+        if not set(ids).issubset(parent) or ordered and ids != [job_id for job_id in parent if job_id in ids]:
+            raise ValueError("Public job list indices do not match the admitted cohort or baseline order")
+        return ids
+
+    scoped = subset(report["source_scoped_job_ids"], admitted, ordered=False)
+    full_cohort = set(scoped) == set(admitted)
+    observed = report["observations"]
+    if (not isinstance(observed, list) or len(observed) != 3
+            or any(not isinstance(row, dict) or type(row.get("step")) is not int for row in observed)
+            or {row["step"] for row in observed} != PUBLIC_JOB_LIST_STEPS):
+        raise ValueError("Public job list requires one search, filter, and sort observation")
+
+    def probe_checks(step, probe):
+        first, second = (("matching_job_visible", "nonmatching_job_hidden") if step == 12
+                         else ("filtered_job_visible", "other_title_hidden"))
+        if probe is None:
+            return {first: False, second: False}
+        fields = {"visible_job_ids", "excluded_job_ids"}
+        fields |= {"query_sha256", "matching_job_id"} if step == 12 else {"title_sha256", "expected_job_ids"}
+        if not isinstance(probe, dict) or set(probe) != fields:
+            raise ValueError("Public job list probe is invalid")
+        visible = subset(probe["visible_job_ids"], scoped)
+        excluded = subset(probe["excluded_job_ids"], scoped)
+        if step == 12:
+            target = probe["matching_job_id"]
+            title = titles[target] if isinstance(target, str) and target in scoped else ""
+            matches = {word for word in re.findall(r"[A-Za-z]{3,200}", title)
+                       if _public_browser_digest(word) == probe["query_sha256"]}
+            if len(matches) != 1:
+                raise ValueError("Public job list query does not bind to the selected title")
+            word = next(iter(matches)).lower()
+            expected = [job_id for job_id in scoped if word in titles[job_id].lower()]
+            matches_visible = target in visible
+        else:
+            matches = {titles[job_id] for job_id in scoped if len(titles[job_id]) <= 200
+                       and titles[job_id] == titles[job_id].strip()
+                       and _public_browser_digest(titles[job_id]) == probe["title_sha256"]}
+            if len(matches) != 1:
+                raise ValueError("Public job list filter does not bind to a selected title")
+            name = next(iter(matches)).casefold()
+            expected = [job_id for job_id in scoped if name in titles[job_id].casefold()]
+            if probe["expected_job_ids"] != expected:
+                raise ValueError("Public job list filter expected indices mismatch")
+            matches_visible = visible == expected
+        negative = [job_id for job_id in scoped if job_id not in expected]
+        if not negative or excluded != [job_id for job_id in negative if job_id not in visible]:
+            raise ValueError("Public job list probe exclusion indices mismatch")
+        return {first: full_cohort and matches_visible, second: full_cohort and bool(excluded)}
+
+    def sort_checks(ranked):
+        if (not isinstance(ranked, list) or len(ranked) > len(admitted)
+                or any(not isinstance(row, dict) or set(row) != {"job_id", "match_score"} for row in ranked)):
+            raise ValueError("Public job list match ranks are invalid")
+        rank_ids = subset([row["job_id"] for row in ranked], admitted, ordered=False)
+        scores = [row["match_score"] for row in ranked]
+        if any(score is not None and (type(score) is not int or not 0 <= score <= 100) for score in scores):
+            raise ValueError("Public job list match scores are invalid")
+        order = [score if score is not None else -1 for score in scores]
+        # The public collector admitted its bounded cohort from the default
+        # profile-scoped match sort. Cross-check its order, not sorted IDs.
+        ordered = rank_ids == list(titles) and order == sorted(order, reverse=True)
+        return {"match_sort_order": full_cohort and ordered and len({s for s in scores if s is not None}) >= 2}
+
+    lineage = {"profile_id": public["profile_id"], "operation_id": public["collection_operation_id"],
+               "request_id": public["collection_request_id"], "source_id": public["source_id"],
+               "job_ids": admitted}
+    rows = []
+    messages = {12: "Public jobs searched by a title term in the same profile UI",
+                13: "Public jobs retained and excluded by the title filter",
+                14: "Public cards ordered by distinct match scores in the same profile UI"}
+    for row in observed:
+        step = row["step"]
+        field = "ranked_jobs" if step == 14 else "probe"
+        checks = row.get("checks")
+        if (set(row) != {"step", "status", "checks", field} or not isinstance(checks, dict)
+                or set(checks) != REQUIRED_CHECKS[step] or any(type(value) is not bool for value in checks.values())):
+            raise ValueError("Public job list named checks are invalid")
+        expected = sort_checks(row[field]) if step == 14 else probe_checks(step, row[field])
+        status = "NOT_RUN" if not live else ("PASS" if all(checks.values()) else "PARTIAL")
+        if row["status"] != status or any(passed and not expected[key] for key, passed in checks.items()):
+            raise ValueError("Public job list check contradicts its bound evidence")
+        rows.append({"step": step, "status": status if step11_pass or not live else "PARTIAL",
+            "checks": [{"name": key, "passed": checks[key] and expected[key] and step11_pass} for key in sorted(checks)],
+            "observable_result": messages[step], "evidence_kind": "PUBLIC_READ_ONLY",
+            "source_commit": baseline["source"]["commit"], "run_id": public["acceptance_run_id"],
+            "continuity": {key: lineage[key] for key in ("profile_id", "operation_id", "request_id")}})
+    return lineage, sorted(rows, key=lambda row: row["step"])
+
+
 def join_public_browser(baseline, public, browser, public_sha, browser_sha, runtime):
     """Join reviewed read-only browser assertions to collected posting provenance."""
     projection = {key: runtime[key] for key in ("source_manifest_sha256", "images", "dockerfile_sha256", "frontend_assets")}
@@ -693,7 +862,7 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
             or browser.get("result") != "PASS" or browser.get("evidence_kind") != "PUBLIC_BROWSER_READ_ONLY"
             or any(browser.get(key) != public.get(key) for key in keys)
             or browser.get("runtime_identity") != projection or browser.get("runtime_identity_sha256") != digest(projection)
-            or browser.get("sha256") != digest({key: value for key, value in browser.items() if key != "sha256"})):
+            or browser.get("sha256") != _public_browser_digest({key: value for key, value in browser.items() if key != "sha256"})):
         raise ValueError("Public browser provenance, source, runtime or read-only identity mismatch")
     controls = browser.get("browser", {})
     if (controls.get("loopback_only") is not True or controls.get("get_head_only") is not True
@@ -735,6 +904,11 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
         "acceptance_run_id": public["acceptance_run_id"], "public_artifact": "public.json", "public_sha256": public_sha,
         "browser_artifact": "public-browser.json", "browser_sha256": browser_sha,
         "runtime_identity": projection, "acceptance_observations": rows}
+    if "job_list_observation" in browser:
+        step11_pass = any(row["step"] == 11 and row["status"] == "PASS" for row in rows)
+        lineage, list_rows = _join_public_job_list(baseline, public, browser, step11_pass)
+        joined["public_job_list_lineage"] = lineage
+        rows.extend(list_rows)
     capture = _validate_public_employer_capture(baseline, public)
     employer_browser = browser.get("employer_observation")
     if employer_browser is not None:
@@ -1184,6 +1358,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
     Artifact paths/hashes are added by the coordinator after producer completion,
     avoiding a self-referential hash. PUBLIC_READ_ONLY is admitted only for the
     explicitly opted-in same-profile public segment; fixture UI cannot earn 11.
+    Fixture list observations are retained for diagnosis and withheld at recording.
     """
     rows = artifact.get("acceptance_observations", artifact.get("observations", []) if segment == "monitor_after" else [])
     if not isinstance(rows, list) or len(rows) > 60:
@@ -1194,7 +1369,20 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         raise ValueError("Observation artifact run or source binding mismatch")
     seen = set()
     result = []
+    list_lineage = None
     if segment == "public_browser":
+        list_steps = [row["step"] for row in rows if isinstance(row, dict)
+                      and type(row.get("step")) is int and row["step"] in PUBLIC_JOB_LIST_STEPS]
+        if list_steps or "public_job_list_lineage" in artifact:
+            list_lineage = artifact.get("public_job_list_lineage")
+            if (len(list_steps) != len(PUBLIC_JOB_LIST_STEPS) or set(list_steps) != PUBLIC_JOB_LIST_STEPS
+                    or not isinstance(list_lineage, dict)
+                    or set(list_lineage) != {"profile_id", "operation_id", "request_id", "source_id", "job_ids"}
+                    or list_lineage["profile_id"] != identity.get("profile_id")
+                    or any(not isinstance(list_lineage[key], str) or not SAFE_ID.fullmatch(list_lineage[key])
+                           for key in ("operation_id", "request_id", "source_id"))
+                    or identity.get("job_id") in _bounded_identity_ids(list_lineage["job_ids"], 5, "public job list")):
+                raise ValueError("Public job list observations require the complete collection lineage group")
         employer_rows = [row for row in rows if isinstance(row, dict) and type(row.get("step")) is int and 23 <= row["step"] <= 31]
         if employer_rows and (len(employer_rows) != 9 or {row["step"] for row in employer_rows} != set(range(23, 32))
                 or artifact.get("employer_discovery_lineage") != identity.get("employer_discovery_lineage")
@@ -1210,7 +1398,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 or (segment == "startup" and step != 1)
                 or (segment == "source_setup" and step != 9)
                 or (segment in {"public", "public_source"} and step != 11)
-                or (segment == "public_browser" and step not in {11, 16, *range(23, 32)})
+                or (segment == "public_browser" and step not in {11, 16, *PUBLIC_JOB_LIST_STEPS, *range(23, 32)})
                 or (segment == "recovery" and not 54 <= step <= 58)
                 or (segment == "monitor_after" and step not in {59, 60})
                 or segment == "monitor_prepare"):
@@ -1227,6 +1415,10 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
             raise ValueError("Numbered observation requires bounded sanitized observable result")
         continuity = row.get("continuity")
         expected_identity = identity
+        if segment == "public_browser" and step in PUBLIC_JOB_LIST_STEPS:
+            if not isinstance(continuity, dict) or set(continuity) != {"profile_id", "operation_id", "request_id"}:
+                raise ValueError("Public job list continuity requires its profile and collection pair")
+            expected_identity = {**identity, **list_lineage}
         if (segment == "ui" and step in {8, 10, 11} and isinstance(continuity, dict)
                 and (status == "PASS" or {"operation_id", "request_id"}.intersection(continuity))):
             if set(continuity) != {"profile_id", "operation_id", "request_id"}:
@@ -1288,7 +1480,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                          "segments": {name: {"status": "NOT_RUN"} for name in _segment_names(public_source_provider, monitoring)},
                          "steps": [{"number": number, "status": "NOT_RUN"} for number in range(1, 61)],
                          "limitations": [
-                             "No public-source criterion 11 acceptance from controlled fixtures.",
+                             "No public-source criteria 11–14 acceptance from controlled fixtures.",
                              "Only explicit numbered producer observations receive credit.",
                              "Frontend bundle build provenance requires a separate build receipt."]})
 
@@ -1530,12 +1722,17 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                                  "observed_result": row["observable_result"],
                                  "executed_at_utc": artifact["timestamp"],
                                  "continuity": row["continuity"]}}
-            if name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
+            if name == "ui" and row["status"] == "PASS" and row["step"] in PUBLIC_JOB_LIST_STEPS:
+                report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="PUBLIC_JOB_LIST_NOT_OBSERVED")
+            elif name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
             if name == "public" and "public_browser" not in self.binding and row["step"] == 11:
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="PUBLIC_BROWSER_NOT_OBSERVED")
             if observation_segment == "public_browser" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
+            if observation_segment == "public_browser" and row["step"] in PUBLIC_JOB_LIST_STEPS:
+                report_row["verification"]["command"] = "cli.acceptance_public_browser.run (source-scoped UI list)"
+                report_row["verification"]["public_job_list_lineage"] = copy.deepcopy(artifact["public_job_list_lineage"])
             if "job_id" in row["continuity"]:
                 report_row["verification"]["job_scope"] = (
                     "SELECTED_APPLICATION_JOB" if row["step"] >= 32 else "SAME_PROFILE_BROWSED_JOB")
