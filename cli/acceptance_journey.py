@@ -34,6 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 EMPTY_HASH = hashlib.sha256(b"").hexdigest()
 STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
+PUBLIC_JOB_LIST_STEPS = frozenset({12, 13, 14})
+APPLICATION_RECEIPTS = {36: "prepared_document_pair", 53: "application_audit_trace"}
+RESUME_COMPARISON_RECEIPT = "generated_resume_comparison"
+UI_RECEIPTS = {8: "saved_it_search_reload", 34: RESUME_COMPARISON_RECEIPT, **APPLICATION_RECEIPTS}
 CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
@@ -494,6 +498,35 @@ def _ui_discovery_identity(artifact, identity):
     return {**identity, **pair}
 
 
+def _validate_saved_it_search_reload(artifact, identity):
+    receipt = artifact.get(UI_RECEIPTS[8])
+    profile_id = identity["profile_id"]
+    fields = {"before_active_profile_id", "after_active_profile_id", "visible_search_profile_id",
+              "before_reload", "after_reload"}
+    if (not isinstance(receipt, dict) or set(receipt) != fields
+            or receipt["before_active_profile_id"] != profile_id or receipt["after_active_profile_id"] != profile_id):
+        raise ValueError("Criterion 8 requires the saved IT search's same-profile reload witness")
+    search_id = receipt["visible_search_profile_id"]
+    expected = {"profile_id": profile_id, "search_profile_id": search_id,
+                "include_titles": [ui_e2e.REMOTE_IT_SEARCH_TITLE], "remote": "REQUIRED"}
+    if (not isinstance(search_id, str) or not SAFE_ID.fullmatch(search_id)
+            or receipt["before_reload"] != expected or receipt["after_reload"] != expected):
+        raise ValueError("Criterion 8 saved IT search identity or criteria changed after reload")
+    # The Step 8 row retains the matching Data discovery pair for backwards
+    # continuity; its reload witness must instead bind the earlier IT search.
+    proofs = [proof for proof in artifact["discovery_search_proofs"] if proof.get("search_profile_id") == search_id]
+    if len(proofs) != 1:
+        raise ValueError("Criterion 8 reload witness requires the exact saved IT discovery search")
+    proof = proofs[0]
+    version = proof.get("profile_version")
+    if (proof.get("profile_id") != profile_id or proof.get("result") != "PASS" or proof.get("filtered_titles") != []
+            or not isinstance(version, str) or not re.fullmatch(r"[a-f0-9]{64}", version)
+            or proof.get("operation_profile_version") != version
+            or any(not isinstance(proof.get(key), str) or not SAFE_ID.fullmatch(proof[key])
+                   or proof[key] == identity[key] for key in ("operation_id", "request_id"))):
+        raise ValueError("Criterion 8 reload witness does not match the earlier same-profile IT discovery")
+
+
 def _validate_continuity(continuity, identity, step, status, segment):
     if not isinstance(continuity, dict) or not set(continuity).issubset(CONTINUITY_KEYS):
         raise ValueError("Invalid continuity identifiers")
@@ -575,6 +608,67 @@ def validate_stage_lineage(artifact, identity):
             raise ValueError("Application stage lineage scope or operation identity mismatch")
         by_step[row["step"]] = copy.deepcopy(row)
     return by_step
+
+
+def _validate_generated_resume_comparison(receipt, continuity):
+    """Require the immutable pair and known difference observed by the fixture UI."""
+    pins = {"profile_id", "application_id", "job_id"}
+    if (set(continuity) != {*pins, "document_ids"}
+            or not isinstance(receipt, dict) or set(receipt) != {*pins, "documents", "omitted"}
+            or any(receipt[key] != continuity[key] for key in pins)):
+        raise ValueError("Criterion 34 requires the selected application's resume comparison receipt")
+    documents = receipt["documents"]
+    if not isinstance(documents, dict) or set(documents) != {"base", "tailored"}:
+        raise ValueError("Criterion 34 requires both compared resume revisions")
+    base, tailored = documents["base"], documents["tailored"]
+    for document in (base, tailored):
+        if (not isinstance(document, dict) or set(document) != {"id", "version", "profile_version", "sha256"}
+                or not isinstance(document["id"], str) or not SAFE_ID.fullmatch(document["id"])
+                or type(document["version"]) is not int or document["version"] < 1
+                or any(not isinstance(document[key], str) or not re.fullmatch(r"[a-f0-9]{64}", document[key])
+                       for key in ("profile_version", "sha256"))):
+            raise ValueError("Criterion 34 has invalid compared resume pins")
+    if (continuity["document_ids"] != [base["id"], tailored["id"]]
+            or base["id"] == tailored["id"] or base["version"] >= tailored["version"]
+            or base["sha256"] == tailored["sha256"]):
+        raise ValueError("Criterion 34 requires the exact distinct compared resume pair")
+    omission = receipt["omitted"]
+    if (not isinstance(omission, dict) or set(omission) != {"fact_id", "kind", "text_sha256"}
+            or not isinstance(omission["fact_id"], str) or not SAFE_ID.fullmatch(omission["fact_id"])
+            or omission["kind"] != "skill" or omission["text_sha256"] != hashlib.sha256(b"SQL").hexdigest()):
+        raise ValueError("Criterion 34 requires the known omitted SQL skill from the selected comparison")
+
+
+def _validate_application_receipt(step, artifact, continuity, stage, *, run_id, source_commit):
+    """Require the stage-local receipt in addition to positive UI/readback checks."""
+    receipt = artifact.get(APPLICATION_RECEIPTS[step])
+    if step == 36:
+        pins = {key: stage[key] for key in ("profile_id", "application_id", "job_id")}
+        if (stage["operation_kind"] != "PREPARE" or not re.fullmatch(r"[a-f0-9]{64}", stage["operation_id"])
+                or set(continuity) != {*pins, "document_ids"}
+                or not isinstance(receipt, dict) or set(receipt) != {*pins, "profile_version", "document_version", "documents"}
+                or any(receipt[key] != value for key, value in pins.items())
+                or not isinstance(receipt["profile_version"], str) or not SAFE_ID.fullmatch(receipt["profile_version"])
+                or type(receipt["document_version"]) is not int or receipt["document_version"] < 1):
+            raise ValueError("Criterion 36 requires the selected PREPARE stage's prepared document pair")
+        documents = receipt["documents"]
+        if (not isinstance(documents, dict) or set(documents) != {"resume", "cover-letter"}
+                or documents["resume"] == documents["cover-letter"]
+                or continuity["document_ids"] != [documents["resume"], documents["cover-letter"]]):
+            raise ValueError("Criterion 36 prepared document IDs do not match the numbered observation")
+        return
+
+    if (receipt is None or set(continuity) != {"profile_id", "application_id", "job_id"}
+            or not re.fullmatch(r"[a-f0-9]{64}", stage["operation_id"])):
+        raise ValueError("Criterion 53 requires the final application stage's audit trace")
+    try:
+        from cli.acceptance_audit import validate_application_audit_trace
+    except ModuleNotFoundError as error:
+        if error.name != "cli.acceptance_audit":
+            raise
+        raise ValueError("Criterion 53 requires the exact application audit trace validator") from error
+    validate_application_audit_trace(receipt, run_id=run_id, source_commit=source_commit,
+                                     profile_id=stage["profile_id"], application_id=stage["application_id"])
 
 
 def _public_source_module():
@@ -684,6 +778,186 @@ def public_employer_identity(identity, joined):
             "observed_job_ids": sorted(set(identity.get("observed_job_ids", [])) | set(lineage["job_ids"]))}
 
 
+def _public_browser_digest(value):
+    # The read-only browser producer hashes UTF-8 without ASCII escaping.
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+
+
+def _public_job_list_titles(public, browser):
+    """Recover the titles sealed with the earlier selected-card readbacks."""
+    from cli.acceptance_public_source import ENDPOINTS
+
+    admitted = _bounded_identity_ids(public.get("observed_real_job_ids"), 5, "public job list identity")
+    provider = public.get("provider")
+    endpoint = ENDPOINTS.get(provider) if isinstance(provider, str) else None
+    if not endpoint or public.get("endpoint") != endpoint or browser.get("endpoint") != endpoint:
+        raise ValueError("Public job list endpoint mismatch")
+
+    def indexed(rows):
+        if not isinstance(rows, list) or len(rows) != len(admitted) or any(not isinstance(row, dict) for row in rows):
+            raise ValueError("Public job list requires one posting and browser witness per selected job")
+        ids = _bounded_identity_ids([row.get("job_id") for row in rows], 5, "public job list witness")
+        if set(ids) != set(admitted):
+            raise ValueError("Public job list witness cohort mismatch")
+        return dict(zip(ids, rows))
+
+    collected = indexed(public.get("observations"))
+    cards = indexed(browser.get("observations"))
+    titles = {}
+    for job_id, proof in collected.items():
+        card = cards[job_id]
+        native = proof.get("native_posting_id")
+        title, company = card.get("title"), card.get("company")
+        checks, postings = card.get("checks"), proof.get("postings")
+        native_valid = (type(native) is int and 0 < native < 10**128
+                        or isinstance(native, str) and SAFE_ID.fullmatch(native) is not None)
+        if (proof.get("fictional") is not False or not native_valid
+                or card.get("native_posting_id") != str(native)
+                or any(row.get("source_id") != public["source_id"] or row.get("source_endpoint") != endpoint
+                       for row in (proof, card))
+                or not all(isinstance(value, str) and 0 < len(value) <= 200 for value in (title, company))
+                or not isinstance(checks, dict)
+                or checks.get("active_profile_matches") is not True
+                or checks.get("canonical_job_id_bound_to_selected_detail_readback") is not True
+                or checks.get("native_posting_id_bound_to_source_snapshot") is not True
+                or not isinstance(postings, list) or not 1 <= len(postings) <= 20
+                or any(not isinstance(posting, dict) for posting in postings)):
+            raise ValueError("Public job list card or source provenance mismatch")
+        posting_ids = _bounded_identity_ids([posting.get("posting_id") for posting in postings], 20, "public job posting")
+        if card.get("selected_job_api_readback_sha256") != _public_browser_digest({
+                "id": job_id, "title": title, "company": company,
+                "native_posting_id": native, "source_posting_ids": posting_ids}):
+            raise ValueError("Public job list selected card readback mismatch")
+        titles[job_id] = title
+    return admitted, titles
+
+
+def _join_public_job_list(baseline, public, browser, step11_pass):
+    """Admit only bounded list assertions about the same collected cohort."""
+    report = browser["job_list_observation"]
+    if (not isinstance(report, dict) or set(report) != {"schema_version", "source_id", "admitted_job_ids",
+            "source_scoped_job_ids", "observations"} or type(report["schema_version"]) is not int
+            or report["schema_version"] != 1 or report["source_id"] != public["source_id"]):
+        raise ValueError("Public job list receipt or source is invalid")
+    live = public.get("execution_scope") == "LIVE_PUBLIC_READ_ONLY"
+    version = public.get("profile_version")
+    inventory = baseline.get("job_inventory") or {}
+    if (public.get("external_submission_enabled") is not False or public.get("profile_id") != baseline["profile_id"]
+            or not isinstance(version, str) or re.fullmatch(r"[0-9a-f]{64}", version) is None
+            or inventory.get("profile_version", version) != version):
+        raise ValueError("Public job list profile version or submission boundary mismatch")
+    if live:
+        validate_public_artifact(public, baseline, public["provider"], public["acceptance_run_id"])
+    elif public.get("execution_scope") != "CONTROLLED_TRANSPORT":
+        raise ValueError("Public job list execution scope is invalid")
+    admitted, titles = _public_job_list_titles(public, browser)
+    if report["admitted_job_ids"] != admitted or public["selected_application_job_id"] in admitted:
+        raise ValueError("Public job list admitted cohort mismatch")
+
+    def subset(value, parent, *, ordered=True):
+        ids = [] if value == [] else _bounded_identity_ids(value, len(parent), "public job list indices")
+        if not set(ids).issubset(parent) or ordered and ids != [job_id for job_id in parent if job_id in ids]:
+            raise ValueError("Public job list indices do not match the admitted cohort or baseline order")
+        return ids
+
+    scoped = subset(report["source_scoped_job_ids"], admitted, ordered=False)
+    full_cohort = set(scoped) == set(admitted)
+    observed = report["observations"]
+    if (not isinstance(observed, list) or len(observed) != 3
+            or any(not isinstance(row, dict) or type(row.get("step")) is not int for row in observed)
+            or {row["step"] for row in observed} != PUBLIC_JOB_LIST_STEPS):
+        raise ValueError("Public job list requires one search, filter, and sort observation")
+
+    def probe_checks(step, probe):
+        first, second = (("matching_job_visible", "nonmatching_job_hidden") if step == 12
+                         else ("filtered_job_visible", "other_title_hidden"))
+        if probe is None:
+            return {first: False, second: False}
+        fields = {"visible_job_ids", "excluded_job_ids"}
+        fields |= {"query_sha256", "matching_job_id"} if step == 12 else {"title_sha256", "expected_job_ids"}
+        if not isinstance(probe, dict) or set(probe) != fields:
+            raise ValueError("Public job list probe is invalid")
+        visible = subset(probe["visible_job_ids"], scoped)
+        excluded = subset(probe["excluded_job_ids"], scoped)
+        if step == 12:
+            target = probe["matching_job_id"]
+            title = titles[target] if isinstance(target, str) and target in scoped else ""
+            matches = {word for word in re.findall(r"[A-Za-z]{3,200}", title)
+                       if _public_browser_digest(word) == probe["query_sha256"]}
+            if len(matches) != 1:
+                raise ValueError("Public job list query does not bind to the selected title")
+            word = next(iter(matches)).lower()
+            expected = [job_id for job_id in scoped if word in titles[job_id].lower()]
+            # Full text may also return admitted jobs matched outside the
+            # title, but it must retain every known title match.
+            matches_visible = set(expected).issubset(visible)
+        else:
+            matches = {titles[job_id] for job_id in scoped if len(titles[job_id]) <= 200
+                       and titles[job_id] == titles[job_id].strip()
+                       and _public_browser_digest(titles[job_id]) == probe["title_sha256"]}
+            if len(matches) != 1:
+                raise ValueError("Public job list filter does not bind to a selected title")
+            name = next(iter(matches)).casefold()
+            expected = [job_id for job_id in scoped if name in titles[job_id].casefold()]
+            if probe["expected_job_ids"] != expected:
+                raise ValueError("Public job list filter expected indices mismatch")
+            matches_visible = visible == expected
+        negative = [job_id for job_id in scoped if job_id not in expected]
+        if not negative or excluded != [job_id for job_id in negative if job_id not in visible]:
+            raise ValueError("Public job list probe exclusion indices mismatch")
+        return {first: full_cohort and matches_visible, second: full_cohort and bool(excluded)}
+
+    def score_readback(rows):
+        if (not isinstance(rows, list) or len(rows) > len(admitted)
+                or any(not isinstance(row, dict) or set(row) != {"job_id", "match_score"} for row in rows)):
+            raise ValueError("Public job list match ranks are invalid")
+        ids = subset([row["job_id"] for row in rows], admitted, ordered=False)
+        scores = [row["match_score"] for row in rows]
+        if any(score is not None and (type(score) is not int or not 0 <= score <= 100) for score in scores):
+            raise ValueError("Public job list match scores are invalid")
+        return ids, dict(zip(ids, scores))
+
+    def sort_checks(title_sorted, ranked):
+        title_ids, before = score_readback(title_sorted)
+        rank_ids, after = score_readback(ranked)
+        if title_ids != scoped:
+            raise ValueError("Public job list title score baseline indices mismatch")
+        scores = list(after.values())
+        order = [score if score is not None else -1 for score in scores]
+        # The public collector admitted its bounded cohort from the default
+        # profile-scoped match sort. Cross-check its order, not sorted IDs.
+        ordered = rank_ids == list(titles) and order == sorted(order, reverse=True)
+        return {"match_sort_order": full_cohort and before == after and ordered
+                and len({score for score in scores if score is not None}) >= 2}
+
+    lineage = {"profile_id": public["profile_id"], "operation_id": public["collection_operation_id"],
+               "request_id": public["collection_request_id"], "source_id": public["source_id"],
+               "job_ids": admitted}
+    rows = []
+    messages = {12: "Public jobs searched by a title term in the same profile UI",
+                13: "Public jobs retained and excluded by the title filter",
+                14: "Public cards ordered by distinct match scores in the same profile UI"}
+    for row in observed:
+        step = row["step"]
+        fields = {"title_sorted_jobs", "ranked_jobs"} if step == 14 else {"probe"}
+        checks = row.get("checks")
+        if (set(row) != {"step", "status", "checks", *fields} or not isinstance(checks, dict)
+                or set(checks) != REQUIRED_CHECKS[step] or any(type(value) is not bool for value in checks.values())):
+            raise ValueError("Public job list named checks are invalid")
+        expected = (sort_checks(row["title_sorted_jobs"], row["ranked_jobs"])
+                    if step == 14 else probe_checks(step, row["probe"]))
+        status = "NOT_RUN" if not live else ("PASS" if all(checks.values()) else "PARTIAL")
+        if row["status"] != status or any(passed and not expected[key] for key, passed in checks.items()):
+            raise ValueError("Public job list check contradicts its bound evidence")
+        rows.append({"step": step, "status": status if step11_pass or not live else "PARTIAL",
+            "checks": [{"name": key, "passed": checks[key] and expected[key] and step11_pass} for key in sorted(checks)],
+            "observable_result": messages[step], "evidence_kind": "PUBLIC_READ_ONLY",
+            "source_commit": baseline["source"]["commit"], "run_id": public["acceptance_run_id"],
+            "continuity": {key: lineage[key] for key in ("profile_id", "operation_id", "request_id")}})
+    return lineage, sorted(rows, key=lambda row: row["step"])
+
+
 def join_public_browser(baseline, public, browser, public_sha, browser_sha, runtime):
     """Join reviewed read-only browser assertions to collected posting provenance."""
     projection = {key: runtime[key] for key in ("source_manifest_sha256", "images", "dockerfile_sha256", "frontend_assets")}
@@ -693,7 +967,7 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
             or browser.get("result") != "PASS" or browser.get("evidence_kind") != "PUBLIC_BROWSER_READ_ONLY"
             or any(browser.get(key) != public.get(key) for key in keys)
             or browser.get("runtime_identity") != projection or browser.get("runtime_identity_sha256") != digest(projection)
-            or browser.get("sha256") != digest({key: value for key, value in browser.items() if key != "sha256"})):
+            or browser.get("sha256") != _public_browser_digest({key: value for key, value in browser.items() if key != "sha256"})):
         raise ValueError("Public browser provenance, source, runtime or read-only identity mismatch")
     controls = browser.get("browser", {})
     if (controls.get("loopback_only") is not True or controls.get("get_head_only") is not True
@@ -735,6 +1009,11 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
         "acceptance_run_id": public["acceptance_run_id"], "public_artifact": "public.json", "public_sha256": public_sha,
         "browser_artifact": "public-browser.json", "browser_sha256": browser_sha,
         "runtime_identity": projection, "acceptance_observations": rows}
+    if "job_list_observation" in browser:
+        step11_pass = any(row["step"] == 11 and row["status"] == "PASS" for row in rows)
+        lineage, list_rows = _join_public_job_list(baseline, public, browser, step11_pass)
+        joined["public_job_list_lineage"] = lineage
+        rows.extend(list_rows)
     capture = _validate_public_employer_capture(baseline, public)
     employer_browser = browser.get("employer_observation")
     if employer_browser is not None:
@@ -1184,6 +1463,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
     Artifact paths/hashes are added by the coordinator after producer completion,
     avoiding a self-referential hash. PUBLIC_READ_ONLY is admitted only for the
     explicitly opted-in same-profile public segment; fixture UI cannot earn 11.
+    Fixture list observations are retained for diagnosis and withheld at recording.
     """
     rows = artifact.get("acceptance_observations", artifact.get("observations", []) if segment == "monitor_after" else [])
     if not isinstance(rows, list) or len(rows) > 60:
@@ -1194,7 +1474,20 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         raise ValueError("Observation artifact run or source binding mismatch")
     seen = set()
     result = []
+    list_lineage = None
     if segment == "public_browser":
+        list_steps = [row["step"] for row in rows if isinstance(row, dict)
+                      and type(row.get("step")) is int and row["step"] in PUBLIC_JOB_LIST_STEPS]
+        if list_steps or "public_job_list_lineage" in artifact:
+            list_lineage = artifact.get("public_job_list_lineage")
+            if (len(list_steps) != len(PUBLIC_JOB_LIST_STEPS) or set(list_steps) != PUBLIC_JOB_LIST_STEPS
+                    or not isinstance(list_lineage, dict)
+                    or set(list_lineage) != {"profile_id", "operation_id", "request_id", "source_id", "job_ids"}
+                    or list_lineage["profile_id"] != identity.get("profile_id")
+                    or any(not isinstance(list_lineage[key], str) or not SAFE_ID.fullmatch(list_lineage[key])
+                           for key in ("operation_id", "request_id", "source_id"))
+                    or identity.get("job_id") in _bounded_identity_ids(list_lineage["job_ids"], 5, "public job list")):
+                raise ValueError("Public job list observations require the complete collection lineage group")
         employer_rows = [row for row in rows if isinstance(row, dict) and type(row.get("step")) is int and 23 <= row["step"] <= 31]
         if employer_rows and (len(employer_rows) != 9 or {row["step"] for row in employer_rows} != set(range(23, 32))
                 or artifact.get("employer_discovery_lineage") != identity.get("employer_discovery_lineage")
@@ -1210,7 +1503,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 or (segment == "startup" and step != 1)
                 or (segment == "source_setup" and step != 9)
                 or (segment in {"public", "public_source"} and step != 11)
-                or (segment == "public_browser" and step not in {11, 16, *range(23, 32)})
+                or (segment == "public_browser" and step not in {11, 16, *PUBLIC_JOB_LIST_STEPS, *range(23, 32)})
                 or (segment == "recovery" and not 54 <= step <= 58)
                 or (segment == "monitor_after" and step not in {59, 60})
                 or segment == "monitor_prepare"):
@@ -1227,6 +1520,10 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
             raise ValueError("Numbered observation requires bounded sanitized observable result")
         continuity = row.get("continuity")
         expected_identity = identity
+        if segment == "public_browser" and step in PUBLIC_JOB_LIST_STEPS:
+            if not isinstance(continuity, dict) or set(continuity) != {"profile_id", "operation_id", "request_id"}:
+                raise ValueError("Public job list continuity requires its profile and collection pair")
+            expected_identity = {**identity, **list_lineage}
         if (segment == "ui" and step in {8, 10, 11} and isinstance(continuity, dict)
                 and (status == "PASS" or {"operation_id", "request_id"}.intersection(continuity))):
             if set(continuity) != {"profile_id", "operation_id", "request_id"}:
@@ -1259,6 +1556,13 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 validate_runtime_identity(artifact.get("runtime_identity"))
             if 36 <= step <= 53 and step not in lineage:
                 raise ValueError("Application observation requires actual stage lineage")
+            if step == 34:
+                _validate_generated_resume_comparison(artifact.get(RESUME_COMPARISON_RECEIPT), continuity)
+            if step in APPLICATION_RECEIPTS:
+                _validate_application_receipt(step, artifact, continuity, lineage[step],
+                                              run_id=run_id, source_commit=source["commit"])
+            if segment == "ui" and step == 8:
+                _validate_saved_it_search_reload(artifact, expected_identity)
         result.append({"step": step, "status": status, "observable_result": observable,
                        "evidence_kind": kind, "source_commit": source["commit"],
                        "run_id": run_id, "continuity": dict(continuity), "checks": copy.deepcopy(checks)})
@@ -1288,7 +1592,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                          "segments": {name: {"status": "NOT_RUN"} for name in _segment_names(public_source_provider, monitoring)},
                          "steps": [{"number": number, "status": "NOT_RUN"} for number in range(1, 61)],
                          "limitations": [
-                             "No public-source criterion 11 acceptance from controlled fixtures.",
+                             "No public-source criteria 11–14 acceptance from controlled fixtures.",
                              "Only explicit numbered producer observations receive credit.",
                              "Frontend bundle build provenance requires a separate build receipt."]})
 
@@ -1357,7 +1661,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 artifact, sha = _read_artifact(artifact_path)
                 if recorded.get("sha256") != sha:
                     raise ValueError("Checkpoint artifact hash mismatch")
-                restored.complete_segment(name, artifact, sha, persist=False)
+                restored.complete_segment(name, artifact, sha, persist=False, imported=True)
                 for row in restored.binding["steps"]:
                     if row.get("verification", {}).get("evidence_artifact") in ({f"{name}.json", "public-observations.json", "public-source-setup.json"} if name == "public" else {f"{name}.json"}):
                         row["verification"]["resume_imported"] = True
@@ -1414,10 +1718,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         self.binding["segments"][name] = {"status": "IN_PROGRESS", "started_at_utc": utc_now()}
         self.persist()
 
-    def complete_segment(self, name, artifact, sha, *, persist=True):
+    def complete_segment(self, name, artifact, sha, *, persist=True, imported=False):
         segment_sha = sha
         observation_segment = name
         evidence_name = f"{name}.json"
+        legacy_missing_receipts = set()
         try:
             timestamp = datetime.fromisoformat(artifact["timestamp"])
             started = datetime.fromisoformat(self.binding["started_at_utc"])
@@ -1449,6 +1754,18 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                     raise ValueError("UI runtime identity differs from validated coordinator runtime")
                 self.binding["runtime_identity"] = artifact["runtime_identity"]
             self.binding["stage_lineage"] = list(lineage.values())
+            if imported:
+                # Reconstruct historical rows without rewriting the producer
+                # artifact. A present but invalid receipt still fails validation.
+                artifact = copy.deepcopy(artifact)
+                observations = artifact.get("acceptance_observations")
+                if isinstance(observations, list):
+                    for row in observations:
+                        step = row.get("step") if isinstance(row, dict) else None
+                        if (type(step) is int and step in UI_RECEIPTS and row.get("status") == "PASS"
+                                and UI_RECEIPTS[step] not in artifact):
+                            legacy_missing_receipts.add(step)
+                            row["status"] = "PARTIAL"
         elif name == "public":
             original, _ = _read_artifact(self.path.parent / "ui.json")
             validate_public_artifact(artifact, original, self.binding["public_source_provider"], self.binding["run_id"])
@@ -1530,12 +1847,26 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                                  "observed_result": row["observable_result"],
                                  "executed_at_utc": artifact["timestamp"],
                                  "continuity": row["continuity"]}}
-            if name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
+            if name == "ui" and row["status"] == "PASS" and row["step"] in PUBLIC_JOB_LIST_STEPS:
+                report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="PUBLIC_JOB_LIST_NOT_OBSERVED")
+            elif name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
             if name == "public" and "public_browser" not in self.binding and row["step"] == 11:
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="PUBLIC_BROWSER_NOT_OBSERVED")
             if observation_segment == "public_browser" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
+            if observation_segment == "public_browser" and row["step"] in PUBLIC_JOB_LIST_STEPS:
+                report_row["verification"]["command"] = "cli.acceptance_public_browser.run (source-scoped UI list)"
+                report_row["verification"]["public_job_list_lineage"] = copy.deepcopy(artifact["public_job_list_lineage"])
+            if row["step"] in legacy_missing_receipts:
+                reason = {
+                    8: "SAVED_IT_SEARCH_RELOAD_NOT_RECORDED",
+                    34: "RESUME_COMPARISON_RECEIPT_NOT_RECORDED",
+                }.get(row["step"], "APPLICATION_RECEIPT_NOT_RECORDED")
+                report_row.update(producer_status="PASS", credit_withheld=reason)
+            if name == "ui" and row["status"] == "PASS" and row["step"] in UI_RECEIPTS:
+                field = UI_RECEIPTS[row["step"]]
+                report_row["verification"][field] = copy.deepcopy(artifact[field])
             if "job_id" in row["continuity"]:
                 report_row["verification"]["job_scope"] = (
                     "SELECTED_APPLICATION_JOB" if row["step"] >= 32 else "SAME_PROFILE_BROWSED_JOB")

@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from cli.acceptance_public_source import run
@@ -21,6 +21,8 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.discovery.search_profiles import get_search_profile, save_search_profile
+from services.discovery.sources.collect import configure_source
 from services.documents.generate import prepare
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
@@ -103,6 +105,67 @@ class SameProfilePublicObservationIntegrationTests(unittest.TestCase):
             self.assertFalse(job['attributes']['fictional'])
             self.assertTrue(job['postings'][0]['snapshots'])
             self.assertEqual(job['match']['profile_id'], 'fixture')
+
+        # Persist and reload a remote IT search against the provider-owned
+        # source, then prove the search-scoped jobs view keeps a match and
+        # hides a discovered non-match.
+        save_search_profile(reopened, {
+            'id': 'remote-it-search', 'profile_id': 'fixture',
+            'name': 'Remote IT and Data', 'enabled': True,
+            'include_titles': ['Senior Python Engineer'], 'remote': 'REQUIRED',
+            'source_ids': [result['source_id']],
+        })
+        persisted_store = Store(self.url)
+        try:
+            saved_search = get_search_profile(persisted_store, 'remote-it-search')
+            self.assertEqual(saved_search['profile_id'], 'fixture')
+            self.assertEqual(saved_search['criteria']['remote'], 'REQUIRED')
+            self.assertEqual(saved_search['source_ids'], [result['source_id']])
+            observed_jobs = [persisted_store.job(job_id, profile_id='fixture')
+                             for job_id in result['observed_real_job_ids']]
+        finally:
+            persisted_store.engine.dispose()
+        matching_ids = {job['id'] for job in observed_jobs
+                        if job['title'] == 'Senior Python Engineer'}
+        nonmatching_ids = {job['id'] for job in observed_jobs
+                           if job['title'] != 'Senior Python Engineer'}
+        self.assertTrue(matching_ids, 'Public source fixture must expose the intended remote IT match')
+        self.assertTrue(nonmatching_ids, 'Public source fixture must expose a negative filter control')
+        expected_endpoint = {
+            'wwr': 'https://weworkremotely.com/remote-jobs.rss',
+            'remotive': 'https://remotive.com/api/remote-jobs',
+        }[provider]
+        with self.store.engine.connect() as connection:
+            for job_id in matching_ids | nonmatching_ids:
+                endpoints = set(connection.execute(select(m.postings.c.source).where(
+                    m.postings.c.job_id == job_id)).scalars())
+                self.assertIn(expected_endpoint, endpoints)
+        competing_source_id = configure_source(self.store, 'competing-fixture-source')
+        competing_job = next(job for job in self.store.jobs('fixture') if job['title'] == 'Python Developer')
+        competing_job_id = competing_job['id']
+        self.assertNotIn(competing_job_id, matching_ids | nonmatching_ids)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == competing_job_id).values(
+                title='Senior Python Engineer',
+                attributes={**competing_job['attributes'], 'source_id': competing_source_id}))
+
+        search_params = {
+            'profile_id': 'fixture', 'search_profile_id': 'remote-it-search',
+        }
+        unscoped = self.client.get('/jobs', params=search_params)
+        self.assertEqual(unscoped.status_code, 200, unscoped.text)
+        unscoped_ids = {job['id'] for job in unscoped.json()['jobs']}
+        self.assertIn(competing_job_id, unscoped_ids)
+        self.assertTrue(matching_ids <= unscoped_ids)
+        self.assertFalse(nonmatching_ids & unscoped_ids)
+
+        scoped = self.client.get('/jobs', params={**search_params,
+            'job_source_id': saved_search['source_ids'][0]})
+        self.assertEqual(scoped.status_code, 200, scoped.text)
+        visible_ids = {job['id'] for job in scoped.json()['jobs']}
+        self.assertTrue(matching_ids <= visible_ids)
+        self.assertFalse(nonmatching_ids & visible_ids)
+        self.assertNotIn(competing_job_id, visible_ids)
         return result
 
     def test_wwr_collection_preserves_application_and_persists_same_profile_jobs(self):

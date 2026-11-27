@@ -9,18 +9,24 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import uvicorn
 from fastapi.testclient import TestClient
+from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwright
 
 from apps.api.main import create_app
+from cli.acceptance_journey import join_public_browser
+from cli.acceptance_public_browser import _digest, _JobListEvidenceError, _observe_job_list
 from cli.acceptance_public_browser import run as observe_public_browser
 from cli.acceptance_public_source import run as collect_public_jobs
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.pipeline import discover
+from services.discovery.sources.collect import _legacy_company_label
+from services.discovery.sources.remotive import Remotive
 from services.documents.generate import prepare
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
@@ -28,6 +34,367 @@ from workers.tasks import execute_operation
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+class PublicJobListObservationTests(unittest.TestCase):
+    def observe(self, *, scope="LIVE_PUBLIC_READ_ONLY", tied=False, wrong_order=False,
+                extra_card=None, search_case=None, score_change=False, missing_baseline_score=False):
+        origin = "http://127.0.0.1:18100"
+        rows = [
+            {"id": "public-a", "title": "Data Analyst", "match_score": 50},
+            {"id": "public-b", "title": "Observability Engineer", "match_score": 50 if tied else 95},
+            {"id": "public-c", "title": "Support Specialist", "match_score": None},
+            {"id": "not-admitted", "title": "Data Engineer", "match_score": 100},
+            {"id": "selected-fixture", "title": "Fixture Job", "match_score": 1},
+        ]
+        if search_case == "missing_title_hit":
+            rows[1]["title"] = "Platform Analyst"
+        elif search_case == "description_hit":
+            rows[1]["description"] = "Works with an Analyst."
+        job_cohort = {row["id"]: {"detail": row} for row in rows[:3]}
+        document = """
+            <label>Active profile<select id=profile aria-label='Active profile'><option>profile-a</option></select></label>
+            <label>Job source<select id=source aria-label='Job source'><option value=''>All</option><option>source-a</option></select></label>
+            <label>Search jobs<input id=q></label><label>Job title<input id=title></label>
+            <label>Sort<select id=sort aria-label='Sort'><option>score</option><option>title</option></select></label>
+            <div class=job-list></div>
+            <script>
+                const get = id => document.getElementById(id).value;
+                async function refresh() {
+                    const query = new URLSearchParams({profile_id: get('profile'), job_source_id: get('source'),
+                        q: get('q'), title: get('title'), sort: get('sort')});
+                    const {jobs, reverse_render, extra_card} = await (await fetch('/jobs?' + query)).json();
+                    setTimeout(() => {
+                        const list = document.querySelector('.job-list');
+                        list.replaceChildren(...(reverse_render ? jobs.reverse() : jobs).map(job => {
+                            const card = document.createElement('button');
+                            card.className = 'job-card'; card.dataset.jobId = job.id;
+                            const score = document.createElement('span');
+                            score.className = 'score';
+                            score.textContent = job.match_score === null ? 'Unscored' : job.match_score + '%';
+                            card.append(score); return card;
+                        }));
+                        if (extra_card) {
+                            const card = document.createElement('article');
+                            card.className = 'job-card';
+                            if (extra_card === 'duplicate_id') card.dataset.jobId = jobs[0].id;
+                            card.textContent = 'Unexpected job card';
+                            list.append(card);
+                        }
+                    }, 20);
+                }
+                document.querySelectorAll('select').forEach(control => control.onchange = refresh);
+                document.querySelectorAll('input').forEach(control => control.oninput = refresh);
+            </script>
+        """
+
+        def respond(route):
+            request = route.request
+            url = urlsplit(request.url)
+            self.assertEqual(f"{url.scheme}://{url.netloc}", origin)
+            self.assertEqual(request.method, "GET")
+            if url.path == "/":
+                route.fulfill(content_type="text/html", body=document)
+                return
+            self.assertEqual(url.path, "/jobs")
+            query = parse_qs(url.query)
+            self.assertEqual(query["profile_id"], ["profile-a"])
+            job_source = query.get("job_source_id", [""])[0]
+            self.assertIn(job_source, ("", "source-a"))
+            terms = [query.get(key, [""])[0].lower() for key in ("q", "title")]
+            q, title = terms
+            matching = [dict(row) for row in rows if (not job_source or row["id"] != "selected-fixture")
+                        and q in f'{row["title"]} {row.get("description", "")}'.lower()
+                        and title in row["title"].lower()]
+            if search_case == "missing_title_hit" and q:
+                matching = [row for row in matching if row["id"] != "public-b"] if q == "analyst" else []
+            by_score = query["sort"] == ["score"]
+            if by_score and score_change:
+                for row in matching:
+                    if row["id"] == "public-a":
+                        row["match_score"] = 65
+            matching.sort(key=lambda row: ((-row["match_score"] if row["match_score"] is not None else 1)
+                                          if by_score else 0, row["title"]))
+            if not by_score and missing_baseline_score:
+                for row in matching:
+                    if row["id"] == "public-c":
+                        del row["match_score"]
+            route.fulfill(json={"jobs": matching, "reverse_render": wrong_order, "extra_card": extra_card})
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.route("**/*", respond)
+                page.goto(origin)
+                return _observe_job_list(page, origin, {
+                    "profile_id": "profile-a", "source_id": "source-a", "execution_scope": scope,
+                }, job_cohort)
+            finally:
+                browser.close()
+
+    def test_search_filter_and_sort_stay_bound_to_admitted_canonical_ids(self):
+        evidence = self.observe()
+        self.assertEqual(evidence["source_id"], "source-a")
+        self.assertEqual(evidence["admitted_job_ids"], ["public-a", "public-b", "public-c"])
+        self.assertEqual([row["status"] for row in evidence["observations"]], ["PASS"] * 3)
+        search, title, sort = evidence["observations"]
+        self.assertEqual(search["probe"]["visible_job_ids"], ["public-a"])
+        self.assertEqual(search["probe"]["excluded_job_ids"], ["public-b", "public-c"])
+        self.assertEqual(title["probe"]["visible_job_ids"], ["public-a"])
+        self.assertEqual(title["probe"]["excluded_job_ids"], ["public-b", "public-c"])
+        self.assertEqual(sort["title_sorted_jobs"], [
+            {"job_id": "public-a", "match_score": 50},
+            {"job_id": "public-b", "match_score": 95},
+            {"job_id": "public-c", "match_score": None},
+        ])
+        self.assertEqual([row["job_id"] for row in sort["title_sorted_jobs"]],
+                         evidence["source_scoped_job_ids"])
+        self.assertEqual(sort["ranked_jobs"], [
+            {"job_id": "public-b", "match_score": 95},
+            {"job_id": "public-a", "match_score": 50},
+            {"job_id": "public-c", "match_score": None},
+        ])
+        self.assertNotIn("not-admitted", json.dumps(evidence))
+        self.assertNotIn("selected-fixture", json.dumps(evidence))
+
+    def test_controlled_transport_never_claims_live_pass(self):
+        receipt = self.observe(scope="CONTROLLED_TRANSPORT")
+        self.assertEqual([row["status"] for row in receipt["observations"]], ["NOT_RUN"] * 3)
+        self.assertTrue(all(all(row["checks"].values()) for row in receipt["observations"]))
+
+    def test_only_tied_scores_cannot_prove_match_sort(self):
+        receipt = self.observe(tied=True)
+        self.assertEqual([row["status"] for row in receipt["observations"]], ["PASS", "PASS", "PARTIAL"])
+
+    def test_mismatched_dom_order_cannot_be_used_as_evidence(self):
+        with self.assertRaises(PlaywrightTimeout):
+            self.observe(wrong_order=True)
+
+    def test_all_job_cards_must_have_unique_ids(self):
+        for extra_card in ("missing_id", "duplicate_id"):
+            with self.subTest(extra_card=extra_card), self.assertRaises(PlaywrightTimeout):
+                self.observe(extra_card=extra_card)
+
+    def test_search_with_a_missing_title_match_cannot_pass(self):
+        search, title, sort = self.observe(search_case="missing_title_hit")["observations"]
+        self.assertEqual(search["status"], "PARTIAL")
+        self.assertFalse(search["checks"]["matching_job_visible"])
+        self.assertEqual((title["status"], sort["status"]), ("PASS", "PASS"))
+
+    def test_search_permits_a_description_only_hit(self):
+        search = self.observe(search_case="description_hit")["observations"][0]
+        self.assertEqual(search["status"], "PASS")
+        self.assertEqual(search["probe"]["visible_job_ids"], ["public-a", "public-b"])
+        self.assertEqual(search["probe"]["excluded_job_ids"], ["public-c"])
+
+    def test_sort_requires_unchanged_scores_between_independent_readbacks(self):
+        sort = self.observe(score_change=True)["observations"][2]
+        self.assertEqual(sort["status"], "PARTIAL")
+        self.assertFalse(sort["checks"]["match_sort_order"])
+        self.assertEqual(sort["title_sorted_jobs"][0], {"job_id": "public-a", "match_score": 50})
+        self.assertIn({"job_id": "public-a", "match_score": 65}, sort["ranked_jobs"])
+
+    def test_sort_rejects_a_missing_baseline_score_field(self):
+        with self.assertRaisesRegex(_JobListEvidenceError, "^PUBLIC_BROWSER_MATCH_SCORE_INVALID$"):
+            self.observe(missing_baseline_score=True)
+
+
+class PublicBrowserListIsolationTests(unittest.TestCase):
+    def run_browser(self, fault, *, employer=False):
+        origin = "http://127.0.0.1:18100"
+        endpoint = "https://remotive.com/api/remote-jobs"
+        raw = RAW_REMOTIVE_PAYLOAD["jobs"][0]
+        normalized = Remotive().normalize(raw)
+        company, company_id = _legacy_company_label("remotive", raw)
+        source_id, job_id = "b" * 64, "public-job"
+        source_job_id = identity(company_id, normalized["requisition"])
+        snapshot = {"id": "snapshot", "sha256": _digest(raw)}
+        posting = {"id": identity(source_id, source_job_id), "source_job_id": source_job_id,
+                   "job_id": job_id, "source": endpoint, "source_url": raw["url"],
+                   "raw": raw, "fetched_at": "2026-01-01T00:00:00Z", "snapshots": [snapshot]}
+        native_id = normalized["attributes"]["native_posting_id"]
+        job = {"id": job_id, "title": normalized["title"], "company": company,
+               "company_id": company_id, "location": raw["candidate_required_location"],
+               "remote_type": "REMOTE_US", "provider": "remotive", "postings": [posting],
+               "attributes": {"fictional": False, "native_posting_id": native_id,
+                              "source_id": source_id, "provider": "remotive"}}
+        baseline = {"source": {"commit": "a" * 40}, "profile_id": "profile-a",
+                    "application_id": "application-a", "operation_id": "operation-a",
+                    "request_id": "request-a", "selected_application_job_id": "fixture-job",
+                    "selected_application_route_id": "route-a", "application_document_ids": [],
+                    "target_origin": origin}
+        public = {**baseline, "result": "PASS", "external_submission_enabled": False,
+                  "timestamp": "2026-01-01T00:00:00Z", "acceptance_run_id": "synthetic-run",
+                  "collection_operation_id": "collection-a", "collection_request_id": "collect-a",
+                  "source_id": source_id, "endpoint": endpoint, "provider": "remotive",
+                  "execution_scope": "LIVE_PUBLIC_READ_ONLY", "profile_version": "version-a",
+                  "observed_real_job_ids": [job_id], "observations": [{
+                      "job_id": job_id, "source_id": source_id, "source_endpoint": endpoint,
+                      "fictional": False, "native_posting_id": native_id,
+                      "postings": [{"posting_id": posting["id"], "raw_sha256": snapshot["sha256"],
+                                    "fetched_at": posting["fetched_at"], "snapshots": [snapshot]}],
+                  }]}
+        if employer:
+            public.update(employer_verification_requested=True, employer_observation={"status": "COMPLETE"})
+        runtime = {"source_manifest_sha256": "c" * 64, "dockerfile_sha256": "d" * 64,
+                   "images": {}, "frontend_assets": {}}
+        api_payloads = {
+            "/profiles/profile-a": {"id": "profile-a", "version": "version-a"},
+            "/profiles/profile-a/applications/application-a": {
+                "id": "application-a", "profile_id": "profile-a", "job_id": "fixture-job", "route_id": "route-a"},
+            "/profiles/profile-a/applications/application-a/documents": {"documents": []},
+            f"/jobs/{job_id}": job,
+        }
+
+        def api_response(request):
+            self.assertEqual(request.method, "GET")
+            return httpx.Response(200, json=api_payloads[request.url.path])
+
+        document = f"""
+            <label>Active profile<select aria-label="Active profile"><option>profile-a</option></select></label>
+            <nav><button id="jobs-tab">Jobs</button></nav>
+            <label>Job source<select id="source" aria-label="Job source"><option value="">All</option>
+                <option value="{source_id}">Source</option></select></label>
+            <label>Search jobs<input></label><label>Job title<input></label>
+            <label>Sort<select id="sort" aria-label="Sort"><option>score</option><option>title</option></select></label>
+            <div class="job-list"><button class="job-card" data-job-id="{job_id}">
+                <span class="eyebrow">{company}</span><span class="job-card-title">{job['title']}</span>
+                <span role="group" aria-label="Job route provenance">remotive.com/api/remote-jobs
+                    APPLICATION PROVIDER remotive</span></button></div>
+            <section class="job-detail" hidden><span class="eyebrow">{company}</span><h2>{job['title']}</h2>
+                {job['location']} {job['remote_type']}
+                <div class="provenance">{endpoint}<a href="{raw['url']}">Source</a> SHA256 {snapshot['sha256']}</div>
+            </section>
+            <script>
+                document.querySelector('.job-card').onclick = async () => {{
+                    await fetch('/jobs/{job_id}?profile_id=profile-a');
+                    document.querySelector('.job-detail').hidden = false;
+                }};
+            </script>
+        """
+        pages = []
+        later_pages = []
+        score_reads = []
+        score_fault = fault.split("-")[1:] if fault.startswith("score-") else []
+
+        def browser_response(route):
+            request = route.request
+            self.assertEqual(request.method, "GET")
+            url = urlsplit(request.url)
+            if url.path == "/":
+                script = ""
+                if len(pages) == 2:
+                    if fault in {"selector", "egress"}:
+                        script = "document.querySelector('#sort').value = 'title';"
+                    if fault == "egress":
+                        script += "fetch('https://blocked.invalid/probe').catch(() => {});"
+                    if fault == "integrity" or score_fault:
+                        script += f"""document.querySelector('#source').onchange = () =>
+                            fetch('/jobs?profile_id=profile-a&job_source_id={source_id}&sort=' +
+                                  document.querySelector('#sort').value);
+                            document.querySelector('#sort').onchange =
+                                document.querySelector('#source').onchange;"""
+                route.fulfill(content_type="text/html", body=document + f"<script>{script}</script>")
+            elif url.path == "/jobs":
+                by_sort = parse_qs(url.query)["sort"][0]
+                score_reads.append(by_sort)
+                row = {"id": job_id, "match_score": 80}
+                if score_fault and score_fault[0] == by_sort:
+                    if score_fault[1] == "invalid":
+                        row["match_score"] = True
+                    else:
+                        del row["match_score"]
+                duplicate = fault == "integrity" or (fault == "score-title-combined" and score_reads == [
+                    "score", "title", "score"])
+                route.fulfill(json={"jobs": [row, row] if duplicate else [row]})
+            else:
+                route.fulfill(json=api_payloads[url.path])
+
+        def observe_later(page, *_args):
+            self.assertIs(page, pages[0])
+            self.assertTrue(pages[1].is_closed())
+            self.assertTrue(page.locator("section.job-detail").is_visible())
+            self.assertEqual(page.get_by_label("Sort").input_value(), "score")
+            later_pages.append(page)
+            return {"synthetic_later_segment": True}
+
+        api = httpx.Client(base_url=origin, transport=httpx.MockTransport(api_response))
+        with sync_playwright() as playwright:
+            chromium = playwright.chromium
+            launch = chromium.launch
+
+            def launch_routed(**kwargs):
+                browser = launch(**kwargs)
+                new_context = browser.new_context
+
+                def create_context(**options):
+                    context = new_context(**options)
+                    install_route, new_page = context.route, context.new_page
+
+                    def route_with_synthetic_loopback(pattern, handler):
+                        install_route(pattern, handler)
+                        install_route(origin + "/**", browser_response)
+
+                    def track_page():
+                        page = new_page()
+                        pages.append(page)
+                        return page
+
+                    context.route = route_with_synthetic_loopback
+                    context.new_page = track_page
+                    return context
+
+                browser.new_context = create_context
+                return browser
+
+            with (patch.object(chromium, "launch", launch_routed),
+                  patch("cli.acceptance_public_browser.sync_playwright") as browser_context,
+                  patch("cli.acceptance_public_browser.httpx.Client", return_value=api),
+                  patch("cli.ui_e2e.validate_employer_verification_witness"),
+                  patch("cli.acceptance_public_employer.observe_browser", side_effect=observe_later)):
+                browser_context.return_value.__enter__.return_value = playwright
+                evidence = observe_public_browser(origin, baseline, public, runtime_identity=runtime)
+        self.assertEqual(len(later_pages), int(employer))
+        if score_fault:
+            self.assertEqual(score_reads, ["score", "title", "score"])
+        return evidence, baseline, public, runtime
+
+    def test_list_selector_failure_keeps_public_proof_and_runs_later_employer_segment(self):
+        evidence, *_ = self.run_browser("selector", employer=True)
+        self.assertNotIn("job_list_observation", evidence)
+        self.assertEqual([(row["step"], row["status"]) for row in evidence["acceptance_observations"]],
+                         [(11, "PASS"), (16, "PASS")])
+        self.assertEqual(evidence["employer_observation"], {"synthetic_later_segment": True})
+
+    def test_list_timeout_admits_only_base_public_steps(self):
+        evidence, baseline, public, runtime = self.run_browser("timeout")
+        self.assertNotIn("job_list_observation", evidence)
+        joined = join_public_browser(baseline, public, evidence, _digest(public), _digest(evidence), runtime)
+        self.assertEqual([(row["step"], row["status"]) for row in joined["acceptance_observations"]],
+                         [(11, "PASS"), (16, "PASS")])
+
+    def test_probe_egress_is_fatal_even_when_list_selector_fails(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_EXTERNAL_EGRESS_ATTEMPTED$"):
+            self.run_browser("egress", employer=True)
+
+    def test_malformed_list_identity_remains_fatal(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID$"):
+            self.run_browser("integrity", employer=True)
+
+    def test_optional_score_failures_keep_base_proof_and_withhold_list_credit(self):
+        for order in ("title", "score"):
+            for fault in ("missing", "invalid"):
+                with self.subTest(order=order, fault=fault):
+                    evidence, baseline, public, runtime = self.run_browser(f"score-{order}-{fault}")
+                    self.assertNotIn("job_list_observation", evidence)
+                    joined = join_public_browser(baseline, public, evidence, _digest(public), _digest(evidence), runtime)
+                    self.assertEqual([(row["step"], row["status"]) for row in joined["acceptance_observations"]],
+                                     [(11, "PASS"), (16, "PASS")])
+
+    def test_missing_baseline_score_does_not_mask_ranked_identity_failure(self):
+        with self.assertRaisesRegex(ValueError, "^PUBLIC_BROWSER_JOB_LIST_READBACK_INVALID$"):
+            self.run_browser("score-title-combined", employer=True)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
@@ -78,6 +445,12 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
                         }
                         executed = set()
                         fake_source_requests = []
+                        payload = copy.deepcopy(RAW_REMOTIVE_PAYLOAD)
+                        sibling = dict(payload["jobs"][0], id=1003,
+                            url="https://remotive.com/remote-jobs/software-dev/senior-python-engineer-1003",
+                            candidate_required_location="Canada Only")
+                        payload["jobs"].append(sibling)
+                        payload["job-count"] = len(payload["jobs"])
 
                         with TestClient(app) as api_client:
                             def request(method, path, **kwargs):
@@ -95,7 +468,7 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
                                 self.assertEqual(request.method, "GET")
                                 self.assertEqual(str(request.url), "https://remotive.com/api/remote-jobs")
                                 fake_source_requests.append(str(request.url))
-                                return httpx.Response(200, json=RAW_REMOTIVE_PAYLOAD, request=request)
+                                return httpx.Response(200, json=payload, request=request)
 
                             with patch("httpx.HTTPTransport.handle_request", controlled_provider_get):
                                 collected = collect_public_jobs(
@@ -162,6 +535,11 @@ class PublicBrowserAcceptanceTests(unittest.TestCase):
 
             first = next(row for row in evidence["observations"]
                          if row["native_posting_id"] == "1001")
+            sibling_observation = next(row for row in evidence["observations"]
+                                       if row["native_posting_id"] == "1003")
+            self.assertNotEqual(first["job_id"], sibling_observation["job_id"])
+            for posting in (first, sibling_observation):
+                self.assertTrue(posting["checks"]["canonical_job_id_bound_to_selected_detail_readback"])
             self.assertEqual(first["restriction"]["source_field"], "candidate_required_location")
             self.assertEqual(first["restriction"]["source_value"], "USA Only")
             self.assertTrue(first["restriction"]["visible"])

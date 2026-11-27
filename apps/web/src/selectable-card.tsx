@@ -7,6 +7,7 @@ export type SelectableCardFooterItem = {
 };
 
 export type SelectableCardProps = {
+  jobId?: string;
   company: string;
   title: string;
   badge: string;
@@ -19,6 +20,7 @@ export type SelectableCardProps = {
 };
 
 export function SelectableCard({
+  jobId,
   company,
   title,
   badge,
@@ -42,6 +44,7 @@ export function SelectableCard({
 
   return <button
     type="button"
+    data-job-id={jobId}
     className={`job-card${selected ? ' selected' : ''}`}
     aria-labelledby={`${companyId} ${titleId}`}
     aria-describedby={descriptionIds.join(' ')}

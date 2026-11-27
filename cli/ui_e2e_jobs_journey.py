@@ -1,6 +1,7 @@
 """Numbered, sanitized UI evidence for the supported MJ-REQ-292 UI slice."""
 
 import re
+from math import isfinite
 
 
 OBSERVATION_STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
@@ -112,6 +113,101 @@ def current_match_readback(detail, *, job_id, profile_version_before,
             and 0 <= score <= 100)
 
 
+def match_sort_matches_readback(rows, visible_titles):
+    """Require the rendered match order to match unique, scored canonical rows."""
+    if (not isinstance(rows, list) or not rows
+            or not isinstance(visible_titles, list)):
+        return False
+    identifiers = [row.get("id") for row in rows if isinstance(row, dict)]
+    titles = [row.get("title") for row in rows if isinstance(row, dict)]
+    scores = [row.get("match_score") for row in rows if isinstance(row, dict)]
+    if (len(identifiers) != len(rows)
+            or any(not isinstance(value, str) or not value for value in identifiers)
+            or len(set(identifiers)) != len(rows)
+            or any(not isinstance(value, str) or not value for value in titles)
+            or len(set(titles)) != len(titles)
+            or len(visible_titles) != len(rows)
+            or any(not isinstance(value, (int, float)) or isinstance(value, bool)
+                   or not isfinite(value)
+                   for value in scores)):
+        return False
+    if any(left < right for left, right in zip(scores, scores[1:])):
+        return False
+    for index in range(1, len(rows)):
+        previous, current = rows[index - 1], rows[index]
+        if (previous["match_score"] == current["match_score"]
+                and (previous["title"].casefold(), previous["id"])
+                > (current["title"].casefold(), current["id"])):
+            return False
+    return visible_titles == titles
+
+
+def canonical_posting_count_matches(list_count, postings):
+    """Match the card count to distinct source/source-job identities in detail."""
+    if (not isinstance(list_count, int) or isinstance(list_count, bool)
+            or list_count < 1 or not isinstance(postings, list) or not postings):
+        return False
+    identities = []
+    for posting in postings:
+        if not isinstance(posting, dict):
+            return False
+        source, source_job_id = posting.get("source"), posting.get("source_job_id")
+        if (not isinstance(source, str) or not source.strip()
+                or not isinstance(source_job_id, str) or not source_job_id.strip()):
+            return False
+        identities.append((source.strip().casefold(), source_job_id.strip().casefold()))
+    return len(set(identities)) == list_count and len(identities) == len(set(identities))
+
+
+def visible_posting_count_footer_matches(card, posting_count):
+    """Require one visible exact count item in the selected card's footer."""
+    if (not isinstance(posting_count, int) or isinstance(posting_count, bool)
+            or posting_count < 1):
+        return False
+    footer = card.locator(".card-foot")
+    if footer.count() != 1 or not footer.is_visible():
+        return False
+    expected = f"{posting_count} posting" + ("" if posting_count == 1 else "s")
+    items = footer.locator(":scope > span")
+    exact_visible_items = 0
+    for index in range(items.count()):
+        item = items.nth(index)
+        if item.is_visible() and item.inner_text().strip() == expected:
+            exact_visible_items += 1
+    return exact_visible_items == 1
+
+
+def open_job_detail_for_selected_card(page, card, title, expect):
+    """Open a selected job card, then return its detail region after heading readback."""
+    detail_region = page.locator("section.job-detail")
+    card.click()
+    expect(detail_region.get_by_role("heading", name=title, exact=True)).to_be_visible()
+    return detail_region
+
+
+def has_fixture_us_remote_region(job):
+    attributes = job.get("attributes") or {}
+    return (attributes.get("fictional") is True and job.get("remote_type") == "REMOTE_US"
+            and attributes.get("remote_regions") == ["US"])
+
+
+def fixture_us_remote_explanation(job, detail):
+    """Return an explanation backed by both readbacks of the same fixture job."""
+    if (not job.get("id") or detail.get("id") != job["id"]
+            or not job.get("title") or detail.get("title") != job["title"]
+            or not has_fixture_us_remote_region(job) or not has_fixture_us_remote_region(detail)):
+        return None
+    factors = (detail.get("match") or {}).get("components", {}).get("fit_factors") or []
+    remote_factors = [factor for factor in factors
+                      if isinstance(factor, dict) and factor.get("id") == "remote_location"]
+    if len(remote_factors) != 1 or remote_factors[0].get("label") != "Remote work region":
+        return None
+    explanation = remote_factors[0].get("explanation")
+    if isinstance(explanation, str) and explanation.endswith("Recorded job regions: US."):
+        return explanation
+    return None
+
+
 def build_observation(*, step, status, observable_result, evidence_kind,
                       source_commit, run_id, continuity=None, checks=None):
     """Validate and project one step observation onto the runner-owned schema."""
@@ -192,11 +288,17 @@ def build_observation(*, step, status, observable_result, evidence_kind,
     }
 
 
-def run_fixture_job_observations(page, request, profile_id, navigate, observe,
-                                 record_observed_jobs=None):
+def reset_annual_salary_filters(page):
+    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("")
+    page.get_by_label("Salary availability", exact=True).select_option("DEFAULT")
+
+
+def run_fixture_job_observations(page, request, profile_id, navigate, observe, *,
+                                 remote_search_id, record_observed_jobs=None):
     """Exercise and observe fixture-backed Jobs UI behavior, without live providers."""
     import time
-    from urllib.parse import urlsplit
+    from urllib.parse import parse_qs, urlsplit
 
     from playwright.sync_api import expect
 
@@ -292,12 +394,7 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
     if expected_titles:
         expect(page.locator(".job-card-title")).to_have_text(expected_titles)
     visible_titles = page.locator(".job-card-title").all_text_contents()
-    descending_scores = [row.get("match_score") for row in score_sorted_jobs]
-    scores_are_known = all(isinstance(score, (int, float)) and not isinstance(score, bool)
-                           for score in descending_scores)
-    order_is_match = (bool(expected_titles) and scores_are_known and visible_titles == expected_titles
-                      and all(left >= right for left, right in zip(
-                          descending_scores, descending_scores[1:])))
+    order_is_match = match_sort_matches_readback(score_sorted_jobs, visible_titles)
     record(14, "PASS" if order_is_match else "PARTIAL",
            "Visible fixture jobs follow the match-score order from readback." if order_is_match
            else "The fixture list did not expose a stable match-score order.",
@@ -307,31 +404,161 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
     page.get_by_label("Minimum annual salary (USD)", exact=True).fill("70000")
     page.get_by_label("Maximum annual salary (USD)", exact=True).fill("120000")
     page.get_by_label("Work location", exact=True).select_option("REMOTE")
-    expect(python_card).to_be_visible()
-    expect(data_card).to_be_visible()
-    salary_filter_visible = python_card.count() == 1 and data_card.count() == 1
-    remote_types = {row.get("remote_type") for row in request(
-        "/jobs?profile_id=" + profile_id).get("jobs", [])}
-    remote_visible = "REMOTE" in remote_types
+    salary_filtered_jobs = request(
+        "/jobs?profile_id=" + profile_id
+        + "&salary_min=70000&salary_max=120000&salary_period=YEAR"
+        + "&salary_known_only=true&remote_type=REMOTE").get("jobs", [])
+    if salary_filtered_jobs:
+        expect(page.locator(".job-card-title")).to_have_text(
+            [row.get("title") for row in salary_filtered_jobs])
+    visible_salary_titles = page.locator(".job-card-title").all_text_contents()
+    salary_filter_visible = (bool(salary_filtered_jobs)
+                             and match_sort_matches_readback(
+                                 salary_filtered_jobs, visible_salary_titles))
+    salary_rows_valid = all(
+        row.get("salary_currency") == "USD"
+        and row.get("salary_period") == "YEAR"
+        and row.get("salary_source") in {"SOURCE_PROVIDED", "EMPLOYER_PROVIDED"}
+        and isinstance(row.get("salary_min"), (int, float))
+        and not isinstance(row.get("salary_min"), bool)
+        and isinstance(row.get("salary_max"), (int, float))
+        and not isinstance(row.get("salary_max"), bool)
+        and row["salary_min"] <= row["salary_max"]
+        for row in salary_filtered_jobs)
     jobs = request("/jobs?profile_id=" + profile_id).get("jobs", [])
     if record_observed_jobs is not None:
         record_observed_jobs([row["id"] for row in jobs
                               if isinstance(row, dict) and isinstance(row.get("id"), str)])
     job_a = next((row for row in jobs if row.get("title") == "Python Developer"), None)
+    salary_detail = {}
+    salary_detail_region = page.locator("section.job-detail")
+    salary_canonical_selected = False
+    salary_job = next((row for row in salary_filtered_jobs if isinstance(row, dict)), None)
+    if salary_job is not None:
+        salary_card = page.locator(".job-card").filter(has_text=salary_job["title"])
+        if salary_card.count() == 1:
+            salary_card.click()
+            expect(page.locator("section.job-detail").get_by_role(
+                "heading", name=salary_job["title"], exact=True)).to_be_visible()
+            salary_detail_region = page.locator("section.job-detail")
+            salary_detail = request("/jobs/" + salary_job["id"] + "?profile_id=" + profile_id)
+            salary_canonical_selected = (
+                salary_detail.get("id") == salary_job["id"]
+                and "selected" in (salary_card.get_attribute("class") or "").split())
+
+    attributes = salary_detail.get("attributes") or {}
+    salary_min = salary_detail.get("salary_min", attributes.get("salary_min"))
+    salary_max = salary_detail.get("salary_max", attributes.get("salary_max"))
+    salary_source = salary_detail.get("salary_source", attributes.get("salary_source"))
+    salary_data_available = (isinstance(salary_min, (int, float))
+                             and not isinstance(salary_min, bool)
+                             and isinstance(salary_max, (int, float))
+                             and not isinstance(salary_max, bool)
+                             and salary_detail.get("salary_currency") == "USD"
+                             and salary_detail.get("salary_period") == "YEAR"
+                             and salary_source in {"SOURCE_PROVIDED", "EMPLOYER_PROVIDED"})
+    salary_label = ("Estimated salary range (not employer-confirmed)"
+                    if salary_source == "ESTIMATED"
+                    else "Source-reported salary range (not independently verified)")
+    salary_bounds_visible = False
+    if salary_data_available:
+        salary_display = salary_detail_region.get_by_label("Salary range", exact=True)
+        low_text = f"{salary_min:,.20f}".rstrip("0").rstrip(".")
+        high_text = f"{salary_max:,.20f}".rstrip("0").rstrip(".")
+        salary_bounds_visible = (salary_display.count() == 1
+                                 and low_text in salary_display.inner_text()
+                                 and high_text in salary_display.inner_text())
+    salary_visible = (salary_canonical_selected and salary_data_available and salary_bounds_visible
+                      and salary_detail_region.get_by_text(salary_label, exact=False).count() > 0)
+    salary_filter_valid = salary_filter_visible and salary_rows_valid
+    record(15, "PASS" if salary_visible and salary_filter_valid else "PARTIAL",
+           "Salary range is visible and the annual salary filter retains eligible jobs."
+           if salary_visible and salary_filter_valid
+           else "Fixture salary fields or the salary-filtered list are unavailable.",
+           [{"name": "salary_range_visible", "passed": salary_visible},
+            {"name": "salary_filter_retains_jobs", "passed": salary_filter_valid}])
+    reset_annual_salary_filters(page)
+    remote_rows = request("/jobs?profile_id=" + profile_id + "&remote_type=REMOTE").get("jobs", [])
+    if remote_rows:
+        expect(page.locator(".job-card-title")).to_have_text(
+            [row.get("title") for row in remote_rows])
+    remote_filter_matches = match_sort_matches_readback(
+        remote_rows, page.locator(".job-card-title").all_text_contents())
+    remote_type_visible = bool(remote_rows) and all(
+        str(row.get("remote_type") or "").startswith("REMOTE") for row in remote_rows)
+
+    saved_search = page.get_by_label("Saved search profile", exact=True)
+    def is_region_list_response(response):
+        url = urlsplit(response.url)
+        query = parse_qs(url.query)
+        return (response.request.method == "GET" and url.path == "/jobs"
+                and query.get("profile_id") == [profile_id]
+                and query.get("search_profile_id") == [remote_search_id])
+
+    with page.expect_response(is_region_list_response) as region_response:
+        saved_search.select_option(remote_search_id)
+    assert region_response.value.ok, "Step 16 scoped browser list request failed"
+    expect(saved_search).to_have_value(remote_search_id)
+    region_query = "?profile_id=" + profile_id + "&search_profile_id=" + remote_search_id
+    region_rows = request("/jobs" + region_query).get("jobs", [])
+    expect(page.locator(".job-card-title")).to_have_text([row["title"] for row in region_rows])
+    remote_ids = {row["id"] for row in remote_rows}
+    region_filter_matches = (match_sort_matches_readback(
+        region_rows, page.locator(".job-card-title").all_text_contents())
+        and all(row["id"] in remote_ids and has_fixture_us_remote_region(row)
+                for row in region_rows))
+    remote_ui_visible = False
+    remote_job = region_rows[0] if region_filter_matches else None
+    if remote_job is not None:
+        remote_card = page.get_by_role(
+            "button", name=f"{remote_job['company']} {remote_job['title']}", exact=True)
+        if remote_card.count() == 1:
+            remote_detail_region = open_job_detail_for_selected_card(
+                page, remote_card, remote_job["title"], expect)
+            remote_detail = request("/jobs/" + remote_job["id"] + "?profile_id=" + profile_id)
+            explanation = fixture_us_remote_explanation(remote_job, remote_detail)
+            if explanation and "selected" in (remote_card.get_attribute("class") or "").split():
+                fit_signals = remote_detail_region.get_by_role(
+                    "list", name="Additional fit signals", exact=True)
+                region_item = fit_signals.get_by_role("listitem").filter(
+                    has_text="Remote work region")
+                explanation_text = region_item.get_by_text(
+                    f". {explanation} This does not change the score.", exact=True)
+                remote_ui_visible = (region_item.count() == 1 and explanation_text.count() == 1
+                                     and explanation_text.is_visible())
+
+    remote_pass = remote_filter_matches and remote_type_visible and remote_ui_visible
+    record(16, "PASS" if remote_pass else "PARTIAL",
+           "Remote results match the saved region scope and show source restrictions."
+           if remote_pass else "The saved scope or source-backed regional explanation was unavailable.",
+           [{"name": "remote_filter_returned_a_remote_job", "passed": remote_filter_matches},
+            {"name": "remote_job_type_visible", "passed": remote_type_visible},
+            {"name": "employer_remote_restrictions_available", "passed": remote_ui_visible}],
+           continuity={"profile_id": profile_id, **({"job_id": remote_job["id"]}
+                                                    if remote_ui_visible else {})})
+    page.get_by_label("Saved search profile", exact=True).select_option("")
+    page.get_by_label("Work location", exact=True).select_option("")
+    jobs = request("/jobs?profile_id=" + profile_id).get("jobs", [])
+    job_a = next((row for row in jobs if row.get("title") == "Python Developer"), None)
     if job_a is None:
         record(17, "PARTIAL", "Fixture has no Python Developer canonical job for duplicate-count review.",
                [{"name": "canonical_duplicate_job_available", "passed": False}])
         return
+    python_card = page.get_by_role(
+        "button", name="Example Systems Inc. Python Developer", exact=True)
+    expect(python_card).to_be_visible()
     detail = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
-    detail_posting_count = len(detail.get("postings", []))
+    postings = detail.get("postings", [])
+    detail_posting_count = len(postings)
     list_posting_count = job_a.get("posting_count")
-    visible_count = page.get_by_role(
-        "button", name="Example Systems Inc. Python Developer", exact=True).count()
-    card_text = python_card.inner_text()
-    count_visible = (isinstance(list_posting_count, int)
-                     and f"{list_posting_count} posting" in card_text
+    visible_count = python_card.count()
+    footer_count_visible = (visible_count == 1
+                            and visible_posting_count_footer_matches(
+                                python_card, list_posting_count))
+    count_visible = (canonical_posting_count_matches(list_posting_count, postings)
+                     and footer_count_visible
                      and detail_posting_count == list_posting_count)
-    posting_count = detail_posting_count
+    posting_count = list_posting_count if count_visible else 0
     record(17, "PASS" if count_visible and posting_count > 1 else "PARTIAL",
            "The job card and readback expose the same duplicate posting count." if count_visible and posting_count > 1
            else "The fixture does not expose multiple postings with a visible matching count.",
@@ -353,33 +580,6 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
            [{"name": "canonical_job_detail_visible",
              "passed": detail_region.count() == 1 and is_canonical_detail}],
            continuity={"profile_id": profile_id, "job_id": job_a["id"]})
-
-    attributes = detail.get("attributes") or {}
-    salary_min = detail.get("salary_min", attributes.get("salary_min"))
-    salary_max = detail.get("salary_max", attributes.get("salary_max"))
-    salary_source = detail.get("salary_source", attributes.get("salary_source"))
-    salary_data_available = (isinstance(salary_min, (int, float))
-                             and isinstance(salary_max, (int, float)))
-    salary_label = ("Estimated salary range (not employer-confirmed)"
-                    if salary_source == "ESTIMATED"
-                    else "Source-reported salary range (not independently verified)")
-    salary_visible = (salary_data_available
-                      and detail_region.get_by_text(salary_label, exact=False).count() > 0)
-    record(15, "PASS" if salary_visible and salary_filter_visible else "PARTIAL",
-           "Salary range is visible and the annual salary filter retains eligible jobs."
-           if salary_visible and salary_filter_visible
-           else "Fixture salary fields or the salary-filtered list are unavailable.",
-           [{"name": "salary_range_visible", "passed": salary_visible},
-            {"name": "salary_filter_retains_jobs", "passed": salary_filter_visible}])
-    remote_type_visible = (detail.get("remote_type") == "REMOTE"
-                           and detail.get("location") == "United States")
-    if remote_type_visible:
-        expect(detail_region.get_by_text("United States · REMOTE", exact=True)).to_be_visible()
-    record(16, "PARTIAL",
-           "Remote type and location are shown; fixture data does not state employer remote restrictions.",
-           [{"name": "remote_filter_returned_a_remote_job", "passed": remote_visible},
-            {"name": "remote_job_type_visible", "passed": remote_type_visible},
-            {"name": "employer_remote_restrictions_available", "passed": False}])
     postings = detail.get("postings", [])
     expected_sources = {"board-A", "board-A-syndicated", "employer-A"}
     observed_sources = {row.get("source_job_id") for row in postings}

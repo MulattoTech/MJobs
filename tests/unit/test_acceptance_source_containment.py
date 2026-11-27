@@ -227,6 +227,67 @@ class PublicSourcePauseHealthTests(_PublicSourceFixture, unittest.TestCase):
         self.assertEqual(self.docker.unpause_calls, [])
         self.assertTrue(owner.claim_path.exists())
 
+    def test_cleanup_returns_fresh_owned_lease_after_child_work(self):
+        self._assert_fresh_proof_after_child_work("cleanup")
+
+    def test_finalize_returns_fresh_owned_lease_after_child_work(self):
+        self._assert_fresh_proof_after_child_work("finalize")
+
+    def _assert_fresh_proof_after_child_work(self, stage):
+        owner = self.containment(lease_seconds=40)
+        ctx = self.context(provider="remotive")
+        initial = owner("preflight", ctx)
+        self._sleep(20)
+        receipt = {"acceptance_result": "BLOCKED"}
+
+        def child_cleanup(context):
+            self.assertEqual(context, ctx)
+            self._sleep(6)
+            return receipt
+
+        with patch.object(owner, "cleanup_owned_child_sources", side_effect=child_cleanup):
+            proof = owner(stage, ctx)
+        claim = json.loads(owner.claim_path.read_text(encoding="utf-8"))
+        self.assertEqual(proof["child_source_cleanup"], receipt)
+        self.assertEqual(proof["owner"], initial["owner"])
+        self.assertEqual(proof["token"], initial["token"])
+        self.assertEqual(proof["lease_expires_at"], claim["lease_expires_at"])
+        self.assertGreater(claim["lease_expires_at"], initial["lease_expires_at"])
+        self.assertGreater(owner._lease_expiry, self.now[0] + timedelta(seconds=15))
+        self.assertEqual(self.docker.unpause_calls, [])
+
+    def test_cleanup_does_not_renew_a_lease_expired_during_child_work(self):
+        owner = self.containment(lease_seconds=40)
+        ctx = self.context(provider="remotive")
+        owner("preflight", ctx)
+        claim = owner.claim_path.read_bytes()
+
+        def child_cleanup(_):
+            self._sleep(41)
+            return {}
+
+        with patch.object(owner, "cleanup_owned_child_sources", side_effect=child_cleanup):
+            with self.assertRaisesRegex(ContainmentError, "CONTAINMENT_LEASE_EXPIRED"):
+                owner("cleanup", ctx)
+        self.assertEqual(owner.claim_path.read_bytes(), claim)
+        self.assertEqual(self.docker.unpause_calls, [])
+
+    def test_cleanup_does_not_issue_proof_when_owned_scheduler_changes_after_child_work(self):
+        owner = self.containment(lease_seconds=40)
+        ctx = self.context(provider="remotive")
+        owner("preflight", ctx)
+
+        def child_cleanup(_):
+            self.docker.rows["scheduler"]["paused"] = False
+            self.docker.rows["scheduler"]["status"] = "running"
+            return {}
+
+        with patch.object(owner, "cleanup_owned_child_sources", side_effect=child_cleanup):
+            with self.assertRaisesRegex(ContainmentError, "OWNED_SCHEDULER_NOT_PAUSED"):
+                owner("cleanup", ctx)
+        self.assertTrue(owner.claim_path.exists())
+        self.assertEqual(self.docker.unpause_calls, [])
+
     def test_dependency_failure_after_pause_never_reaches_child_inventory(self):
         def pause():
             self._scheduler_health_lag()

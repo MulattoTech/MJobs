@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -537,24 +538,36 @@ def test_public_stage_requires_explicit_provider_and_containment_callback(tmp_pa
     ui.assert_not_called()
 
 
-@pytest.mark.parametrize("browser_enabled", [False, True])
-def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path, browser_enabled):
+@pytest.mark.parametrize("browser_mode", [None, "legacy", "job-list"])
+def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path, browser_mode):
     events = []
+    state = baseline()
+    state["acceptance_observations"].extend(
+        {**observation(step), "checks": [{"name": name, "passed": True}
+            for name in sorted(journey.REQUIRED_CHECKS[step])]}
+        for step in sorted(journey.PUBLIC_JOB_LIST_STEPS))
+    public = public_artifact()
+    browser = public_browser_artifact(state, public)
+    if browser_mode == "job-list":
+        public, browser = public_job_list_artifacts(state)
+
+    def ui_run(url, path, **kwargs):
+        emit(path, {**state, "timestamp": journey.utc_now()})
+
     def public_run(url, original, path, **kwargs):
         assert kwargs["provider"] == "wwr" and kwargs["acceptance_run_id"] == RUN_ID
         assert original["application_id"] == IDENTITY["application_id"]
         events.append("public")
-        emit(path, public_artifact())
+        emit(path, {**public, "timestamp": journey.utc_now()})
 
     def recapture(original, public, target):
-        assert public["observed_real_job_ids"] == ["real-job-1"]
-        return {**original, "job_inventory": inventory(("mock-job-1", "real-job-1")),
+        return {**original, "job_inventory": inventory(("mock-job-1", *public["observed_real_job_ids"])),
                 "selected_application_job_id": "mock-job-1",
                 "selected_application_route_id": "mock-route-1"}
 
     def browser_run(url, original, public, **kwargs):
         events.append("browser")
-        return public_browser_artifact(original, public)
+        return _seal_browser({**browser, "timestamp_utc": journey.utc_now()})
 
     def recovery(path, output, *args):
         events.append("recovery")
@@ -567,15 +580,15 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
     with patch.object(journey, "current_source", return_value=SOURCE), \
             patch.object(journey, "preflight", return_value=RUNTIME), \
             patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
-            patch.object(journey, "_public_browser_module", return_value=SimpleNamespace(run=browser_run) if browser_enabled else None), \
+            patch.object(journey, "_public_browser_module", return_value=SimpleNamespace(run=browser_run) if browser_mode else None), \
             patch.object(journey, "recapture_public_baseline", side_effect=recapture), \
-            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.ui_e2e, "run", side_effect=ui_run), \
             patch.object(journey.recovery, "run", side_effect=recovery):
         report = invoke(tmp_path, public_source_provider="wwr",
                         public_source_preflight=lambda stage, context: events.append(stage))
-    assert events == (["public", "browser", "release", "recovery"] if browser_enabled else ["public", "release", "recovery"])
-    assert report["steps"][10]["status"] == ("PASS" if browser_enabled else "PARTIAL")
-    if browser_enabled:
+    assert events == (["public", "browser", "release", "recovery"] if browser_mode else ["public", "release", "recovery"])
+    assert report["steps"][10]["status"] == ("PASS" if browser_mode else "PARTIAL")
+    if browser_mode:
         assert report["steps"][15]["status"] == "PASS"
         assert report["steps"][10]["verification"]["evidence_artifact"] == "public-observations.json"
         joined = json.loads((tmp_path / "public-observations.json").read_text())
@@ -585,12 +598,25 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
         assert report["steps"][10]["credit_withheld"] == "PUBLIC_BROWSER_NOT_OBSERVED"
     assert report["steps"][10]["observation"]["evidence_kind"] == "PUBLIC_READ_ONLY"
     assert report["selected_application_job_id"] == "mock-job-1"
-    assert report["observed_real_job_ids"] == ["real-job-1"]
+    assert report["observed_real_job_ids"] == public["observed_real_job_ids"]
     assert report["result"] == "PARTIAL"
     restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr").payload()
     assert restored["steps"][10]["verification"]["resume_imported"] is True
     assert restored["derived_baseline"] == report["derived_baseline"]
-    if browser_enabled:
+    for step in sorted(journey.PUBLIC_JOB_LIST_STEPS):
+        saved = report["steps"][step - 1]
+        if browser_mode == "job-list":
+            assert saved["status"] == "PASS"
+            assert saved["verification"]["evidence_artifact"] == "public-observations.json"
+            assert saved["verification"]["public_job_list_lineage"]["job_ids"] == public["observed_real_job_ids"]
+        else:
+            assert saved["status"] == "PARTIAL"
+            assert saved["producer_status"] == "PASS"
+            assert saved["credit_withheld"] == "PUBLIC_JOB_LIST_NOT_OBSERVED"
+        assert restored["steps"][step - 1]["status"] == saved["status"]
+        assert restored["steps"][step - 1]["verification"]["resume_imported"] is True
+    assert report["steps"][24]["status"] == "NOT_RUN"
+    if browser_mode:
         browser_path = tmp_path / "public-browser.json"
         encoded = browser_path.read_bytes()
         browser_path.write_bytes(encoded + b" ")
@@ -671,10 +697,32 @@ def scoped_observation(step):
     return row
 
 
+def resume_comparison_artifact():
+    artifact = baseline()
+    row = scoped_observation(34)
+    artifact["acceptance_observations"] = [row]
+    scope = {key: row["continuity"][key] for key in ("profile_id", "application_id", "job_id")}
+    base_id, tailored_id = row["continuity"]["document_ids"]
+    base = {**scope, "kind": "resume", "id": base_id, "version": 2,
+            "profile_version": "a" * 64, "sha256": {"txt": "b" * 64}}
+    tailored = {**base, "id": tailored_id, "version": 4, "sha256": {"txt": "c" * 64}}
+    sql = {"fact_id": "sql-fact", "kind": "skill", "text": "SQL"}
+
+    def snapshot(document, facts):
+        return {**{key: document[key] for key in ("id", "version", "profile_version")},
+                "sha256": document["sha256"]["txt"], "facts": facts}
+
+    comparison = {"base": snapshot(base, [sql]), "tailored": snapshot(tailored, []), "omitted": [sql]}
+    artifact[journey.RESUME_COMPARISON_RECEIPT] = journey.ui_e2e.generated_resume_omission_receipt(
+        comparison, base=base, tailored=tailored, omitted_fact=sql, **scope)
+    return artifact
+
+
 @pytest.mark.parametrize("step", [17, 18, 19, 20, 21, 22, 32, 33, 34, 35])
 def test_pass_requires_concrete_job_and_document_lineage(step):
-    artifact = baseline()
-    artifact["acceptance_observations"] = [scoped_observation(step)]
+    artifact = resume_comparison_artifact() if step == 34 else baseline()
+    if step != 34:
+        artifact["acceptance_observations"] = [scoped_observation(step)]
     rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
                                         source=SOURCE, identity=journey._identity(artifact))
     assert rows[0]["continuity"]["job_id"] == ("browse-job-1" if step < 32 else "mock-job-1")
@@ -1041,6 +1089,248 @@ def test_application_stages_require_actual_stage_lineage(step):
         journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
 
 
+def application_receipt_artifact(step):
+    artifact = application_stage_artifact(step)
+    stage = artifact["stage_lineage"][0]
+    stage["operation_id"] = "8" * 64
+    if step == 36:
+        stage["operation_kind"] = "PREPARE"
+        artifact["acceptance_observations"][0]["continuity"]["document_ids"] = ["resume-1", "letter-1"]
+        artifact["prepared_document_pair"] = {key: stage[key] for key in ("profile_id", "application_id", "job_id")}
+        artifact["prepared_document_pair"].update(profile_version="c" * 64, document_version=1,
+            documents={"resume": "resume-1", "cover-letter": "letter-1"})
+    else:
+        artifact.update(operation_id=stage["operation_id"], request_id=stage["request_id"])
+        artifact["application_audit_trace"] = {"run_id": RUN_ID, "source_commit": SOURCE["commit"],
+            "profile_id": stage["profile_id"], "application_id": stage["application_id"], "events": [
+                {"id": str(index) * 32, "type": kind, "timestamp": f"2026-11-26T14:00:0{4-index}+00:00",
+                 "application_id": stage["application_id"], "index": index}
+                for index, kind in enumerate(("APPLICATION_STATUS_REPORTED", "APPLICATION_CONFIRMED",
+                                              "APPLICATION_SUBMITTED"), 1)]}
+    return artifact
+
+
+def application_receipt_rows(artifact):
+    return journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+                                         source=SOURCE, identity=journey._identity(artifact))
+
+
+def test_step34_stores_exact_producer_comparison_witness_in_verification(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = resume_comparison_artifact()
+    artifact["acceptance_observations"].extend(scoped_observation(step) for step in (33, 35))
+    checkpoint.binding["frontend_build"] = {"status": "PASS"}
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    rows = checkpoint.payload()["steps"]
+    for step in (33, 34, 35):
+        assert rows[step - 1]["status"] == "PASS"
+        assert (journey.RESUME_COMPARISON_RECEIPT in rows[step - 1]["verification"]) is (step == 34)
+    assert rows[33]["verification"][journey.RESUME_COMPARISON_RECEIPT] == artifact[journey.RESUME_COMPARISON_RECEIPT]
+
+
+@pytest.mark.parametrize("change", [
+    "empty-receipt", "empty-documents", "empty-omission", "wrong-profile", "wrong-application",
+    "wrong-job", "wrong-document", "swapped-roles", "same-version", "reversed-versions", "same-hash", "invalid-version",
+    "bad-profile-version", "wrong-omission", "raw-omission-text",
+])
+def test_step34_rejects_malformed_or_conflicting_witness(change):
+    artifact = resume_comparison_artifact()
+    field = journey.RESUME_COMPARISON_RECEIPT
+    receipt = artifact[field]
+    documents = receipt["documents"]
+    base, tailored = documents["base"], documents["tailored"]
+    if change == "empty-receipt":
+        artifact[field] = {}
+    elif change == "empty-documents":
+        receipt["documents"] = {}
+    elif change == "empty-omission":
+        receipt["omitted"] = {}
+    elif change in {"wrong-profile", "wrong-application", "wrong-job"}:
+        receipt[change.removeprefix("wrong-") + "_id"] = "unrelated"
+    elif change == "wrong-document":
+        tailored["id"] = "letter-1"
+    elif change == "swapped-roles":
+        documents["base"], documents["tailored"] = tailored, base
+    elif change == "same-version":
+        tailored["version"] = base["version"]
+    elif change == "reversed-versions":
+        base["version"], tailored["version"] = tailored["version"], base["version"]
+    elif change == "same-hash":
+        tailored["sha256"] = base["sha256"]
+    elif change == "invalid-version":
+        base["version"] = True
+    elif change == "bad-profile-version":
+        base["profile_version"] = "not-a-hash"
+    elif change == "wrong-omission":
+        receipt["omitted"]["text_sha256"] = hashlib.sha256(b"Python").hexdigest()
+    elif change == "raw-omission-text":
+        receipt["omitted"]["text"] = "SQL"
+    with pytest.raises(ValueError, match="Criterion 34"):
+        application_receipt_rows(artifact)
+
+
+@pytest.mark.parametrize("step", [34, 36, 53])
+def test_application_receipt_is_required_even_when_legacy_booleans_are_true(step):
+    artifact = resume_comparison_artifact() if step == 34 else application_receipt_artifact(step)
+    artifact.pop(journey.UI_RECEIPTS[step])
+    with pytest.raises(ValueError, match=f"Criterion {step}"):
+        application_receipt_rows(artifact)
+
+
+@pytest.mark.parametrize("step", [34, 36, 53])
+def test_resume_withholds_credit_for_historical_missing_receipt_without_rewriting_it(tmp_path, step):
+    journey_path = tmp_path / "journey.json"
+    ui_path = tmp_path / "ui.json"
+    checkpoint = journey.JourneyCheckpoint.create(journey_path, RUN_ID, SOURCE, TARGET)
+    state = resume_comparison_artifact() if step == 34 else application_receipt_artifact(step)
+    field = journey.UI_RECEIPTS[step]
+    state.pop(field)
+    state["acceptance_observations"].append({**observation(4),
+        "continuity": {key: state[key] for key in IDENTITY}})
+    emit(ui_path, state)
+    before = ui_path.read_bytes()
+    saved = checkpoint.payload()
+    saved.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    saved["segments"]["ui"] = {"status": "COMPLETE", "artifact": "ui.json", "sha256": hashlib.sha256(before).hexdigest()}
+    emit(journey_path, saved)
+    result = journey.JourneyCheckpoint.resume(journey_path, RUN_ID, SOURCE, TARGET).payload()
+    restored = result["steps"][step - 1]
+    assert restored["status"] == "PARTIAL" and restored["producer_status"] == "PASS"
+    assert restored["credit_withheld"] == ("RESUME_COMPARISON_RECEIPT_NOT_RECORDED" if step == 34
+                                           else "APPLICATION_RECEIPT_NOT_RECORDED")
+    assert restored["verification"]["resume_imported"] is True
+    assert result["steps"][3]["status"] == "PASS"
+    assert ui_path.read_bytes() == before
+
+    state[field] = None  # A corrupt present receipt must never use the legacy path.
+    emit(ui_path, state)
+    saved["segments"]["ui"]["sha256"] = hashlib.sha256(ui_path.read_bytes()).hexdigest()
+    emit(journey_path, saved)
+    with pytest.raises(ValueError, match=f"Criterion {step}"):
+        journey.JourneyCheckpoint.resume(journey_path, RUN_ID, SOURCE, TARGET)
+
+
+def test_step36_prepared_pair_and_revision_are_preserved_in_verification(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = application_receipt_artifact(36)
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    row = checkpoint.payload()["steps"][35]
+    assert row["status"] == "PASS"
+    assert row["verification"]["prepared_document_pair"] == artifact["prepared_document_pair"]
+    assert row["verification"]["stage_lineage"]["operation_kind"] == "PREPARE"
+    assert row["observation"]["continuity"]["document_ids"] == ["resume-1", "letter-1"]
+    assert checkpoint.payload()["steps"][52]["status"] == "NOT_RUN"
+
+
+def test_step36_accepts_exact_ui_producer_document_pair():
+    producer = getattr(journey.ui_e2e, "prepared_document_pair", None)
+    if producer is None:
+        pytest.skip("Requires isolated cb0f3900 producer dependency")
+    artifact = application_receipt_artifact(36)
+    receipt = artifact["prepared_document_pair"]
+    pins = {key: receipt[key] for key in ("profile_id", "application_id", "job_id")}
+    documents = [{**pins, "kind": kind, "id": document, "version": receipt["document_version"],
+                  "profile_version": receipt["profile_version"]} for kind, document in receipt["documents"].items()]
+    application = {**pins, "id": receipt["application_id"],
+                   "profile_version": receipt["profile_version"], "document_version": receipt["document_version"]}
+    receipt["documents"] = producer(application, documents, **pins)
+    assert application_receipt_rows(artifact)[0]["status"] == "PASS"
+
+
+@pytest.mark.parametrize("change", ["application", "profile", "job", "missing-document", "duplicate-document", "swapped-kind",
+    "different-document", "receipt-extra", "zero-version", "bool-version", "invalid-profile-version", "wrong-stage",
+    "unbound-operation", "no-row-pair", "wrong-row-order", "unread-document"])
+def test_step36_rejects_unbound_or_tampered_prepared_pair(change):
+    artifact = application_receipt_artifact(36)
+    pair = artifact["prepared_document_pair"]
+    docs = pair["documents"]
+    continuity = artifact["acceptance_observations"][0]["continuity"]
+    if change == "application": pair["application_id"] = "other-application"
+    if change == "profile": pair["profile_id"] = "other-profile"
+    if change == "job": pair["job_id"] = "browse-job-1"
+    if change == "missing-document": docs.pop("cover-letter")
+    if change == "duplicate-document": docs["cover-letter"] = docs["resume"]
+    if change == "swapped-kind": docs["resume"], docs["cover-letter"] = docs["cover-letter"], docs["resume"]
+    if change == "different-document": docs["resume"] = "base-1"
+    if change == "receipt-extra": pair["payload"] = {"private": True}
+    if change == "zero-version": pair["document_version"] = 0
+    if change == "bool-version": pair["document_version"] = True
+    if change == "invalid-profile-version": pair["profile_version"] = " "
+    if change == "wrong-stage": artifact["stage_lineage"][0]["operation_kind"] = "APPLY_MOCK"
+    if change == "unbound-operation": artifact["stage_lineage"][0]["operation_id"] = "not-a-sha"
+    if change == "no-row-pair": continuity.pop("document_ids")
+    if change == "wrong-row-order": continuity["document_ids"].reverse()
+    if change == "unread-document": artifact["application_document_ids"].remove("letter-1")
+    with pytest.raises(ValueError, match="Criterion 36|continuity"):
+        application_receipt_rows(artifact)
+
+
+def test_step53_fails_closed_before_exact_audit_helper_is_installed(monkeypatch):
+    monkeypatch.setitem(sys.modules, "cli.acceptance_audit", None)
+    with pytest.raises(ValueError, match="exact application audit trace validator"):
+        application_receipt_rows(application_receipt_artifact(53))
+
+
+@pytest.mark.parametrize("change", ["other-operation", "non-producer-operation", "unrelated-document"])
+def test_step53_requires_final_submit_lineage_before_loading_audit_helper(change):
+    artifact = application_receipt_artifact(53)
+    if change == "other-operation":
+        artifact["stage_lineage"][0]["operation_id"] = "7" * 64
+    if change == "non-producer-operation":
+        artifact["stage_lineage"][0]["operation_id"] = artifact["operation_id"] = "not-a-sha"
+    if change == "unrelated-document":
+        artifact["acceptance_observations"][0]["continuity"]["document_id"] = "resume-1"
+    with pytest.raises(ValueError, match="Criterion 53|lineage"):
+        application_receipt_rows(artifact)
+
+
+def test_step53_accepts_exact_producer_trace_and_keeps_other_steps_unobserved(tmp_path):
+    producer = pytest.importorskip("cli.acceptance_audit").application_audit_trace
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = application_receipt_artifact(53)
+    trace = artifact["application_audit_trace"]
+    events = [{key: value for key, value in event.items() if key != "index"} for event in trace["events"]]
+    events.insert(1, {**events[0], "application_id": "other-application"})
+    trace = producer({"profile_id": trace["profile_id"], "events": events},
+                     **{key: value for key, value in trace.items() if key != "events"})
+    artifact["application_audit_trace"] = trace
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    rows = checkpoint.payload()["steps"]
+    assert rows[52]["status"] == "PASS"
+    assert rows[52]["verification"]["application_audit_trace"] == trace
+    assert [item["index"] for item in trace["events"]] == [0, 2, 3]
+    assert rows[35]["status"] == rows[51]["status"] == "NOT_RUN"
+
+
+@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "event-application", "missing-event", "duplicate-id",
+    "reordered", "wrong-type", "non-utc", "same-time", "same-index", "index-overflow", "bool-index", "private-field", "trace-extra"])
+def test_step53_rejects_tampered_trace_using_exact_producer_validator(change):
+    pytest.importorskip("cli.acceptance_audit")
+    artifact = application_receipt_artifact(53)
+    trace = artifact["application_audit_trace"]
+    events = trace["events"]
+    if change == "run": trace["run_id"] = "other-run"
+    if change == "source": trace["source_commit"] = "9" * 40
+    if change == "profile": trace["profile_id"] = "other-profile"
+    if change == "application": trace["application_id"] = "other-application"
+    if change == "event-application": events[1]["application_id"] = "other-application"
+    if change == "missing-event": events.pop()
+    if change == "duplicate-id": events[1]["id"] = events[0]["id"]
+    if change == "reordered": events.reverse()
+    if change == "wrong-type": events[1]["type"] = "APPLICATION_PREPARED"
+    if change == "non-utc": events[0]["timestamp"] = "2026-11-26T15:00:03+01:00"
+    if change == "same-time": events[0]["timestamp"] = events[1]["timestamp"]
+    if change == "same-index": events[0]["index"] = events[1]["index"]
+    if change == "index-overflow": events[2]["index"] = 100
+    if change == "bool-index": events[0]["index"] = True
+    if change == "private-field": events[0]["answer"] = "fixture-only"
+    if change == "trace-extra": trace["raw"] = []
+    with pytest.raises(ValueError, match="Criterion 53"):
+        application_receipt_rows(artifact)
+
+
 @pytest.mark.parametrize("step", [41, 42])
 def test_upload_observations_require_document_identity(step):
     artifact = application_stage_artifact(step)
@@ -1214,6 +1504,182 @@ def public_browser_artifact(state, public):
     return value
 
 
+def _seal_browser(value):
+    value.pop("sha256", None)
+    value["sha256"] = hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+    return value
+
+
+def public_job_list_artifacts(state, provider="wwr", scope="LIVE_PUBLIC_READ_ONLY", *, extra_titles=False):
+    public = public_artifact(provider)
+    source = public["source_id"]
+    first, second = "real-job-1", "real-job-2"
+    endpoint = {"wwr": "https://weworkremotely.com/remote-jobs.rss",
+                "remotive": "https://remotive.com/api/remote-jobs"}[provider]
+    title = "Técnico Platform"
+    selected = [(second, "Support Engineer", 2, 91), (first, title, 1, 60)]
+    if extra_titles:
+        selected[1:1] = [("real-job-3", "Platform Strategist", 3, 82), ("real-job-4", "Data Analyst", 4, 70)]
+    admitted = sorted(job_id for job_id, _, _, _ in selected)
+    public.update(endpoint=endpoint, observed_real_job_ids=admitted, execution_scope=scope,
+                  profile_version="c" * 64)
+    public["observations"] = [{"job_id": job_id, "source_id": source, "source_endpoint": endpoint,
+        "fictional": False, "native_posting_id": native if provider == "remotive" else f"post-{native}",
+        "postings": [{"posting_id": f"posting-{native}"}]} for job_id, _, native, _ in selected]
+    browser = public_browser_artifact(state, public)
+    browser["endpoint"] = endpoint
+    browser["observations"] = []
+    for (_, name, _, _), proof in zip(selected, public["observations"]):
+        native = proof["native_posting_id"]
+        detail = {"id": proof["job_id"], "title": name, "company": "Example",
+                  "native_posting_id": native, "source_posting_ids": [proof["postings"][0]["posting_id"]]}
+        browser["observations"].append({"job_id": proof["job_id"], "source_id": source, "source_endpoint": endpoint,
+            "native_posting_id": str(native), "title": name, "company": "Example",
+            "selected_job_api_readback_sha256": _seal_browser(detail)["sha256"],
+            "checks": {"active_profile_matches": True, "canonical_job_id_bound_to_selected_detail_readback": True,
+                       "native_posting_id_bound_to_source_snapshot": True}})
+    status = "PASS" if scope == "LIVE_PUBLIC_READ_ONLY" else "NOT_RUN"
+    if status == "NOT_RUN":
+        for row in browser["acceptance_observations"]:
+            row["status"] = status
+    ranked = [{"job_id": job_id, "match_score": score} for job_id, _, _, score in selected]
+    query_results = [first, second, "real-job-3"] if extra_titles else [first]
+    browser["job_list_observation"] = {"schema_version": 1, "source_id": source,
+        "admitted_job_ids": list(admitted), "source_scoped_job_ids": list(admitted), "observations": [
+            {"step": 12, "status": status, "checks": {"matching_job_visible": True, "nonmatching_job_hidden": True},
+             "probe": {"query_sha256": journey.digest("Platform"), "matching_job_id": first,
+                       "visible_job_ids": query_results,
+                       "excluded_job_ids": [job_id for job_id in admitted if job_id not in query_results]}},
+            {"step": 13, "status": status, "checks": {"filtered_job_visible": True, "other_title_hidden": True},
+             "probe": {"title_sha256": hashlib.sha256(json.dumps(title, ensure_ascii=False).encode("utf-8")).hexdigest(),
+                       "expected_job_ids": [first], "visible_job_ids": [first], "excluded_job_ids": admitted[1:]}},
+            {"step": 14, "status": status, "checks": {"match_sort_order": True},
+             "ranked_jobs": ranked, "title_sorted_jobs": sorted(copy.deepcopy(ranked), key=lambda row: row["job_id"])},
+        ]}
+    return public, _seal_browser(browser)
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_public_job_list_joins_exact_profile_cohort_for_search_filter_and_match_sort(provider):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, provider)
+    joined = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    rows = journey.numbered_observations(joined, segment="public_browser", run_id=RUN_ID,
+                                         source=SOURCE, identity=journey._identity(state))
+    assert [(row["step"], row["status"]) for row in rows] == [(11, "PASS"), (16, "PASS"),
+                                                             (12, "PASS"), (13, "PASS"), (14, "PASS")]
+    for row in rows[2:]:
+        assert row["continuity"] == {"profile_id": state["profile_id"],
+            "operation_id": public["collection_operation_id"], "request_id": public["collection_request_id"]}
+    assert joined["public_job_list_lineage"]["job_ids"] == public["observed_real_job_ids"]
+
+
+def test_public_search_requires_all_title_matches_but_allows_extra_text_matches():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, extra_titles=True)
+    search = browser["job_list_observation"]["observations"][0]
+    joined = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 12)["status"] == "PASS"
+    # The target is still visible and the legitimate negative is still excluded.
+    # Another admitted title match cannot disappear behind those two checks.
+    search["probe"]["visible_job_ids"].remove("real-job-3")
+    with pytest.raises(ValueError, match="contradicts its bound evidence"):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    search.update(status="PARTIAL", checks={"matching_job_visible": False, "nonmatching_job_hidden": True})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 12)["status"] == "PARTIAL"
+
+
+def test_public_sort_cannot_manufacture_distinct_scores_from_a_tied_title_baseline():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    sort = browser["job_list_observation"]["observations"][2]
+    for row in sort["title_sorted_jobs"]:
+        row["match_score"] = 60
+    with pytest.raises(ValueError, match="contradicts its bound evidence"):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    sort.update(status="PARTIAL", checks={"match_sort_order": False})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert next(row for row in joined["acceptance_observations"] if row["step"] == 14)["status"] == "PARTIAL"
+
+
+@pytest.mark.parametrize("change", ["source-id", "endpoint", "profile", "profile-version", "inventory-version",
+    "malformed-profile-version", "submission-enabled", "operation", "source-policy",
+    "job-substitution", "scoped-duplicate", "native-id", "posting", "card-title", "missing-card", "bad-query",
+    "forged-search-negative", "query-outside-cohort", "filter-expected", "filter-outside-cohort", "wrong-rank-order",
+    "wrong-source-order", "increasing-score", "score-tie", "bool-score", "duplicate-step", "fake-status",
+    "missing-title-baseline", "wrong-title-order", "incomplete-title-baseline", "title-score-drift",
+    "title-null-vs-integer", "title-bool-score", "title-extra-field"])
+def test_public_job_list_rejects_resealed_unbound_or_contradictory_receipts(change):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    receipt = browser["job_list_observation"]
+    search, title, sort = receipt["observations"]
+    if change == "source-id": receipt["source_id"] = "different-source"
+    if change == "endpoint": browser["endpoint"] = "https://example.invalid"
+    if change == "profile": browser["profile_id"] = public["profile_id"] = "other-profile"
+    if change == "profile-version": browser["baseline_readback"]["profile_version"] = "other-version"
+    if change == "inventory-version": state["job_inventory"]["profile_version"] = "d" * 64
+    if change == "malformed-profile-version": browser["baseline_readback"]["profile_version"] = public["profile_version"] = 1
+    if change == "submission-enabled": public["external_submission_enabled"] = True
+    if change == "operation": browser["collection_operation_id"] = "different-operation"
+    if change == "source-policy": public["source_policy_sha256"] = "different-policy"
+    if change == "job-substitution": receipt["admitted_job_ids"][0] = "mock-job-1"
+    if change == "scoped-duplicate": receipt["source_scoped_job_ids"][0] = receipt["source_scoped_job_ids"][1]
+    if change == "native-id": browser["observations"][0]["native_posting_id"] = "other-post"
+    if change == "posting": public["observations"][0]["postings"][0]["posting_id"] = "other-posting"
+    if change == "card-title": browser["observations"][0]["title"] = "Forged Title"
+    if change == "missing-card": browser["observations"].pop()
+    if change == "bad-query": search["probe"]["query_sha256"] = journey.digest("Impersonation")
+    if change == "forged-search-negative": search["probe"]["excluded_job_ids"] = ["real-job-1"]
+    if change == "query-outside-cohort": search["probe"]["visible_job_ids"].append("other-job")
+    if change == "filter-expected": title["probe"]["expected_job_ids"].append("real-job-2")
+    if change == "filter-outside-cohort": title["probe"]["visible_job_ids"].append("mock-job-1")
+    if change == "wrong-rank-order": sort["ranked_jobs"].reverse()
+    if change == "wrong-source-order": public["observations"].reverse()
+    if change == "increasing-score": sort["ranked_jobs"][0]["match_score"] = 40
+    if change == "score-tie": sort["ranked_jobs"][0]["match_score"] = 60
+    if change == "bool-score": sort["ranked_jobs"][0]["match_score"] = True
+    if change == "duplicate-step": sort["step"] = 13
+    if change == "fake-status": search["checks"]["nonmatching_job_hidden"] = False
+    if change == "missing-title-baseline": sort.pop("title_sorted_jobs")
+    if change == "wrong-title-order": sort["title_sorted_jobs"].reverse()
+    if change == "incomplete-title-baseline": sort["title_sorted_jobs"].pop()
+    if change == "title-score-drift": sort["title_sorted_jobs"][0]["match_score"] = 61
+    if change == "title-null-vs-integer": sort["title_sorted_jobs"][0]["match_score"] = None
+    if change == "title-bool-score": sort["title_sorted_jobs"][0]["match_score"] = True
+    if change == "title-extra-field": sort["title_sorted_jobs"][0]["title"] = "unexpected"
+    with pytest.raises(ValueError):
+        journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+
+
+@pytest.mark.parametrize("scope,step11_status,expected", [
+    ("CONTROLLED_TRANSPORT", "NOT_RUN", "NOT_RUN"), ("LIVE_PUBLIC_READ_ONLY", "PARTIAL", "PARTIAL")])
+def test_public_job_list_requires_live_positive_step11_visibility(scope, step11_status, expected):
+    state = baseline()
+    public, browser = public_job_list_artifacts(state, scope=scope)
+    if step11_status == "PARTIAL":
+        browser["acceptance_observations"][0].update(status=step11_status,
+            checks={"public_jobs_visible_in_same_profile_ui": False})
+    joined = journey.join_public_browser(state, public, _seal_browser(browser), "a" * 64, "b" * 64, RUNTIME)
+    assert [row["status"] for row in joined["acceptance_observations"] if row["step"] in {12, 13, 14}] == [expected] * 3
+
+
+def test_numbered_public_list_requires_entire_group_and_collection_identity():
+    state = baseline()
+    public, browser = public_job_list_artifacts(state)
+    evidence = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    for mutation in ("missing-lineage", "missing-row", "application-pair"):
+        altered = copy.deepcopy(evidence)
+        if mutation == "missing-lineage": altered.pop("public_job_list_lineage")
+        if mutation == "missing-row": altered["acceptance_observations"].pop()
+        if mutation == "application-pair": altered["acceptance_observations"][-1]["continuity"]["operation_id"] = IDENTITY["operation_id"]
+        with pytest.raises(ValueError):
+            journey.numbered_observations(altered, segment="public_browser", run_id=RUN_ID,
+                                          source=SOURCE, identity=journey._identity(state))
+
+
 def test_public_browser_join_requires_both_provenance_and_visible_checks():
     state, public = baseline(), public_artifact()
     browser = public_browser_artifact(state, public)
@@ -1275,6 +1741,12 @@ def saved_search_artifact(step=10):
         "continuity": {"profile_id": IDENTITY["profile_id"], "operation_id": "matching-discovery",
                        "request_id": "matching-request"},
         "checks": [{"name": name, "passed": step != 11} for name in journey.REQUIRED_CHECKS[step]]}]
+    if step == 8:
+        readback = {"profile_id": IDENTITY["profile_id"], "search_profile_id": "it-search",
+                    "include_titles": ["IT Support Specialist"], "remote": "REQUIRED"}
+        artifact["saved_it_search_reload"] = {"before_active_profile_id": IDENTITY["profile_id"],
+            "after_active_profile_id": IDENTITY["profile_id"], "visible_search_profile_id": "it-search",
+            "before_reload": copy.deepcopy(readback), "after_reload": copy.deepcopy(readback)}
     return artifact
 
 
@@ -1286,6 +1758,58 @@ def test_ui_saved_search_uses_completed_discover_identity_not_final_submit(step)
     assert rows[0]["continuity"] == artifact["acceptance_observations"][0]["continuity"]
     assert rows[0]["status"] == ("PARTIAL" if step == 11 else "PASS")
     assert artifact["operation_id"] == IDENTITY["operation_id"]
+
+
+@pytest.mark.parametrize("change", ["missing", "no-after", "active-profile", "visible-id", "readback-profile",
+    "readback-id", "title", "remote", "unrelated-search", "it-operation", "replaced-proof-version", "duplicate-proof"])
+def test_step8_requires_exact_saved_it_search_reload_and_preserves_step10_gate(change):
+    artifact = saved_search_artifact(8)
+    receipt = artifact["saved_it_search_reload"]
+    it_proof = artifact["discovery_search_proofs"][0]
+    if change == "missing": artifact.pop("saved_it_search_reload")
+    if change == "no-after": receipt.pop("after_reload")
+    if change == "active-profile": receipt["after_active_profile_id"] = "other-profile"
+    if change == "visible-id": receipt["visible_search_profile_id"] = "other-search"
+    if change == "readback-profile": receipt["after_reload"]["profile_id"] = "other-profile"
+    if change == "readback-id": receipt["after_reload"]["search_profile_id"] = "other-search"
+    if change == "title": receipt["after_reload"]["include_titles"] = ["Data Engineer"]
+    if change == "remote": receipt["after_reload"]["remote"] = "ANY"
+    if change == "unrelated-search":
+        receipt["visible_search_profile_id"] = "data-search"
+        for key in ("before_reload", "after_reload"):
+            receipt[key]["search_profile_id"] = "data-search"
+    if change == "it-operation": it_proof["operation_id"] = artifact["discovery_operation_id"]
+    if change == "replaced-proof-version": it_proof["operation_profile_version"] = "8" * 64
+    if change == "duplicate-proof": artifact["discovery_search_proofs"].append(copy.deepcopy(it_proof))
+    with pytest.raises(ValueError, match="Criterion 8"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE,
+                                      identity=journey._identity(artifact))
+    artifact["acceptance_observations"] = saved_search_artifact(10)["acceptance_observations"]
+    rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE,
+                                         identity=journey._identity(artifact))
+    assert [(row["step"], row["status"]) for row in rows] == [(10, "PASS")]
+
+
+def test_step8_guarded_receipt_is_indexed_and_legacy_replay_withholds_only_step8(tmp_path):
+    path = tmp_path / "journey.json"
+    ui_path = tmp_path / "ui.json"
+    checkpoint = journey.JourneyCheckpoint.create(path, RUN_ID, SOURCE, TARGET)
+    artifact = saved_search_artifact(8)
+    artifact["acceptance_observations"].extend(saved_search_artifact(10)["acceptance_observations"])
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64, persist=False)
+    assert checkpoint.payload()["steps"][7]["verification"]["saved_it_search_reload"] == artifact["saved_it_search_reload"]
+
+    artifact.pop("saved_it_search_reload")
+    emit(ui_path, artifact)
+    retained = ui_path.read_bytes()
+    saved = checkpoint.payload()
+    saved["segments"]["ui"]["sha256"] = hashlib.sha256(retained).hexdigest()
+    emit(path, saved)
+    replay = journey.JourneyCheckpoint.resume(path, RUN_ID, SOURCE, TARGET).payload()["steps"]
+    assert (replay[7]["status"], replay[7]["credit_withheld"], replay[9]["status"]) == (
+        "PARTIAL", "SAVED_IT_SEARCH_RELOAD_NOT_RECORDED", "PASS")
+    assert ui_path.read_bytes() == retained
 
 
 @pytest.mark.parametrize("change", ["missing-proof", "duplicate-proof", "replaced-proof", "missing-top-request",

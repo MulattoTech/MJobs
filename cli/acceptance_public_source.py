@@ -192,25 +192,74 @@ def _policy_fingerprint(source):
     return _digest({key: source[key] for key in FINGERPRINT_FIELDS})
 
 
-def _selection(request, baseline):
+_SELECTION_FIELDS = {
+    'profile': ('id', 'version', 'facts', 'employer_verification'),
+    'application': ('id', 'profile_id', 'job_id', 'route_id', 'target', 'state',
+                    'confirmation', 'attempts', 'documents', 'route_choices', 'adapter_knowledge'),
+    'job': ('id', 'attributes', 'routes', 'postings', 'match', 'applied', 'saved', 'updated_at'),
+}
+
+
+def _selection(request, baseline, trace):
     profile_id = baseline['profile_id']
+    trace.update(witness='profile', check='read')
     profile = request('GET', '/profiles/' + quote(profile_id, safe=''))
+    trace.update(check='id')
+    _require(profile['id'] == profile_id, 'BASELINE_SELECTION_CHANGED')
+    trace.update(witness='application', check='read')
     app = request('GET', '/profiles/' + quote(profile_id, safe='') + '/applications/' +
                   quote(baseline['application_id'], safe=''))
-    _require(profile['id'] == profile_id and app['id'] == baseline['application_id']
-        and app['profile_id'] == profile_id and app['target'] == 'MOCK', 'BASELINE_SELECTION_CHANGED')
-    for key, actual in (('profile_version', profile['version']),
-                        ('selected_application_job_id', app['job_id']),
-                        ('selected_application_route_id', app['route_id'])):
+    for key, expected in (('id', baseline['application_id']), ('profile_id', profile_id),
+                          ('target', 'MOCK')):
+        trace.update(check=key)
+        _require(app[key] == expected, 'BASELINE_SELECTION_CHANGED')
+    for key, witness, field, actual in (
+            ('profile_version', 'profile', 'version', profile['version']),
+            ('selected_application_job_id', 'application', 'job_id', app['job_id']),
+            ('selected_application_route_id', 'application', 'route_id', app['route_id']),
+            ('confirmation', 'application', 'confirmation', app.get('confirmation'))):
+        trace.update(witness=witness, check=field)
         _require(key not in baseline or baseline[key] == actual, 'BASELINE_SELECTION_CHANGED')
-    _require('confirmation' not in baseline or baseline['confirmation'] == app.get('confirmation'),
-             'BASELINE_SELECTION_CHANGED')
+    trace.update(witness='job', check='read')
     job = request('GET', '/jobs/' + quote(app['job_id'], safe=''), params={'profile_id': profile_id})
+    trace.update(check='id')
+    _require(job['id'] == app['job_id'], 'BASELINE_SELECTION_CHANGED')
+    trace.update(check='attributes')
+    _require(job['attributes'].get('fictional') is True, 'BASELINE_SELECTION_CHANGED')
+    trace.update(check='routes')
     routes = [route for route in job['routes'] if route['id'] == app['route_id']]
-    _require(job['id'] == app['job_id'] and job['attributes'].get('fictional') is True
-        and len(routes) == 1 and routes[0]['provider'] == 'mock-ats', 'BASELINE_SELECTION_CHANGED')
+    _require(len(routes) == 1 and routes[0]['provider'] == 'mock-ats', 'BASELINE_SELECTION_CHANGED')
+    trace.update(witness='selection', check='digest')
+    projections = {'profile': profile, 'application': app, 'job': job}
+    components = {}
+    for name, fields in _SELECTION_FIELDS.items():
+        value = projections[name]
+        components[name] = (_digest(value), {
+            key: _digest((key in value, value.get(key))) for key in fields})
     return dict(profile_version=profile['version'], job_id=job['id'], route_id=app['route_id'],
-        sha256=_digest({'profile': profile, 'application': app, 'job': job}))
+                sha256=_digest(projections), components=components)
+
+
+def _observe_selection(request, baseline, evidence, phase, initial=None):
+    """Keep fail-closed comparison and retain only allowlisted diagnostic names."""
+    trace = {'phase': phase}
+    try:
+        observed = _selection(request, baseline, trace)
+        if initial is not None and observed != initial:
+            changed = {}
+            for name, (digest, fields) in observed['components'].items():
+                previous_digest, previous_fields = initial['components'][name]
+                if digest != previous_digest:
+                    changed[name] = [key for key in fields if fields[key] != previous_fields[key]] or ['other']
+            trace.update(changed=changed)
+            raise ObservationError('BASELINE_SELECTION_CHANGED')
+        return observed
+    except Exception as error:
+        trace['error_code'] = ('SELECTION_READ_FAILED' if trace.get('check') == 'read'
+                               else 'BASELINE_SELECTION_CHANGED'
+                               if isinstance(error, ObservationError) else 'SELECTION_RECORD_INVALID')
+        evidence.setdefault('selection_failures', []).append(trace)
+        raise
 
 
 def _source_copy_identity(job, posting, provider, source_id, endpoint):
@@ -675,15 +724,17 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             contained(stage)
             return response
 
+        phase = 'initial_selection'
         try:
             settings = request('GET', '/settings')
             _require(settings.get('operation_mode') == 'FIXTURE'
                 and settings.get('external_submission_enabled') is False, 'FIXTURE_READ_ONLY_REQUIRED')
-            initial_selection = _selection(request, baseline)
+            initial_selection = _observe_selection(request, baseline, evidence, 'initial')
             evidence.update(profile_version=initial_selection['profile_version'],
                 selected_application_job_id=initial_selection['job_id'],
                 selected_application_route_id=initial_selection['route_id'],
                 selected_state_sha256=initial_selection['sha256'])
+            phase = 'containment_preflight'
             contained('preflight')
             if employer_verification:
                 from cli.ui_e2e import validate_employer_verification_witness
@@ -697,6 +748,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 employer_initial = begin_employer(read, baseline['profile_id'], initial_selection['profile_version'], utc_now=utc_now)
                 evidence['employer_verification_requested'] = True
                 evidence['employer_observation'] = {'status': 'NOT_RUN', 'reason': 'CHILDREN_NOT_SETTLED'}
+            phase = 'source_admission'
             source = _source(read, provider)
             if source is None:
                 _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
@@ -727,12 +779,14 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             _require(not source.get('last_attempt') or _timestamp(source['last_attempt']) +
                 timedelta(seconds=source['poll_interval']) <= now, 'SOURCE_COOLDOWN')
             evidence.update(source_id=source['id'], source_policy_sha256=_policy_fingerprint(source))
+            phase = 'before_dispatch'
             contained('dispatch')
             current = _source(read, provider)
             _require(current is not None and _policy_fingerprint(current) == evidence['source_policy_sha256']
                 and current.get('last_attempt') == source.get('last_attempt')
                 and current.get('backoff_until') == source.get('backoff_until'), 'SOURCE_CONFIGURATION_CHANGED')
-            _require(_selection(read, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+            _observe_selection(read, baseline, evidence, 'before_dispatch', initial_selection)
+            phase = 'collection'
             collection_request_id = 'public-observation-' + uuid4().hex
             contained('dispatch')
             queued = request('POST', '/sources/' + quote(source['id'], safe='') + '/collect',
@@ -763,15 +817,19 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                      'PUBLIC_COLLECTION_RETRIED')
             evidence['collection_operation_attempt'] = operation['attempt_count']
             evidence['collection_started_at'] = operation['started_at']
+            phase = 'source_readback'
             source = _source(read, provider)
             _require(source is not None and source['id'] == evidence['source_id']
                 and source.get('last_success') == source.get('last_attempt'), 'SOURCE_RECEIPT_CHANGED')
             _require(_policy_fingerprint(source) == evidence['source_policy_sha256'], 'SOURCE_CONFIGURATION_CHANGED')
             evidence['source_record_sha256'] = _digest(source)
-            _require(_selection(read, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+            phase = 'after_collection'
+            _observe_selection(read, baseline, evidence, phase, initial_selection)
+            phase = 'public_jobs'
             evidence['observations'] = _public_jobs(read, source, operation, initial_selection,
                 baseline['profile_id'], ENDPOINTS[provider])
             evidence['observed_real_job_ids'] = sorted(row['job_id'] for row in evidence['observations'])
+            phase = 'child_discovery'
             _observe_children(read, evidence, initial_selection, source, timeout_seconds=child_timeout_seconds,
                               poll_interval=poll_interval, monotonic=monotonic, sleep=sleep)
             _observe_domain_proofs(read, evidence, source)
@@ -779,16 +837,17 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                     or not evidence['child_discovery']['children']):
                 from cli.acceptance_public_employer import capture as capture_employer
                 evidence['employer_observation'] = capture_employer(read, evidence, source, employer_initial)
+            phase = 'finalize'
             _require(read('GET', '/health').get('external_submission_enabled') is False,
                      'EXTERNAL_SUBMISSION_SETTING_CHANGED')
             contained('finalize')
             evidence['result'] = 'PASS'
         except ObservationError as error:
-            evidence['error_code'] = str(error)
+            evidence.update(error_code=str(error), failure_phase=phase)
             if evidence['child_discovery']['status'] == 'WAITING':
                 evidence['child_discovery'].update(status='FAIL', reason=str(error))
         except Exception:
-            evidence['error_code'] = 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID'
+            evidence.update(error_code='PUBLIC_OBSERVATION_API_OR_RECORD_INVALID', failure_phase=phase)
             if evidence['child_discovery']['status'] == 'WAITING':
                 evidence['child_discovery'].update(status='FAIL', reason='CHILD_DISCOVERY_RECORD_INVALID')
         finally:
@@ -817,20 +876,28 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                             and all(restored[key] == value for key, value in
                                     {**policy, 'enabled': False}.items()), 'SOURCE_RESTORE_UNCONFIRMED')
                         evidence['cleanup'] = {'status': 'RESTORED_DISABLED'}
-                except ObservationError:
+                except ObservationError as error:
+                    code = str(error)
                     evidence['cleanup'] = {'status': 'PRESERVED_OWNERSHIP_CHANGED'}
+                    evidence['cleanup_error_code'] = code if code in {
+                        'SOURCE_CONTAINMENT_LOST', 'SOURCE_CONTAINMENT_LEASE_EXPIRED',
+                        'SOURCE_CONTAINMENT_LEASE_INVALID', 'SOURCE_OWNERSHIP_CHANGED',
+                        'SOURCE_RESTORE_UNCONFIRMED', 'SCHEDULER_CONTAINMENT_REQUIRED',
+                    } else 'CLEANUP_OWNERSHIP_UNCONFIRMED'
                 except Exception:
                     evidence['cleanup'] = {'status': 'RESTORE_UNCONFIRMED'}
+                    evidence['cleanup_error_code'] = 'CLEANUP_API_OR_RECORD_INVALID'
                 if evidence['cleanup']['status'] != 'RESTORED_DISABLED':
                     evidence['result'] = 'FAIL'
             if initial_selection:
                 try:
-                    _require(_selection(request if containment_lost else read, baseline) == initial_selection,
-                             'BASELINE_SELECTION_CHANGED')
-                except ObservationError as error:
-                    evidence.update(result='FAIL', error_code=str(error))
+                    _observe_selection(request if containment_lost else read, baseline, evidence,
+                                       'final', initial_selection)
                 except Exception:
-                    evidence.update(result='FAIL', error_code='BASELINE_SELECTION_CHANGED')
+                    final_code = evidence['selection_failures'][-1]['error_code']
+                    evidence.update(result='FAIL', final_selection_error_code=final_code)
+                    evidence.setdefault('error_code', final_code)
+                    evidence.setdefault('failure_phase', 'final')
     accepted = evidence['result'] == 'PASS' and execution_scope == 'LIVE_PUBLIC_READ_ONLY'
     evidence['acceptance_observations'] = [dict(step=11,
         status=('PASS' if accepted else 'NOT_RUN' if execution_scope == 'CONTROLLED_TRANSPORT' else 'FAIL'),

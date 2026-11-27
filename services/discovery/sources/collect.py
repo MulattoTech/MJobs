@@ -25,7 +25,7 @@ from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
 from services.discovery.sources.contract import (
-    CollectionStrategy, SourceAdapter, SourceCapabilities, SourceCapability,
+    CollectionStrategy, QuarantinedSearchBatch, SourceAdapter, SourceCapabilities, SourceCapability,
 )
 from services.discovery.sources.greenhouse import Greenhouse, SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
@@ -579,9 +579,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         observed_endpoint = batch.endpoint
         available = True
         collection_result = None
-        enumerated = len(batch.items)
+        quarantined = batch.quarantined_id_count if isinstance(batch, QuarantinedSearchBatch) else 0
+        enumerated = len(batch.items) + quarantined
+        complete_inventory = batch.complete_inventory and not quarantined
         normalized = []
-        rejected = 0
+        rejected = quarantined
         for item in batch.items:
             check()
             try:
@@ -597,7 +599,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # the subset that survived local normalization.
                 "items": [item.raw for item in batch.items],
             }
-            if collection_contract.count_key is not None and batch.complete_inventory:
+            if collection_contract.count_key is not None and complete_inventory:
                 # A declared complete inventory makes the enumerated batch size
                 # authoritative. Never synthesize provider count evidence from
                 # the subset that happened to normalize successfully.
@@ -815,7 +817,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             for job_id in sorted({entry[2] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp,
                                    profile=profile if refresh_matches else None)
-            if batch.complete_inventory and not rejected:
+            if complete_inventory and not rejected:
                 from services.discovery.lifecycle import reconcile_inventory
                 reconcile_inventory(connection, endpoint=batch.endpoint, posting_ids=set(batch_postings),
                                     observation_id=observation_id)
@@ -837,7 +839,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 completion['native_inventory'] = build_native_inventory(
                     connection, store, collection_operation, profile, source, bound,
                     observation_id=observation_id, started_at=timestamp,
-                    provider_complete=batch.complete_inventory, enumerated=enumerated,
+                    provider_complete=complete_inventory, enumerated=enumerated,
                     accepted=accepted, rejected=rejected)
             store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", completion)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,

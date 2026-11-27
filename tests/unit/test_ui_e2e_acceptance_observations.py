@@ -1,17 +1,212 @@
 """Safety and lineage checks for numbered UI acceptance observations."""
 
+from contextlib import contextmanager
+from copy import deepcopy
 from pathlib import Path
 import hashlib
 import json
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
 from cli import ui_e2e
-from cli.ui_e2e_jobs_journey import build_observation
+from cli.ui_e2e_jobs_journey import (
+    build_observation,
+    canonical_posting_count_matches,
+    fixture_us_remote_explanation,
+    match_sort_matches_readback,
+    open_job_detail_for_selected_card,
+    visible_posting_count_footer_matches,
+)
 
 
 RUN_ID = "01a1b028-0834-7130-b5ac-b7625e151716"
 SOURCE_COMMIT = "7caf4e380bc8b5dc75024895ab400e770015a3ec"
+
+
+@pytest.mark.parametrize(("detail", "saved"), [
+    ({"id": "job-b", "tracking": {"disposition": "SAVED"}}, True),
+    ({"id": "job-a", "tracking": {"disposition": "SAVED"}}, False),
+    ({"id": "job-b", "tracking": {"disposition": "ACTIVE"}}, False),
+])
+def test_saved_job_readback_reloads_and_reselects_before_checking_scoped_state(monkeypatch, detail, saved):
+    from unittest.mock import call
+
+    flow = Mock()
+    flow.request.return_value = detail
+    monkeypatch.setattr(ui_e2e, "expect", flow.expect)
+    assert ui_e2e.reload_saved_job_readback(
+        flow.page, flow.reselect, flow.request, "profile-b", "job-b",
+    ) is saved
+    assert flow.mock_calls == [
+        call.page.reload(wait_until="domcontentloaded"),
+        call.page.get_by_label("Active profile", exact=True),
+        call.expect(flow.page.get_by_label.return_value),
+        call.expect().to_have_value("profile-b"),
+        call.reselect("job-b"),
+        call.page.locator("section.job-detail"),
+        call.page.locator().get_by_text("Current status: SAVED", exact=True),
+        call.expect(flow.page.locator.return_value.get_by_text.return_value),
+        call.expect().to_be_visible(),
+        call.request("/jobs/job-b?profile_id=profile-b"),
+    ]
+
+
+@pytest.mark.parametrize("change", [None, "no-response", "pre-reload-response", "missing-row", "different-id",
+    "profile", "title", "remote", "duplicate", "active-profile", "selector-id", "hidden-selector", "read-status"])
+def test_saved_it_search_reload_requires_exact_scoped_criteria_and_visible_selector(monkeypatch, change):
+    page, active, selector, option, navigate = (Mock() for _ in range(5))
+    origin, profile_id, search_id = "http://127.0.0.1:18700", "profile-b", "it-search"
+    before = {"id": search_id, "profile_id": profile_id, "enabled": True, "source_ids": [], "criteria": {
+        "include_titles": ["IT Support Specialist"], "remote": "REQUIRED", "employment_types": [],
+        "scheduler": {"enabled": False}}}
+    after = deepcopy(before)
+    rows = [after]
+    if change == "missing-row": rows.clear()
+    if change == "different-id": after["id"] = "other-search"
+    if change == "profile": after["profile_id"] = "other-profile"
+    if change == "title": after["criteria"]["include_titles"] = ["Data Engineer"]
+    if change == "remote": after["criteria"]["remote"] = "ANY"
+    if change == "duplicate": rows.append(deepcopy(after))
+    start_time = 9_999 if change == "pre-reload-response" else 10_001
+    monkeypatch.setattr(ui_e2e.time, "time_ns", lambda: 10_000_000_000)
+    response = SimpleNamespace(url=f"{origin}/search-profiles?profile_id={profile_id}",
+        request=SimpleNamespace(method="GET", timing={"startTime": start_time}),
+        status=500 if change == "read-status" else 200,
+        json=lambda: {"search_profiles": rows})
+    active.input_value.side_effect = [profile_id, "other-profile" if change == "active-profile" else profile_id]
+    option.get_attribute.return_value = "other-search" if change == "selector-id" else search_id
+    selector.last = selector
+    selector.locator.return_value = option
+    page.get_by_label.side_effect = lambda name, **_: active if name == "Active profile" else selector
+
+    @contextmanager
+    def wait_for_readback(match, *, timeout):
+        assert timeout == 10_000 and not page.reload.called
+        assert not match(response)
+        yield SimpleNamespace(value=response)
+        page.reload.assert_called_once_with(wait_until="domcontentloaded")
+        for url, method in ((response.url.replace(profile_id, "other-profile"), "GET"),
+                            (response.url.replace(origin, "http://127.0.0.1:18701"), "GET"),
+                            (response.url + f"&profile_id={profile_id}", "GET"), (response.url, "PUT")):
+            assert not match(SimpleNamespace(url=url, request=SimpleNamespace(method=method)))
+        if change in {"no-response", "pre-reload-response"}:
+            if change == "pre-reload-response":
+                assert not match(response)
+            raise ui_e2e.PlaywrightTimeoutError("synthetic missing reload response")
+        assert match(response)
+
+    page.expect_response.side_effect = wait_for_readback
+    assertions = {item: Mock() for item in (active, selector, option)}
+    if change == "hidden-selector":
+        assertions[selector].to_be_visible.side_effect = AssertionError("selector not visible")
+    monkeypatch.setattr(ui_e2e, "expect", assertions.__getitem__)
+    receipt = ui_e2e.reload_saved_it_search_readback(page, origin, navigate,
+        profile_id=profile_id, saved_search=before)
+    page.reload.assert_called_once_with(wait_until="domcontentloaded")
+    if change is not None:
+        assert receipt is None
+        return
+    expected = {"search_profile_id": search_id, "profile_id": profile_id,
+                "include_titles": ["IT Support Specialist"], "remote": "REQUIRED"}
+    assert receipt == {"before_active_profile_id": profile_id, "after_active_profile_id": profile_id,
+                       "visible_search_profile_id": search_id, "before_reload": expected, "after_reload": expected}
+    navigate.assert_called_once_with("Jobs")
+    assertions[active].to_have_value.assert_called_once_with(profile_id)
+    assertions[selector].to_be_visible.assert_called_once_with()
+    selector.locator.assert_called_once_with('option[value="it-search"]')
+    assertions[option].to_have_count.assert_called_once_with(1)
+
+
+@pytest.mark.parametrize("invalid", [
+    "old-revision", "other-profile", "other-job", "other-application", "wrong-profile-version",
+    "duplicate-current", "wrong-application-readback", "missing-id",
+])
+@pytest.mark.parametrize("kind", ["resume", "cover-letter"])
+def test_prepared_document_pair_rejects_unbound_or_ambiguous_readback(invalid, kind):
+    application = {
+        "id": "application-b", "profile_id": "profile-b", "job_id": "job-b",
+        "profile_version": "reviewed", "document_version": 2,
+    }
+    resume = {
+        "id": "resume-b", "application_id": "application-b", "profile_id": "profile-b",
+        "job_id": "job-b", "profile_version": "reviewed", "kind": "resume", "version": 2,
+    }
+    letter = {**resume, "id": "letter-b", "kind": "cover-letter"}
+    selected, other = (resume, letter) if kind == "resume" else (letter, resume)
+    scope = {"application_id": "application-b", "profile_id": "profile-b", "job_id": "job-b"}
+    assert ui_e2e.prepared_document_pair(
+        application, [{**resume, "version": 1}, {**letter, "version": 1}, resume, letter], **scope,
+    ) == {"resume": "resume-b", "cover-letter": "letter-b"}
+    assert ui_e2e.prepared_document_pair(application, [other], **scope) is None
+    assert ui_e2e.prepared_document_pair(
+        application, [{**selected, "id": other["id"]}, other], **scope,
+    ) is None
+    if invalid == "wrong-application-readback":
+        application["id"] = "application-a"
+    changes = {
+        "old-revision": {"version": 1},
+        "other-profile": {"profile_id": "profile-a"},
+        "other-job": {"job_id": "job-a"},
+        "other-application": {"application_id": "application-a"},
+        "wrong-profile-version": {"profile_version": "stale"},
+        "missing-id": {"id": None},
+    }
+    documents = [{**selected, **changes.get(invalid, {})}, other]
+    if invalid == "duplicate-current":
+        documents.append({**selected, "id": "another-document"})
+    assert ui_e2e.prepared_document_pair(application, documents, **scope) is None
+
+
+@pytest.mark.parametrize("scenario", [
+    "known-omission", "empty-diff", "wrong-pair-with-omission", "wrong-text-hash",
+    "omitted-fact-still-in-tailored", "cross-application",
+])
+def test_generated_resume_omission_receipt_requires_actual_difference_on_the_selected_pair(scenario):
+    from services.documents.comparison import compare_facts
+
+    scope = {"application_id": "application-b", "profile_id": "profile-b", "job_id": "job-b"}
+    base = {**scope, "kind": "resume", "version": 2, "id": "resume-v2",
+            "profile_version": "a" * 64, "sha256": {"txt": "b" * 64}}
+    tailored = {**base, "version": 4, "id": "resume-v4", "sha256": {"txt": "c" * 64}}
+    python_fact = {"fact_id": "python", "kind": "skill", "text": "Python"}
+    sql_fact = {"fact_id": "sql", "kind": "skill", "text": "SQL"}
+
+    def snapshot(document, facts):
+        return {"id": document["id"], "version": document["version"],
+                "profile_version": document["profile_version"], "sha256": document["sha256"]["txt"],
+                "facts": facts, "text": "Resume text must not be retained in the receipt."}
+
+    base_facts = [python_fact, sql_fact]
+    tailored_facts = base_facts if scenario == "empty-diff" else [python_fact]
+    result = {"base": snapshot(base, base_facts), "tailored": snapshot(tailored, tailored_facts),
+              **compare_facts(base_facts, tailored_facts, {})}
+    if scenario == "wrong-pair-with-omission":
+        result["tailored"].update(id="resume-v3", version=3)
+    elif scenario == "wrong-text-hash":
+        result["base"]["sha256"] = "d" * 64
+    elif scenario == "omitted-fact-still-in-tailored":
+        result["tailored"]["facts"].append(sql_fact)
+    elif scenario == "cross-application":
+        tailored["application_id"] = "application-a"
+
+    def receipt():
+        return ui_e2e.generated_resume_omission_receipt(
+            result, base=base, tailored=tailored, omitted_fact=sql_fact, **scope)
+
+    if scenario != "known-omission":
+        with pytest.raises(AssertionError):
+            receipt()
+        return
+    assert receipt() == {
+        **scope,
+        "documents": {
+            "base": {"id": "resume-v2", "version": 2, "profile_version": "a" * 64, "sha256": "b" * 64},
+            "tailored": {"id": "resume-v4", "version": 4, "profile_version": "a" * 64, "sha256": "c" * 64},
+        },
+        "omitted": {"fact_id": "sql", "kind": "skill", "text_sha256": hashlib.sha256(b"SQL").hexdigest()},
+    }
 
 
 def test_observation_has_exact_runner_contract_shape_and_matching_run_id():
@@ -159,6 +354,246 @@ def test_observation_checks_must_match_the_registered_step_names():
     )["step"] == 14
 
 
+def test_match_sort_oracle_binds_rendered_order_to_unique_canonical_rows():
+    rows = [
+        {"id": "job-a", "title": "Alpha Role", "match_score": 95},
+        {"id": "job-b", "title": "Beta Role", "match_score": 95},
+        {"id": "job-c", "title": "Gamma Role", "match_score": 70},
+    ]
+
+    assert match_sort_matches_readback(rows, ["Alpha Role", "Beta Role", "Gamma Role"])
+    assert not match_sort_matches_readback(rows, ["Beta Role", "Alpha Role", "Gamma Role"])
+    assert not match_sort_matches_readback(
+        [{**rows[0], "title": "Same Role"}, {**rows[1], "title": "Same Role"}],
+        ["Same Role", "Same Role"],
+    )
+    assert not match_sort_matches_readback(
+        [rows[1], rows[0], rows[2]], ["Beta Role", "Alpha Role", "Gamma Role"],
+    )
+    assert not match_sort_matches_readback(
+        [{**rows[0], "match_score": True}, rows[1]], ["Alpha Role", "Beta Role"],
+    )
+
+
+def test_job_discovery_slice_passes_require_canonical_identity_for_duplicate_count():
+    with pytest.raises(ValueError, match="job_id continuity"):
+        build_observation(
+            step=17, status="PASS",
+            observable_result="Canonical count matches distinct source postings.",
+            evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT,
+            run_id=RUN_ID,
+            checks=[{"name": "canonical_duplicate_job_available", "passed": True},
+                    {"name": "duplicate_count_matches_readback", "passed": True}],
+        )
+
+    observation = build_observation(
+        step=17, status="PASS",
+        observable_result="Canonical count matches distinct source postings.",
+        evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT,
+        run_id=RUN_ID, continuity={"profile_id": "profile-123", "job_id": "job-789"},
+        checks=[{"name": "canonical_duplicate_job_available", "passed": True},
+                {"name": "duplicate_count_matches_readback", "passed": True}],
+    )
+    assert observation["continuity"]["job_id"] == "job-789"
+
+
+def test_duplicate_count_requires_distinct_source_posting_identities():
+    postings = [
+        {"source": "Board-A", "source_job_id": "listing-1"},
+        {"source": "Board-B", "source_job_id": "listing-1"},
+        {"source": "Employer", "source_job_id": "req-1"},
+    ]
+
+    assert canonical_posting_count_matches(3, postings)
+    assert not canonical_posting_count_matches(2, postings)
+    assert not canonical_posting_count_matches(3, postings + [postings[0]])
+    assert not canonical_posting_count_matches(3, [*postings[:-1], {"source": "Employer"}])
+
+
+def test_visible_duplicate_count_must_be_one_exact_item_in_selected_card_footer():
+    class Item:
+        def __init__(self, text, visible=True):
+            self.text = text
+            self.visible = visible
+
+        def is_visible(self):
+            return self.visible
+
+        def inner_text(self):
+            return self.text
+
+    class Items:
+        def __init__(self, items):
+            self.items = items
+
+        def count(self):
+            return len(self.items)
+
+        def nth(self, index):
+            return self.items[index]
+
+    class Footer:
+        def __init__(self, items, visible=True):
+            self.items = items
+            self.visible = visible
+
+        def count(self):
+            return 1
+
+        def is_visible(self):
+            return self.visible
+
+        def locator(self, selector):
+            assert selector == ":scope > span"
+            return Items(self.items)
+
+    class MissingFooter:
+        def count(self):
+            return 0
+
+    class Card:
+        def __init__(self, footer, card_text="Top badge says 2 postings, footer says one source"):
+            self.footer = footer
+            self.card_text = card_text
+
+        def locator(self, selector):
+            assert selector == ".card-foot"
+            return self.footer
+
+        def inner_text(self):
+            return self.card_text
+
+    # The whole card can contain the expected wording outside its footer; it earns no credit.
+    wrong_footer = Card(Footer([Item("1 posting")]))
+    assert "2 postings" in wrong_footer.inner_text()
+    assert visible_posting_count_footer_matches(wrong_footer, 2) is False
+    assert visible_posting_count_footer_matches(
+        Card(Footer([Item("2 postings"), Item("2 postings")])), 2) is False
+    assert visible_posting_count_footer_matches(Card(MissingFooter()), 2) is False
+    assert visible_posting_count_footer_matches(Card(Footer([Item("2 postings")])), 2)
+    assert not visible_posting_count_footer_matches(
+        Card(Footer([Item("2 postings", visible=False)])), 2)
+
+
+def test_remote_card_selection_creates_detail_region_before_opening_and_reading_it():
+    events = []
+
+    class DetailRegion:
+        def get_by_role(self, role, **kwargs):
+            events.append(("get_by_role", role, kwargs))
+            return "remote-heading"
+
+    class Page:
+        def locator(self, selector):
+            events.append(("locator", selector))
+            return detail_region
+
+    class Card:
+        def click(self):
+            events.append(("click",))
+
+    class VisibilityAssertion:
+        def to_be_visible(self):
+            events.append(("visible",))
+
+    def expect(locator):
+        events.append(("expect", locator))
+        return VisibilityAssertion()
+
+    detail_region = DetailRegion()
+    result = open_job_detail_for_selected_card(
+        Page(), Card(), "Remote Systems Administrator", expect)
+
+    assert result is detail_region
+    assert [event[0] for event in events] == [
+        "locator", "click", "get_by_role", "expect", "visible",
+    ]
+
+
+def test_remote_match_explanation_shows_recorded_job_regions_not_profile_location():
+    from services.discovery.matching import build_explanation
+
+    result = build_explanation(
+        {"skills": ["Python"], "remote_type": "REMOTE_SPECIFIC_STATES",
+         "attributes": {"skill_evidence": "description_mentions",
+                        "remote_regions": ["OK", "TX", "TX", "\n"]}},
+        {"facts": [], "contact": {"country": "United States", "state": "Oklahoma"}},
+    )
+    factor = next(row for row in result["components"]["fit_factors"]
+                  if row["id"] == "remote_location")
+
+    assert "Recorded job regions: OK, TX." in factor["explanation"]
+    assert "Oklahoma" not in factor["explanation"]
+    assert factor["score_effect"] == "NONE"
+
+
+@pytest.mark.parametrize("readback_overrides", [
+    {},
+    {"profile_id": "other-profile"},
+    {"id": "existing-discovery-search"},
+    {"criteria": {"remote": "REQUIRED", "remote_regions": []}},
+])
+def test_step16_creates_and_reads_a_fresh_schedule_off_search(readback_overrides):
+    from types import SimpleNamespace
+
+    from apps.api.main import SearchProfileInput
+    from packages.domain.automation import SavedSearchRule
+
+    writes = []
+
+    def put(path, payload):
+        assert path == "/search-profiles"
+        parsed = SearchProfileInput.model_validate(payload)
+        assert SavedSearchRule.from_mapping(parsed.scheduler).enabled is False
+        writes.append(payload)
+        return SimpleNamespace(ok=True, json=lambda: {"id": payload["id"]})
+
+    def read(path):
+        payload = writes[-1]
+        assert path == f"/search-profiles/{payload['id']}"
+        assert payload["id"].startswith("fixture-step16-")
+        assert payload["profile_id"] == "fixture-profile"
+        assert payload["enabled"] is False
+        assert payload["scheduler"] == {"enabled": False, "interval_seconds": 1800}
+        assert payload["remote"] == "REQUIRED"
+        assert payload["remote_regions"] == ["US"]
+        assert "include_titles" not in payload
+        return {**payload, "source_ids": [], "criteria": {
+            "remote": payload["remote"], "remote_regions": payload["remote_regions"],
+            "include_titles": [], "scheduler": payload["scheduler"],
+        }, **readback_overrides}
+
+    if readback_overrides:
+        with pytest.raises(AssertionError, match="search readback"):
+            ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+    else:
+        first = ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+        second = ui_e2e.create_fixture_us_remote_search(put, read, "fixture-profile")
+        assert first == writes[0]["id"] and second == writes[1]["id"] and first != second
+
+
+@pytest.mark.parametrize("job_regions, detail_regions, detail_id, explanation, expected", [
+    (["US"], ["US"], "same-job", "Recorded job regions: US.", True),
+    ([], ["US"], "same-job", "Recorded job regions: US.", False),
+    (["US"], [], "same-job", "Recorded job regions: US.", False),
+    (["US"], ["CA"], "same-job", "Recorded job regions: US.", False),
+    (["US"], ["US"], "other-job", "Recorded job regions: US.", False),
+    (["US"], ["US"], "same-job", "The selected profile is in the US.", False),
+    (["US"], ["US"], "same-job", "Recorded job regions: CA.", False),
+    (["US"], ["US"], "same-job", None, False),
+])
+def test_step16_explanation_binds_same_canonical_job_and_recorded_regions(
+        job_regions, detail_regions, detail_id, explanation, expected):
+    job = {"id": "same-job", "title": "Fixture role", "remote_type": "REMOTE_US",
+           "attributes": {"fictional": True, "remote_regions": job_regions}}
+    detail = {**job, "id": detail_id,
+              "attributes": {"fictional": True, "remote_regions": detail_regions},
+              "match": {"components": {"fit_factors": [
+                  {"id": "remote_location", "label": "Remote work region", "explanation": explanation},
+              ]}}}
+    assert fixture_us_remote_explanation(job, detail) == (explanation if expected else None)
+
+
 def test_observation_accepts_job_and_document_lineage_with_bounded_lists():
     observation = build_observation(
         step=34, status="PASS", observable_result="Base and tailored versions compared.",
@@ -230,7 +665,7 @@ def test_application_helper_records_through_real_evidence_journal(tmp_path):
         acceptance_run_id=RUN_ID)
     journal.record_application_readback(
         profile_id="profile-B", application_id="app-B", job_id="job-B",
-        documents=[{"id": "doc-B"}])
+        documents=[{"id": "resume-B"}, {"id": "letter-B"}])
     lineage = {"step": 36, "operation_id": "a" * 64,
                "request_id": "prepare-36", "operation_kind": "PREPARE",
                "application_id": "app-B", "profile_id": "profile-B",
@@ -241,12 +676,14 @@ def test_application_helper_records_through_real_evidence_journal(tmp_path):
                     for name in REQUIRED_CHECKS_BY_STEP[36]},
         runtime_identity={"source_manifest_sha256": "b" * 64,
                           "images": {"api": "sha256:" + "c" * 64}},
-        stage_lineage=lineage)
+        stage_lineage=lineage, document_ids=["resume-B", "letter-B"])
 
     assert result["status"] == "PASS"
     assert journal.payload()["stage_lineage"] == [lineage]
     assert journal.payload()["acceptance_observations"][0]["continuity"] == {
-        "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B"}
+        "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B",
+        "document_ids": ["resume-B", "letter-B"],
+    }
 
 
 @pytest.mark.parametrize("rendered, expected, matches", [

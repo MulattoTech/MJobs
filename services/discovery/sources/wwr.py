@@ -7,6 +7,7 @@ source registry integration.
 
 Requirement: MJ-REQ-017.S02
 """
+from dataclasses import dataclass
 from html import unescape
 import re
 import threading
@@ -23,7 +24,7 @@ from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
-    CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
+    CollectionStrategy, QuarantinedSearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
 from services.discovery.search_semantics import (
@@ -254,6 +255,11 @@ def _posting_id_from_guid(guid: str) -> str:
         return path.rsplit("/", 1)[-1] if "/" in path else path
     except Exception:
         return guid
+
+
+@dataclass(frozen=True)
+class WWRSearchBatch(QuarantinedSearchBatch):
+    """WWR listings and the number of distinct IDs excluded for conflicts."""
 
 
 class WeWorkRemotely:
@@ -488,32 +494,36 @@ class WeWorkRemotely:
                 items.append(raw)
         return items
 
-    def search(self, category=None, search_term=None, limit=None):
-        """Collect jobs from the WWR public RSS feed.
-
-        The RSS feed does not support server-side filtering, so category and
-        search_term filtering is applied client-side on the full feed result.
-        """
+    def _read_feed_items(self):
         self._reset_request_status()
-        channel = self._request()
-        # Validate the full feed before local filters or limits can hide a
-        # conflicting native identity. The importer also checks this boundary,
-        # but callers of search() and fetch() must receive truthful health.
-        all_items = []
         seen_by_identity = {}
-        for item in self._parse_items(channel):
+        conflicts = set()
+        # Group before filtering so no variant of an ambiguous ID can survive
+        # just because the other variant was outside a search or limit.
+        for item in self._parse_items(self._request()):
             self.check()
             identity = _posting_id_from_guid(item.get("guid") or item.get("link", ""))
-            first = seen_by_identity.get(identity)
-            if first is not None:
-                if item != first:
-                    with self._status_lock:
-                        self.status = "SOURCE_DUPLICATE_JOB_ID"
-                        self._request_failed = True
-                    raise SourceError("SOURCE_DUPLICATE_JOB_ID")
-                continue
-            seen_by_identity[identity] = item
-            all_items.append(item)
+            if seen_by_identity.setdefault(identity, item) != item:
+                conflicts.add(identity)
+        items = {identity: item for identity, item in seen_by_identity.items()
+                 if identity not in conflicts}
+        if conflicts:
+            if not items:
+                self._reject_duplicate_id()
+            with self._status_lock:
+                self.status = "PARTIAL"
+        return items, conflicts
+
+    def _reject_duplicate_id(self):
+        with self._status_lock:
+            self.status = "SOURCE_DUPLICATE_JOB_ID"
+            self._request_failed = True
+        raise SourceError("SOURCE_DUPLICATE_JOB_ID")
+
+    def search(self, category=None, search_term=None, limit=None):
+        """Collect unambiguous WWR listings before applying client-side filters."""
+        items, conflicts = self._read_feed_items()
+        all_items = list(items.values())
 
         # Client-side filtering (RSS does not support query params)
         if category:
@@ -540,11 +550,12 @@ class WeWorkRemotely:
             )
             source_items.append(SourceItem(raw, company))
 
-        return SearchBatch(
+        return WWRSearchBatch(
             endpoint=FEED_URL,
             items=tuple(source_items),
             source_company=None,
             complete_inventory=False,
+            quarantined_id_count=len(conflicts),
         )
 
     def fetch(self, job_id):
@@ -555,21 +566,11 @@ class WeWorkRemotely:
         """
         if not isinstance(job_id, str) or not job_id.strip():
             raise ValueError("SOURCE_INVALID_JOB_ID")
-        self._reset_request_status()
-        batch = self.search()
-        selected = None
-        for item in batch.items:
-            self.check()
-            posting_id = _posting_id_from_guid(item.raw.get("guid") or item.raw.get("link", ""))
-            if posting_id == job_id:
-                if selected is not None and item.raw != selected:
-                    # Collection rejects different raw records for one identity.
-                    # Detail retrieval must not choose whichever record came first.
-                    with self._status_lock:
-                        self.status = "SOURCE_DUPLICATE_JOB_ID"
-                        self._request_failed = True
-                    raise SourceError("SOURCE_DUPLICATE_JOB_ID")
-                selected = item.raw
+        items, conflicts = self._read_feed_items()
+        if job_id in conflicts:
+            self._reject_duplicate_id()
+        self.check()
+        selected = items.get(job_id)
         if selected is not None:
             self.normalize(selected)
             return selected

@@ -10,10 +10,6 @@ import socket
 import sys
 
 from redis import Redis
-from rq import Queue, Worker
-from rq.defaults import DEFAULT_WORKER_TTL
-
-from workers.operations import QUEUES
 
 
 SCHEDULER_HEARTBEAT_KEY = "mjobs:runtime:scheduler:last_success"
@@ -21,7 +17,17 @@ SCHEDULER_MIN_INTERVAL_SECONDS = 5
 SCHEDULER_MAX_INTERVAL_SECONDS = 300
 SCHEDULER_HEARTBEAT_GRACE_SECONDS = 30
 HEALTH_REDIS_SOCKET_TIMEOUT_SECONDS = 1
-REQUIRED_QUEUES = tuple(sorted(set(QUEUES.values())))
+REQUIRED_QUEUES = (
+    "mjobs-ai", "mjobs-application", "mjobs-company-discovery",
+    "mjobs-discovery", "mjobs-document",
+)
+
+
+def _worker_runtime_dependencies():
+    """Load RQ dependencies only for worker health checks."""
+    from rq import Queue, Worker
+    from rq.defaults import DEFAULT_WORKER_TTL
+    return Queue, Worker, DEFAULT_WORKER_TTL
 
 
 def _parse_timestamp(value: object) -> datetime | None:
@@ -130,6 +136,10 @@ def worker_health_probe(
     redis_connection, queue: str, hostname: str, *, now: datetime | None = None,
 ) -> bool:
     """Require this container's active worker and heartbeat on the exact queue."""
+    try:
+        Queue, Worker, default_worker_ttl = _worker_runtime_dependencies()
+    except Exception:
+        return False
     if queue not in REQUIRED_QUEUES or not isinstance(hostname, str) or not hostname:
         return False
     current = now or datetime.now(timezone.utc)
@@ -152,7 +162,7 @@ def worker_health_probe(
                 continue
             if worker.get_state() not in ("idle", "busy"):
                 continue
-            worker_ttl = getattr(worker, "worker_ttl", DEFAULT_WORKER_TTL)
+            worker_ttl = getattr(worker, "worker_ttl", default_worker_ttl)
             if type(worker_ttl) is not int or worker_ttl <= 0:
                 continue
             if _is_fresh(
@@ -213,6 +223,7 @@ def read_runtime_health(redis_connection, *, now: datetime | None = None) -> dic
     except Exception:
         pass
 
+    _, Worker, default_worker_ttl = _worker_runtime_dependencies()
     workers = {queue: False for queue in REQUIRED_QUEUES}
     try:
         registered_workers = Worker.all(connection=redis_connection)
@@ -222,7 +233,7 @@ def read_runtime_health(redis_connection, *, now: datetime | None = None) -> dic
         try:
             if worker.get_state() not in ("idle", "busy"):
                 continue
-            worker_ttl = getattr(worker, "worker_ttl", DEFAULT_WORKER_TTL)
+            worker_ttl = getattr(worker, "worker_ttl", default_worker_ttl)
             if type(worker_ttl) is not int or worker_ttl <= 0:
                 continue
             if not _is_fresh(getattr(worker, "last_heartbeat", None), now=current,

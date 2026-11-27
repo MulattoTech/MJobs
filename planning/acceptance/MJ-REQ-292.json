@@ -3,7 +3,7 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-13T09:13:43.367123+00:00",
+  "updated_at_utc": "2026-11-26T09:00:22.880377+00:00",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
@@ -42,6 +42,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -96,6 +100,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -148,6 +156,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -204,6 +216,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -258,6 +274,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -314,6 +334,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -369,6 +393,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -423,6 +451,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -483,6 +515,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Prove the intended source pair is enabled/read back and retains complete policy binding throughout the same public journey. Runtime04 source-setup history contained two created-source checks with a null policy digest and was rejected by the unchanged strict validator. The four-file repair is included in private032, but a fresh connected qualification on protected merged source remains required.",
@@ -537,6 +573,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -595,6 +635,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 completed one Remotive collection and saved five observed public posting/snapshot joins and same-profile job-detail browser checks. The wrapper failed before ingesting those standalone public observations. Establish real discovered jobs as accepted evidence within the continuous protected-source journey; preserve the original failure and do not relabel the isolated PASS artifacts as numbered acceptance.",
@@ -652,6 +696,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -706,6 +754,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -762,6 +814,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -816,6 +872,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -872,6 +932,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 saved five public job-detail observations, including three rows with visible restrictions; standalone public/browser checks passed but were not ingested after source-setup validation failed. Prove source-consistent remote eligibility inside the continuous protected-source journey and independently review the joined evidence.",
@@ -926,6 +990,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -983,6 +1051,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -1038,6 +1110,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1095,6 +1171,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -1150,6 +1230,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1207,6 +1291,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "The fourth run preserves historical startup and UI support, but the overall campaign failed at source-setup policy-history validation. Complete this original criterion in one continuous 60-step campaign on protected merged source, with exact identity continuity and independent acceptance review; later controlled repair evidence does not establish current acceptance.",
@@ -1258,6 +1346,10 @@
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1312,6 +1404,10 @@
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1369,9 +1465,13 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Required public behavior remains: Official domain is corroborated through independent admissible evidence. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
+      "missing_behavior": "Required public behavior remains: Official domain is corroborated through independent admissible evidence. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets. The local candidate run recorded two COMPANY_DOMAIN_CORROBORATION_REQUIRED blocks, no persisted official-domain bootstrap receipt for either child, and SAME_EMPLOYER_EXAMPLES_NOT_OBSERVED. Canonical PASS still requires exact reviewed protected-source evidence.",
       "responsible_agent": "ChatGPT-Web /root MJ-REQ-292 driver; historical row author: obiwan_employer",
       "exclusive_source_ownership": [
         "services/company_discovery/domain_acquisition.py",
@@ -1422,6 +1522,10 @@
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1477,6 +1581,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Required public behavior remains: Supported ATS identity is established where evidence permits; ambiguity fails safely. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
@@ -1530,6 +1638,10 @@
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1585,6 +1697,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Required public behavior remains: All current openings within the supported provider listing are enumerated without truncation. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
@@ -1639,6 +1755,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Required public behavior remains: A qualifying direct-employer job absent from the original aggregator is discovered. Runtime04 produced two bounded children blocked with BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE, unavailable domain proof and zero child enrollments. Existing controlled fixture observations and the private profile preference component do not establish the real employer discovery/enrollment/inventory chain; complete and review that same-profile chain without manufacturing hints, weakening site controls or increasing collector budgets.",
@@ -1692,6 +1812,10 @@
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1750,6 +1874,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -1802,6 +1930,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -1861,6 +1993,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -1919,6 +2055,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -1974,6 +2114,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2032,6 +2176,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2088,6 +2236,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2146,6 +2298,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2203,6 +2359,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2259,6 +2419,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2318,6 +2482,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2376,6 +2544,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2432,6 +2604,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2490,6 +2666,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2546,6 +2726,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2604,6 +2788,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2660,6 +2848,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2718,6 +2910,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2774,6 +2970,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2832,6 +3032,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -2888,6 +3092,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -2946,6 +3154,10 @@
         {
           "artifact": "docs/evidence/2026-11-13-mjreq292-f9e21b82.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Runtime04 preserves controlled same-profile document/application UI support through local mock confirmation, tracker reload and scoped audit observations. Its later public-source stage failed, so the full journey remains incomplete. Complete this criterion within the continuous protected-source campaign, preserve exact document/job/application provenance and independently review the evidence; real external application submission remains OFF.",
@@ -3001,6 +3213,10 @@
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Not reached by the fourth campaign. Still required: All owned required services actually stop/restart with persistent test volumes retained. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
@@ -3053,6 +3269,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -3107,6 +3327,10 @@
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Not reached by the fourth campaign. Still required: Enrolled company source identities/configuration persist after restart. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
@@ -3160,6 +3384,10 @@
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Not reached by the fourth campaign. Still required: Original and generated documents, versions and exact download hashes survive restart. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
@@ -3212,6 +3440,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
@@ -3269,6 +3501,10 @@
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
       "missing_behavior": "Not reached by the fourth campaign. Still required: Real scheduler resumes and naturally admits the expected due task. This must follow the accepted preceding stages in the same continuous journey. The later controlled stop retained data but did not execute an accepted restart or resumed scheduler/company-monitoring sequence; those cleanup records do not satisfy this criterion.",
@@ -3324,6 +3560,10 @@
         },
         {
           "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-26-mjreq292-ae97c368-local.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],

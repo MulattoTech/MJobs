@@ -1,5 +1,6 @@
 """Connected browser acceptance against the actual local Compose deployment."""
 import argparse
+from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import io
@@ -12,7 +13,8 @@ import subprocess
 import sys
 import tempfile
 import time
-from urllib.parse import quote, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
+from uuid import uuid4
 
 import httpx
 from docx import Document
@@ -20,6 +22,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_pla
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
+from cli.acceptance_audit import application_audit_trace
 from cli.compose_recovery import collect_persisted_job_inventory
 from cli import local_persistence_acceptance as persistence
 from cli.ui_e2e_jobs_journey import (
@@ -30,6 +33,7 @@ from cli.ui_e2e_jobs_journey import (
 _SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
 _SAFE_OPERATION_ERROR = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 _SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+REMOTE_IT_SEARCH_TITLE = "IT Support Specialist"
 _SAFE_ERROR_TYPE_CATEGORIES = {
     "AssertionError": "BUILTIN_ASSERTION_ERROR",
     "AttributeError": "BUILTIN_ATTRIBUTE_ERROR",
@@ -545,6 +549,63 @@ def application_profile_version_matches(profile, application):
             and profile.get("version") == application.get("profile_version"))
 
 
+def reload_saved_job_readback(page, reselect_job, request, profile_id, job_id):
+    page.reload(wait_until="domcontentloaded")
+    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+    reselect_job(job_id)
+    expect(page.locator("section.job-detail").get_by_text(
+        "Current status: SAVED", exact=True)).to_be_visible()
+    detail = request(f"/jobs/{job_id}?profile_id={profile_id}")
+    return detail.get("id") == job_id and (detail.get("tracking") or {}).get("disposition") == "SAVED"
+
+
+def prepared_document_pair(application, documents, *, application_id, profile_id, job_id):
+    version = application.get("document_version")
+    pins = {"application_id": application_id, "profile_id": profile_id, "job_id": job_id}
+    if (application.get("id") != application_id or application.get("profile_id") != profile_id
+            or application.get("job_id") != job_id or type(version) is not int or version < 1):
+        return None
+    pair = {}
+    for kind in ("resume", "cover-letter"):
+        matches = [row for row in documents if row.get("kind") == kind
+                   and type(row.get("version")) is int and row["version"] == version]
+        if len(matches) != 1:
+            return None
+        document = matches[0]
+        if (not EvidenceJournal._lineage_id(document.get("id"))
+                or not application_profile_version_matches(
+                    {"id": profile_id, "version": document.get("profile_version")}, application)
+                or any(document.get(key) != value for key, value in pins.items())):
+            return None
+        pair[kind] = document["id"]
+    return pair if pair["resume"] != pair["cover-letter"] else None
+
+
+def generated_resume_omission_receipt(comparison, *, base, tailored, omitted_fact,
+                                      profile_id, application_id, job_id):
+    """Bind a known omission to the selected immutable, same-application pair."""
+    scope = {"profile_id": profile_id, "application_id": application_id, "job_id": job_id}
+    documents = {}
+    for role, document in (("base", base), ("tailored", tailored)):
+        assert document["kind"] == "resume" and all(document.get(key) == value for key, value in scope.items())
+        assert EvidenceJournal._lineage_id(document["id"])
+        snapshot = comparison[role]
+        pins = {key: document[key] for key in ("id", "version", "profile_version")}
+        pins["sha256"] = document["sha256"]["txt"]
+        assert all(snapshot.get(key) == value for key, value in pins.items()), (
+            "Resume comparison response differs from the selected document pair")
+        documents[role] = pins
+    assert base["id"] != tailored["id"], "Resume comparison requires two distinct documents"
+    assert comparison["omitted"] == [omitted_fact], "Resume comparison did not show the expected omission"
+    assert comparison["base"]["facts"].count(omitted_fact) == 1
+    assert all(fact["fact_id"] != omitted_fact["fact_id"] for fact in comparison["tailored"]["facts"])
+    return {
+        **scope, "documents": documents,
+        "omitted": {"fact_id": omitted_fact["fact_id"], "kind": omitted_fact["kind"],
+                    "text_sha256": hashlib.sha256(omitted_fact["text"].encode("utf-8")).hexdigest()},
+    }
+
+
 def prepare_ui_artifact_directory(base_url, evidence_path, acceptance_run_id=None):
     """Prepare a non-overwriting per-run artifact directory for the browser."""
     parsed_target = urlsplit(base_url)
@@ -756,6 +817,102 @@ def assert_supported_fixture_search(search, *, profile_id, include_titles, remot
         raise AssertionError("fixture search must keep its background scheduler disabled")
 
 
+def reload_saved_it_search_readback(page, base_url, navigate, *, profile_id, saved_search):
+    """Reuse the journey reload and retain only its scoped search witness."""
+    origin = urlsplit(base_url)
+    active = page.get_by_label("Active profile", exact=True)
+    before_profile = active.input_value()
+    reload_started_ms = None
+
+    def is_search_readback(response):
+        url = urlsplit(response.url)
+        if (reload_started_ms is None or response.request.method != "GET"
+                or (url.scheme, url.netloc) != (origin.scheme, origin.netloc)
+                or url.path != "/search-profiles" or url.fragment
+                or parse_qs(url.query, keep_blank_values=True) != {"profile_id": [profile_id]}):
+            return False
+        started_ms = response.request.timing.get("startTime")
+        return type(started_ms) in (int, float) and started_ms >= reload_started_ms
+
+    reloaded = False
+    try:
+        with page.expect_response(is_search_readback, timeout=10_000) as pending:
+            reload_started_ms = time.time_ns() / 1_000_000
+            page.reload(wait_until="domcontentloaded")
+            reloaded = True
+        response = pending.value
+    except PlaywrightTimeoutError:
+        if not reloaded:
+            raise
+        return None
+    if response.status != 200 or before_profile != profile_id:
+        return None
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    rows = payload.get("search_profiles") if isinstance(payload, dict) else None
+    search_id = saved_search.get("id") if isinstance(saved_search, dict) else None
+    if (not EvidenceJournal._lineage_id(search_id) or not isinstance(rows, list) or len(rows) > 200
+            or any(not isinstance(row, dict) for row in rows)):
+        return None
+    matches = [row for row in rows if row.get("id") == search_id]
+    if len(matches) != 1:
+        return None
+
+    def projection(search):
+        assert_supported_fixture_search(search, profile_id=profile_id,
+            include_titles=[REMOTE_IT_SEARCH_TITLE], remote="REQUIRED")
+        return {"profile_id": search["profile_id"], "search_profile_id": search["id"],
+                "include_titles": list(search["criteria"]["include_titles"]), "remote": search["criteria"]["remote"]}
+
+    try:
+        before, after = projection(saved_search), projection(matches[0])
+        expect(active).to_have_value(profile_id)
+        navigate("Jobs")
+        selector = page.get_by_label("Saved search profile", exact=True).last
+        expect(selector).to_be_visible()
+        option = selector.locator(f'option[value="{search_id}"]')
+        expect(option).to_have_count(1)
+        after_profile, visible_search_id = active.input_value(), option.get_attribute("value")
+    except (AssertionError, PlaywrightTimeoutError):
+        return None
+    if before != after or after_profile != profile_id or visible_search_id != search_id:
+        return None
+    return {"before_active_profile_id": before_profile, "after_active_profile_id": after_profile,
+            "visible_search_profile_id": visible_search_id, "before_reload": before, "after_reload": after}
+
+
+def create_fixture_us_remote_search(put, request, profile_id):
+    """Save a browsing-only search without changing the two discovery searches."""
+    search_id = f"fixture-step16-{uuid4().hex}"
+    scheduler = {"enabled": False, "interval_seconds": 1800}
+    response = put("/search-profiles", {
+        "id": search_id,
+        "profile_id": profile_id,
+        "name": "Synthetic US remote restrictions",
+        "enabled": False,
+        "remote": "REQUIRED",
+        "remote_regions": ["US"],
+        "scheduler": scheduler,
+    })
+    assert response.ok and response.json().get("id") == search_id, (
+        "Step 16 search save did not return the fresh search ID")
+    saved = request("/search-profiles/" + search_id)
+    criteria = saved.get("criteria") or {}
+    assert (saved.get("id") == search_id and saved.get("profile_id") == profile_id
+            and saved.get("enabled") is False and saved.get("source_ids") == []
+            and criteria.get("remote") == "REQUIRED"
+            and criteria.get("remote_regions") == ["US"]
+            and criteria.get("include_titles") == []
+            and "job_filters" not in criteria
+            and criteria.get("scheduler") == scheduler
+            and criteria["scheduler"].get("enabled") is False), (
+        "Step 16 search readback did not match the same-profile, schedule-off US scope")
+    return saved["id"]
+
+
 def assert_reprepared_profile_pins(*, previous_profile_version, old_application_profile_version,
                                    current_profile_version, resumed_application_profile_version):
     """Compare opaque profile-version identities by equality, not lexical order."""
@@ -847,11 +1004,24 @@ def expect_visible_with_onboarding_diagnostics(locator, blocked_requests, **kwar
         raise
 
 
+def expect_audit_event_row(items, event, summary):
+    row = items.nth(event["index"])
+    expect(row).to_be_visible()
+    expect(row).to_have_attribute("data-audit-event-id", event["id"])
+    expect(row.locator("strong")).to_have_text(summary)
+    for label in ("Data Engineer", "Example Systems Inc.", event["type"]):
+        expect(row).to_contain_text(label)
+
+
 def answer_bank_confirmation_locator(answer_group, question_number):
     """Locate the confirmation div by its aria-label (it is not a region role)."""
     return answer_group.locator(
         f'[aria-label="Answer Bank confirmation for question {question_number}"]'
     )
+
+
+_ONBOARDING_WRONG_SKILL = "Pythno"
+_ONBOARDING_CORRECTED_SKILL = "Python"
 
 
 def _onboarding_fixture_pdf():
@@ -860,11 +1030,61 @@ def _onboarding_fixture_pdf():
     text = pdf.beginText(40, 780)
     for line in (
         "Summary", "Fictional onboarding summary for extraction review only.",
+        "Skills", _ONBOARDING_WRONG_SKILL,
     ):
         text.textLine(line)
     pdf.drawText(text)
     pdf.save()
     return stream.getvalue()
+
+
+def _onboarding_fixture_docx():
+    stream = io.BytesIO()
+    document = Document()
+    document.add_paragraph("Summary")
+    document.add_paragraph("Distinct synthetic DOCX original for upload verification.")
+    document.save(stream)
+    return stream.getvalue()
+
+
+def resume_original_receipt(upload, row, *, profile_id, filename, format, original, download):
+    digest = hashlib.sha256(original).hexdigest()
+    keys = ("id", "revision_id", "series_id", "version")
+    pins = {key: upload.get(key) for key in keys}
+    assert all(EvidenceJournal._lineage_id(pins[key]) for key in keys[:-1])
+    assert type(pins["version"]) is int and pins["version"] >= 1
+    assert type(row.get("version")) is int
+    assert pins == {key: row.get(key) for key in keys}, "uploaded revision changed after reload"
+    for record in (upload, row):
+        assert record.get("profile_id") == profile_id
+        assert record.get("filename") == filename and record.get("format") == format
+        assert record.get("sha256") == digest
+    assert download == original, "uploaded original failed byte readback"
+    return {
+        "format": format, "profile_id": profile_id, "resume_id": pins["id"],
+        "revision_id": pins["revision_id"], "series_id": pins["series_id"], "version": pins["version"],
+        "input_sha256": digest, "download_sha256": hashlib.sha256(download).hexdigest(),
+    }
+
+
+def assert_visible_resume_suggestions(durable, visible):
+    assert all(row["checked"] is False for row in visible), "visible suggestion was already selected"
+    assert Counter((row["kind"], row["text"]) for row in visible) == Counter(
+        (row["kind"], row["text"]) for row in durable), "visible suggestions differ from the durable extraction"
+
+
+def assert_onboarding_fact_revision(before, after, fact_id, **changes):
+    assert before["id"] == after["id"], "profile changed during correction"
+
+    def facts(profile):
+        by_id = {row["fact_id"]: {key: value for key, value in row.items() if key not in {"id", "version"}}
+                 for row in profile["facts"]}
+        assert len(by_id) == len(profile["facts"]), "duplicate profile fact IDs"
+        return by_id
+
+    expected = facts(before)
+    expected[fact_id] = {**expected[fact_id], **changes}
+    assert facts(after) == expected, "corrected or unrelated facts do not match the expected readback"
 
 
 def _onboarding_preflight(base_url):
@@ -1128,7 +1348,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         )
 
     def record_application_step(step, observable_result, assertions, *,
-                                stage_lineage=None, document_id=None):
+                                stage_lineage=None, document_id=None, document_ids=None):
         if acceptance_run_id is None:
             return None
         from cli.acceptance_applications import record_application_step as record
@@ -1136,7 +1356,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         return record(
             journal, step, observable_result=observable_result,
             assertions=assertions, runtime_identity=runtime_identity,
-            stage_lineage=stage_lineage, document_id=document_id,
+            stage_lineage=stage_lineage, document_id=document_id, document_ids=document_ids,
         )
 
     def _paired_evidence(ui, readback):
@@ -1266,13 +1486,16 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
 
-        def select_data_job():
+        def select_data_job(job_id=None):
             navigation("Jobs")
             page.get_by_label("Search jobs").fill("data")
             if onboarding:
                 page.get_by_label("Job title", exact=True).fill("")
                 page.get_by_label("Work location", exact=True).select_option("")
             card = page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True)
+            if job_id is not None:
+                assert EvidenceJournal._lineage_id(job_id)
+                card = card.and_(page.locator(f'.job-list button.job-card[data-job-id="{job_id}"]'))
             expect(card).to_have_count(1)
             card.click()
             expect(page.get_by_role("heading", name="Why this match?", exact=True)).to_be_visible()
@@ -1334,21 +1557,103 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         "target_origin": journal.binding["target_origin"]}
                     journal.persist()
 
-                page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
-                    "name": "synthetic-onboarding.pdf", "mimeType": "application/pdf",
-                    "buffer": _onboarding_fixture_pdf(),
-                })
-                page.get_by_label("Resume label", exact=True).fill("Synthetic onboarding fixture")
-                page.get_by_role("button", name="Store resume", exact=True).click()
-                resume_row = page.locator("[data-resume-version='1']")
-                expect(resume_row).to_be_visible()
-                resume_row.get_by_role("button", name="Extract and review", exact=True).click()
+                resumes_path = f"/profiles/{quote(profile_id, safe='')}/resumes"
+
+                def resume_row_for(row):
+                    heading = page.get_by_text(
+                        f"Version {row['version']} · {row['filename']}", exact=True)
+                    return page.locator("[data-resume-version]").filter(has=heading)
+
+                def reload_profile_editor():
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                    navigation("Profile")
+                    expect(page.get_by_role("button", name="Save profile", exact=True)).to_be_enabled()
+
+                uploaded = {}
+                for format, mime_type, data in (
+                    ("pdf", "application/pdf", _onboarding_fixture_pdf()),
+                    ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                     _onboarding_fixture_docx()),
+                ):
+                    filename = f"synthetic-onboarding.{format}"
+                    page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
+                        "name": filename, "mimeType": mime_type, "buffer": data,
+                    })
+                    page.get_by_label("Resume label", exact=True).fill(
+                        f"Synthetic onboarding {format.upper()}")
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == resumes_path) as stored:
+                        page.get_by_role("button", name="Store resume", exact=True).click()
+                    assert stored.value.status == 201
+                    row = stored.value.json()
+                    expect(resume_row_for(row)).to_be_visible()
+                    expect(page.get_by_label("Choose a resume (up to 10 MiB)")).to_be_enabled()
+                    uploaded[format] = (row, filename, data)
+
+                reload_profile_editor()
+                originals = request(resumes_path)["resumes"]
+                original_receipts = []
+                for format, (stored_row, filename, data) in uploaded.items():
+                    resume_id = stored_row["id"]
+                    matches = [row for row in originals if row["id"] == resume_id]
+                    assert len(matches) == 1
+                    resume_path = f"{resumes_path}/{quote(resume_id, safe='')}"
+                    original_link = resume_row_for(matches[0]).get_by_role(
+                        "link", name="Download original", exact=True)
+                    expect(original_link).to_be_visible()
+                    expect(original_link).to_have_attribute("href", resume_path)
+                    original_response = context.request.get(base_url + original_link.get_attribute("href"))
+                    assert original_response.ok
+                    original_receipts.append(resume_original_receipt(
+                        stored_row, matches[0], profile_id=profile_id, filename=filename, format=format,
+                        original=data, download=original_response.body()))
+                assert len({row["resume_id"] for row in original_receipts}) == 2
+                assert len({row["input_sha256"] for row in original_receipts}) == 2
+                if acceptance_run_id is not None:
+                    journal.binding["resume_original_readbacks"] = original_receipts
+
+                pdf = next(row for row in originals if row["id"] == uploaded["pdf"][0]["id"])
+                extract_path = f"{resumes_path}/{quote(pdf['id'], safe='')}/extract/queued"
+                with page.expect_response(lambda response:
+                        response.request.method == "POST"
+                        and urlsplit(response.url).path == extract_path) as started:
+                    resume_row_for(pdf).get_by_role("button", name="Extract and review", exact=True).click()
+                assert started.value.status == 202
+                operation_id = started.value.json()["operation_id"]
+                assert _SAFE_OPERATION_ID.fullmatch(operation_id)
                 review = page.get_by_role("region", name="Resume extraction review")
                 expect(review).to_be_visible()
-                suggestions = review.locator('label.fact-suggestion:has(strong) input[type="checkbox"]')
-                assert suggestions.count() > 0
+                review_source = review.locator("[data-extraction-source]")
+                expect(review_source).to_be_visible()
+                expect(review_source).to_have_attribute("data-extraction-source", pdf["id"])
+                expect(review_source).to_have_text(
+                    f"Review source: {pdf['label']} · version {pdf['version']} · {pdf['filename']}")
+                extracted = request(f"{extract_path}/{operation_id}")
+                assert extracted["operation_id"] == operation_id and extracted["state"] == "COMPLETED"
+                assert extracted["result"]["status"] == "READY_FOR_REVIEW"
+                suggested_facts = extracted["result"]["facts"]
+                wrong_skill, = [fact for fact in suggested_facts
+                                if fact["kind"] == "skill" and fact["text"] == _ONBOARDING_WRONG_SKILL]
+                suggestion_rows = review.locator("label.fact-suggestion:has(strong)")
+                suggestions = suggestion_rows.get_by_role("checkbox")
+                expect(suggestions).to_have_count(len(suggested_facts))
                 for suggestion in suggestions.all():
+                    expect(suggestion).to_be_visible()
                     expect(suggestion).not_to_be_checked()
+                visible_suggestions = suggestion_rows.evaluate_all("""rows => rows.map(row => {
+                    const description = row.querySelector(':scope > span');
+                    return {
+                        kind: description.querySelector(':scope > strong').textContent,
+                        text: Array.from(description.childNodes)
+                            .filter(node => node.nodeType === Node.TEXT_NODE)
+                            .map(node => node.textContent).join('').trim(),
+                        checked: row.querySelector(':scope > input').checked,
+                    };
+                })""")
+                assert_visible_resume_suggestions(suggested_facts, visible_suggestions)
+                for suggestion in suggestions.all():
                     suggestion.check()
                 expect(review.get_by_role("button", name="Add selected to profile editor", exact=True)).to_be_enabled()
                 review.get_by_role("button", name="Add selected to profile editor", exact=True).click()
@@ -1361,55 +1666,97 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 save_profile()
                 imported_profile = request("/profiles/" + profile_id)
                 pending_fact_ids = {row["fact_id"] for row in imported_profile["facts"]}
-                assert pending_fact_ids
+                assert imported_profile["id"] == profile_id
+                assert pending_fact_ids == {fact["id"] for fact in suggested_facts}
                 assert all(not row["verified"] and not row["user_approved"]
                            for row in imported_profile["facts"])
+                fact_id = wrong_skill["id"]
+                assert len(pending_fact_ids) > 1
+                assert any(row["fact_id"] == fact_id and row["text"] == _ONBOARDING_WRONG_SKILL
+                           for row in imported_profile["facts"])
+                if acceptance_run_id is not None:
+                    journal.binding["resume_extraction_source_readback"] = {
+                        "profile_id": profile_id, "resume_id": pdf["id"], "sha256": pdf["sha256"],
+                        "label": pdf["label"], "version": pdf["version"], "filename": pdf["filename"],
+                        "operation_id": operation_id, "suggested_fact_ids": sorted(pending_fact_ids),
+                        "matched_suggestions": [
+                            {"fact_id": fact["id"], "kind": fact["kind"],
+                             "text_sha256": hashlib.sha256(fact["text"].encode("utf-8")).hexdigest(),
+                             "unchecked": True}
+                            for fact in suggested_facts
+                        ],
+                    }
                 observe_acceptance_step(
-                    4, "PASS", "Synthetic resume was uploaded and extracted through the UI.",
+                    4, "PASS", "Both synthetic originals matched their saved download bytes after reload.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "resume_upload_and_extraction_visible", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
                 observe_acceptance_step(
-                    5, "PASS", "Extracted suggestions remain pending until reviewed and approved.",
+                    5, "PASS", "The visible PDF review source matched the durable extraction; suggestions were unchecked and saved pending.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "extracted_suggestions_remain_unapproved", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
 
-                correction = next(row for row in imported_rows.all()
-                                  if row.get_by_role("textbox", name="Fact text", exact=True).count())
-                corrected_fact = correction.get_by_role(
-                    "textbox", name="Fact text", exact=True)
-                prior_fact_text = corrected_fact.input_value()
-                correction_text = prior_fact_text + " (corrected after review)"
-                corrected_fact.fill(correction_text)
+                correction = fact_editor(_ONBOARDING_WRONG_SKILL)
+                correction.get_by_role("textbox", name="Fact text", exact=True).fill(_ONBOARDING_CORRECTED_SKILL)
                 expect(correction.get_by_label("I verified this fact", exact=True)).not_to_be_checked()
                 expect(correction.get_by_label("I approve its use in documents", exact=True)).not_to_be_checked()
                 save_profile()
+                reload_profile_editor()
+                expect(page.locator("fieldset.fact")).not_to_have_count(0)
+                pending_correction = request("/profiles/" + profile_id)
+                assert_onboarding_fact_revision(
+                    imported_profile, pending_correction, fact_id, text=_ONBOARDING_CORRECTED_SKILL)
+                correction = fact_editor(_ONBOARDING_CORRECTED_SKILL)
+                expect(correction.get_by_label("I verified this fact", exact=True)).not_to_be_checked()
+                expect(correction.get_by_label("I approve its use in documents", exact=True)).not_to_be_checked()
+                correction.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                correction.get_by_label("I verified this fact", exact=True).check()
+                fact_editor(_ONBOARDING_CORRECTED_SKILL).get_by_label(
+                    "I approve its use in documents", exact=True).check()
+                save_profile()
+                reload_profile_editor()
+                expect(page.locator("fieldset.fact")).not_to_have_count(0)
                 corrected_profile = request("/profiles/" + profile_id)
-                corrected_row = next(row for row in corrected_profile["facts"]
-                                     if row["text"] == correction_text)
-                assert corrected_row["verified"] is False and corrected_row["user_approved"] is False
-                pending_fact_ids = {row["fact_id"] for row in corrected_profile["facts"]}
+                assert_onboarding_fact_revision(
+                    pending_correction, corrected_profile, fact_id,
+                    verified=True, user_approved=True, confidence=100)
+                correction = fact_editor(_ONBOARDING_CORRECTED_SKILL)
+                expect(correction.get_by_label("I verified this fact", exact=True)).to_be_checked()
+                expect(correction.get_by_label("I approve its use in documents", exact=True)).to_be_checked()
+                pending_fact_ids.remove(fact_id)
+                assert_onboarding_profile_facts(
+                    corrected_profile, pending_fact_ids, expected_approved_fact_texts={_ONBOARDING_CORRECTED_SKILL})
+                if acceptance_run_id is not None:
+                    journal.binding["resume_fact_correction_readback"] = {
+                        "profile_id": profile_id, "resume_id": pdf["id"], "fact_id": fact_id,
+                        "imported_profile_version": imported_profile["version"],
+                        "pending_profile_version": pending_correction["version"],
+                        "approved_profile_version": corrected_profile["version"],
+                        "original_text": _ONBOARDING_WRONG_SKILL, "corrected_text": _ONBOARDING_CORRECTED_SKILL,
+                        "correction_pending_after_first_reload": True,
+                        "correction_approved_after_second_reload": True,
+                        "unrelated_facts_unchanged": True,
+                    }
                 observe_acceptance_step(
-                    6, "PASS", "An extracted fact was corrected and saved as an unapproved pending fact.",
+                    6, "PASS", "The exact imported skill was corrected, independently reviewed and approved, then read back after reload.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "corrected_fact_read_back", "passed": True},
                             {"name": "corrected_fact_remains_pending", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
-                actions.append({"action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback", "result": "PASS"})
+                actions.append({"action": "Both original resume formats persisted; only the corrected import was explicitly approved", "result": "PASS"})
 
-                for fact_text in ("Python", "SQL"):
-                    page.get_by_role("button", name="Add fact", exact=True).click()
-                    new_fact_editor = page.locator("fieldset.fact").last
-                    new_fact_editor.get_by_role("combobox").select_option("skill")
-                    new_fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
-                    new_fact_editor.get_by_label("Fact text", exact=True).fill(fact_text)
-                    new_fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
-                    new_fact_editor.get_by_label("I verified this fact", exact=True).check()
-                    new_fact_editor.get_by_label("I approve its use in documents", exact=True).check()
+                page.get_by_role("button", name="Add fact", exact=True).click()
+                new_fact_editor = page.locator("fieldset.fact").last
+                new_fact_editor.get_by_role("combobox").select_option("skill")
+                new_fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                new_fact_editor.get_by_label("Fact text", exact=True).fill("SQL")
+                new_fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
+                new_fact_editor.get_by_label("I verified this fact", exact=True).check()
+                new_fact_editor.get_by_label("I approve its use in documents", exact=True).check()
                 for question, answer_text in (
                     ("Country", "United States"),
                     ("Remote role", "yes"),
@@ -1440,7 +1787,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 skill_fact_ids = assert_onboarding_profile_facts(profile, pending_fact_ids)
                 python_fact_id = skill_fact_ids["Python"]
                 sql_fact_id = skill_fact_ids["SQL"]
-                actions.append({"action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved", "result": "PASS"})
+                assert python_fact_id == fact_id
+                actions.append({"action": "Only the corrected Python and explicitly entered SQL facts are verified and approved", "result": "PASS"})
                 observe_acceptance_step(
                     7, "PASS", "Only the explicitly reviewed synthetic Python and SQL facts are approved.",
                     evidence_kind="CONTROLLED_FIXTURE",
@@ -1547,7 +1895,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 # Jobs-tab filter snapshots are intentionally disabled for scheduling
                 # and cannot be resumed as provider discovery criteria.
                 nonmatching_search = save_sources_fixture_search(
-                    "Synthetic remote IT onboarding search", "IT Support Specialist")
+                    "Synthetic remote IT onboarding search", REMOTE_IT_SEARCH_TITLE)
                 if acceptance_run_id is not None:
                     from cli.acceptance_employer import begin_employer_observation
 
@@ -1600,17 +1948,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 it_search = next(row for row in request(
                     "/search-profiles?profile_id=" + profile_id)["search_profiles"]
                     if row["id"] == nonmatching_search["id"])
-                assert it_search["criteria"]["include_titles"] == ["IT Support Specialist"]
+                assert it_search["criteria"]["include_titles"] == [REMOTE_IT_SEARCH_TITLE]
                 assert it_search["criteria"]["remote"] == "REQUIRED"
-                observe_acceptance_step(
-                    8, "PASS", "Remote IT and Data Engineer searches were saved through the Sources UI.",
-                    evidence_kind="CONTROLLED_FIXTURE",
-                    checks=[{"name": "remote_it_search_read_back", "passed": True},
-                            {"name": "remote_data_search_read_back", "passed": True}],
-                    continuity={"profile_id": profile_id,
-                                "operation_id": discovery_operation_id,
-                                "request_id": discovery_request_id},
-                )
                 observe_acceptance_step(
                     10, "PASS", "Fixture discovery completed and search-scoped jobs were read back.",
                     evidence_kind="CONTROLLED_FIXTURE",
@@ -1629,8 +1968,27 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                                 "request_id": discovery_request_id},
                 )
                 if acceptance_run_id is not None:
+                    remote_search_id = create_fixture_us_remote_search(
+                        lambda path, payload: context.request.put(base_url + path, data=payload),
+                        request, profile_id)
+                    it_reload = reload_saved_it_search_readback(page, base_url, navigation,
+                        profile_id=profile_id, saved_search=it_search)
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                    if it_reload is not None:
+                        journal.binding["saved_it_search_reload"] = it_reload
+                    observe_acceptance_step(
+                        8, "PASS" if it_reload is not None else "PARTIAL",
+                        "Saved remote IT criteria and selector were read back after reload in the same profile."
+                        if it_reload is not None else "The saved remote IT search lacked exact post-reload readback.",
+                        evidence_kind="CONTROLLED_FIXTURE",
+                        checks=[{"name": "remote_it_search_read_back", "passed": it_reload is not None},
+                                {"name": "remote_data_search_read_back", "passed": True}],
+                        continuity={"profile_id": profile_id, "operation_id": discovery_operation_id,
+                                    "request_id": discovery_request_id},
+                    )
                     run_fixture_job_observations(
                         page, request, profile_id, navigation, observe_acceptance_step,
+                        remote_search_id=remote_search_id,
                         record_observed_jobs=journal.record_observed_jobs)
                     from cli.acceptance_employer import observe_employer_journey
 
@@ -1672,12 +2030,11 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         "button", name="Save job", exact=True).click()
                     expect(page.locator("section.job-detail").get_by_text(
                         "Current status: SAVED", exact=True)).to_be_visible()
-                tracking_readback = request(
-                    "/jobs/" + data_job["id"] + "?profile_id=" + profile_id).get("tracking", {})
-                saved_status = strong_match and tracking_readback.get("disposition") == "SAVED"
+                saved_status = strong_match and reload_saved_job_readback(
+                    page, select_data_job, request, profile_id, data_job["id"])
                 observe_acceptance_step(
                     32, "PASS" if saved_status else "PARTIAL",
-                    "The selected Data Engineer job was saved and read back."
+                    "The same profile and Data Engineer job showed SAVED after reload and reselection."
                     if saved_status else "The selected Data Engineer job was not confirmed saved.",
                     evidence_kind="CONTROLLED_FIXTURE",
                     checks=[{"name": "strong_match_available", "passed": strong_match},
@@ -1735,18 +2092,45 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 assert first_application_readback["state"] == "PREPARED"
                 assert application_profile_version_matches(profile, first_application_readback)
                 assert first_application_readback["profile_version"] == profile["version"]
+                document_pair = prepared_document_pair(
+                    first_application_readback, first_documents, application_id=identifier,
+                    profile_id=profile_id, job_id=first_prepare["lineage"]["job_id"])
+                revision_visible = False
+                if document_pair is not None:
+                    version = first_application_readback["document_version"]
+                    review = page.get_by_role("region", name="Application review", exact=True)
+                    expect(review.get_by_text(re.compile(rf"^Saved version {version} · "))).to_be_visible()
+                    expect(review.get_by_text(
+                        f"Validated saved preview · version {version}", exact=True)).to_be_visible()
+                    expect(page.get_by_text(re.compile(rf"^Document revision {version} · "))).to_be_visible()
+                    for kind, document_id in document_pair.items():
+                        history = page.get_by_role("region", name=f"{kind} version {version}", exact=True)
+                        download = history.get_by_role("link", name="Download TXT", exact=True)
+                        document_path = (f"/profiles/{quote(profile_id, safe='')}"
+                                         f"/documents/{quote(document_id, safe='')}/txt")
+                        expect(download).to_be_visible()
+                        expect(download).to_have_attribute("href", document_path)
+                    revision_visible = True
+                    journal.binding["prepared_document_pair"] = {
+                        "application_id": identifier, "profile_id": profile_id,
+                        "job_id": first_application_readback["job_id"],
+                        "profile_version": first_application_readback["profile_version"],
+                        "document_version": version, "documents": document_pair,
+                    }
                 record_application_step(
-                    36, "The selected B application was prepared and read back with its profile and job pins.",
+                    36, "The prepared B application and its selected resume and cover letter revision were checked.",
                     {
                         "application_prepared_readback": _paired_evidence(
-                            page.get_by_role("heading", name="Application details", exact=True).is_visible(),
-                            first_application_readback["state"] == "PREPARED"),
+                            page.get_by_role("heading", name="Application details", exact=True).is_visible()
+                            and revision_visible,
+                            first_application_readback["state"] == "PREPARED" and document_pair is not None),
                         "profile_job_pins_match": _paired_evidence(
                             page.get_by_label("Active profile", exact=True).input_value() == profile_id,
                             first_application_readback["profile_id"] == profile_id
                             and first_application_readback["job_id"] == application["job_id"]),
                     },
                     stage_lineage=first_prepare["lineage"],
+                    document_ids=list(document_pair.values()) if document_pair is not None else None,
                 )
 
                 navigation("Applications")
@@ -1925,22 +2309,10 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 job_id=application['job_id'], documents=comparison_documents)
             base_document=next(row for row in comparison_documents
                                if row['version']==2 and row['kind']=='resume')
-            tailored_document=next(row for row in comparison_documents
-                                   if row['version']==3 and row['kind']=='resume')
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
             expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
             expect(result.get_by_role('heading',name='Tailored resume · v3',exact=True)).to_be_visible()
-            observe_acceptance_step(
-                34, "PASS", "The UI compared immutable generated base and tailored resume versions.",
-                evidence_kind="CONTROLLED_FIXTURE",
-                checks=[{"name": "generated_base_visible", "passed": True},
-                        {"name": "tailored_version_visible", "passed": True},
-                        {"name": "omission_and_change_summary_visible", "passed": True}],
-                continuity={"profile_id": profile_id, "application_id": identifier,
-                            "job_id": application["job_id"],
-                            "document_ids": [base_document["id"], tailored_document["id"]]},
-            )
             actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
 
             profile_before_comparison=request('/profiles/'+profile_id)
@@ -1986,10 +2358,47 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             assert 'Python' in selected_text and 'SQL' not in selected_text
             assert 'SQL' in download_document(selected_cover['id'],'txt').decode('utf-8')
             comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
-            comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
-            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-            expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
+            base_selection = comparison.get_by_label("Base resume", exact=True)
+            tailored_selection = comparison.get_by_label("Tailored version", exact=True)
+            base_value = "g:" + base_document["id"]
+            base_selection.select_option(base_value)
+            tailored_selection.select_option(selected_resume["id"])
+            expect(base_selection).to_have_value(base_value)
+            expect(tailored_selection).to_have_value(selected_resume["id"])
+            comparison_path = (f"/profiles/{quote(profile_id, safe='')}"
+                               f"/applications/{quote(identifier, safe='')}/document-comparison")
+            expected_endpoint = urlsplit(base_url + comparison_path)
+            with page.expect_response(lambda response:
+                    response.request.method == "GET"
+                    and urlsplit(response.url)._replace(query="", fragment="") == expected_endpoint) as compared:
+                comparison.get_by_role("button", name="Compare selected resumes", exact=True).click()
+            assert compared.value.ok
+            assert parse_qs(urlsplit(compared.value.url).query, keep_blank_values=True) == {
+                "base_document_id": [base_document["id"]],
+                "tailored_document_id": [selected_resume["id"]],
+            }
+            omission = {"fact_id": sql_fact_id, "kind": "skill", "text": "SQL"}
+            comparison_receipt = generated_resume_omission_receipt(
+                compared.value.json(), base=base_document, tailored=selected_resume, omitted_fact=omission,
+                profile_id=profile_id, application_id=identifier, job_id=application["job_id"])
+            result = comparison.get_by_role("region", name="Resume comparison result", exact=True)
+            expect(result.get_by_role("heading", name="Generated base · v2", exact=True)).to_be_visible()
+            expect(result.get_by_role("heading", name="Tailored resume · v4", exact=True)).to_be_visible()
+            expect(result.get_by_role("region", name="Content omitted", exact=True).get_by_text(
+                "skill: SQL", exact=True)).to_be_visible()
             assert request('/profiles/'+profile_id)==profile_before_comparison
+            if acceptance_run_id is not None:
+                journal.binding["generated_resume_comparison"] = comparison_receipt
+            observe_acceptance_step(
+                34, "PASS", "The selected generated base and tailored resume showed the same SQL omission in the UI and API.",
+                evidence_kind="CONTROLLED_FIXTURE",
+                checks=[{"name": "generated_base_visible", "passed": True},
+                        {"name": "tailored_version_visible", "passed": True},
+                        {"name": "omission_and_change_summary_visible", "passed": True}],
+                continuity={"profile_id": profile_id, "application_id": identifier,
+                            "job_id": application["job_id"],
+                            "document_ids": [base_document["id"], selected_resume["id"]]},
+            )
             observe_acceptance_step(
                 33, "PASS", "Tailored resume contains only selected approved facts and preserves approved cover-letter facts.",
                 evidence_kind="CONTROLLED_FIXTURE",
@@ -2837,12 +3246,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     },
                     stage_lineage={**final_lineage, "step": 52},
                 )
-                audit_history = request(f"/profiles/{profile_id}/audit-history")
+                audit_path = f"/profiles/{quote(profile_id, safe='')}/audit-history"
+                with page.expect_response(lambda response:
+                        response.request.method == "GET" and response.url == base_url + audit_path) as loaded_audit:
+                    navigation("Activity")
+                assert loaded_audit.value.ok
+                audit_history = loaded_audit.value.json()
                 scoped_audit_events = [event for event in audit_history["events"]
                                        if event.get("application_id") == identifier]
-                event_types = {event.get("type") for event in scoped_audit_events}
-                audit_ui = None
-                navigation("Activity")
                 audit_ui = page.get_by_role("region", name="Audit history", exact=True)
                 expect(audit_ui).to_contain_text("Data Engineer")
                 has_scoped_audit_events = bool(scoped_audit_events)
@@ -2855,27 +3266,34 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     and "onboarding@example.invalid" not in value
                     for event in scoped_audit_events for value in event.values()
                     if isinstance(value, str))
-                sequence_complete = {
-                    "APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED",
-                    "APPLICATION_STATUS_REPORTED"} <= event_types
+                try:
+                    audit_trace = application_audit_trace(
+                        audit_history, run_id=acceptance_run_id, source_commit=journal.binding["source"]["commit"],
+                        profile_id=profile_id, application_id=identifier)
+                except ValueError:
+                    audit_trace = None
+                if audit_trace is not None:
+                    audit_items = audit_ui.get_by_role("list", name="Audit history", exact=True).get_by_role("listitem")
+                    for event in audit_trace["events"]:
+                        expect_audit_event_row(audit_items, event, audit_history["events"][event["index"]]["summary"])
+                    journal.binding["application_audit_trace"] = audit_trace
+                ui_audit_text = audit_ui.inner_text()
                 record_application_step(
-                    53, "The B audit timeline shows submission, confirmation and reported tracking with redacted values.",
+                    53, "The B audit timeline shows redacted submission, confirmation and status events in order.",
                     {
                         "audit_sequence_complete": _paired_evidence(
-                            all(value in audit_ui.inner_text() for value in (
-                                "Application submitted", "confirmed", "status reported")),
-                            sequence_complete),
+                            audit_trace is not None, audit_trace is not None),
                         "audit_scope_matches_application": _paired_evidence(
-                            "Data Engineer" in audit_ui.inner_text()
-                            and "Example Systems Inc." in audit_ui.inner_text(),
-                            len(scoped_audit_events) >= 3
+                            "Data Engineer" in ui_audit_text
+                            and "Example Systems Inc." in ui_audit_text,
+                            audit_history.get("profile_id") == profile_id and len(scoped_audit_events) >= 3
                             and all(event["application_id"] == identifier
                                     and event["subject"] == "Data Engineer"
                                     and event["company"] == "Example Systems Inc."
                                     for event in scoped_audit_events)),
                         "audit_values_redacted": _paired_evidence(
-                            REVIEWED_FIXTURE_ANSWER not in audit_ui.inner_text()
-                            and "onboarding@example.invalid" not in audit_ui.inner_text(),
+                            REVIEWED_FIXTURE_ANSWER not in ui_audit_text
+                            and "onboarding@example.invalid" not in ui_audit_text,
                             exact_public_event_shape and no_answer_values),
                     },
                     stage_lineage={**final_lineage, "step": 53},

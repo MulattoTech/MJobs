@@ -1,3 +1,4 @@
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -8,6 +9,75 @@ from cli import acceptance_onboarding, ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_synthetic_originals_and_pdf_correction_source(self):
+        from services.career_profile.extraction import extract_resume
+
+        pdf = ui_e2e._onboarding_fixture_pdf()
+        docx = ui_e2e._onboarding_fixture_docx()
+        self.assertNotEqual(pdf, docx)
+        extracted = extract_resume(pdf, "pdf", "Synthetic proof")
+        self.assertEqual(extracted["status"], "READY_FOR_REVIEW")
+        self.assertEqual({(fact["kind"], fact["text"]) for fact in extracted["facts"]}, {
+            ("skill", "Pythno"), ("summary", "Fictional onboarding summary for extraction review only."),
+        })
+        self.assertTrue(all(not fact["verified"] and not fact["user_approved"]
+                            for fact in extracted["facts"]))
+        for format, original in (("pdf", pdf), ("docx", docx)):
+            with self.subTest(format=format):
+                filename = f"synthetic-onboarding.{format}"
+                digest = hashlib.sha256(original).hexdigest()
+                row = {"id": f"resume-{format}", "profile_id": "profile-a", "filename": filename,
+                       "format": format, "sha256": digest, "revision_id": f"revision-{format}",
+                       "series_id": f"series-{format}", "version": 1}
+                args = dict(profile_id="profile-a", filename=filename, format=format, original=original)
+                self.assertEqual(ui_e2e.resume_original_receipt(row, row, **args, download=original), {
+                    "format": format, "profile_id": "profile-a", "resume_id": row["id"],
+                    "revision_id": row["revision_id"], "series_id": row["series_id"], "version": 1,
+                    "input_sha256": digest, "download_sha256": digest,
+                })
+                with self.assertRaises(AssertionError):
+                    ui_e2e.resume_original_receipt(row, row, **args, download=original[:-1])
+                with self.assertRaises(AssertionError):
+                    ui_e2e.resume_original_receipt(
+                        row, {**row, "profile_id": "profile-b"}, **args, download=original)
+                for key, value in (("revision_id", "other-revision"), ("series_id", "other-series"),
+                                   ("version", 2)):
+                    with self.subTest(mismatched_pin=key), self.assertRaisesRegex(AssertionError, "revision changed"):
+                        ui_e2e.resume_original_receipt(row, {**row, key: value}, **args, download=original)
+
+    def test_all_visible_resume_suggestions_must_match_and_be_unchecked(self):
+        durable = [{"kind": "skill", "text": "Pythno"}, {"kind": "summary", "text": "Source summary"}]
+        visible = [{**row, "checked": False} for row in durable]
+        ui_e2e.assert_visible_resume_suggestions(durable, visible[::-1])
+        for changes in ({"text": "Wrong summary"}, {"kind": "skill"}, {"checked": True}):
+            with self.subTest(changes=changes), self.assertRaises(AssertionError):
+                ui_e2e.assert_visible_resume_suggestions(durable, [visible[0], {**visible[1], **changes}])
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_visible_resume_suggestions(durable, [visible[0], visible[0]])
+
+    def test_correction_preserves_fact_identity_flags_and_unrelated_facts(self):
+        wrong = {"fact_id": "skill-1", "kind": "skill", "text": "Pythno", "verified": False,
+                 "user_approved": False, "confidence": 90}
+        unrelated = {"fact_id": "summary-1", "kind": "summary", "text": "Unrelated summary",
+                     "verified": False, "user_approved": False}
+        before = {"id": "profile-a", "facts": [wrong, unrelated]}
+        corrected = {**wrong, "text": "Python", "version": "pending-profile-version"}
+        pending = {"id": "profile-a", "facts": [unrelated, corrected]}
+        ui_e2e.assert_onboarding_fact_revision(before, pending, "skill-1", text="Python")
+        approved = {**corrected, "verified": True, "user_approved": True, "confidence": 100}
+        changes = dict(verified=True, user_approved=True, confidence=100)
+        ui_e2e.assert_onboarding_fact_revision(
+            pending, {"id": "profile-a", "facts": [approved, unrelated]}, "skill-1", **changes)
+        for changed in (
+            {"id": "profile-b", "facts": [approved, unrelated]},
+            {"id": "profile-a", "facts": [approved, {**unrelated, "user_approved": True}]},
+            {"id": "profile-a", "facts": [approved, approved, unrelated]},
+            {"id": "profile-a", "facts": [{**approved, "fact_id": "skill-2"}, unrelated]},
+            {"id": "profile-a", "facts": [{**approved, "verified": False}, unrelated]},
+        ):
+            with self.assertRaises(AssertionError):
+                ui_e2e.assert_onboarding_fact_revision(pending, changed, "skill-1", **changes)
+
     def test_first_run_search_binds_historical_profile_version_after_later_edit(self):
         searched = "a" * 64
         current = "b" * 64

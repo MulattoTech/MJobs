@@ -94,10 +94,18 @@ class EndToEndAcceptanceWorkflowSliceTests(unittest.TestCase):
                         select(m.company_domains).where(m.company_domains.c.company_id == company_id)
                     ).mappings()
                 ]
-            # When candidate domain is available, it is recorded in company_domains
-            self.assertTrue(
-                len(domains) >= 0,
-                "Company domains table reflects identified domains",
+            # The controlled fixture uses a loopback IP, which cannot corroborate
+            # an official employer domain. Keep Step 25 unpromoted until the
+            # discovery chain has independent domain evidence.
+            self.assertEqual(
+                domains,
+                [],
+                "Loopback fixture must not be recorded as an official employer domain",
+            )
+            self.assertFalse(
+                any(row["action"] == "COMPANY_DOMAIN_ACQUIRED"
+                    and row["entity_id"] == company_id for row in audit_events),
+                "Uncorroborated fixture identity must not emit domain-acquired evidence",
             )
 
             # Step 26: See the career site identified.

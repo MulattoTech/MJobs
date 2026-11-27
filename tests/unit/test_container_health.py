@@ -5,12 +5,15 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
 import yaml
 
 from services.runtime_health import (
+    REQUIRED_QUEUES,
     SCHEDULER_HEARTBEAT_KEY,
     main,
     worker_health_probe,
@@ -56,7 +59,7 @@ class ContainerHealthTests(unittest.TestCase):
             with self.subTest(host=registered_worker.hostname,
                               queue=registered_worker.queue_names()[0],
                               state=registered_worker.get_state()):
-                with patch("services.runtime_health.Worker.all", return_value=[registered_worker]), \
+                with patch("rq.Worker.all", return_value=[registered_worker]), \
                         patch("services.runtime_health._worker_pid_exists_in_container", return_value=True):
                     self.assertIs(worker_health_probe(
                         FakeRedis(), "mjobs-document", "container-a", now=now,
@@ -64,7 +67,7 @@ class ContainerHealthTests(unittest.TestCase):
 
     def test_worker_probe_fails_closed_on_redis_errors_and_invalid_configuration(self):
         now = datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc)
-        with patch("services.runtime_health.Worker.all", side_effect=TimeoutError("private redis URL")):
+        with patch("rq.Worker.all", side_effect=TimeoutError("private redis URL")):
             self.assertFalse(worker_health_probe(
                 FakeRedis(), "mjobs-document", "container-a", now=now,
             ))
@@ -76,7 +79,7 @@ class ContainerHealthTests(unittest.TestCase):
         stale_worker = worker(
             hostname="container-a", queue="mjobs-document", heartbeat=now, pid=56789,
         )
-        with patch("services.runtime_health.Worker.all", return_value=[stale_worker]), \
+        with patch("rq.Worker.all", return_value=[stale_worker]), \
                 patch("pathlib.Path.is_dir", return_value=False):
             self.assertFalse(worker_health_probe(
                 FakeRedis(), "mjobs-document", "container-a", now=now,
@@ -87,7 +90,7 @@ class ContainerHealthTests(unittest.TestCase):
         malformed_worker = worker(
             hostname="container-a", queue="mjobs-document", heartbeat=now, pid=0,
         )
-        with patch("services.runtime_health.Worker.all", return_value=[malformed_worker]), \
+        with patch("rq.Worker.all", return_value=[malformed_worker]), \
                 patch("pathlib.Path.is_dir", return_value=True):
             self.assertFalse(worker_health_probe(
                 FakeRedis(), "mjobs-document", "container-a", now=now,
@@ -113,7 +116,7 @@ class ContainerHealthTests(unittest.TestCase):
         }), patch("services.runtime_health.Redis.from_url", return_value=connection) as from_url, \
                 patch("services.runtime_health.socket.gethostname", return_value="container-a"), \
                 patch("services.runtime_health._worker_pid_exists_in_container", return_value=True), \
-                patch("services.runtime_health.Worker.all", return_value=[registered_worker]), \
+                patch("rq.Worker.all", return_value=[registered_worker]), \
                 redirect_stdout(stdout), redirect_stderr(stderr):
             result = main(["worker"])
 
@@ -133,7 +136,7 @@ class ContainerHealthTests(unittest.TestCase):
             "MJOBS_REDIS_URL": "redis://private-host:6379/0",
             "MJOBS_WORKER_QUEUE": "mjobs-document",
         }), patch("services.runtime_health.Redis.from_url", return_value=connection), \
-                patch("services.runtime_health.Worker.all", side_effect=TimeoutError("secret detail")), \
+                patch("rq.Worker.all", side_effect=TimeoutError("secret detail")), \
                 patch("services.runtime_health.socket.gethostname", return_value="container-a"), \
                 redirect_stdout(stdout), redirect_stderr(stderr):
             result = main(["worker"])
@@ -156,6 +159,53 @@ class ContainerHealthTests(unittest.TestCase):
         connection.get.assert_called_once_with(SCHEDULER_HEARTBEAT_KEY)
         connection.close.assert_called_once_with()
 
+    def test_scheduler_probe_does_not_import_worker_or_application_modules(self):
+        script = r'''
+import builtins, json, os
+from datetime import datetime, timezone
+
+blocked = ("rq", "workers.operations", "services.applications")
+original_import = builtins.__import__
+def reject_worker_dependencies(name, *args, **kwargs):
+    if any(name == prefix or name.startswith(prefix + ".") for prefix in blocked):
+        raise AssertionError("scheduler probe imported unrelated module: " + name)
+    return original_import(name, *args, **kwargs)
+builtins.__import__ = reject_worker_dependencies
+os.environ["MJOBS_REDIS_URL"] = "redis://unused"
+
+import services.runtime_health as health
+
+now = datetime.now(timezone.utc)
+class Connection:
+    def __init__(self):
+        self.get_calls = []
+        self.closed = False
+    def get(self, key):
+        self.get_calls.append(key)
+        return json.dumps({"timestamp": now.isoformat(), "interval_seconds": 30})
+    def close(self):
+        self.closed = True
+
+connection = Connection()
+health.Redis.from_url = lambda *args, **kwargs: connection
+assert health.main(["scheduler"]) == 0
+assert connection.get_calls == [health.SCHEDULER_HEARTBEAT_KEY]
+assert connection.closed
+print("fresh heartbeat accepted without worker dependencies")
+'''
+        completed = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=Path.cwd(), capture_output=True, text=True, timeout=30,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout.strip(),
+                         "fresh heartbeat accepted without worker dependencies")
+
+    def test_required_health_queues_match_operation_queue_contract(self):
+        from workers.operations import QUEUES
+
+        self.assertEqual(set(REQUIRED_QUEUES), set(QUEUES.values()))
+
     def test_compose_workers_and_scheduler_use_the_health_probe(self):
         compose = yaml.safe_load(Path("compose.yml").read_text(encoding="utf-8"))
         services = compose["services"]
@@ -174,11 +224,10 @@ class ContainerHealthTests(unittest.TestCase):
         self.assertEqual(scheduler["healthcheck"]["test"], [
             "CMD", "python", "-m", "services.runtime_health", "scheduler",
         ])
-        self.assertEqual(scheduler["healthcheck"]["timeout"], "4s")
-        self.assertGreaterEqual(
-            int(scheduler["healthcheck"]["start_period"].rstrip("s")), 30,
-        )
-        self.assertEqual(scheduler["healthcheck"]["retries"], 5)
+        self.assertEqual(scheduler["healthcheck"]["interval"], "10s")
+        self.assertEqual(scheduler["healthcheck"]["timeout"], "15s")
+        self.assertEqual(scheduler["healthcheck"]["start_period"], "90s")
+        self.assertEqual(scheduler["healthcheck"]["retries"], 6)
 
     def test_api_compose_healthcheck_uses_full_readiness(self):
         compose = yaml.safe_load(Path("compose.yml").read_text(encoding="utf-8"))

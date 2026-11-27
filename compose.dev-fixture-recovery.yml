@@ -1,0 +1,55 @@
+# Explicitly selected by dev_fixture_guard --recovery only.
+# The one worker retry is sufficient for compose_recovery's restart-count oracle;
+# the fixture lease bounds its lifetime and no other service gains auto-restart.
+x-recovery-labels: &recovery-labels
+  com.mjobs.dev.guard: "${MJOBS_DEV_GUARD_TOKEN:?Managed fixtures only}"
+  com.mjobs.dev.expires: "${MJOBS_DEV_GUARD_EXPIRES:?Managed fixtures only}"
+  com.mjobs.dev.guard.mode: recovery
+services:
+  postgres:
+    labels: *recovery-labels
+  redis:
+    labels: *recovery-labels
+  migrate:
+    labels: *recovery-labels
+  api:
+    environment:
+      MJOBS_EXTERNAL_SUBMISSIONS_ENABLED: "0"
+    labels: *recovery-labels
+  mock:
+    labels: *recovery-labels
+  worker:
+    restart: "on-failure:1"
+    environment:
+      MJOBS_EXTERNAL_SUBMISSIONS_ENABLED: "0"
+    labels: *recovery-labels
+  scheduler:
+    labels: *recovery-labels
+  source-worker:
+    labels: *recovery-labels
+  company-discovery-worker:
+    labels: *recovery-labels
+  ai-worker:
+    labels: *recovery-labels
+  document-worker:
+    labels: *recovery-labels
+networks:
+  private:
+    labels: *recovery-labels
+  ui:
+    labels: *recovery-labels
+  source-egress:
+    labels: *recovery-labels
+volumes:
+  database:
+    labels: *recovery-labels
+  queue:
+    labels: *recovery-labels
+  documents:
+    labels: *recovery-labels
+  mock-receipts:
+    labels: *recovery-labels
+  runtime-database:
+    labels: *recovery-labels
+  migration-backups:
+    labels: *recovery-labels

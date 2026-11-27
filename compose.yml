@@ -142,10 +142,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: [CMD, python, -m, services.runtime_health, scheduler]
-      interval: 5s
-      timeout: 4s
-      retries: 5
-      start_period: 30s
+      interval: 10s
+      timeout: 15s
+      retries: 6
+      start_period: 90s
     depends_on:
       migrate: {condition: service_completed_successfully}
   source-worker:
