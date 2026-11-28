@@ -1,0 +1,1227 @@
+{
+  "schema_version": 1,
+  "draft_only": false,
+  "status": "LOCAL_SOURCE_LABEL_LENGTH_REPAIR_VERIFIED",
+  "evidence_captured_at_utc": "2026-11-14T14:42:59.321Z",
+  "requirement": "MJ-REQ-236",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/237",
+  "work_id": "MJ-REQ-236-search-history-source-label-ef18",
+  "scope": "Source-label length and Unicode code-point compatibility in durable search-history readback.",
+  "problem": "The client applied a 200-UTF-16-unit limit to source labels while persistence supports up to 256 Python code points. A stored 201-character ASCII label could therefore invalidate the entire history page.",
+  "change": [
+    "A source-specific guard preserves the existing nonempty/control checks, bounds input to 512 UTF-16 units, then requires at most 256 Unicode code points.",
+    "The returned source is preserved exactly. ID, profile, query, error, cursor and other record guards remain unchanged.",
+    "All seven original client cases remain; five focused cases cover 201/256 ASCII, 256 mixed Unicode, 257-code-point rejection and existing blank/control rejection. The original connected browser class remains unmodified and unselected."
+  ],
+  "source_identity": {
+    "base_head": "0a84cb7173b42e86b410ccf3056d68b39513b15a",
+    "base_tree": "9333037e7b9f9ff8dcf152131649367bfc815348",
+    "full_source_file_count": 3313,
+    "reviewed_three_file_source_manifest": {
+      "path": "mj236-verification-reuse-preparation-02/source-manifest.json",
+      "bytes": 10044,
+      "sha256": "6c22321db6ee4afe4170d9728b1e35fba1b2d58790db5d7a7dc5f727cc99175d"
+    },
+    "test_only_baseline": {
+      "source_identity_kind": "PRIVATE_FROZEN_TEST_ONLY_BASELINE_CAPSULE",
+      "candidate_tree": "d2a21f634bcdda354784f52e7375c50a2688a33d",
+      "source_manifest_sha256": "7d66cadebef8254a5e8847cea8df3cffe47b3bddf77f7eaf57003409208dbce4",
+      "candidate_commit": null
+    },
+    "applied_fixed_source": {
+      "source_identity_kind": "FROZEN_UNCOMMITTED_APPLIED_SOURCE_TREE",
+      "candidate_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "candidate_commit": null,
+      "source_files": [
+        {
+          "path": "apps/web/src/search-history-client.ts",
+          "bytes": 8448,
+          "sha256": "f704996b60eb5ce6c6d62f5797eaff5df5bff8027b456ddcb9f07dd982eb792d",
+          "git_blob": "38292329df70bca81e0ee9c213c4df8d4e5ed869",
+          "git_mode": "100644"
+        },
+        {
+          "path": "apps/web/src/search-history-client.test.ts",
+          "bytes": 7824,
+          "sha256": "f817c3648e56a2b284ac2296f8d377cc95d7d9a5e293a86dd820d135e2168945",
+          "git_blob": "789e5af89cb8f8a9d60aeb22f3b9d405b729eb3a",
+          "git_mode": "100644"
+        },
+        {
+          "path": "tests/browser/test_search_history_connected.py",
+          "bytes": 35747,
+          "sha256": "97da3b81641a4c7af3d45858b6d54a2a4ebccb8044f62ea93c4c22b97b3b1c81",
+          "git_blob": "776e475e50d2916994a6f2ab9418fa0ccfe79333",
+          "git_mode": "100644"
+        }
+      ]
+    },
+    "fixed_web": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "candidate_commit": null,
+      "receipt_artifact": "fixed_web_parent"
+    },
+    "fixed_browser": {
+      "source_identity_kind": "PRIVATE_FROZEN_APPLIED_FIXED_SOURCE_CAPSULE",
+      "candidate_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "candidate_commit": null,
+      "receipt_artifact": "fixed_browser_parent"
+    },
+    "later_source_commit": {
+      "status": "PASS_EXACT_SOURCE_COMMIT",
+      "source_head": "2154ad00d631f5b8d370aab90569110a2c264586",
+      "source_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "parent_sha": "0a84cb7173b42e86b410ccf3056d68b39513b15a",
+      "committed_at_utc": "2026-11-14T14:38:20.332151+00:00",
+      "source_commit_attempts": 1,
+      "paths": [
+        "apps/web/src/search-history-client.test.ts",
+        "apps/web/src/search-history-client.ts",
+        "tests/browser/test_search_history_connected.py"
+      ],
+      "source_manifest_sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a",
+      "snapshot_created_before_commit": true,
+      "snapshot_tree_equals_committed_tree": true,
+      "source_blobs": {
+        "apps/web/src/search-history-client.test.ts": "789e5af89cb8f8a9d60aeb22f3b9d405b729eb3a",
+        "apps/web/src/search-history-client.ts": "38292329df70bca81e0ee9c213c4df8d4e5ed869",
+        "tests/browser/test_search_history_connected.py": "776e475e50d2916994a6f2ab9418fa0ccfe79333"
+      },
+      "git_status_clean_at_source_commit": true,
+      "commit_provenance": {
+        "exit_code": 0
+      },
+      "receipt_artifact": "source_commit",
+      "independent_review_artifact": "source_commit_review"
+    },
+    "metadata_commit": {
+      "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+      "head_sha": null,
+      "tree_sha": null,
+      "receipt": null,
+      "identity_binding": "The containing Git/PR head binds these metadata bytes externally."
+    },
+    "interpretation": "The baseline, fixed-web and browser executions used frozen uncommitted capsules and retain null candidate_commit. The later source commit has separately verified full-tree and three-blob equivalence. It does not change the identity under which the tests ran."
+  },
+  "changed_source_paths": [
+    "apps/web/src/search-history-client.ts",
+    "apps/web/src/search-history-client.test.ts",
+    "tests/browser/test_search_history_connected.py"
+  ],
+  "validation": {
+    "baseline": {
+      "status": "BASELINE_ONE_BEHAVIORAL_FAILURE",
+      "qualified": true,
+      "attempt_id": "55b4d9c7e444481dba74182410556add",
+      "unit_counts": {
+        "primary": 12,
+        "selected": 1,
+        "passed": 0,
+        "failed": 1,
+        "filtered": 11
+      },
+      "selected_case": "preserves backend-valid source lengths: 201 ASCII code points",
+      "observed_assertion": {
+        "name": "AssertionError",
+        "source_path": "apps/web/src/search-history-client.test.ts",
+        "line": 163,
+        "column": 50,
+        "cause": {
+          "name": "SearchHistoryClientError",
+          "code": null,
+          "kind": "INVALID_RESPONSE"
+        },
+        "interpretation": "The selected promise-resolution assertion rejects with the client INVALID_RESPONSE cause for a synthetic 201-code-point ASCII source label.",
+        "display_limit": "The rendered Vitest message is abbreviated; actual structured cause.name and cause.kind are retained without inventing omitted text."
+      },
+      "global_unhandled_error_count": 0,
+      "source_postcheck_status": "PASS",
+      "node_exit_code": 1,
+      "host_exit_code": 0,
+      "compute_released": true,
+      "post_exit_job_accounting": {
+        "total": 5,
+        "active": 0,
+        "terminated": 0
+      },
+      "independent_review_result": "PASS_INDEPENDENT_MJ236_BASELINE_RUNTIME_REVIEW",
+      "supplement_or_exception_used": false,
+      "artifact_refs": {
+        "parent": "baseline_parent",
+        "child": "baseline_child",
+        "independent_review": "baseline_review"
+      }
+    },
+    "fixed_web": {
+      "status": "FIXED_WEB_PASS_WITH_DIST",
+      "qualified": true,
+      "unit_counts": {
+        "primary": 12,
+        "selected": 12,
+        "passed": 12,
+        "failed": 0,
+        "filtered": 0
+      },
+      "global_unhandled_error_count": 0,
+      "stage_exit_codes": {
+        "vitest": 0,
+        "typecheck": 0,
+        "build": 0
+      },
+      "source_postcheck_status": "PASS",
+      "compute_released": true,
+      "post_exit_job_accounting": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "source_files_verified": 3313,
+      "dependency_files_verified": 6095,
+      "dist_files": 3,
+      "dist_bytes": 1017087,
+      "fresh_build": true,
+      "artifact_refs": {
+        "parent": "fixed_web_parent",
+        "child": "fixed_web_child",
+        "independent_review": "fixed_web_review"
+      }
+    },
+    "fixed_browser": {
+      "status": "FIXED_ONE_BROWSER_CASE_PASS",
+      "qualified": true,
+      "nodeid": "tests/browser/test_search_history_connected.py::test_backend_valid_source_labels_survive_api_history_readback_and_reload",
+      "junit_counts": {
+        "primary": 1,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "pytest_setup_call_teardown": "ALL_PASSED",
+      "pytest_exit_code": 0,
+      "behavior_phases": [
+        {
+          "name": "initial_readback",
+          "profile_id": "fixture",
+          "items": 3,
+          "status": 200,
+          "api_labels_exact": true,
+          "ui_labels_exact": true
+        },
+        {
+          "name": "reload",
+          "profile_id": "fixture",
+          "items": 3,
+          "status": 200,
+          "api_labels_exact": true,
+          "ui_labels_exact": true
+        },
+        {
+          "name": "profile_isolation",
+          "profile_id": "other",
+          "items": 1,
+          "status": 200,
+          "api_labels_exact": true,
+          "ui_labels_exact": true
+        }
+      ],
+      "source_lengths": {
+        "ascii_201": {
+          "code_points": 201,
+          "utf16_units": 201
+        },
+        "ascii_256": {
+          "code_points": 256,
+          "utf16_units": 256
+        },
+        "mixed_256": {
+          "code_points": 256,
+          "utf16_units": 384
+        }
+      },
+      "fixture_history_records": 4,
+      "fixture_writes_before_read_baseline": true,
+      "original_api_response_bodies_and_ui_labels_exact": true,
+      "browser_requests": {
+        "same_origin_get": 93,
+        "mutations": 0,
+        "external": 0
+      },
+      "database_after_reads": {
+        "history_unchanged": true,
+        "applications_unchanged": true,
+        "attempts_unchanged": true,
+        "operations_unchanged": true
+      },
+      "cleanup": {
+        "all_resources_closed": true,
+        "api_thread_stopped": true,
+        "browser_closed": true,
+        "context_closed": true,
+        "database_disposed": true,
+        "error_types": [],
+        "playwright_stopped": true,
+        "primary_failure_preserved": false,
+        "socket_closed": true,
+        "temporary_directory_removed": true,
+        "passive_api_socket_closed": true,
+        "passive_api_thread_stopped": true,
+        "passive_context_closed_and_browser_disconnected": true,
+        "fixture_server_uses": 0
+      },
+      "source_postcheck_status": "PASS",
+      "source_and_dist_records_unchanged": 3316,
+      "compute_released": true,
+      "post_exit_job_accounting": {
+        "total": 8,
+        "active": 0,
+        "terminated": 0
+      },
+      "junit_properties_match_raw_properties_exactly": true,
+      "supplement_or_exception_used": false,
+      "scope": "The real record builder and SQLite persistence seeded four synthetic terminal history records before the read baseline. The compiled SPA used the local API and original browser-triggered GET responses; the test did not reissue or fulfill responses. No provider or discovery campaign was run.",
+      "artifact_refs": {
+        "parent": "fixed_browser_parent",
+        "child": "fixed_browser_child",
+        "independent_review": "fixed_browser_review"
+      }
+    }
+  },
+  "requirement_scope": {
+    "literal_requirement": "Store: source, query, profile, filters, start, finish, results, new jobs, duplicates, errors.",
+    "verified_slice": "Preserve durable search-history source labels within the existing 256-code-point storage length limit in client parsing and connected browser readback.",
+    "original_requirement_status": "PARTIAL",
+    "canonical_status_after_this_slice": "PARTIAL",
+    "canonical_acceptance_data": "UNCHANGED",
+    "full_original_requirement_result": "NOT_ASSERTED",
+    "scope_boundary": "Only source length and Unicode code-point compatibility changes. Existing JavaScript nonempty and C0/DEL rejection remain. Python strip and JavaScript trim differ, and persistence permits DEL; universal whitespace/control admission agreement is not claimed.",
+    "outside_scope": "API and storage code, ID/profile/query/error/cursor guards, provider discovery, campaigns, PREPARE/submission, and the remaining literal MJ236 criteria are outside this repair."
+  },
+  "preparation_and_attempt_history": {
+    "preserved_failed_attempts": [
+      {
+        "attempt": "fixed-browser-01",
+        "qualified": false,
+        "source_tree": "a444df05a2c2e38a45aa75e390e9da30ab1f7415",
+        "source_manifest_sha256": "a6866f6a0a0bf0346ee2df4d160753a3dc79ed8001a94965ca33f27808a9089a",
+        "candidate_commit": null,
+        "parent_status": "WRAPPER_EXCEPTION",
+        "child_status": "FIXED_BROWSER_TOOLING_OR_QUALIFICATION_FAILURE",
+        "cause": "The new fixture referenced models.application_attempts, but the exported table object is models.attempts. AttributeError occurred before Playwright/browser startup.",
+        "fixture_history_records_seeded": 4,
+        "fixture_admitted": false,
+        "browser_requests": 0,
+        "behavior_phases_executed": 0,
+        "normal_source_postcheck_completed": false,
+        "correction": "One fixture symbol changed to models.attempts; models.operations was already valid. Production/client and unit-test bytes were preserved.",
+        "post_exit_job_accounting": {
+          "total": 3,
+          "active": 0,
+          "terminated": 0
+        },
+        "compute_released": true,
+        "runtime_receipt": {
+          "path": "mj236-fixed-browser-01/receipt.json",
+          "bytes": 77299,
+          "sha256": "c3f9583e05e595f02efc0269727d4bec2009a2591c095db1aead4cdc8ac15763"
+        },
+        "child_outcome": {
+          "path": "mj236-fixed-browser-01/child-outcome.json",
+          "bytes": 64791,
+          "sha256": "20af5c936de74cd28e858eccf7bb4266399d1d490399bf06ed7c296a2e022cde"
+        },
+        "independent_review": {
+          "path": "mj236-fixed-browser-failure-review-01.json",
+          "bytes": 11168,
+          "sha256": "462ea7ce0350da8d284e9fc25af137f3e9531c4a2dcd2393320ce04025ee5ca9"
+        }
+      },
+      {
+        "attempt": "baseline-unit-02",
+        "qualified": false,
+        "source_tree": "d2a21f634bcdda354784f52e7375c50a2688a33d",
+        "source_manifest_sha256": "7d66cadebef8254a5e8847cea8df3cffe47b3bddf77f7eaf57003409208dbce4",
+        "candidate_commit": null,
+        "parent_status": "WRAPPER_EXCEPTION",
+        "child_status": "BASELINE_TOOLING_OR_QUALIFICATION_FAILURE",
+        "cause": "The copied reporter still targeted baseline-unit-01/vitest-run-end.json. Its exclusive wx write raised EEXIST; the required baseline-unit-02 run-end file was absent, causing downstream FileNotFoundError.",
+        "raw_vitest_observation": "The raw Vitest JSON contains one failed and eleven filtered cases, but reporter/tooling failure prevents baseline qualification.",
+        "normal_source_postcheck_completed": false,
+        "correction": "A fresh baseline-unit-03 attempt used the corrected reporter destination and propagated byte pins. Normal qualification gates were unchanged.",
+        "post_exit_job_accounting": {
+          "total": 5,
+          "active": 0,
+          "terminated": 0
+        },
+        "compute_released": true,
+        "runtime_receipt": {
+          "path": "mj236-baseline-unit-02/receipt.json",
+          "bytes": 14573,
+          "sha256": "5d999a458fcc99bd1bee2897bcf6b558da293123f75049c7aa2f9583d7f7922a"
+        },
+        "child_outcome": {
+          "path": "mj236-baseline-unit-02/child-outcome.json",
+          "bytes": 4402,
+          "sha256": "929c5169bf36149b9ff2917ad60c940534b33be06debd6327e7ab5955be56a6d"
+        },
+        "independent_review": {
+          "path": "mj236-baseline-failure-review-02.json",
+          "bytes": 10318,
+          "sha256": "59cd4ea14c415f4e8dcc9819670865f8b165c2620fa47c5a892d2a130194540b"
+        }
+      }
+    ],
+    "earlier_qualified_proofs": {
+      "interpretation": "Earlier baseline01 and fixed-web01 remain evidence only for their original capsules; they are not relabeled as corrected-source or later-commit proof.",
+      "baseline01": {
+        "source_tree": "26e396651c3e2233b147a9bc5fe9c5310ae1da3b",
+        "source_manifest_sha256": "ba9b17c7f8330a22e6792457a960e3c5055c4d1e661615e5666f1ff420cd653f",
+        "runtime_receipt": {
+          "path": "mj236-baseline-unit-01/receipt.json",
+          "bytes": 38275,
+          "sha256": "75cbd52d3d4f0a4d6f4efc88f05441f52174f72fe29c9135bc909af716d080a4"
+        },
+        "independent_review": {
+          "path": "mj236-baseline-runtime-review-01.json",
+          "sha256": "ab4a4867baaf2c628664f49d2538349888377160bef14091072e1e2c5dae3322"
+        }
+      },
+      "fixed_web01": {
+        "source_tree": "a444df05a2c2e38a45aa75e390e9da30ab1f7415",
+        "source_manifest_sha256": "a6866f6a0a0bf0346ee2df4d160753a3dc79ed8001a94965ca33f27808a9089a",
+        "runtime_receipt": {
+          "path": "mj236-fixed-web-01/receipt.json",
+          "bytes": 42892,
+          "sha256": "f60f453cfd230704bfe7299f63273b60948ead6b1340b06abb99b83444f2dd10"
+        }
+      }
+    },
+    "restoration02": {
+      "status": "PASS_EXACT_TEST_ONLY_APPLICATION",
+      "production_changed": true,
+      "production_restored_to_reviewed_base": true,
+      "production_matches_base_after": true,
+      "retained_unit_unchanged": true,
+      "modified_paths": [
+        "apps/web/src/search-history-client.ts",
+        "tests/browser/test_search_history_connected.py"
+      ],
+      "resulting_dirty_paths": [
+        "apps/web/src/search-history-client.test.ts",
+        "tests/browser/test_search_history_connected.py"
+      ],
+      "resulting_source_tree": "d2a21f634bcdda354784f52e7375c50a2688a33d",
+      "interpretation": "The client was restored to its original native CRLF bytes and the browser fixture symbol was corrected; the unit test was retained. This was a restoration transition, not a first test-only application.",
+      "receipt_artifact": "test_restoration"
+    },
+    "production02": {
+      "status": "PASS_EXACT_REVIEWED_PRODUCTION_APPLICATION",
+      "modified_paths": [
+        "apps/web/src/search-history-client.ts"
+      ],
+      "tests_unchanged": true,
+      "resulting_source_tree": "03b272b98931bedf15ac6665f31a464218d04c78",
+      "receipt_artifact": "production_application",
+      "review_artifact": "applied_source_review"
+    },
+    "fixed_reporter_preparation_correction": "The analogous fixed-web reporter destination was corrected before fixed-web02 ran. The earlier static approval and corrective addendum are preserved; no qualification exception was introduced.",
+    "qualified_current_chain": [
+      "baseline-unit-03",
+      "fixed-web-02",
+      "fixed-browser-02"
+    ],
+    "old_artifacts_overwritten": false,
+    "old_proof_retargeted": false
+  },
+  "dist": {
+    "manifest": {
+      "path": "mj236-fixed-web-02/dist-manifest.json",
+      "bytes": 1726,
+      "sha256": "134fdeed88dc1ebe3614f585104e68c86db1146f867508fc5384fa3c7877a495"
+    },
+    "file_count": 3,
+    "bytes": 1017087,
+    "files": [
+      {
+        "bytes": 12090,
+        "path": "assets/index-BYoKyum1.css",
+        "sha256": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539"
+      },
+      {
+        "bytes": 1004587,
+        "path": "assets/index-CGiWZ3JF.js",
+        "sha256": "b636fdcadcb4ec527fc73e26dac3a4897b06ce483859aa0c57dca6f07a4f95ed"
+      },
+      {
+        "bytes": 410,
+        "path": "index.html",
+        "sha256": "27838b4fb0aa65fbea7afcbdbc973a8cc91011b77ced17f8a1ce521b86678990"
+      }
+    ],
+    "browser_consumed_same_manifest": true,
+    "fresh_corrected_source_build": true,
+    "assets_happen_to_equal_older_build_bytes": true,
+    "old_build_provenance_relabelled": false
+  },
+  "warnings": [
+    {
+      "kind": "NONFATAL_VITE_CHUNK_SIZE",
+      "text": "Some chunks are larger than 500 kB after minification.",
+      "build_exit_code": 0,
+      "warning_limit_changed": false,
+      "raw_log": {
+        "path": "mj236-fixed-web-02/build.log",
+        "bytes": 718,
+        "sha256": "f267d9ca776c3d7ce1ffddd316e11b9742857b18996d8472e06f1505edd45c03"
+      }
+    },
+    {
+      "kind": "NONFATAL_PYTEST_RECORD_PROPERTY_XUNIT2",
+      "text": "record_property is incompatible with junit_family 'xunit2'",
+      "pytest_exit_code": 0,
+      "actual_junit_properties_present_and_verified": true,
+      "raw_log": {
+        "path": "mj236-fixed-browser-02/pytest.log",
+        "bytes": 607,
+        "sha256": "660bb049183a4c1815fbc06ba1f3e1517f1581664de4ffff16e4daba3007e3e7"
+      }
+    }
+  ],
+  "runtime_limit": {
+    "local_node": "v27.0.0-alpha.0.0.0",
+    "ci_node_major": "24",
+    "same_as_ci_runtime": false,
+    "hosted_checks": "NOT_RUN",
+    "interpretation": "The local unit/build results used the sealed Node 27 alpha environment. The browser consumed that compiled SPA. Hosted Node 24 checks and any protected-main integration remain separate."
+  },
+  "artifacts": {
+    "source_proposal": {
+      "path": "mj236-verification-reuse-preparation-02/source-manifest.json",
+      "bytes": 10044,
+      "sha256": "6c22321db6ee4afe4170d9728b1e35fba1b2d58790db5d7a7dc5f727cc99175d"
+    },
+    "selectors": {
+      "path": "mj236-verification-reuse-preparation-02/selectors.json",
+      "bytes": 7716,
+      "sha256": "cb2c01db4ec715d551d5df3f79b2bdc3223e0d4c9168051bfb206e48a00d8b08"
+    },
+    "verification_plan": {
+      "path": "mj236-verification-reuse-preparation-02/verification-plan.json",
+      "bytes": 8903,
+      "sha256": "d77db792700178d28a91a1936fae4dd2a47d2418dfe1d24905a9713962a70f8a"
+    },
+    "source_proposal_review": {
+      "path": "mj236-source-proposal-independent-review-02.json",
+      "bytes": 12776,
+      "sha256": "396eaf19344279ebe235544602e44db6d5d14be3337da89d9ccf56a719d2830a"
+    },
+    "test_restoration": {
+      "path": "mj236-test-application-02/result.json",
+      "bytes": 19305,
+      "sha256": "48b711b11d890aaf73f8edbcafc4760d872e1402c9643bf6afa7180e1b26617e"
+    },
+    "production_application": {
+      "path": "mj236-production-application-02/result.json",
+      "bytes": 16283,
+      "sha256": "e1cf06c3e2a425156d3fbde8e08afa6cec442e5244d0bf4b6ba85f5a3dd57ee0"
+    },
+    "applied_source_review": {
+      "path": "mj236-applied-source-independent-review-02.json",
+      "bytes": 9570,
+      "sha256": "50b413a2a5d3a259b80206a77106e2d329aba0580fb43c387f2d73cf0fc49d09"
+    },
+    "baseline_capsule": {
+      "path": "mj236-verification-reuse-preparation-02/baseline-source-capsule.json",
+      "bytes": 906919,
+      "sha256": "7d66cadebef8254a5e8847cea8df3cffe47b3bddf77f7eaf57003409208dbce4"
+    },
+    "fixed_capsule": {
+      "path": "mj236-verification-reuse-preparation-02/fixed-source-capsule.json",
+      "bytes": 907290,
+      "sha256": "e0409092577dea6bbca684dbc2904831549ad09e9c2d95a0be71b4ad1f85096a"
+    },
+    "baseline_parent": {
+      "path": "mj236-baseline-unit-03/receipt.json",
+      "bytes": 38270,
+      "sha256": "bb8834bce423b29bc82eae063ba7407192d099574fcbe1494f3fc4cae325f9ac"
+    },
+    "baseline_child": {
+      "path": "mj236-baseline-unit-03/child-outcome.json",
+      "bytes": 20179,
+      "sha256": "a125e12f7838ca659a61345572d93165901d4e3fc9dfaf977efbb9b447f5b7d6"
+    },
+    "baseline_review": {
+      "path": "mj236-baseline-runtime-review-03.json",
+      "bytes": 13022,
+      "sha256": "7e6e4306aa2c9f5d9133f9b64159cf63db68011d3d4d1a025351c64d6b555c9e"
+    },
+    "baseline_raw_result": {
+      "path": "mj236-baseline-unit-03/vitest-result.json",
+      "bytes": 5755,
+      "sha256": "13b1d3282e8ee5b38734a9a58d1f396cae2d694d4010a5219c8949db4db1692f"
+    },
+    "baseline_run_end": {
+      "path": "mj236-baseline-unit-03/vitest-run-end.json",
+      "bytes": 3373,
+      "sha256": "1bd49ad1b83a174046754723809095cf73dc6932f40b52aeef4dd969b648bd58"
+    },
+    "fixed_web_parent": {
+      "path": "mj236-fixed-web-02/receipt.json",
+      "bytes": 42905,
+      "sha256": "89de413d9dc48731dbfedb2cfb62fa247658646f6a7f1f049c8283c116381c0d"
+    },
+    "fixed_web_child": {
+      "path": "mj236-fixed-web-02/child-outcome.json",
+      "bytes": 21117,
+      "sha256": "ca688f92d49886d3f56e49681247943194ac7b3133116dafd988f332cf342e34"
+    },
+    "fixed_web_review": {
+      "path": "mj236-fixed-web-runtime-review-02.json",
+      "bytes": 16058,
+      "sha256": "f6edfb8d937ea9447f5e22064300f385ed2cdd3a492150863b0fb9c572995cb2"
+    },
+    "fixed_web_dist_manifest": {
+      "path": "mj236-fixed-web-02/dist-manifest.json",
+      "bytes": 1726,
+      "sha256": "134fdeed88dc1ebe3614f585104e68c86db1146f867508fc5384fa3c7877a495"
+    },
+    "fixed_web_build_log": {
+      "path": "mj236-fixed-web-02/build.log",
+      "bytes": 718,
+      "sha256": "f267d9ca776c3d7ce1ffddd316e11b9742857b18996d8472e06f1505edd45c03"
+    },
+    "fixed_browser_parent": {
+      "path": "mj236-fixed-browser-02/receipt.json",
+      "bytes": 168541,
+      "sha256": "2b1d200725d2441e358131022ad06e37b464c3e01d747d04e5336c4281070138"
+    },
+    "fixed_browser_child": {
+      "path": "mj236-fixed-browser-02/child-outcome.json",
+      "bytes": 146909,
+      "sha256": "1d65af7f2b9de6f69057825a70351298189eec5eaa7a20c5856f5416262b3419"
+    },
+    "fixed_browser_review": {
+      "path": "mj236-fixed-browser-runtime-review-02.json",
+      "bytes": 16466,
+      "sha256": "2ea16ba0eb2fc2be9108e0b41edf3dbff5e1b0ce5f778631b938a85f49173f86"
+    },
+    "fixed_browser_junit": {
+      "path": "mj236-fixed-browser-02/result.xml",
+      "bytes": 2479,
+      "sha256": "23cdf788a72736af8d1ed8198750acae44168fbd011764c4a428122630d7ebe4"
+    },
+    "fixed_browser_log": {
+      "path": "mj236-fixed-browser-02/pytest.log",
+      "bytes": 607,
+      "sha256": "660bb049183a4c1815fbc06ba1f3e1517f1581664de4ffff16e4daba3007e3e7"
+    },
+    "fixed_browser_raw_reports": {
+      "path": "mj236-fixed-browser-02/pytest-reports.json",
+      "bytes": 584,
+      "sha256": "17e28e98d33e44aed93b56dc9d7b3357fc8ab64e6f265e169b4181ccdc2c9776"
+    },
+    "fixed_browser_raw_properties": {
+      "path": "mj236-fixed-browser-02/pytest-properties.json",
+      "bytes": 3455,
+      "sha256": "433863affbbe553b9f1943cdfc6122f2e27fab451cb308970209f43735fa0973"
+    },
+    "source_commit": {
+      "path": "mj236-source-commit-01.json",
+      "bytes": 15847,
+      "sha256": "b2929caafed997dcd6908477483ac51b2a2824ec230106800564e52a63feaba1"
+    },
+    "source_commit_review": {
+      "path": "mj236-source-commit-independent-review-01.json",
+      "bytes": 8513,
+      "sha256": "fc8927e81f9a406cc795499e9469d10072d57973f600d262222236762332b12b"
+    }
+  },
+  "artifact_path_basis": "Artifact paths are relative to the retained run evidence root; repository paths are explicitly labeled.",
+  "acceptance_delta": 0,
+  "canonical_promotion": false,
+  "provider_or_apply_mock_proof": false,
+  "limits": [
+    "This proves the bounded source length/code-point repair and selected local readback behavior, not complete MJ236 acceptance.",
+    "Four synthetic history records were deliberately written before the browser read baseline; only the subsequent browser traffic and before/after database comparison are GET-only and unchanged.",
+    "No provider result, campaign, PREPARE/submission, hosted-check result, merge or deployment is claimed.",
+    "Protected-main changes do not retarget these base 0a84 / corrected 03b runtime proofs; final publication admission must separately bind its reviewed target."
+  ],
+  "publication": {
+    "status": "NOT_CREATED_AT_EVIDENCE_CAPTURE",
+    "head_sha": null,
+    "tree_sha": null,
+    "pr_number": null,
+    "pr_url": null,
+    "hosted_checks": {
+      "status": "NOT_RUN",
+      "head_sha": null,
+      "runs": null,
+      "conclusions": null
+    },
+    "merged": false,
+    "deployed": false
+  },
+  "execution_context": {
+    "schema_version": 1,
+    "added_at_utc": "2026-11-14T14:53:28.786Z",
+    "run_id": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+    "representation": "Sanitized representations of recorded execution data. Defined native-root prefixes are replaced by placeholders; the arrays preserve argument order, flags and all other values. Placeholder paths are not literal executed paths or portable reproduction commands.",
+    "placeholder_definitions": {
+      "<RUN_ROOT>": {
+        "meaning": "Private immutable evidence root for this run_id. Artifact references in this document are relative to this root."
+      },
+      "<REPOSITORY_ROOT>": {
+        "meaning": "Native repository root containing the recorded Python virtual environment.",
+        "binding_source": {
+          "artifact_key": "fixed_browser_child",
+          "json_pointer": "/interpreter"
+        }
+      },
+      "<NODE_INSTALL_ROOT>": {
+        "meaning": "Native Node/npm installation root containing the recorded node.exe.",
+        "binding_source": {
+          "artifact_key": "fixed_web_child",
+          "json_pointer": "/node_identity/path"
+        }
+      },
+      "<BASELINE_TEMP_ROOT>": {
+        "meaning": "Private temporary root for baseline-unit-03.",
+        "binding_source": {
+          "artifact_key": "baseline_parent",
+          "json_pointer": "/private_temp"
+        }
+      },
+      "<WEB_TEMP_ROOT>": {
+        "meaning": "Private temporary root for fixed-web-02.",
+        "binding_source": {
+          "artifact_key": "fixed_web_parent",
+          "json_pointer": "/private_temp"
+        }
+      },
+      "<BROWSER_TEMP_ROOT>": {
+        "meaning": "Private temporary root for fixed-browser-02.",
+        "binding_source": {
+          "artifact_key": "fixed_browser_parent",
+          "json_pointer": "/private_temp"
+        }
+      }
+    },
+    "environment": {
+      "operating_system": {
+        "family": "Windows",
+        "edition_or_build": "NOT_RECORDED_IN_SELECTED_RECEIPTS",
+        "basis": "The qualified supervisor loads Windows kernel32 through ctypes.WinDLL and records native Windows Job accounting; the recorded Python build is MSC AMD64.",
+        "supervisor_source": {
+          "artifact_key": "executed_windows_browser_supervisor",
+          "line": 188
+        },
+        "job_accounting_source": {
+          "artifact_key": "fixed_browser_parent",
+          "json_pointer": "/post_exit_job_accounting"
+        }
+      },
+      "python": {
+        "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "sanitized_executable": "<REPOSITORY_ROOT>\\.venv\\Scripts\\python.exe",
+        "executable_sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+        "version_and_path_source": {
+          "artifact_key": "fixed_browser_child",
+          "json_pointers": [
+            "/python_version",
+            "/interpreter"
+          ]
+        },
+        "admitted_binary_identity_source": {
+          "artifact_key": "admitted_fixed_common_plan",
+          "json_pointer": "/native_environment/interpreter_sha256"
+        },
+        "isolation_flags": [
+          "-I",
+          "-B"
+        ]
+      },
+      "node": {
+        "version": "v27.0.0-alpha.0.0.0",
+        "sanitized_executable": "<NODE_INSTALL_ROOT>\\node.exe",
+        "executable_sha256": "88769901875e13e26ee712839fdf316c3182711f27ce9e328dd02fd56d8500bc",
+        "ci_node_major": "24",
+        "same_as_ci_runtime": false,
+        "source": {
+          "artifact_key": "fixed_web_child",
+          "json_pointer": "/node_identity"
+        },
+        "baseline_matches_recorded_web_identity": true
+      },
+      "npm": {
+        "version": "12.1.0",
+        "sanitized_cli": "<NODE_INSTALL_ROOT>\\node_modules\\npm\\bin\\npm-cli.js",
+        "cli_sha256": "3ce7cba6f5128dd5f54c98b6a5036b0f850496878cc2e21044b675fe3c594e3e",
+        "sanitized_package_json": "<NODE_INSTALL_ROOT>\\node_modules\\npm\\package.json",
+        "package_sha256": "3cb7e2bb570f9756e79cb998333a9ac53040a6c3822ec9af8025ee929184eca9",
+        "source": {
+          "artifact_key": "qualified_historical_dependency_install",
+          "json_pointer": "/child_outcome/npm"
+        },
+        "role": "Recorded toolchain identity from the qualified historical dependency installation reused by these phases; the selected validation commands invoke Node directly, not npm.",
+        "invoked_by_selected_normal_validation_commands": false,
+        "installation_started_at_utc": "2026-11-14T06:48:04.537949+00:00",
+        "installation_finished_at_utc": "2026-11-14T06:48:12.571778+00:00",
+        "installation_time_source": {
+          "artifact_key": "qualified_historical_dependency_install",
+          "json_pointers": [
+            "/child_outcome/started_at_utc",
+            "/child_outcome/finished_at_utc"
+          ]
+        }
+      }
+    },
+    "timing_note": "Each timestamp retains the meaning and field name of its raw receipt. Parent/child finished_at_utc fields are not substituted for the separately recorded final compute-release time. No missing outer-shell argv or pytest start timestamp is inferred.",
+    "phases": {
+      "baseline_unit_03": {
+        "attempt_id": "55b4d9c7e444481dba74182410556add",
+        "supervisor": {
+          "kind": "WINDOWS_JOB_SUPERVISOR",
+          "script_sha256": "674e5777f4ae6b03915a64d6c08f352145a3a5ca661f548f9348837308ebd60f",
+          "identity_source": {
+            "artifact_key": "baseline_parent",
+            "json_pointer": "/launcher_sha256"
+          },
+          "outer_shell_or_supervisor_argv": "NOT_RECORDED_IN_SELECTED_RAW_RECEIPTS; not reconstructed"
+        },
+        "recorded_child_process": {
+          "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+          "sanitized_argv": [
+            "<REPOSITORY_ROOT>\\.venv\\Scripts\\python.exe",
+            "-I",
+            "-B",
+            "<RUN_ROOT>\\mj236-baseline-verification-executable-03\\mj236-baseline-child.py",
+            "<RUN_ROOT>\\mj236-baseline-verification-executable-03\\baseline-unit-input.json",
+            "993e120733b08971502440e4c77af1ab1c2ae3642c2c5d92b39aef9a14d7cac9",
+            "55b4d9c7e444481dba74182410556add"
+          ],
+          "original_argv_source": {
+            "artifact_key": "baseline_parent",
+            "json_pointer": "/command"
+          },
+          "argument_order_and_nonpath_values_preserved": true,
+          "script_sha256": "932ae1ba2d4215f2f57c0e81fe744862515d373b3d87b9f70ff5623bfe73f597",
+          "script_identity_source": {
+            "artifact_key": "baseline_parent",
+            "json_pointer": "/child_sha256"
+          },
+          "sanitized_runtime_cwd": "<BASELINE_TEMP_ROOT>\\cwd",
+          "cwd_source": {
+            "artifact_key": "baseline_parent",
+            "json_pointer": "/runtime_cwd"
+          }
+        },
+        "parent_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:06:35.679342+00:00",
+          "finished_at_utc": "2026-11-14T14:07:13.303257+00:00",
+          "original_host_exit_code": 0,
+          "child_exit_code": 0,
+          "source_fields": {
+            "artifact_key": "baseline_parent",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc",
+              "/original_host_exit_code",
+              "/child_exit_code"
+            ]
+          }
+        },
+        "child_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:07:02.805199+00:00",
+          "finished_at_utc": "2026-11-14T14:07:13.240111+00:00",
+          "source_fields": {
+            "artifact_key": "baseline_child",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc"
+            ]
+          }
+        },
+        "compute_release_observation": {
+          "released_at_utc": "2026-11-14T14:07:27.197460+00:00",
+          "source": {
+            "artifact_key": "baseline_review",
+            "json_pointer": "/closure/release/released_at"
+          }
+        },
+        "node_execution": {
+          "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+          "sanitized_argv": [
+            "<NODE_INSTALL_ROOT>\\node.exe",
+            "--max-old-space-size=1024",
+            "<BASELINE_TEMP_ROOT>\\cwd\\src\\apps\\web\\node_modules\\vitest\\vitest.mjs",
+            "run",
+            "src/search-history-client.test.ts",
+            "--testNamePattern",
+            "preserves backend-valid source lengths: 201 ASCII code points$",
+            "--coverage.enabled=false",
+            "--maxWorkers=1",
+            "--reporter=json",
+            "--reporter=<RUN_ROOT>\\mj236-baseline-verification-executable-03\\mj236-run-end-reporter.mjs",
+            "--outputFile=<RUN_ROOT>\\mj236-baseline-unit-03\\vitest-result.json"
+          ],
+          "original_argv_source": {
+            "artifact_key": "baseline_child",
+            "json_pointer": "/command"
+          },
+          "argument_order_and_nonpath_values_preserved": true,
+          "sanitized_cwd": "<BASELINE_TEMP_ROOT>\\cwd\\src\\apps\\web",
+          "cwd_source": {
+            "artifact_key": "baseline_child",
+            "json_pointer": "/cwd"
+          },
+          "process_created_at_utc": "2026-11-14T14:07:03.0579079Z",
+          "creation_time_source": {
+            "artifact_key": "baseline_child",
+            "json_pointer": "/node_process/creation_filetime_ticks",
+            "raw_windows_filetime_ticks": "134391388230579079",
+            "conversion": "Exact conversion of Windows FILETIME 100 ns ticks since 1601-01-01 UTC; derived UTC rendering, not an independently recorded timestamp."
+          },
+          "node_finished_at_utc": "2026-11-14T14:07:03.969442+00:00",
+          "exit_code": 1,
+          "end_and_exit_source": {
+            "artifact_key": "baseline_child",
+            "json_pointers": [
+              "/node_finished_at_utc",
+              "/node_exit_code"
+            ]
+          },
+          "environment_overrides": {
+            "CI": "1",
+            "NO_COLOR": "1",
+            "FORCE_COLOR": "0",
+            "UV_THREADPOOL_SIZE": "2",
+            "RAYON_NUM_THREADS": "2",
+            "MJ236_ATTEMPT_ID": "55b4d9c7e444481dba74182410556add"
+          },
+          "environment_source": {
+            "artifact_key": "baseline_child",
+            "json_pointer": "/environment_overrides"
+          },
+          "result_interpretation": "Node exit 1 is the selected expected behavioral failure; the normal qualified parent and child hosts exit 0."
+        }
+      },
+      "fixed_web_02": {
+        "attempt_id": "76d7f66895c4433f9ee8b67b89bec12c",
+        "supervisor": {
+          "kind": "WINDOWS_JOB_SUPERVISOR",
+          "script_sha256": "16e30091bcb93d6794868ac335e947c87401a36888ec356cefca3535a2099f16",
+          "identity_source": {
+            "artifact_key": "fixed_web_parent",
+            "json_pointer": "/launcher_sha256"
+          },
+          "outer_shell_or_supervisor_argv": "NOT_RECORDED_IN_SELECTED_RAW_RECEIPTS; not reconstructed"
+        },
+        "recorded_child_process": {
+          "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+          "sanitized_argv": [
+            "<REPOSITORY_ROOT>\\.venv\\Scripts\\python.exe",
+            "-I",
+            "-B",
+            "<RUN_ROOT>\\mj236-fixed-verification-executable-02\\mj236-fixed-web-child.py",
+            "<RUN_ROOT>\\mj236-fixed-verification-executable-02\\fixed-web-input.json",
+            "0fdf8b1c53912e326a97445e54e46918a4da37e83adeed5edf9e9ef19a86c9bf",
+            "76d7f66895c4433f9ee8b67b89bec12c"
+          ],
+          "original_argv_source": {
+            "artifact_key": "fixed_web_parent",
+            "json_pointer": "/command"
+          },
+          "argument_order_and_nonpath_values_preserved": true,
+          "script_sha256": "050ce5e11af1415d4086cfc9b07147aa6389f66f28296827d27d836fba9ddcd8",
+          "script_identity_source": {
+            "artifact_key": "fixed_web_parent",
+            "json_pointer": "/child_sha256"
+          },
+          "sanitized_runtime_cwd": "<WEB_TEMP_ROOT>\\cwd",
+          "cwd_source": {
+            "artifact_key": "fixed_web_parent",
+            "json_pointer": "/runtime_cwd"
+          }
+        },
+        "parent_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:18:33.246386+00:00",
+          "finished_at_utc": "2026-11-14T14:19:17.326110+00:00",
+          "original_host_exit_code": 0,
+          "child_exit_code": 0,
+          "source_fields": {
+            "artifact_key": "fixed_web_parent",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc",
+              "/original_host_exit_code",
+              "/child_exit_code"
+            ]
+          }
+        },
+        "child_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:18:53.520839+00:00",
+          "finished_at_utc": "2026-11-14T14:19:17.234823+00:00",
+          "source_fields": {
+            "artifact_key": "fixed_web_child",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc"
+            ]
+          }
+        },
+        "compute_release_observation": {
+          "released_at_utc": "2026-11-14T14:19:28.545175+00:00",
+          "source": {
+            "artifact_key": "fixed_web_review",
+            "json_pointer": "/closure/release/released_at"
+          }
+        },
+        "stages": [
+          {
+            "name": "vitest",
+            "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+            "sanitized_argv": [
+              "<NODE_INSTALL_ROOT>\\node.exe",
+              "--max-old-space-size=1024",
+              "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web\\node_modules\\vitest\\vitest.mjs",
+              "run",
+              "src/search-history-client.test.ts",
+              "--coverage.enabled=false",
+              "--maxWorkers=1",
+              "--reporter=json",
+              "--reporter=<RUN_ROOT>\\mj236-fixed-verification-executable-02\\mj236-fixed-run-end-reporter.mjs",
+              "--outputFile=<RUN_ROOT>\\mj236-fixed-web-02\\vitest-result.json"
+            ],
+            "original_argv_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointer": "/stages/0/command"
+            },
+            "argument_order_and_nonpath_values_preserved": true,
+            "sanitized_cwd": "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web",
+            "started_at_utc": "2026-11-14T14:18:53.628758+00:00",
+            "finished_at_utc": "2026-11-14T14:18:56.351286+00:00",
+            "exit_code": 0,
+            "observations_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointers": [
+                "/stages/0/cwd",
+                "/stages/0/started_at_utc",
+                "/stages/0/finished_at_utc",
+                "/stages/0/exit_code"
+              ]
+            }
+          },
+          {
+            "name": "typecheck",
+            "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+            "sanitized_argv": [
+              "<NODE_INSTALL_ROOT>\\node.exe",
+              "--max-old-space-size=1024",
+              "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web\\node_modules\\typescript\\bin\\tsc",
+              "--noEmit"
+            ],
+            "original_argv_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointer": "/stages/1/command"
+            },
+            "argument_order_and_nonpath_values_preserved": true,
+            "sanitized_cwd": "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web",
+            "started_at_utc": "2026-11-14T14:18:59.186268+00:00",
+            "finished_at_utc": "2026-11-14T14:19:02.586604+00:00",
+            "exit_code": 0,
+            "observations_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointers": [
+                "/stages/1/cwd",
+                "/stages/1/started_at_utc",
+                "/stages/1/finished_at_utc",
+                "/stages/1/exit_code"
+              ]
+            }
+          },
+          {
+            "name": "build",
+            "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+            "sanitized_argv": [
+              "<NODE_INSTALL_ROOT>\\node.exe",
+              "--max-old-space-size=1024",
+              "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web\\node_modules\\vite\\bin\\vite.js",
+              "build"
+            ],
+            "original_argv_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointer": "/stages/2/command"
+            },
+            "argument_order_and_nonpath_values_preserved": true,
+            "sanitized_cwd": "<WEB_TEMP_ROOT>\\cwd\\src\\apps\\web",
+            "started_at_utc": "2026-11-14T14:19:04.976770+00:00",
+            "finished_at_utc": "2026-11-14T14:19:07.928401+00:00",
+            "exit_code": 0,
+            "observations_source": {
+              "artifact_key": "fixed_web_child",
+              "json_pointers": [
+                "/stages/2/cwd",
+                "/stages/2/started_at_utc",
+                "/stages/2/finished_at_utc",
+                "/stages/2/exit_code"
+              ]
+            }
+          }
+        ]
+      },
+      "fixed_browser_02": {
+        "attempt_id": "4a1d7b4a802f49808a34f32c2e131b7f",
+        "supervisor": {
+          "kind": "WINDOWS_JOB_SUPERVISOR",
+          "script_sha256": "f67b2a891a75a541fe507b3b9b7a83558aa43a3704b09204c94ecdd551035840",
+          "identity_source": {
+            "artifact_key": "fixed_browser_parent",
+            "json_pointer": "/launcher_sha256"
+          },
+          "outer_shell_or_supervisor_argv": "NOT_RECORDED_IN_SELECTED_RAW_RECEIPTS; not reconstructed"
+        },
+        "recorded_child_process": {
+          "representation": "SANITIZED_RECORDED_ARGUMENT_ARRAY",
+          "sanitized_argv": [
+            "<REPOSITORY_ROOT>\\.venv\\Scripts\\python.exe",
+            "-I",
+            "-B",
+            "<RUN_ROOT>\\mj236-fixed-verification-executable-02\\mj236-browser-child.py",
+            "<RUN_ROOT>\\mj236-fixed-verification-executable-02\\fixed-browser-input.json",
+            "df25e536b71f40d5644ed74a1d198e6022132cf0b0da0f5e17ebc1b1f407586e",
+            "4a1d7b4a802f49808a34f32c2e131b7f"
+          ],
+          "original_argv_source": {
+            "artifact_key": "fixed_browser_parent",
+            "json_pointer": "/command"
+          },
+          "argument_order_and_nonpath_values_preserved": true,
+          "script_sha256": "c7305e56899e9931c46ea10393174ada187767cd816039e5f41cbc99028fd322",
+          "script_identity_source": {
+            "artifact_key": "fixed_browser_parent",
+            "json_pointer": "/child_sha256"
+          },
+          "sanitized_runtime_cwd": "<BROWSER_TEMP_ROOT>\\cwd",
+          "cwd_source": {
+            "artifact_key": "fixed_browser_parent",
+            "json_pointer": "/runtime_cwd"
+          }
+        },
+        "parent_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:30:20.483676+00:00",
+          "finished_at_utc": "2026-11-14T14:30:43.897124+00:00",
+          "original_host_exit_code": 0,
+          "child_exit_code": 0,
+          "source_fields": {
+            "artifact_key": "fixed_browser_parent",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc",
+              "/original_host_exit_code",
+              "/child_exit_code"
+            ]
+          }
+        },
+        "child_recorded_observations": {
+          "started_at_utc": "2026-11-14T14:30:29.928538+00:00",
+          "finished_at_utc": "2026-11-14T14:30:43.527302+00:00",
+          "source_fields": {
+            "artifact_key": "fixed_browser_child",
+            "json_pointers": [
+              "/started_at_utc",
+              "/finished_at_utc"
+            ]
+          }
+        },
+        "compute_release_observation": {
+          "released_at_utc": "2026-11-14T14:30:50.046261+00:00",
+          "source": {
+            "artifact_key": "fixed_browser_review",
+            "json_pointer": "/closure/release/released_at"
+          }
+        },
+        "pytest_execution": {
+          "invocation_kind": "IN_PROCESS_PYTEST_MAIN",
+          "call": "pytest.main(arguments, plugins=[Proof()])",
+          "call_source": {
+            "artifact_key": "executed_browser_child",
+            "line": 465
+          },
+          "representation": "Sanitized argument list passed to pytest.main inside the recorded Python child; this is not a separate python -m pytest subprocess.",
+          "sanitized_arguments": [
+            "-q",
+            "-s",
+            "-p",
+            "no:cacheprovider",
+            "-c",
+            "<BROWSER_TEMP_ROOT>\\cwd\\src\\pyproject.toml",
+            "--rootdir",
+            "<BROWSER_TEMP_ROOT>\\cwd\\src",
+            "--confcutdir",
+            "<BROWSER_TEMP_ROOT>\\cwd\\src",
+            "--basetemp",
+            "<BROWSER_TEMP_ROOT>\\pytest-temp",
+            "<BROWSER_TEMP_ROOT>\\cwd\\src\\tests\\browser\\test_search_history_connected.py::test_backend_valid_source_labels_survive_api_history_readback_and_reload",
+            "--junitxml",
+            "<RUN_ROOT>\\mj236-fixed-browser-02\\result.xml"
+          ],
+          "original_arguments_source": {
+            "artifact_key": "fixed_browser_child",
+            "json_pointer": "/pytest_arguments"
+          },
+          "sanitized_source_root": "<BROWSER_TEMP_ROOT>\\cwd\\src",
+          "source_root_source": {
+            "artifact_key": "fixed_browser_child",
+            "json_pointer": "/source_root"
+          },
+          "pytest_started_at_utc": null,
+          "start_timestamp_status": "NOT_SEPARATELY_RECORDED; child start above is not relabeled as pytest start.",
+          "pytest_finished_at_utc": "2026-11-14T14:30:39.279710+00:00",
+          "exit_code": 0,
+          "end_and_exit_source": {
+            "artifact_key": "fixed_browser_child",
+            "json_pointers": [
+              "/pytest_finished_at_utc",
+              "/pytest_exit_code"
+            ]
+          },
+          "pytest_log_result": "1 passed, 1 warning in 8.51s",
+          "log_source": {
+            "artifact_key": "fixed_browser_log"
+          },
+          "pytest_plugin_autoload_disabled": true,
+          "plugin_autoload_source": {
+            "artifact_key": "fixed_browser_child",
+            "json_pointer": "/pytest_autoload_disabled"
+          }
+        }
+      }
+    },
+    "artifact_reference_basis": "artifact_key values resolve to the pinned entries in /artifacts or the additional entries in /execution_context/artifacts. JSON pointers identify the exact original raw field.",
+    "artifacts": {
+      "executed_browser_child": {
+        "path": "mj236-fixed-verification-executable-02/mj236-browser-child.py",
+        "bytes": 27158,
+        "sha256": "c7305e56899e9931c46ea10393174ada187767cd816039e5f41cbc99028fd322"
+      },
+      "executed_windows_browser_supervisor": {
+        "path": "mj236-fixed-verification-executable-02/run-mj236-fixed-browser.py",
+        "bytes": 30336,
+        "sha256": "f67b2a891a75a541fe507b3b9b7a83558aa43a3704b09204c94ecdd551035840"
+      },
+      "admitted_fixed_common_plan": {
+        "path": "mj236-fixed-verification-executable-02/common-plan.json",
+        "bytes": 20038,
+        "sha256": "e86e1209a7168d2313952176d2da0dd7d25b91d34438c09a6920d306c8c226da"
+      },
+      "qualified_historical_dependency_install": {
+        "path": "mj133-web-deps-install-01/receipt.json",
+        "bytes": 15781,
+        "sha256": "25b5f0f70075ed42527725e5973c4d4a1398944b065ae8587e6db29a4709c58d"
+      }
+    }
+  }
+}
