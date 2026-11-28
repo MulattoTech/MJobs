@@ -77,7 +77,8 @@ class _RateClock:
 
 
 def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, trace=None,
-                                responses=None, verification_policy=None, pending_sha256=None):
+                                responses=None, verification_policy=None, pending_sha256=None,
+                                diagnostic=None):
     """Replace socket reads and time, retaining production rate reservations/waits."""
     raw, normalized, source, policy, profile = values
     clock = clock or _RateClock()
@@ -106,7 +107,8 @@ def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, 
         return subject.corroborate_aggregator_job(raw, normalized, source, profile,
             source_policy=policy, check=check or (lambda: None),
             client_factory=factory, budget=budget,
-            verification_policy=verification_policy, pending_sha256=pending_sha256)
+            verification_policy=verification_policy, pending_sha256=pending_sha256,
+            diagnostic=diagnostic)
 
 
 @pytest.mark.parametrize('rate,seconds', [(1, 30), (6, 30), (15, 12)])
@@ -589,6 +591,18 @@ def test_v2_changed_policy_cannot_create_a_client(field, value):
     assert trace == {'clients': [], 'requests': []}
 
 
+def test_v2_malformed_policy_reports_validation_stage_without_transport():
+    values, policy = v2_inputs()
+    policy['request_timeout'] += 1
+    diagnostic, trace = {}, {}
+
+    assert resolve_with_real_rate_gate(values, verification_policy=policy,
+        pending_sha256='c' * 64, diagnostic=diagnostic, trace=trace) is None
+
+    assert diagnostic == {'stop_code': 'VERIFICATION_POLICY_INVALID'}
+    assert trace == {'clients': [], 'requests': []}
+
+
 @pytest.mark.parametrize('pending', [None, True, 2, 'x', 'c' * 63])
 def test_v2_requires_the_exact_pending_digest(pending):
     values, policy = v2_inputs()
@@ -658,6 +672,147 @@ def test_disabled_preference_preserves_the_exact_v1_receipt_shape_and_digest():
     disabled = resolve(values)[0]
     assert disabled == old and disabled['version'] == 1
     assert not {'pending_sha256', 'verification_policy_sha256', 'origin_policies'} & set(disabled)
+
+
+def test_opt_in_diagnostics_report_success_without_changing_receipt():
+    baseline, _ = resolve()
+    diagnostic = {}
+    observed, _ = resolve(diagnostic=diagnostic)
+    assert observed == baseline
+    assert diagnostic == {'stop_code': 'CORROBORATED'}
+    assert 'stop_code' not in observed
+
+
+@pytest.mark.parametrize('reject', [False, True], ids=['linked-proof', 'native-mismatch'])
+@pytest.mark.parametrize('cleanup_fails', [False, True], ids=['clean-close', 'failed-close'])
+def test_v2_diagnostic_is_published_only_after_client_cleanup(reject, cleanup_fails):
+    values, policy = v2_inputs()
+    responses = pages()
+    if reject:
+        responses[NATIVE] = httpx.Response(200,
+            json={'id': 123, 'title': 'Unrelated role', 'absolute_url': EMPLOYER},
+            request=httpx.Request('GET', NATIVE))
+    options = dict(responses=responses, verification_policy=policy, pending_sha256='c' * 64)
+    baseline = resolve_with_real_rate_gate(values, **options)
+    diagnostic = {'stop_code': 'STALE', 'owner_marker': 'retained'}
+    snapshots = []
+    failure = PublicFetchError('CLIENT_CLEANUP_FAILED')
+    close = subject.BudgetedPublicClient.close
+
+    def observe_close(client):
+        snapshots.append(dict(diagnostic))
+        close(client)
+        if cleanup_fails and len(snapshots) == 1:
+            raise failure
+
+    with patch.object(subject.BudgetedPublicClient, 'close', observe_close):
+        if cleanup_fails:
+            with pytest.raises(PublicFetchError) as raised:
+                resolve_with_real_rate_gate(values, diagnostic=diagnostic, **options)
+            assert raised.value is failure
+            assert diagnostic == {'owner_marker': 'retained'}
+        else:
+            observed = resolve_with_real_rate_gate(values, diagnostic=diagnostic, **options)
+            assert observed == baseline
+            if reject:
+                assert observed is None
+                expected_code = 'NATIVE_JOB_MISMATCH'
+            else:
+                assert subject.validate_v2_observations(observed, v2_binding(values, policy),
+                    subject.extract_bootstrap_hint(values[0], values[1]))
+                expected_code = 'CORROBORATED'
+            assert diagnostic == {'owner_marker': 'retained', 'stop_code': expected_code}
+
+    assert snapshots == [{'owner_marker': 'retained'}] * (1 if reject else 2)
+
+
+def test_opt_in_diagnostics_clear_stale_outcome_on_propagated_cancellation():
+    diagnostic = {'stop_code': 'CORROBORATED', 'owner_marker': 'retained'}
+
+    def cancelled():
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+
+    with pytest.raises(PublicFetchError, match='DISCOVERY_AUTHORIZATION_CHANGED'):
+        resolve(diagnostic=diagnostic, check=cancelled)
+    assert diagnostic == {'owner_marker': 'retained'}
+
+
+def test_v2_terminal_http_error_clears_reused_diagnostic_without_changing_denial():
+    values, policy = v2_inputs()
+    responses, trace = pages(), {}
+    responses[NATIVE] = httpx.Response(503, text='private-marker-v2',
+        request=httpx.Request('GET', NATIVE))
+    diagnostic = {'stop_code': 'CORROBORATED', 'owner_marker': 'retained'}
+
+    with pytest.raises(PublicFetchError, match='^HTTP_STATUS_ERROR$'):
+        resolve_with_real_rate_gate(values, responses=responses, trace=trace,
+            verification_policy=policy, pending_sha256='c' * 64,
+            diagnostic=diagnostic)
+
+    assert diagnostic == {'owner_marker': 'retained'}
+    assert [url for url, _ in trace['requests']] == [
+        'https://boards-api.greenhouse.io/robots.txt', NATIVE]
+    assert trace['clients'] == [NATIVE]
+
+
+def test_opt_in_diagnostics_report_invalid_source_policy_without_egress():
+    values = inputs()
+    values[3]['rate_limit'] = True
+    diagnostic = {'stop_code': 'CORROBORATED'}
+    observed, seen = resolve(values, diagnostic=diagnostic)
+    assert observed is None and seen == []
+    assert diagnostic == {'stop_code': 'SOURCE_POLICY_INVALID'}
+
+
+def test_opt_in_diagnostics_report_rejected_fetch_without_private_exception():
+    diagnostic = {}
+    observed, _ = resolve(responses={NATIVE: httpx.Response(503, text='private-marker-fetch',
+        request=httpx.Request('GET', NATIVE))}, diagnostic=diagnostic)
+    assert observed is None
+    assert diagnostic == {'stop_code': 'FETCH_OR_PARSE_REJECTED'}
+    assert 'private-marker' not in str(diagnostic)
+
+
+def test_opt_in_diagnostics_reject_unbound_hint_without_transport():
+    values = inputs()
+    values[0]['link'] = 'https://foreign.example/job'
+    diagnostic = {}
+    observed, seen = resolve(values, diagnostic=diagnostic)
+    assert observed is None and seen == []
+    assert diagnostic == {'stop_code': 'HINT_NOT_ELIGIBLE'}
+
+
+def test_opt_in_diagnostics_distinguish_missing_employer_native_link():
+    values = inputs('<a href="https://example.com/jobs/123">Apply</a>')
+    responses = pages()
+    responses[EMPLOYER] = httpx.Response(200, text='<h1>Engineer</h1>',
+                                         request=httpx.Request('GET', EMPLOYER))
+    diagnostic = {}
+    observed, seen = resolve(values, responses=responses, diagnostic=diagnostic)
+    assert observed is None and seen == ['https://example.com/robots.txt', EMPLOYER]
+    assert diagnostic == {'stop_code': 'EMPLOYER_NATIVE_LINK_MISSING'}
+
+
+def test_opt_in_diagnostics_distinguish_native_title_mismatch():
+    responses = pages()
+    responses[NATIVE] = httpx.Response(200,
+        json={'id': 123, 'title': 'Unrelated role', 'absolute_url': EMPLOYER},
+        request=httpx.Request('GET', NATIVE))
+    diagnostic = {}
+    observed, seen = resolve(responses=responses, diagnostic=diagnostic)
+    assert observed is None and NATIVE in seen and EMPLOYER not in seen
+    assert diagnostic == {'stop_code': 'NATIVE_JOB_MISMATCH'}
+
+
+def test_opt_in_diagnostics_do_not_expose_untrusted_page_content():
+    responses = pages()
+    responses[EMPLOYER] = httpx.Response(200, text='<p>private-marker-no-proof</p>',
+                                         request=httpx.Request('GET', EMPLOYER))
+    diagnostic = {}
+    observed, _ = resolve(responses=responses, diagnostic=diagnostic)
+    assert observed is None
+    assert diagnostic == {'stop_code': 'EMPLOYER_JOB_PROOF_MISSING'}
+    assert 'private-marker' not in str(diagnostic)
 
 
 def test_v2_five_per_minute_listing_still_refuses_consumed_authorization_window():
