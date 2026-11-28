@@ -1,0 +1,86 @@
+name: AI task settings acceptance - synthetic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '.github/workflows/ai-task-settings-acceptance.yml'
+      - 'services/ai/tasks.py'
+      - 'apps/web/src/ai-task-configuration.tsx'
+      - 'apps/web/src/main.tsx'
+      - 'apps/api/main.py'
+      - 'packages/persistence/store.py'
+      - 'tests/unit/test_ai_task_configuration.py'
+      - 'tests/integration/test_ai_task_settings_api.py'
+      - 'tests/integration/test_ai_seven_task_settings_acceptance.py'
+      - 'tests/browser/test_ai_task_settings.py'
+      - 'tests/browser/test_ai_seven_task_settings_acceptance.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-task-settings-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  settings:
+    name: Seven independent task settings / API + Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MJOBS_OPERATION_MODE: FIXTURE
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.lock
+            requirements.txt
+            .github/test-requirements.txt
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install pinned Python dependencies
+        run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
+      - name: Install Chromium for synthetic browser acceptance
+        run: python -m playwright install --with-deps chromium
+      - name: Build the application
+        run: |
+          npm ci --prefix apps/web --no-audit --no-fund
+          npm run build --prefix apps/web
+      - name: Verify browser prerequisite and record the tested revision
+        run: |
+          test -f apps/web/dist/index.html
+          mkdir -p outputs/ci
+          git rev-parse HEAD > outputs/ci/ai-task-settings-revision.txt
+      - name: Verify independent task settings through the API and UI
+        run: |
+          python -m pytest -q \
+            tests/unit/test_ai_task_configuration.py \
+            tests/integration/test_ai_task_settings_api.py \
+            tests/integration/test_ai_seven_task_settings_acceptance.py \
+            tests/browser/test_ai_task_settings.py \
+            tests/browser/test_ai_seven_task_settings_acceptance.py \
+            --junitxml=outputs/ci/ai-task-settings.xml
+      - name: Test summary
+        if: always()
+        run: python -m tools.ci.test_summary outputs/ci/ai-task-settings.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ai-task-settings-acceptance
+          path: |
+            outputs/ci/ai-task-settings.xml
+            outputs/ci/ai-task-settings-revision.txt
+          retention-days: 7
+          if-no-files-found: ignore
