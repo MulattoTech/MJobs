@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031106Z-8c145eb40c10",
+  "requirement": "MJ-REF-026",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/396",
+  "slice": "Preserve evidence/strength pairing for duplicate or legacy persisted rows",
+  "recorded_utc": "2026-11-09T03:37:02.716154+00:00",
+  "implementation_commit": "4bae5fcfbb20d8ca51df581e8af125ed533be2b4",
+  "tested_commit": "4bae5fcfbb20d8ca51df581e8af125ed533be2b4",
+  "tested_tree": "a33e43ad8536df97c833a04aad817067701fcb0a",
+  "environment": "Python3.12.14 Linux, isolated workspace, pinned requirements.lock and .github/test-requirements.txt; temporary SQLite; no external providers",
+  "source_manifest": {
+    "services/learning/skill_gap_heatmap.py": "79fe796a62dcf2a8c73bfda55e0066882cef989e29f0748f2e3dcf7c98d160a5",
+    "tests/unit/test_skill_gap_heatmap_evidence_pairs.py": "e6b65ce66e245d130078bfbf378dfc4c49f3fe9fde9ff72a7eb8f70a0c70996a"
+  },
+  "baseline": {
+    "production_source_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "production_source_sha256": "a33f397574ea558ae8adc00868ea5a918ea28606133b9e0a690dc91af369e94d",
+    "new_regression_suite_result": "14 failed, 3 passed (including subtest cases)",
+    "exit_code": 1,
+    "interpretation": "New fixture regressions reproduce phantom general/required gaps and priority inversions in unchanged main source."
+  },
+  "checks": [
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_skill_gap_heatmap_evidence_pairs.py",
+        "tests/unit/test_skill_gap_heatmap_unknowns.py",
+        "tests/unit/test_skill_gap_heatmap.py",
+        "tests/integration/test_skill_gap_heatmap_api.py",
+        "tests/integration/test_skill_gap_heatmap_profile_isolation.py"
+      ],
+      "started_utc": "2026-11-09T03:34:45.782531+00:00",
+      "completed_utc": "2026-11-09T03:34:49.168007+00:00",
+      "exit_code": 0,
+      "output": "......................                                         [100%]\n22 passed, 10 subtests passed in 2.16s\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "started_utc": "2026-11-09T03:34:49.168026+00:00",
+      "completed_utc": "2026-11-09T03:34:49.208296+00:00",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 2 source files\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.reference_provenance"
+      ],
+      "started_utc": "2026-11-09T03:34:49.208313+00:00",
+      "completed_utc": "2026-11-09T03:34:49.235214+00:00",
+      "exit_code": 0,
+      "output": "Reference provenance validation: PASS\n"
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ChatGPT subagent /root/pr_readiness, independent of patch author",
+    "method": "Static diff/test/consumer review",
+    "result": "READY_WITH_LIMITATIONS; no blocking findings",
+    "independent_test_execution": "NOT_RUN",
+    "source_hashes_verified": true
+  },
+  "criterion_evidence": [
+    {
+      "criterion": 1,
+      "status": "PARTIAL",
+      "verified": "Normalized aliases, duplicate rows, distinct jobs and deterministic permutations pass targeted regressions. Existing persisted-match/API fixtures pass.",
+      "remaining": "Whole-reference acceptance and complete product journey not re-certified."
+    },
+    {
+      "criterion": 2,
+      "status": "PARTIAL",
+      "verified": "Unknown or unsupported posting strength cannot borrow classified strength from another row. A real classified no-approved-evidence row remains visible even with conflicting approved observations.",
+      "remaining": "No claim that missing approved evidence proves a person lacks the skill; no full legacy-data audit."
+    },
+    {
+      "criterion": 3,
+      "status": "PARTIAL",
+      "verified": "Gap-specific required/application/interview counts and ordering use paired signals; raw descriptive/activity counts and response schema remain unchanged.",
+      "remaining": "Connected browser rendering and complete workflow NOT_RUN."
+    },
+    {
+      "criterion": 4,
+      "status": "NOT_RUN",
+      "reason": "AI learning-theme planning is outside this correctness slice and remains incomplete."
+    },
+    {
+      "criterion": 5,
+      "status": "PARTIAL",
+      "verified": "Deterministic service/API regressions use no AI provider.",
+      "remaining": "Connected AI-disabled/unavailable browser journey NOT_RUN."
+    }
+  ],
+  "limits": [
+    "Current build_explanation normalizes and deduplicates one row per skill; this is persisted duplicate/legacy/inconsistent-input hardening, not a demonstrated fresh-scoring defect.",
+    "Full unit suite, PostgreSQL, browser, web build, and real integrations NOT_RUN locally for this slice; hosted required checks tracked separately at final PR head.",
+    "Canonical reference and original matrices unchanged. No full requirement PASS promotion.",
+    "Final evidence-only commit preserves these source hashes; final-head test/CI receipt is recorded in PR and run checkpoint."
+  ],
+  "safety": {
+    "schema_or_migration_change": false,
+    "provider_calls": false,
+    "external_application_submission": "OFF",
+    "production_deployment": "UNCHANGED"
+  },
+  "rollback": "Revert this bounded PR; no data migration or persistent format change."
+}
