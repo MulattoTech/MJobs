@@ -367,12 +367,20 @@ class PublicCompanyClient:
                 if cancellation_error:
                     raise cancellation_error[0]
                 raise
-            except (OSError, ssl.SSLError, http.client.HTTPException):
+            except (OSError, ssl.SSLError, http.client.HTTPException) as error:
                 if cancellation_error:
                     raise cancellation_error[0]
                 if time.monotonic() >= deadline:
                     raise PublicFetchError("FETCH_DEADLINE")
-                last_error = PublicFetchError("NETWORK_FAILED")
+                # SSL errors (including certificate verification) inherit from
+                # OSError. Never infer retryability from that broad base or
+                # remote-controlled diagnostic text. Unknown/protocol failures
+                # retain the conservative terminal classification.
+                transient = not isinstance(error, (ssl.SSLError, http.client.HTTPException)) and isinstance(error, (
+                    TimeoutError, ConnectionResetError, ConnectionRefusedError,
+                    ConnectionAbortedError, BrokenPipeError,
+                ))
+                last_error = PublicFetchError("TRANSPORT_TRANSIENT" if transient else "NETWORK_FAILED")
             finally:
                 cancellation_stop.set()
                 if cancellation_watcher.is_alive():
