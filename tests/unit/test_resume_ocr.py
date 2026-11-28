@@ -200,18 +200,29 @@ class ResumeOCRTests(unittest.TestCase):
     def test_cancellation_kills_and_reaps_running_ocr_child(self):
         cancelled = threading.Event()
         child = FakeChild(None)
-        timer = threading.Timer(0.1, cancelled.set)
-        timer.start()
+        original_poll = child.poll
+
+        def cancel_after_child_launch():
+            cancelled.set()
+            return original_poll()
+
+        child.poll = cancel_after_child_launch
         started = time.monotonic()
-        try:
-            with patch.object(ocr.subprocess, 'Popen', return_value=child):
-                with self.assertRaises(ocr.OCRCancelled):
-                    ocr._run_tool('/usr/bin/tesseract', ['input.png', 'output'], 4, cancelled)
-        finally:
-            timer.cancel()
+        with patch.object(ocr.subprocess, 'Popen', return_value=child) as popen:
+            with self.assertRaises(ocr.OCRCancelled):
+                ocr._run_tool('/usr/bin/tesseract', ['input.png', 'output'], 4, cancelled)
+        popen.assert_called_once()
         self.assertTrue(child.killed)
         self.assertTrue(child.reaped)
         self.assertLess(time.monotonic()-started, 2)
+
+    def test_pre_cancel_does_not_launch_ocr_child(self):
+        cancelled = threading.Event()
+        cancelled.set()
+        with patch.object(ocr.subprocess, 'Popen') as popen:
+            with self.assertRaises(ocr.OCRCancelled):
+                ocr._run_tool('/usr/bin/tesseract', ['input.png', 'output'], 4, cancelled)
+        popen.assert_not_called()
 
     def test_tool_wall_timeout_kills_and_reaps_child(self):
         child = FakeChild(None)

@@ -1039,8 +1039,10 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
     return joined
 
 
-def _validate_source_setup_release_history(artifact, baseline, target, runtime):
+def _validate_source_setup_release_history(artifact, baseline, target, runtime, cleanup_status):
     """Validate the cooperative owner's observed policy and release receipts."""
+    if cleanup_status not in {"NOT_REQUIRED", "RESTORED_DISABLED"}:
+        raise ValueError("Source setup primary cleanup result is unsupported")
     boundary = artifact.get("trust_boundary", {})
     if (boundary.get("target") != "ISOLATED_LOCAL_FIXTURE"
             or boundary.get("source_policy_ownership") != "OPERATOR_COOPERATIVE_EXCLUSIVE"
@@ -1103,6 +1105,43 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
             or any(stage not in {"preflight", "enable", "dispatch", "poll", "read", "finalize", "cleanup", "release"}
                    for stage in stages)):
         raise ValueError("Source setup containment history lacks the single completed lifecycle")
+    dispatches = [index for index, stage in enumerate(stages) if stage == "dispatch"]
+    polls = [index for index, stage in enumerate(stages) if stage == "poll"]
+    reads = [index for index, stage in enumerate(stages) if stage == "read"]
+    finalizes = [index for index, stage in enumerate(stages) if stage == "finalize"]
+    cleanups = [index for index, stage in enumerate(stages) if stage == "cleanup"]
+    cleanup_count = 2 if cleanup_status == "RESTORED_DISABLED" else 0
+    enables = [index for index, stage in enumerate(stages) if stage == "enable"]
+    dispatch_checks = [checks[index] for index in dispatches]
+    disabled_transition = (len(dispatches) == 2 and any(
+        row.get("stage") == "read" and row.get("extra_enabled") is False
+        and row.get("extra_disabled_policy_sha256") == extra["disabled_policy_sha256"]
+        for row in checks[dispatches[0] + 1:dispatches[1]]))
+    paired_polls = (len(polls) >= 2 and len(polls) % 2 == 0
+        and all(right == left + 1 for left, right in zip(polls[::2], polls[1::2])))
+    terminal_poll_read = (bool(polls) and bool(finalizes) and any(
+        index > max(polls) and index < min(finalizes) for index in reads))
+    cleanup_read_between = (cleanup_status == "NOT_REQUIRED" or len(cleanups) == 2 and any(
+        cleanups[0] < index < cleanups[1] for index in reads))
+    if (not polls or not reads or len(dispatches) != 2 or len(finalizes) != 2
+            or not paired_polls
+            or not terminal_poll_read
+            or not cleanup_read_between
+            or [row.get("extra_enabled") for row in dispatch_checks] != [True, False]
+            or any(row.get("extra_enabled_policy_sha256") != extra["enabled_policy_sha256"]
+                   or row.get("extra_disabled_policy_sha256") !=
+                       (None if index == 0 else extra["disabled_policy_sha256"])
+                   for index, row in enumerate(dispatch_checks))
+            or not disabled_transition
+            or len(cleanups) != cleanup_count
+            or (cleanup_status == "RESTORED_DISABLED" and (len(enables) != 1 or enables[0] >= min(dispatches)))
+            or (cleanup_status == "NOT_REQUIRED" and enables)
+            or max(dispatches) >= min(polls)
+            or not any(max(dispatches) < index < finalizes[0] for index in reads)
+            or max(polls) >= finalizes[0]
+            or (cleanups and (finalizes[0] >= min(cleanups) or max(cleanups) >= finalizes[1]))
+            or finalizes[1] >= len(stages) - 1):
+        raise ValueError("Source setup containment history is causally out of order")
     binding = {"acceptance_run_id": artifact["acceptance_run_id"], "target_origin": target["base_url"],
         "profile_id": baseline["profile_id"], "application_id": baseline["application_id"],
         "job_id": baseline["selected_application_job_id"], "primary_provider": primary_provider}
@@ -1234,7 +1273,8 @@ def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
         raise ValueError("Owned extra source cleanup proof is incomplete")
     if not _instant(public["timestamp"]) <= _instant(artifact.get("timestamp")) <= datetime.now(timezone.utc) + timedelta(seconds=5):
         raise ValueError("Source setup publication must follow its public collection")
-    _validate_source_setup_release_history(artifact, baseline, target, runtime)
+    _validate_source_setup_release_history(
+        artifact, baseline, target, runtime, public["cleanup"]["status"])
     rows = numbered_observations(artifact, segment="source_setup", run_id=public["acceptance_run_id"],
                                  source=baseline["source"], identity=_identity(baseline))
     if (len(rows) != 1 or rows[0]["step"] != 9
