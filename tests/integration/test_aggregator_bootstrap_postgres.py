@@ -7,7 +7,10 @@ PostgreSQL equivalent. Worker tests require the actual product dispatcher.
 No RQ server, public provider request or full journey is exercised here.
 """
 from copy import deepcopy
+import json
 import os
+from pathlib import Path
+import time
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
@@ -15,8 +18,8 @@ from uuid import uuid4
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, select, text
-from sqlalchemy.engine import make_url
 
+from fixtures.postgres_ci_template import OwnedDatabaseTemplate, disposable_url, verify_template
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.sources.collect import configure_source
@@ -24,6 +27,41 @@ from tests.integration import test_aggregator_bootstrap_collection as collection
 from tests.integration import test_aggregator_bootstrap_worker as worker
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
+
+
+_template_pool = None
+
+
+def setUpModule():
+    global _template_pool
+    if os.environ.get('MJOBS_CI_POSTGRES_TEMPLATE') != '1' or not os.environ.get('MJOBS_TEST_POSTGRES_URL'):
+        return
+    pool = OwnedDatabaseTemplate(os.environ['MJOBS_TEST_POSTGRES_URL'])
+    report = Path('outputs/ci/postgres-template-proof.json')
+    report.unlink(missing_ok=True)
+    try:
+        started = time.perf_counter()
+        pool.start()
+        initialization_seconds = time.perf_counter() - started
+        proof = verify_template(pool, os.environ['MJOBS_CI_POSTGRES_DUMP_CONTAINER'])
+        proof['template_initialization_seconds'] = round(initialization_seconds, 3)
+        proof['total_proof_setup_seconds'] = round(time.perf_counter() - started, 3)
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(json.dumps(proof, indent=2) + '\n', encoding='utf-8')
+        print('CI PostgreSQL template proof: ' + json.dumps(proof, sort_keys=True), flush=True)
+    except BaseException:
+        pool.close()
+        raise
+    _template_pool = pool
+
+
+def tearDownModule():
+    global _template_pool
+    if _template_pool is not None:
+        try:
+            _template_pool.close()
+        finally:
+            _template_pool = None
 
 
 class _PostgresCollectionFixture(unittest.TestCase):
@@ -34,21 +72,21 @@ class _PostgresCollectionFixture(unittest.TestCase):
     _activate_v2 = collection.AggregatorBootstrapCollectionTests._activate_v2
 
     def setUp(self):
-        url = make_url(os.environ['MJOBS_TEST_POSTGRES_URL'])
-        if (url.get_backend_name() != 'postgresql' or url.host not in {'localhost', '127.0.0.1', '::1'}
-                or not url.database or not (url.database == 'mjobs_test' or url.database.startswith('mjobs_test_'))
-                or url.query):
-            raise ValueError('An explicit loopback disposable mjobs_test database URL is required')
-        self._schema = 'aggregator_bootstrap_' + uuid4().hex
-        self._admin = create_engine(url, connect_args={'connect_timeout': 5}, hide_parameters=True)
-        self.addCleanup(self._admin.dispose)
-        with self._admin.begin() as connection:
-            connection.execute(text('CREATE SCHEMA "' + self._schema + '"'))
-        self.addCleanup(self._drop_owned_schema)
-        self.url = url.update_query_dict({'options': '-csearch_path=' + self._schema
-            + ' -clock_timeout=5000 -cstatement_timeout=30000'}).render_as_string(hide_password=False)
-        with patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.url}):
-            command.upgrade(Config('alembic.ini'), 'head')
+        url = disposable_url(os.environ['MJOBS_TEST_POSTGRES_URL'])
+        if _template_pool is not None:
+            database, self.url = _template_pool.clone()
+            self.addCleanup(_template_pool.drop, database)
+        else:
+            self._schema = 'aggregator_bootstrap_' + uuid4().hex
+            self._admin = create_engine(url, connect_args={'connect_timeout': 5}, hide_parameters=True)
+            self.addCleanup(self._admin.dispose)
+            with self._admin.begin() as connection:
+                connection.execute(text('CREATE SCHEMA "' + self._schema + '"'))
+            self.addCleanup(self._drop_owned_schema)
+            self.url = url.update_query_dict({'options': '-csearch_path=' + self._schema
+                + ' -clock_timeout=5000 -cstatement_timeout=30000'}).render_as_string(hide_password=False)
+            with patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.url}):
+                command.upgrade(Config('alembic.ini'), 'head')
         self.store = Store(self.url)
         self.addCleanup(self.store.engine.dispose)
         self.assertEqual(self.store.engine.dialect.name, 'postgresql')

@@ -1,4 +1,5 @@
 """Connected Chromium acceptance for the profile-scoped source review panel."""
+import asyncio
 import copy
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -126,9 +127,14 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
             sock = bound_browser_socket()
             origin_url = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-            server_thread = threading.Thread(
-                target=server.run, kwargs={"sockets": [sock]}, daemon=True,
-            )
+            def serve_isolated_api():
+                # Match the owned browser server fixture used by recruiter
+                # classification: canceled error bodies must not strand a
+                # Windows Proactor transport during server shutdown.
+                with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                    runner.run(server.serve(sockets=[sock]))
+
+            server_thread = threading.Thread(target=serve_isolated_api, daemon=True)
             outside_requests = []
             forbidden_posts = []
             list_reads = []
@@ -263,7 +269,7 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     reason.focus()
                     self.assertEqual(len(refresh_reads), 1)
                     with page.expect_response(lambda response: response.status == 503
-                                              and urlsplit(response.url).path == "/source-candidates"):
+                                              and response.request == refresh_reads[0].request) as refresh_failure:
                         refresh_reads[0].fulfill(status=503, json={"detail": "Synthetic readback outage"})
                     expect(queue.get_by_role("alert")).to_be_visible()
                     with page.expect_request(lambda request: request.method == "GET"
@@ -313,13 +319,43 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     expect(target).not_to_contain_text("private-token")
                     expect(target).to_contain_text("Collection is disabled. Review does not enable collection.")
 
-                    target.get_by_role(
-                        "button", name="Open job: Systems Administrator at Example Employer",
-                    ).click()
+                    with store.engine.connect() as connection:
+                        linked_job_id = connection.execute(select(m.jobs.c.id).where(
+                            m.jobs.c.title == "Systems Administrator",
+                        )).scalar_one()
+                    priority_url = f"{origin_url}/profiles/fixture/jobs/{linked_job_id}/application-priority"
+                    prep_url = f"{origin_url}/profiles/fixture/jobs/{linked_job_id}/interview-prep-packs"
+                    with page.expect_response(lambda response:
+                            response.url == prep_url and response.request.method == "GET") as prep_read:
+                        with page.expect_response(lambda response:
+                                response.url == priority_url and response.request.method == "GET") as priority_read:
+                            target.get_by_role(
+                                "button", name="Open job: Systems Administrator at Example Employer",
+                            ).click()
+                    self.assertEqual(priority_read.value.status, 404)
+                    expect(page.get_by_role("region", name="Application priority explanation")
+                           .get_by_role("alert")).to_be_visible()
+                    priority_check = page.request.get(priority_url)
+                    self.assertEqual(priority_check.status, 404)
+                    self.assertEqual(priority_check.json()["detail"]["code"],
+                                     "APPLICATION_PRIORITY_JOB_NOT_FOUND")
                     job_detail = page.locator(".job-detail")
                     expect(job_detail.get_by_role(
                         "heading", name="Systems Administrator", exact=True,
                     )).to_be_visible()
+
+                    # Let the exact job-scoped, read-only prep history complete
+                    # before unmounting the detail. Do not suppress aborted reads.
+                    self.assertEqual(prep_read.value.status, 200)
+                    prep_history = prep_read.value.json()
+                    self.assertEqual(prep_history["profile_id"], "fixture")
+                    self.assertEqual(prep_history["job_id"], linked_job_id)
+                    self.assertEqual(prep_history["packs"], [])
+                    prep = job_detail.get_by_role("region", name="Interview preparation", exact=True)
+                    expect(prep.get_by_role("region", name="Saved interview prep versions",
+                                            exact=True)).to_contain_text(
+                        "No interview prep packs have been saved for this job.")
+                    expect(prep.get_by_role("alert")).to_have_count(0)
 
                     page.get_by_role("button", name="Sources", exact=True).click()
                     target = page.get_by_role("article", name="Source candidate talenthop.com")
@@ -508,16 +544,22 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     self.assertEqual(forbidden_posts, [])
                     self.assertEqual(SourceProbe.requests, [])
                     self.assertEqual(page_errors, [])
-                    # The rehearsal client rejects HTTP 409 at headers without
-                    # consuming the body. Leaving Applications aborts that body,
-                    # even after the error is displayed; this is expected cleanup.
-                    expected_rehearsal_cancellations = [item for item in failed_requests
-                        if item["request"] == rehearsal_read.value.request
-                        and item["method"] == "GET"
-                        and item["failure"] == "net::ERR_ABORTED"]
-                    self.assertLessEqual(len(expected_rehearsal_cancellations), 1)
+                    # The bounded clients intentionally release unread error bodies.
+                    # Only these three exact, observed and asserted error responses
+                    # may cause an aborted GET; arbitrary canceled reads still fail.
+                    expected_cancellations = []
+                    for response, status in ((refresh_failure.value, 503),
+                                             (priority_read.value, 404),
+                                             (rehearsal_read.value, 409)):
+                        self.assertEqual(response.status, status)
+                        canceled = [item for item in failed_requests
+                                    if item["request"] == response.request
+                                    and item["method"] == "GET"
+                                    and item["failure"] == "net::ERR_ABORTED"]
+                        self.assertLessEqual(len(canceled), 1)
+                        expected_cancellations.extend(canceled)
                     unexpected_failures = [item for item in failed_requests
-                                           if item not in expected_rehearsal_cancellations
+                                           if item not in expected_cancellations
                                            and not (item["url"].endswith("/review")
                                                    and item["failure"])]
                     self.assertEqual(unexpected_failures, [])

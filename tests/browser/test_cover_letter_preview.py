@@ -20,6 +20,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -131,6 +132,7 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
 
         origin, sock, server, thread = self._open()
         requests, outside, page_errors = [], [], []
+        visits = VisitOracle(self, self.store, origin, [("fixture", self.job["id"])] * 3)
         try:
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch(headless=True)
@@ -139,12 +141,20 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 page.on("pageerror", lambda error: page_errors.append(str(error)))
 
                 def local_only(route):
-                    requests.append((route.request.method, route.request.url))
                     if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                         outside.append(route.request.url)
                         route.abort()
-                    else:
+                    elif visits.admit(route.request):
                         route.continue_()
+                    else:
+                        requests.append((route.request.method, route.request.url))
+                        if route.request.method not in {"GET", "HEAD", "OPTIONS"} and not (
+                            route.request.method == "POST"
+                            and route.request.url == f"{origin}/profiles/fixture/jobs/{self.job['id']}/cover-letter-preview"
+                        ):
+                            route.abort()
+                        else:
+                            route.continue_()
 
                 context.route("**/*", local_only)
                 page.set_default_timeout(8000)
@@ -153,7 +163,9 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 page.reload(wait_until="domcontentloaded")
                 page.get_by_role("navigation", name="Main navigation").get_by_role(
                     "button", name=re.compile(r"^Jobs\s+\d+$")).click()
-                page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
+                with visits.response(page) as visit_response:
+                    page.locator(".job-list .job-card").filter(has_text=self.job["title"]).click()
+                visits.verify(visit_response.value)
 
                 expect(page.get_by_role(
                     "region", name="Cover letter review preview",
@@ -258,7 +270,9 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 page.reload(wait_until="domcontentloaded")
                 page.get_by_role("navigation", name="Main navigation").get_by_role(
                     "button", name=re.compile(r"^Jobs\s+\d+$")).click()
-                page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
+                with visits.response(page) as visit_response:
+                    page.locator(".job-list .job-card").filter(has_text=self.job["title"]).click()
+                visits.verify(visit_response.value)
                 with page.expect_response(
                     lambda response: response.url.endswith("/cover-letter-preview")
                     and response.request.method == "POST"
@@ -290,7 +304,9 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 page.reload(wait_until="domcontentloaded")
                 page.get_by_role("navigation", name="Main navigation").get_by_role(
                     "button", name=re.compile(r"^Jobs\s+\d+$")).click()
-                page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
+                with visits.response(page) as visit_response:
+                    page.locator(".job-list .job-card").filter(has_text=self.job["title"]).click()
+                visits.verify(visit_response.value)
                 with page.expect_response(
                     lambda response: response.url.endswith("/cover-letter-preview")
                     and response.request.method == "POST"
@@ -305,10 +321,14 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 # No generation/preparation/submission endpoint is allowed from
                 # the preview interaction, and no browser request left localhost.
                 post_paths = [urlsplit(url).path for method, url in requests if method == "POST"]
+                self.assertFalse([item for item in requests if item[0] not in {
+                    "GET", "HEAD", "OPTIONS", "POST",
+                }], requests)
                 self.assertTrue(post_paths)
                 self.assertTrue(all(path.endswith("/cover-letter-preview") for path in post_paths),
                                 post_paths)
                 self.assertFalse(any("submit" in path.casefold() for path in post_paths))
+                visits.finish()
                 self.assertEqual(outside, [])
                 self.assertEqual(page_errors, [])
                 self.assertEqual(self.store.count("documents"), documents_before)

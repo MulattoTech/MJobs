@@ -18,6 +18,7 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from tests.browser.visit_oracle import VisitOracle
 from tests.integration.test_spine import PROFILE
 
 
@@ -44,10 +45,13 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                         select(func.count()).select_from(table),
                     ).scalar_one() for table in m.metadata.sorted_tables}
 
+            before_open = persisted_counts()
             before_documents = application_documents(store, application_id)
 
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            visit_oracle = VisitOracle(self, store, origin, [('fixture', job['id'])])
+            unexpected_visits = []
             api = create_app(store, 'http://127.0.0.1:1', root,
                 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
             server = uvicorn.Server(uvicorn.Config(api, log_level='error'))
@@ -70,6 +74,11 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif visit_oracle.admit(route.request):
+                            route.continue_()
+                        elif route.request.method == 'POST' and urlsplit(route.request.url).path.endswith('/view'):
+                            unexpected_visits.append(route.request.url)
+                            route.abort()
                         elif route.request.method == 'POST' and urlsplit(route.request.url).path == '/applications':
                             prepare_requests.append(route.request.post_data_json)
                             route.abort()
@@ -83,24 +92,13 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     page.reload()
                     expect(page.locator('.job-grid .job-list .job-card').first).to_be_visible()
-                    view_url = f'{origin}/profiles/fixture/jobs/{job["id"]}/view'
-                    with page.expect_response(lambda response:
-                            response.url == view_url and response.request.method == 'POST') as viewed:
+                    with visit_oracle.response(page) as viewed:
                         page.locator('.job-grid .job-list .job-card').first.click()
-                    self.assertEqual(viewed.value.status, 201)
-                    self.assertEqual(viewed.value.json()['profile_id'], 'fixture')
-                    self.assertEqual(viewed.value.json()['job_id'], job['id'])
-                    with store.engine.connect() as connection:
-                        visits = connection.execute(
-                            select(m.profile_job_views.c.profile_id,
-                                   m.profile_job_views.c.job_id).where(
-                                m.profile_job_views.c.profile_id == 'fixture',
-                            )
-                        ).mappings().all()
-                    self.assertEqual(
-                        [(row['profile_id'], row['job_id']) for row in visits],
-                        [('fixture', job['id'])],
-                    )
+                    visit_oracle.verify(viewed.value)
+                    after_open = persisted_counts()
+                    expected_after_open = dict(before_open)
+                    expected_after_open[m.profile_job_views.name] += 1
+                    self.assertEqual(after_open, expected_after_open)
                     page.get_by_label('Order approved skills for this job', exact=True).check()
                     page.set_default_timeout(5000)
                     expect(page.get_by_label('Choose resume facts', exact=True)).to_be_visible()
@@ -108,6 +106,7 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     wording = 'Supported network routing for 10 sites since 2020.'
                     page.get_by_label('Rewrite this experience: ' + experience['text'], exact=True).fill(wording)
                     before_review = persisted_counts()
+                    self.assertEqual(before_review, after_open)
                     review = page.get_by_role('region', name='Resume rewrite review preview', exact=True)
                     with page.expect_response(lambda response:
                             response.url.endswith('/resume-rewrite-review-preview')
@@ -127,6 +126,8 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     rows = application_documents(store, application_id)
                     self.assertEqual(rows, before_documents)
                     self.assertEqual(persisted_counts(), before_review)
+                    visit_oracle.finish()
+                    self.assertEqual(unexpected_visits, [])
                     self.assertFalse(any(row['kind'] == 'resume' and row['version'] == 2 for row in rows))
                     self.assertEqual(store.profile('fixture')['facts'][0]['text'], experience['text'])
                     self.assertFalse(external)

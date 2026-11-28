@@ -10,9 +10,12 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core poppler-utils tesseract-ocr tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt requirements.lock ./
-RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
-COPY . .
-COPY --from=web /web/dist /app/apps/web/dist
-RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents /run/mjobs-database && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright /run/mjobs-database && chmod 700 /run/mjobs-database
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
+RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents /run/mjobs-database /opt/playwright \
+    && pip install --no-cache-dir -r requirements.lock \
+    && python -m playwright install --with-deps chromium \
+    && chown -R mjobs:mjobs /data /app /opt/playwright /run/mjobs-database \
+    && chmod 700 /run/mjobs-database
+COPY --chown=mjobs:mjobs . .
+COPY --from=web --chown=mjobs:mjobs /web/dist /app/apps/web/dist
 USER mjobs

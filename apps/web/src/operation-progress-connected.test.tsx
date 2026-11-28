@@ -108,6 +108,28 @@ describe('connected saved operation progress', () => {
     await act(async () => finishUnmounted({operations: [row('FAILED', 'operation-3')]}));
   });
 
+  it('loads a new profile while the old read is held, without restoring old cards', async () => {
+    let finishOld!: (value: {operations: OperationProgressRecord[]}) => void;
+    let finishNew!: (value: {operations: OperationProgressRecord[]}) => void;
+    const request = vi.fn()
+      .mockResolvedValueOnce({operations: [row('RUNNING', 'old-visible')]})
+      .mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; }))
+      .mockImplementationOnce(() => new Promise(resolve => { finishNew = resolve; }));
+    await render('profile-1', request);
+    await flush();
+    expect(container.textContent).toContain('In progress');
+    await clickRefresh();
+    expect(request).toHaveBeenCalledTimes(2);
+    await render('profile-2', request);
+    expect(request).toHaveBeenCalledTimes(3);
+    expect(container.textContent).not.toContain('In progress');
+    await act(async () => finishNew({operations: [row('COMPLETED', 'new')]}));
+    expect(container.textContent).toContain('Completed');
+    await act(async () => finishOld({operations: [row('FAILED', 'old-late')]}));
+    expect(container.textContent).toContain('Completed');
+    expect(container.textContent).not.toContain('Failed');
+  });
+
   it('backs off after failures and keeps raw errors out of the UI', async () => {
     const request = vi.fn().mockRejectedValueOnce(new Error('PRIVATE_PROVIDER_DETAIL'))
       .mockResolvedValueOnce({operations: [row('COMPLETED')]});

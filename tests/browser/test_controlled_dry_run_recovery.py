@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 import uvicorn
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select, update
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from packages.persistence import models as m
 from tests.integration import test_controlled_dry_run_recovery as contract
 
@@ -21,7 +21,7 @@ class ControlledDryRunRecoveryBrowserTests(unittest.TestCase):
     def test_cancel_reload_lost_retry_response_and_actual_worker(self):
         sock=bound_browser_socket(); origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
         server=uvicorn.Server(uvicorn.Config(self.client.app,log_level='error',access_log=False))
-        thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True); thread.start()
+        thread=threading.Thread(target=run_owned_browser_server,args=(server,),kwargs={'sockets':[sock]},daemon=True); thread.start()
         try:
             deadline=time.monotonic()+10
             while not server.started:
