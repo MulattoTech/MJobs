@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-007-alias-coverage-76b8",
+  "objective": "Repair read-only resume alignment evidence for equivalent skill aliases",
+  "owner": "ChatGPT-Web web-20261109T131741Z-76b8f732f1a7",
+  "branch": "web/web-20261109T131741Z-76b8f732f1a7/MJ-REF-007-alias-coverage",
+  "head_sha": "f22d3ad6dc4ab2662d057d4867183cf4679ebbbf",
+  "routing_state": "VERIFY",
+  "next_action": "Run fresh candidate preflight under native admission, publish the approved owned branch, verify exact-head CI, then resume independent original-requirement work.",
+  "created_at": "2026-11-09T16:20:24.495749+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "20 focused methods at 5876fa5a6633d1b935047f691e5c5238eae36757; product source/test blobs unchanged",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent 72 taxonomy probes, provenance and reviewed historical checksum verification",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted CI after correction; full reference acceptance and deployed journey",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "20 focused methods PASS at f22d3ad6dc4ab2662d057d4867183cf4679ebbbf after current protected-main synchronization",
+      "result": "PASS"
+    }
+  ],
+  "blockers": [
+    "PR_ONLY authority; full requirement acceptance remains unverified"
+  ]
+}

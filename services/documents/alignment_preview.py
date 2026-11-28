@@ -1,4 +1,5 @@
 """Read-only, deterministic resume alignment preview over saved snapshots."""
+from services.discovery.skill_taxonomy import canonical_skill_id
 from services.documents import tailor
 
 
@@ -52,6 +53,13 @@ def build_alignment_preview(profile, job, expected_profile_version, expected_job
         skill_rows = [row for row in eligible_rows if row['fact_id'] in selected]
         selection_mode = 'EXPLICIT_SELECTION'
     skill_matches = tailor.matched_labels(skill_rows, {'skills': skills})
+    # Tailoring returns one label per canonical skill. Keep every displayed
+    # target alias here, backed by the same selected, eligible fact references.
+    skill_support = {}
+    for row in skill_rows:
+        for label in skill_matches.get(row['fact_id'], []):
+            key = canonical_skill_id(label) or label.casefold()
+            skill_support.setdefault(key, []).append(row['fact_id'])
     responsibility_terms = tailor.target_responsibilities(job)
     responsibility_matches = tailor.matched_responsibility_phrases(skill_rows, responsibility_terms)
 
@@ -62,8 +70,8 @@ def build_alignment_preview(profile, job, expected_profile_version, expected_job
             seen.add(term.strip().casefold())
             skill_terms.append(term.strip())
     mapped_skills = [
-        {'term': term, 'fact_ids': [row['fact_id'] for row in skill_rows
-                                   if term in skill_matches.get(row['fact_id'], [])]}
+        {'term': term, 'fact_ids': list(skill_support.get(
+            canonical_skill_id(term) or term.casefold(), []))}
         for term in skill_terms
     ]
     mapped_responsibilities = [

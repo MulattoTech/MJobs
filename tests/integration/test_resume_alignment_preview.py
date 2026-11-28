@@ -21,6 +21,54 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
                 select(func.count()).select_from(table)).scalar_one()
                 for table in (m.applications, m.documents, m.operations)}
 
+    def test_alias_preview_readback_uses_only_selected_approved_evidence_without_writes(self):
+        self.store.save_profile(dict(PROFILE, facts=[
+            dict(PROFILE['facts'][0], id='cloud', text='Amazon Web Services'),
+            dict(PROFILE['facts'][0], id='pending', text='Kubernetes', user_approved=False),
+        ]))
+        self.store.save_profile(dict(PROFILE, id='other', facts=[
+            dict(PROFILE['facts'][0], id='foreign-cloud', text='AWS'),
+        ]))
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+            job = self.store.jobs()[0]
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(
+                    skills=['AWS', 'Amazon Web Services', 'Kubernetes', 'K8s']))
+            job = self.store.job(job['id'])
+            profile = self.store.profile('fixture')
+            request = {'expected_profile_version': profile['version'],
+                       'expected_job_fingerprint': target_fingerprint(job),
+                       'selected_fact_ids': ['cloud']}
+            before = self.row_counts()
+            app = create_app(self.store, origin, self.root, operation_mode='FIXTURE')
+            with TestClient(app) as client:
+                endpoint = f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview"
+                response = client.post(endpoint, json=request)
+                self.assertEqual(response.status_code, 200, response.text)
+                preview = response.json()
+                self.assertEqual(preview['matches']['skills'], [
+                    {'term': 'AWS', 'fact_ids': ['cloud']},
+                    {'term': 'Amazon Web Services', 'fact_ids': ['cloud']},
+                    {'term': 'Kubernetes', 'fact_ids': []},
+                    {'term': 'K8s', 'fact_ids': []},
+                ])
+                self.assertEqual(preview['unmatched']['skills'], ['Kubernetes', 'K8s'])
+                self.assertTrue(preview['read_only'])
+                self.assertNotIn('foreign-cloud', str(preview))
+                self.assertNotIn('pending', str(preview))
+                deselected = client.post(endpoint, json={**request, 'selected_fact_ids': []})
+                self.assertEqual(deselected.status_code, 200, deselected.text)
+                self.assertEqual(deselected.json()['unmatched']['skills'], job['skills'])
+                for rejected_id in ('foreign-cloud', 'pending'):
+                    with self.subTest(rejected_id=rejected_id):
+                        rejected = client.post(endpoint, json={
+                            **request, 'selected_fact_ids': [rejected_id]})
+                        self.assertEqual(rejected.status_code, 409, rejected.text)
+            self.assertEqual(self.row_counts(), before)
+            self.assertEqual(self.store.profile('fixture'), profile)
+            self.assertEqual(self.store.job(job['id']), job)
+
     def test_preview_is_read_only_profile_scoped_and_rejects_stale_snapshots(self):
         facts = [
             dict(PROFILE['facts'][0], id='python', text='Python'),
