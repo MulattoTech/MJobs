@@ -11,6 +11,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.matching import recalculate
 from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
 
@@ -89,31 +90,26 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         }
 
     def _persist_current_match_explanation(self, profile):
+        with self.store.engine.connect() as connection:
+            search = connection.execute(select(m.search_profiles).where(
+                m.search_profiles.c.id == "selected-search",
+            )).mappings().one()
+        selected_profile = search["criteria"]["role_scoring_profile"]
+        self.assertEqual(selected_profile["id"], profile["id"])
+        self.assertEqual(selected_profile["version"], profile["version"])
+
+        # Seed through the same writer used to recalculate saved matches so
+        # missing skills, component evidence, score, and contributions all
+        # describe the current synthetic job and profile.
+        recalculate(self.store, "fixture", scoring_criteria=search["criteria"])
         career = self.store.profile("fixture")
-        contribution = {
-            "dimension": "skills",
-            "weight": profile["weights"]["skills"],
-            "raw_score": 73.0,
-            "weighted_contribution": 73.0,
-            "explanation": "The stored deterministic skill score contributes to this advisory match.",
-            "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-        }
-        components = {
-            "scoring_profile": {
-                "requested_role_family": "systems administration",
-                "selected_role_family": profile["role_family"],
-                "profile_id": profile["id"],
-                "profile_version": profile["version"],
-                "selection": "ROLE_FAMILY",
-            },
-            "scoring_contributions": [contribution],
-        }
-        with self.store.engine.begin() as connection:
-            connection.execute(m.matches.insert().values(
-                id="mount-match", job_id="mount-job", profile_id="fixture",
-                profile_version=career["version"], score=73.0, missing=[],
-                components=components,
-            ))
+        with self.store.engine.connect() as connection:
+            saved = connection.execute(select(m.matches).where(
+                m.matches.c.job_id == "mount-job",
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.profile_version == career["version"],
+            )).mappings().one()
+        return dict(saved)
 
     def _saved_search_and_match_snapshot(self):
         with self.store.engine.connect() as connection:
@@ -167,14 +163,14 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
             "profile": current,
         })
 
-        self._persist_current_match_explanation(current)
+        saved_match = self._persist_current_match_explanation(current)
         explanation = self.client.get(self._explanation_url())
         self.assertEqual(explanation.status_code, 200, explanation.text)
         body = explanation.json()
         self.assertEqual(body["profile_id"], "fixture")
         self.assertEqual(body["search_profile_id"], "selected-search")
         self.assertEqual(body["job_id"], "mount-job")
-        self.assertEqual(body["score"], 73.0)
+        self.assertEqual(body["score"], saved_match["score"])
         self.assertEqual(body["resolution"], "CURRENT")
         self.assertEqual(body["scoring_profile"], {
             "id": current["id"],
@@ -184,6 +180,10 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         self.assertEqual(body["scoring_contributions"][0]["provenance"], {
             "source": "LEGACY_MATCH_BASELINE",
         })
+        self.assertEqual(
+            body["scoring_contributions"],
+            saved_match["components"]["scoring_contributions"],
+        )
 
         before_foreign_read = self._saved_search_and_match_snapshot()
         foreign_search = self.client.get(self._explanation_url(search_id="other-search"))

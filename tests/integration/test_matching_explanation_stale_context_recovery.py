@@ -11,6 +11,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.matching import recalculate
 from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
 
@@ -78,37 +79,57 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()["profile"]
 
-    def _insert_match(self, profile, *, contribution_weight, attributed_version=None):
+    def _insert_match(self, profile, *, contribution_weight=None, attributed_version=None):
+        with self.store.engine.connect() as connection:
+            search = connection.execute(select(m.search_profiles).where(
+                m.search_profiles.c.id == "selected-search",
+            )).mappings().one()
+
+        # Use the production match writer for the positive evidence baseline.
+        # Negative cases below then alter only the stale field under test.
+        recalculate(self.store, "fixture", scoring_criteria=search["criteria"])
         career = self.store.profile("fixture")
+        with self.store.engine.connect() as connection:
+            saved = connection.execute(select(m.matches).where(
+                m.matches.c.job_id == "context-job",
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.profile_version == career["version"],
+            )).mappings().one()
+            saved = dict(saved)
+
+        # The positive case keeps the production writer's complete row intact.
+        if contribution_weight is None and attributed_version is None:
+            return saved
+
+        components = deepcopy(saved["components"])
+        if contribution_weight is not None:
+            contribution = next(
+                row for row in components["scoring_contributions"]
+                if row["dimension"] == "skills"
+            )
+            contribution["weight"] = float(contribution_weight)
+        if attributed_version is not None:
+            components["scoring_profile"]["profile_version"] = attributed_version
+        # Each negative case changes only its requested stale field.
+        saved["components"] = components
         with self.store.engine.begin() as connection:
-            connection.execute(m.matches.insert().values(
-                id="context-match", job_id="context-job", profile_id="fixture",
-                profile_version=career["version"], score=73.0, missing=[],
-                components={
-                    "scoring_profile": {
-                        "requested_role_family": "systems administration",
-                        "selected_role_family": profile["role_family"],
-                        "profile_id": profile["id"],
-                        "profile_version": attributed_version or profile["version"],
-                        "selection": "ROLE_FAMILY",
-                    },
-                    "scoring_contributions": [{
-                        "dimension": "skills",
-                        "weight": float(contribution_weight),
-                        "raw_score": 73.0,
-                        "weighted_contribution": 73.0,
-                        "explanation": "Stored deterministic skills baseline.",
-                        "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-                    }],
-                },
-            ))
+            connection.execute(m.matches.update().where(
+                m.matches.c.id == saved["id"],
+            ).values(components=components))
+        return saved
 
     def _database_bytes(self):
         return self.database.read_bytes()
 
     def test_current_profile_weight_and_matching_contribution_are_readable(self):
         current = self._save_scoring_profile({"skills": 75})
-        self._insert_match(current, contribution_weight=75)
+        saved = self._insert_match(current)
+        self.assertEqual(current["weights"]["skills"], 75.0)
+        self.assertEqual(
+            next(row for row in saved["components"]["scoring_contributions"]
+                 if row["dimension"] == "skills")["weight"],
+            75.0,
+        )
         before = self._database_bytes()
 
         response = self.client.get(self._explanation_url())
@@ -123,12 +144,66 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
         self.assertEqual(body["scoring_contributions"][0]["provenance"], {
             "source": "LEGACY_MATCH_BASELINE",
         })
+        self.assertEqual(body["score"], saved["score"])
+        self.assertEqual(body["scoring_contributions"],
+                         saved["components"]["scoring_contributions"])
         self.assertEqual(self._database_bytes(), before)
+
+    def test_skill_source_reordering_preserves_match_but_evidence_changes_stay_stale(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "context-job",
+            ).values(description="Python and Linux", skills=["Python", "Linux"], attributes={}))
+        current = self._save_scoring_profile({"skills": 75})
+        saved = self._insert_match(current)
+        saved_components = saved["components"]
+        self.assertEqual(saved_components["detected"], ["Python", "Linux"])
+        self.assertEqual(
+            [row["skill"] for row in saved_components["requirements"]],
+            ["Python", "Linux"],
+        )
+
+        def update_job(**values):
+            with self.store.engine.begin() as connection:
+                connection.execute(m.jobs.update().where(
+                    m.jobs.c.id == "context-job",
+                ).values(**values))
+
+        def assert_stale_without_write():
+            before = self._database_bytes()
+            response = self.client.get(self._explanation_url())
+            self.assertEqual(response.status_code, 409, response.text)
+            self.assertEqual(
+                response.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT",
+            )
+            self.assertEqual(self._database_bytes(), before)
+
+        update_job(description="Linux and Python", skills=["Linux", "Python"])
+        before_reordered_read = self._database_bytes()
+        reordered = self.client.get(self._explanation_url())
+        self.assertEqual(reordered.status_code, 200, reordered.text)
+        self.assertEqual(self._database_bytes(), before_reordered_read)
+
+        update_job(description="Linux, Python and Docker", skills=["Linux", "Python", "Docker"])
+        assert_stale_without_write()
+
+        update_job(description="Linux", skills=["Linux"])
+        assert_stale_without_write()
+
+        update_job(
+            description="Required Linux and Python",
+            skills=["Linux", "Python"],
+            attributes={
+                "skill_evidence": "structured_required_skills",
+                "required_skills": ["Linux", "Python"],
+            },
+        )
+        assert_stale_without_write()
 
     def test_old_default_weight_is_stale_against_configured_current_weight(self):
         current = self._save_scoring_profile({"skills": 75})
-        # This reproduces the mount test's old fixture: the explanation claims 100
-        # although the currently selected search configures the skills weight as 75.
+        # A persisted weight of 100 is stale against the current selected-search
+        # skills weight of 75.
         self._insert_match(current, contribution_weight=100)
         before = self._database_bytes()
 
@@ -140,7 +215,7 @@ class MatchingExplanationStaleContextRecoveryTests(unittest.TestCase):
 
     def test_stale_profile_attribution_and_foreign_search_remain_fail_closed(self):
         current = self._save_scoring_profile({"skills": 75})
-        self._insert_match(current, contribution_weight=75, attributed_version="obsolete-version")
+        self._insert_match(current, attributed_version="obsolete-version")
         before = self._database_bytes()
 
         stale = self.client.get(self._explanation_url())

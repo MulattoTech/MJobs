@@ -8,6 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
+from services.discovery.matching import build_explanation
+from services.discovery.skill_taxonomy import canonical_skill_id
+from services.matching.selected_search_scoring import compose_selected_search_match
 from services.matching.scoring_profiles import resolve_role_scoring_profile
 
 
@@ -17,6 +20,31 @@ _PROFILE_FIELDS = {"id", "version", "schema_version", "role_family", "weights", 
 
 def _error(status_code: int, code: str):
     raise HTTPException(status_code=status_code, detail={"code": code})
+
+
+def _detected_skill_set(values: Any) -> set[str] | None:
+    if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
+        return None
+    detected = set(values)
+    return detected if len(detected) == len(values) else None
+
+
+def _requirements_by_skill(rows: Any) -> dict[str, dict] | None:
+    if not isinstance(rows, list):
+        return None
+    result = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            return None
+        label = row.get("skill")
+        if not isinstance(label, str) or not label.strip():
+            return None
+        key = canonical_skill_id(label) or label.strip().casefold()
+        if key in result:
+            return None
+        # Keep the complete row as the value so any changed evidence still fails closed.
+        result[key] = row
+    return result
 
 
 def _number(value: Any, *, nullable=False) -> bool:
@@ -159,6 +187,50 @@ def _validate_contribution_score(score: float, contributions: list[dict], resolu
         _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
 
 
+def _validate_current_evidence(job: Any, profile: dict, criteria: Any, match: Any) -> None:
+    """Reject saved component reasons that no longer describe current source evidence."""
+    stored = match["components"].get("scoring_contributions", [])
+    stored_by_dimension = {row["dimension"]: row for row in stored}
+    try:
+        skill_evidence = build_explanation(job, profile)
+        current_components = skill_evidence["components"]
+        if match["missing"] != skill_evidence["missing"]:
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+        saved_detected = match["components"].get("detected")
+        if saved_detected is not None:
+            saved_set = _detected_skill_set(saved_detected)
+            current_set = _detected_skill_set(current_components["detected"])
+            if saved_set is None or saved_set != current_set:
+                _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+        saved_requirements = match["components"].get("requirements")
+        if saved_requirements is not None:
+            saved_by_skill = _requirements_by_skill(saved_requirements)
+            current_by_skill = _requirements_by_skill(current_components["requirements"])
+            if saved_by_skill is None or saved_by_skill != current_by_skill:
+                _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+        current = compose_selected_search_match(
+            job,
+            {"score": skill_evidence["score"]},
+            criteria,
+            candidate_profile=profile,
+        )
+    except (AttributeError, TypeError, ValueError):
+        _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+
+    current_by_dimension = {
+        row["dimension"]: row for row in current["scoring_contributions"]
+    }
+    fields = ("weight", "raw_score", "weighted_contribution", "explanation", "provenance")
+    for dimension, expected in current_by_dimension.items():
+        saved = stored_by_dimension.get(dimension)
+        if saved is None:
+            if expected["raw_score"] is not None:
+                _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+            continue
+        if any(saved.get(field) != expected.get(field) for field in fields):
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+
+
 def create_matching_explanations_router(store) -> APIRouter:
     """Build a read-only API for inspecting persisted match explanations."""
     router = APIRouter()
@@ -233,17 +305,20 @@ def create_matching_explanations_router(store) -> APIRouter:
             resolution_label = "CURRENT"
 
         contributions = _stored_contributions(components, resolution)
-        if resolution.profile is None and not contributions:
-            contributions = [{
-                "dimension": "skills",
-                "weight": 100.0,
-                "raw_score": match["score"],
-                "weighted_contribution": match["score"],
-                "explanation": (
-                    "The saved deterministic match score is preserved because no scoring profile was selected."
-                ),
-                "provenance": {"source": "LEGACY_MATCH_BASELINE"},
-            }]
+        if resolution.profile is None:
+            if not contributions:
+                contributions = [{
+                    "dimension": "skills",
+                    "weight": 100.0,
+                    "raw_score": match["score"],
+                    "weighted_contribution": match["score"],
+                    "explanation": (
+                        "The saved deterministic match score is preserved because no scoring profile was selected."
+                    ),
+                    "provenance": {"source": "LEGACY_MATCH_BASELINE"},
+                }]
+        else:
+            _validate_current_evidence(job, profile, search["criteria"], match)
         _validate_contribution_score(match["score"], contributions, resolution)
         return {
             "profile_id": profile_id,
