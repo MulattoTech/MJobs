@@ -225,7 +225,9 @@ export function getDynamicFormBlockers(
       for(let index=0;index<rows.length;index++){
         if(!answerText(rows[index])){
           if(field.required||rows.length>minimum)blockers.push(`${field.id}[${index}]`);
-        }else if(!supported||!reviewed.has(`${field.id}[${index}]`))blockers.push(`${field.id}[${index}]`);
+        }else if(!supported
+          ||(field.kind==='select'&&!getFieldOptions(field,answers).includes(rows[index]))
+          ||!reviewed.has(`${field.id}[${index}]`))blockers.push(`${field.id}[${index}]`);
       }
       continue;
     }
@@ -312,13 +314,22 @@ function DynamicApplicationFormSession({profileId,applicationId,provider,fields:
     if(field.repeatable){
       const rows=Array.isArray(value)?value as string[]:[];
       const max=field.repeatable.max_rows??20;
+      const options=getFieldOptions(field,answers);
+      const updateRow=(index:number,value:string)=>{
+        const next=[...rows];next[index]=value;
+        const state=transitionDynamicRepeatableRows(fields,{answers,reviewed,enabledOptionalSections},field.id,next,{changedIndex:index});
+        setAnswers(state.answers);setReviewed(state.reviewed);
+      };
       return <fieldset className="fact" key={field.id} aria-label={field.label}>
         <legend>{field.label}{requiredMark}</legend>
         {rows.map((row,index)=><div className="fact" key={`${field.id}-${index}`}>
           <label htmlFor={`${controlId}-${index}`}>{field.repeatable!.row_label} {index+1}</label>
-          <input id={`${controlId}-${index}`} type="text" maxLength={12000} value={row}
-            onChange={event=>{const next=[...rows];next[index]=event.target.value;const state=transitionDynamicRepeatableRows(fields,{answers,reviewed,enabledOptionalSections},field.id,next,{changedIndex:index});setAnswers(state.answers);setReviewed(state.reviewed);}}
-            aria-label={`${field.repeatable!.row_label} ${index+1}`}/>
+          {field.kind==='select'?<select id={`${controlId}-${index}`} value={options.includes(row)?row:''}
+            onChange={event=>updateRow(index,event.target.value)} aria-label={`${field.repeatable!.row_label} ${index+1}`}>
+            <option value="">Select an option</option>{options.map(option=><option key={option} value={option}>{option}</option>)}
+          </select>:<input id={`${controlId}-${index}`} type="text" maxLength={12000} value={row}
+            onChange={event=>updateRow(index,event.target.value)}
+            aria-label={`${field.repeatable!.row_label} ${index+1}`}/>}
           <label className="consent"><input type="checkbox" aria-label={`Review ${field.repeatable!.row_label} ${index+1}`}
             checked={reviewed.has(`${field.id}[${index}]`)} disabled={!row.trim()}
             onChange={event=>setReviewed(current=>{const next=new Set(current);if(event.target.checked)next.add(`${field.id}[${index}]`);else next.delete(`${field.id}[${index}]`);return next;})}/>

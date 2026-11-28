@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
+import { parseDynamicApplicationFields } from './dynamic-application-form-client';
 import {
   DynamicApplicationForm,
   getVisibleDynamicFields,
@@ -167,5 +168,77 @@ describe('dynamic application form manual review',()=>{
     const removed=transitionDynamicRepeatableRows(repeatable,state,'work-history',['Role B'],{removedIndex:0});
     expect(removed.reviewed.has('work-history[0]')).toBe(true);
     expect(removed.reviewed.has('work-history[1]')).toBe(false);
+  });
+});
+
+describe('repeated select review contract', () => {
+  const field: DynamicApplicationField = {
+    id: 'employment-type', label: 'Employment type', kind: 'select',
+    required: true, supported: true, options: ['Employee', 'Contractor'],
+    repeatable: { row_label: 'Employment type', min_rows: 1, max_rows: 3 },
+  };
+
+  it('renders admitted repeated select metadata as dropdowns with the current choices', () => {
+    const parsed = parseDynamicApplicationFields({
+      profile_id: 'profile-a', application_id: 'application-a', fingerprint: 'a'.repeat(64),
+      optional_sections: [],
+      repeatable_groups: [{ id: 'employment-history', field_ids: ['employment-type'],
+        minimum_rows: 1, maximum_rows: 3 }],
+      fields: [{ id: 'employment-type', label: 'Employment type', type: 'select',
+        required: true, visible: true, depends_on: null, options: ['Employee', 'Contractor'],
+        repeatable: true, repeatable_group: 'employment-history',
+        supported: true, sensitive: false, manual_review_required: false }],
+    }, 'profile-a', 'application-a');
+    expect(parsed.fields[0].kind).toBe('select');
+    expect(parsed.fields[0].repeatable).toBeDefined();
+    const html = renderToStaticMarkup(<DynamicApplicationForm provider="mock-ats"
+      profileId="profile-a" applicationId="application-a" fields={parsed.fields}
+      restoredDraft={{ profile_id: 'profile-a', application_id: 'application-a',
+        answers: { 'employment-type': ['Employee'] } }} onContinue={vi.fn()}/>);
+    expect(html).toMatch(/<select\b[^>]*id="dynamic-application-employment-type-0"/);
+    expect(html).toContain('<option value="Employee"');
+    expect(html).toContain('<option value="Contractor"');
+    expect(html).not.toMatch(/<input\b[^>]*id="dynamic-application-employment-type-0"/);
+  });
+
+  it.each([
+    { label: 'required', required: true, minimum: 1 },
+    { label: 'optional', required: false, minimum: 0 },
+  ])('blocks $label entered out-of-choice rows after review', ({ required, minimum }) => {
+    const repeated = { ...field, required,
+      repeatable: { ...field.repeatable!, min_rows: minimum } };
+    const review = new Set(['employment-type[0]']);
+    expect(getDynamicFormBlockers([repeated], { 'employment-type': ['Out-of-options'] }, review))
+      .toEqual(['employment-type[0]']);
+    expect(getDynamicFormBlockers([repeated], { 'employment-type': ['Employee'] }, new Set()))
+      .toEqual(['employment-type[0]']);
+    expect(getDynamicFormBlockers([repeated], { 'employment-type': ['Employee'] }, review))
+      .toEqual([]);
+  });
+
+  it('uses the changed parent choices for repeated rows and clears earlier row reviews', () => {
+    const dependent: DynamicApplicationField[] = [
+      { id: 'department', label: 'Department', kind: 'select', required: true,
+        supported: true, options: ['Operations', 'Engineering'] },
+      { ...field, id: 'team', label: 'Team', options: undefined,
+        repeatable: { row_label: 'Team', min_rows: 1, max_rows: 3 },
+        options_when: { field_id: 'department',
+          by_value: { Operations: ['Support', 'Facilities'], Engineering: ['Platform', 'Security'] } } },
+    ];
+    const old = { answers: { department: 'Operations', team: ['Support'] },
+      reviewed: new Set(['department', 'team[0]']), enabledOptionalSections: new Set<string>() };
+    expect(getDynamicFormBlockers(dependent, old.answers, old.reviewed)).toEqual([]);
+    const changed = transitionDynamicAnswer(dependent, old, 'department', 'Engineering');
+    expect(changed.answers).toEqual({ department: 'Engineering' });
+    expect(changed.reviewed.has('team[0]')).toBe(false);
+    expect(getDynamicFormBlockers(dependent,
+      { department: 'Engineering', team: ['Support'] }, new Set(['department', 'team[0]'])))
+      .toEqual(['team[0]']);
+    expect(getDynamicFormBlockers(dependent,
+      { department: 'Engineering', team: ['Platform'] }, new Set(['department'])))
+      .toEqual(['team[0]']);
+    expect(getDynamicFormBlockers(dependent,
+      { department: 'Engineering', team: ['Platform'] }, new Set(['department', 'team[0]'])))
+      .toEqual([]);
   });
 });

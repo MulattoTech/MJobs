@@ -1,19 +1,23 @@
 """Connected browser acceptance for profile-scoped dynamic form review drafts."""
+import hashlib
 import json
 from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+import pytest
+from sqlalchemy import select
 import uvicorn
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.applications.form_analysis import analyze_questionnaire
@@ -259,6 +263,540 @@ class DynamicApplicationFieldsRootFlowTests(unittest.TestCase):
                 sock.close()
                 store.engine.dispose()
             self.assertFalse(thread.is_alive(), "Isolated dynamic-form API must stop")
+
+
+@pytest.mark.skipif(
+    not (ROOT / "apps/web/dist/index.html").is_file(),
+    reason="Build apps/web before browser acceptance",
+)
+def test_repeatable_selects_require_current_choices_and_fresh_reviews(
+        tmp_path, record_property):
+    """Exercise repeated choices through the mounted, local-only root flow."""
+    root = tmp_path
+    store = Store(f"sqlite:///{(root / 'repeated-select.db').as_posix()}")
+    sock = server = thread = playwright = browser = context = None
+    requests, outside, page_errors = [], [], []
+    receipt = {
+        "schema_version": 1, "fixture_admitted": False, "phase": "fixture_setup",
+        "phases": [], "outcome": "NOT_COMPLETED",
+    }
+    cleanup = {"context_closed": False, "browser_closed": False,
+               "playwright_stopped": False, "server_stopped": False,
+               "store_disposed": False, "errors": []}
+    primary_error = None
+    try:
+        store.migrate()
+        store.bind_workspace_mode("FIXTURE")
+        store.save_profile(dict(PROFILE))
+        with fixture_server() as fixture:
+            discover(store, fixture, "fixture")
+        job = store.jobs("fixture")[0]
+        application_id = prepare(store, job["id"], "fixture", root)
+        application = store.application(application_id)
+        choices = {"Operations": ["Support", "Facilities"],
+                   "Engineering": ["Platform", "Security"]}
+        questionnaire = {
+            "provider": "mock-ats", "tenant": "example", "requisition": "A",
+            "revision": 1, "questions": [
+                {"id": "department", "label": "Department", "tag": "select",
+                 "required": True, "options": list(choices)},
+                {"id": "team", "label": "Team", "tag": "select",
+                 "required": True, "options": sum(choices.values(), []),
+                 "options_by": {"question_id": "department", "choices": choices},
+                 "repeatable": True, "repeatable_group": "experience",
+                 "repeatable_min_rows": 1, "repeatable_max_rows": 3,
+                 "repeatable_group_required": True,
+                 "repeatable_group_visible": True},
+            ],
+        }
+        report = {
+            "result": "UNKNOWN", "reason": "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED",
+            "observed_at": "2026-11-14T00:00:00Z",
+            "profile_version": application["profile_version"],
+            "document_version": application["document_version"],
+            "route_id": application["route_id"], "metadata_fingerprint": "e" * 64,
+            "mappings": [],
+        }
+        _include_question_shape(report, questionnaire, analyze_questionnaire(questionnaire))
+        assert build_dynamic_form_snapshot(report) is not None
+        persist_preflight(store, application_id, report)
+        app = create_app(store, "http://127.0.0.1:1", root, operation_mode="FIXTURE")
+        with TestClient(app) as api_test:
+            response = api_test.get(
+                f"/profiles/fixture/applications/{application_id}/dynamic-fields")
+            assert response.status_code == 200, response.text
+            metadata = response.json()
+        assert [field["id"] for field in metadata["fields"]] == ["department", "team"]
+        assert all(field["type"] == "select" and field["supported"] is True
+                   and field["manual_review_required"] is False
+                   for field in metadata["fields"])
+        assert metadata["fields"][1]["options_by"] == choices
+        assert metadata["fields"][1]["depends_on"] == "department"
+        assert metadata["repeatable_groups"] == [{
+            "id": "experience", "field_ids": ["team"],
+            "minimum_rows": 1, "maximum_rows": 3,
+        }]
+        application_before = store.application(application_id)
+        with store.engine.connect() as connection:
+            attempts_before = list(connection.execute(select(m.attempts).where(
+                m.attempts.c.application_id == application_id)).mappings())
+        receipt["metadata"] = {
+            "fingerprint": metadata["fingerprint"],
+            "field_ids": [field["id"] for field in metadata["fields"]],
+            "current_choices": choices, "repeatable_groups": metadata["repeatable_groups"],
+            "application_state_before": application_before["state"],
+            "attempts_before": len(attempts_before),
+        }
+
+        sock = bound_browser_socket()
+        origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+        origin_netloc = urlsplit(origin).netloc
+        stale_origin_responses = []
+        stale_origin_complete = threading.Event()
+
+        async def observe_stale_response(scope, receive, send):
+            # The client cancels unread 409 bodies. Observe the real API's send
+            # without replacing, retrying, or changing the browser request.
+            expected_query = b"expected_fingerprint=" + metadata["fingerprint"].encode("ascii")
+            if not (scope["type"] == "http" and scope["method"] == "GET"
+                    and scope["path"] == f"/profiles/fixture/applications/{application_id}/dynamic-fields"
+                    and scope.get("query_string", b"") == expected_query
+                    and [value for name, value in scope.get("headers", [])
+                         if name.lower() == b"host"] == [origin_netloc.encode("ascii")]):
+                return await app(scope, receive, send)
+            status, observed_body, oversized = None, bytearray(), False
+
+            async def observed_send(message):
+                nonlocal status, oversized
+                if message["type"] == "http.response.start":
+                    status = message["status"]
+                elif message["type"] == "http.response.body" and status == 409:
+                    chunk = message.get("body", b"")
+                    if not oversized and len(observed_body) + len(chunk) <= 4096:
+                        observed_body.extend(chunk)
+                    else:
+                        oversized = True
+                await send(message)
+                if (message["type"] == "http.response.body" and status == 409
+                        and not message.get("more_body", False)):
+                    observation = {
+                        "method": scope["method"], "path": scope["path"],
+                        "host": origin_netloc, "query": expected_query.decode("ascii"),
+                        "status": status, "complete": True, "within_limit": not oversized,
+                        "body_bytes": len(observed_body) if not oversized else None,
+                        "body_sha256": hashlib.sha256(observed_body).hexdigest() if not oversized else None,
+                        "code": None, "json_valid": False,
+                    }
+                    if not oversized:
+                        try:
+                            payload = json.loads(observed_body)
+                            detail = payload.get("detail") if isinstance(payload, dict) else None
+                            code = detail.get("code") if isinstance(detail, dict) else None
+                            observation["json_valid"] = True
+                            if (isinstance(code, str) and 1 <= len(code) <= 64
+                                    and all(char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for char in code)):
+                                observation["code"] = code
+                        except (ValueError, UnicodeError, RecursionError):
+                            pass
+                    stale_origin_responses.append(observation)
+                    stale_origin_complete.set()
+
+            await app(scope, receive, observed_send)
+
+        server = uvicorn.Server(uvicorn.Config(
+            observe_stale_response, log_level="error", access_log=False))
+        thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+        thread.start()
+        deadline = time.monotonic() + 10
+        while not server.started:
+            assert thread.is_alive() and time.monotonic() <= deadline, (
+                "Isolated repeated-select API did not start")
+            time.sleep(0.02)
+        playwright = sync_playwright().start()
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context()
+        context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
+
+        def local_only(route):
+            request = route.request
+            parsed = urlsplit(request.url)
+            requests.append((request.method, parsed.path))
+            if parsed.netloc != origin_netloc or request.method != "GET":
+                outside.append({"method": request.method, "path": parsed.path,
+                                "same_origin": parsed.netloc == origin_netloc})
+                route.abort()
+            else:
+                route.continue_()
+
+        context.route("**/*", local_only)
+        page = context.new_page()
+        page.set_default_timeout(8000)
+        page.on("pageerror", lambda error: page_errors.append(str(error)))
+        page.goto(origin, wait_until="domcontentloaded")
+        page.get_by_label("Active profile", exact=True).select_option("fixture")
+        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+        draft = {
+            "profile_id": "fixture", "application_id": application_id,
+            "fingerprint": metadata["fingerprint"],
+            "answers": {"department": "Operations", "team": ["Out-of-options"]},
+            "enabled_optional_sections": [],
+        }
+        receipt["restored_draft_answers"] = draft["answers"]
+        draft_key = page.evaluate("""draft => {
+            const key = 'mjobs.dynamic-form.v1:' + encodeURIComponent(draft.profile_id)
+                + ':' + encodeURIComponent(draft.application_id) + ':' + draft.fingerprint;
+            sessionStorage.setItem(key, JSON.stringify(draft));
+            return key;
+        }""", draft)
+        page.get_by_role("button", name="Applications", exact=False).click()
+        page.locator(".job-card").filter(has_text=job["title"]).click()
+        expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
+        connected = page.get_by_role("region", name="Dynamic application form review", exact=True)
+        form = page.get_by_role("region", name="Dynamic application form", exact=True)
+        expect(form).to_be_visible()
+        department = form.get_by_role("group", name="Department", exact=True).get_by_label(
+            "Department", exact=True)
+        department_review = form.get_by_label("Review this answer for Department", exact=True)
+        team_group = form.get_by_role("group", name="Team", exact=True)
+        row = team_group.get_by_label("Team 1", exact=True)
+        row_review = team_group.get_by_label("Review Team 1", exact=True)
+        continue_button = form.get_by_role("button", name="Continue", exact=True)
+
+        def remember(phase):
+            receipt["phase"] = phase
+            receipt["phases"].append({
+                "phase": phase, "department": department.input_value(),
+                "department_reviewed": department_review.is_checked(),
+                "rows": team_group.locator('[id^="dynamic-application-team-"]').evaluate_all(
+                    """elements => elements.map(element => ({
+                        tag: element.tagName, value: element.value,
+                        options: element.tagName === 'SELECT'
+                            ? Array.from(element.options, option => option.value) : null
+                    }))"""),
+                "row_reviews": team_group.get_by_role("checkbox").evaluate_all(
+                    """elements => elements.map(element => ({
+                        label: element.getAttribute('aria-label'),
+                        checked: element.checked, disabled: element.disabled
+                    }))"""),
+                "continue_enabled": continue_button.is_enabled(),
+            })
+            preference_control = form.get_by_role("combobox", name="Additional preference", exact=True)
+            if preference_control.count():
+                receipt["phases"][-1]["additional_preference"] = {
+                    "value": preference_control.input_value(),
+                    "reviewed": form.get_by_label(
+                        "Review this answer for Additional preference", exact=True).is_checked(),
+                }
+
+        expect(department).to_have_value("Operations")
+        expect(row).to_have_count(1)
+        expect(row).to_be_visible()
+        expect(row_review).not_to_be_checked()
+        department_review.check()
+        if row_review.is_enabled():
+            row_review.check()
+        receipt["fixture_admitted"] = True
+        remember("invalid_restored_choice")
+        # This is the intended baseline failure, after real metadata and UI admission.
+        expect(continue_button).to_be_disabled()
+
+        remember("native_select_shape")
+        assert row.evaluate("element => element.tagName") == "SELECT"
+        expect(row.locator("option")).to_have_text(
+            ["Select an option", "Support", "Facilities"])
+        row.select_option("Support")
+        remember("first_current_choice_unreviewed")
+        expect(row_review).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        row_review.check()
+        remember("first_current_choice_reviewed")
+        expect(continue_button).to_be_enabled()
+
+        row.select_option("Facilities")
+        remember("choice_edit_invalidates_review")
+        expect(row_review).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        row_review.check()
+        expect(continue_button).to_be_enabled()
+        team_group.get_by_role("button", name="Add Team", exact=True).click()
+        row_two = team_group.get_by_label("Team 2", exact=True)
+        review_two = team_group.get_by_label("Review Team 2", exact=True)
+        remember("added_row_unreviewed")
+        expect(row_two).to_have_value("")
+        expect(review_two).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        row_two.select_option("Support")
+        review_two.check()
+        expect(continue_button).to_be_enabled()
+        team_group.get_by_role("button", name="Remove Team 1", exact=True).click()
+        remember("remove_preserves_remaining_row_review")
+        expect(row).to_have_value("Support")
+        expect(row_review).to_be_checked()
+        expect(row_two).to_have_count(0)
+        expect(review_two).to_have_count(0)
+        expect(continue_button).to_be_enabled()
+
+        department.select_option("Engineering")
+        remember("parent_change_clears_rows_and_reviews")
+        expect(department_review).not_to_be_checked()
+        expect(row).to_have_count(0)
+        expect(row_review).to_have_count(0)
+        expect(continue_button).to_be_disabled()
+        department_review.check()
+        team_group.get_by_role("button", name="Add Team", exact=True).click()
+        remember("new_parent_choices_require_new_review")
+        expect(row.locator("option")).to_have_text(
+            ["Select an option", "Platform", "Security"])
+        expect(row).to_have_value("")
+        expect(row_review).not_to_be_checked()
+        row.select_option("Platform")
+        expect(continue_button).to_be_disabled()
+        row_review.check()
+        remember("new_parent_choice_reviewed")
+        expect(continue_button).to_be_enabled()
+
+        continue_button.click()
+        expect(connected).to_contain_text(
+            "Reviewed answers are saved in this browser tab for this application.")
+        saved = json.loads(page.evaluate("key => sessionStorage.getItem(key)", draft_key))
+        receipt["saved_answers"] = saved["answers"]
+        remember("actual_continue_saved_local_draft")
+        assert saved["answers"] == {"department": "Engineering", "team": ["Platform"]}
+        assert saved["fingerprint"] == metadata["fingerprint"]
+        assert "reviewed_fields" not in saved
+        assert page.evaluate("""() => Object.keys(localStorage).filter(
+            key => key.startsWith('mjobs.dynamic-form.device.v1:'))""") == []
+        application_after = store.application(application_id)
+        with store.engine.connect() as connection:
+            attempts_after = list(connection.execute(select(m.attempts).where(
+                m.attempts.c.application_id == application_id)).mappings())
+        receipt["application_unchanged"] = application_after == application_before
+        receipt["attempts_unchanged"] = attempts_after == attempts_before
+        receipt["metadata"]["attempts_after"] = len(attempts_after)
+        assert application_after == application_before
+        assert attempts_after == attempts_before
+
+        # Publish a second safe fixture definition after answers have been reviewed.
+        # This is the only deliberate fixture mutation in the refresh phase.
+        old_draft_bytes = page.evaluate("key => sessionStorage.getItem(key)", draft_key)
+        assert json.loads(old_draft_bytes) == saved
+        row.select_option("Security")
+        expect(row_review).not_to_be_checked()
+        row_review.check()
+        remember("unsaved_answer_before_metadata_refresh")
+        assert page.evaluate("key => sessionStorage.getItem(key)", draft_key) == old_draft_bytes
+        receipt["phase"] = "revised_metadata_fixture_admission"
+        receipt["metadata_refresh"] = {"fixture_admitted": False,
+                                       "old_fingerprint": metadata["fingerprint"]}
+        revised_questionnaire = {
+            **questionnaire, "revision": 2, "questions": [
+                *questionnaire["questions"],
+                {"id": "followup", "label": "Additional preference", "tag": "select",
+                 "required": True, "options": ["Daytime", "Evening"]},
+            ],
+        }
+        current_application = store.application(application_id)
+        revised_report = {
+            "result": "UNKNOWN", "reason": "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED",
+            "observed_at": "2026-11-14T00:00:01Z",
+            "profile_version": current_application["profile_version"],
+            "document_version": current_application["document_version"],
+            "route_id": current_application["route_id"],
+            "metadata_fingerprint": hashlib.sha256(json.dumps(
+                revised_questionnaire, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+            "mappings": [],
+        }
+        _include_question_shape(
+            revised_report, revised_questionnaire, analyze_questionnaire(revised_questionnaire))
+        assert build_dynamic_form_snapshot(revised_report) is not None
+        persist_preflight(store, application_id, revised_report)
+        fields_path = f"/profiles/fixture/applications/{application_id}/dynamic-fields"
+        refreshed_response = page.evaluate("""async path => {
+            const response = await fetch(path, { cache: 'no-store' });
+            return { status: response.status, body: await response.json() };
+        }""", fields_path)
+        receipt["metadata_refresh"]["admission_status"] = refreshed_response["status"]
+        assert refreshed_response["status"] == 200
+        refreshed_metadata = refreshed_response["body"]
+        assert refreshed_metadata["fingerprint"] != metadata["fingerprint"]
+        assert [field["id"] for field in refreshed_metadata["fields"]] == [
+            "department", "team", "followup"]
+        new_field = refreshed_metadata["fields"][2]
+        assert new_field["required"] is True and new_field["supported"] is True
+        assert new_field["type"] == "select" and new_field["manual_review_required"] is False
+        assert new_field["options"] == ["Daytime", "Evening"]
+        # Compare browser effects to the state after the intentional fixture write.
+        application_after_fixture = store.application(application_id)
+        with store.engine.connect() as connection:
+            attempts_after_fixture = list(connection.execute(select(m.attempts).where(
+                m.attempts.c.application_id == application_id)).mappings())
+        refresh = {
+            "fixture_admitted": True,
+            "old_fingerprint": metadata["fingerprint"],
+            "new_fingerprint": refreshed_metadata["fingerprint"],
+            "new_field_ids": [field["id"] for field in refreshed_metadata["fields"]],
+            "new_required_field": new_field["id"],
+            "pending_unsaved_team": "Security",
+            "application_state_after_fixture": application_after_fixture["state"],
+            "attempts_after_fixture": len(attempts_after_fixture),
+        }
+        receipt["metadata_refresh"] = refresh
+        receipt["phase"] = "old_fingerprint_continue"
+        with page.expect_response(lambda response: (
+                urlsplit(response.url).netloc == origin_netloc
+                and urlsplit(response.url).path == fields_path
+                and parse_qs(urlsplit(response.url).query).get("expected_fingerprint")
+                == [metadata["fingerprint"]])) as rejected:
+            continue_button.click()
+        stale_response = rejected.value
+        refresh["stale_response_status"] = stale_response.status
+        refresh["stale_origin_responses"] = stale_origin_responses
+        assert stale_origin_complete.wait(8), "The matching origin response did not complete"
+        refresh["stale_origin_response_count"] = len(stale_origin_responses)
+        assert len(stale_origin_responses) == 1
+        origin_response = stale_origin_responses[0]
+        assert origin_response["complete"] is True and origin_response["within_limit"] is True
+        assert origin_response["json_valid"] is True
+        assert (origin_response["method"], origin_response["host"], origin_response["path"],
+                origin_response["query"], origin_response["status"]) == (
+                    stale_response.request.method, urlsplit(stale_response.url).netloc,
+                    urlsplit(stale_response.url).path, urlsplit(stale_response.url).query,
+                    stale_response.status)
+        refresh["stale_response_code"] = origin_response["code"]
+        refresh["old_draft_preserved_after_rejection"] = (
+            page.evaluate("key => sessionStorage.getItem(key)", draft_key) == old_draft_bytes)
+        receipt["phases"].append({"phase": "old_fingerprint_continue", **refresh})
+        assert stale_response.status == 409
+        assert refresh["stale_response_code"] == "DYNAMIC_FIELDS_STALE"
+        expect(connected).to_contain_text(
+            "The application form changed after you reviewed it. "
+            "Reload current fields and review the answers again.")
+        expect(form).to_have_count(0)
+        assert refresh["old_draft_preserved_after_rejection"] is True
+        new_draft_key = draft_key.rsplit(":", 1)[0] + ":" + refreshed_metadata["fingerprint"]
+        assert new_draft_key != draft_key
+        assert page.evaluate("key => sessionStorage.getItem(key)", new_draft_key) is None
+
+        connected.get_by_role("button", name="Reload changed form fields", exact=True).click()
+        expect(form).to_be_visible()
+        preference = form.get_by_role("group", name="Additional preference", exact=True).get_by_label(
+            "Additional preference", exact=True)
+        preference_review = form.get_by_label(
+            "Review this answer for Additional preference", exact=True)
+        remember("reloaded_definition_requires_fresh_reviews")
+        expect(preference).to_be_visible()
+        expect(department).to_have_value("")
+        expect(department_review).not_to_be_checked()
+        expect(row).to_have_count(0)
+        expect(row_review).to_have_count(0)
+        expect(preference).to_have_value("")
+        expect(preference_review).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        department.select_option("Engineering")
+        department_review.check()
+        team_group.get_by_role("button", name="Add Team", exact=True).click()
+        row.select_option("Platform")
+        row_review.check()
+        remember("new_required_field_still_unanswered")
+        expect(preference).to_have_value("")
+        expect(preference_review).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        preference.select_option("Daytime")
+        remember("new_required_field_answered_but_unreviewed")
+        expect(preference_review).not_to_be_checked()
+        expect(continue_button).to_be_disabled()
+        preference_review.check()
+        remember("new_definition_freshly_reviewed")
+        expect(continue_button).to_be_enabled()
+        with page.expect_response(lambda response: (
+                urlsplit(response.url).netloc == origin_netloc
+                and urlsplit(response.url).path == fields_path
+                and parse_qs(urlsplit(response.url).query).get("expected_fingerprint")
+                == [refreshed_metadata["fingerprint"]])) as accepted:
+            continue_button.click()
+        refresh["fresh_response_status"] = accepted.value.status
+        assert refresh["fresh_response_status"] == 200
+        expect(connected).to_contain_text(
+            "Reviewed answers are saved in this browser tab for this application.")
+        refreshed_saved = json.loads(page.evaluate(
+            "key => sessionStorage.getItem(key)", new_draft_key))
+        refresh["saved_answers"] = refreshed_saved["answers"]
+        refresh["saved_fingerprint"] = refreshed_saved["fingerprint"]
+        refresh["old_draft_preserved_after_fresh_save"] = (
+            page.evaluate("key => sessionStorage.getItem(key)", draft_key) == old_draft_bytes)
+        remember("new_fingerprint_draft_saved")
+        assert refreshed_saved["answers"] == {
+            "department": "Engineering", "team": ["Platform"], "followup": "Daytime"}
+        assert refreshed_saved["fingerprint"] == refreshed_metadata["fingerprint"]
+        assert "reviewed_fields" not in refreshed_saved
+        assert refresh["old_draft_preserved_after_fresh_save"] is True
+        final_application = store.application(application_id)
+        with store.engine.connect() as connection:
+            final_attempts = list(connection.execute(select(m.attempts).where(
+                m.attempts.c.application_id == application_id)).mappings())
+        refresh["application_unchanged_after_fixture"] = (
+            final_application == application_after_fixture)
+        refresh["attempts_unchanged_after_fixture"] = final_attempts == attempts_after_fixture
+        refresh["final_attempt_count"] = len(final_attempts)
+        assert final_application == application_after_fixture
+        assert final_attempts == attempts_after_fixture
+        assert not outside, outside
+        assert not page_errors, page_errors
+        assert all(method == "GET" for method, _ in requests), requests
+        assert len(stale_origin_responses) == 1
+        receipt["outcome"] = "PASS"
+    except BaseException as error:
+        primary_error = error
+        receipt["outcome"] = "FAILURE"
+        receipt["failure_class"] = type(error).__name__
+        raise
+    finally:
+        receipt["requests"] = [{"method": method, "path": path} for method, path in requests]
+        receipt["blocked_requests"] = outside
+        receipt["page_error_count"] = len(page_errors)
+        # Retain the first observed behavior before browser/server cleanup.
+        try:
+            record_property("dynamic_repeatable_select_receipt", json.dumps(receipt, sort_keys=True))
+        except Exception as error:
+            cleanup["errors"].append("receipt:" + type(error).__name__)
+        for name, resource, action in (
+                ("context_closed", context, lambda: context.close()),
+                ("browser_closed", browser, lambda: browser.close()),
+                ("playwright_stopped", playwright, lambda: playwright.stop())):
+            if resource is not None:
+                try:
+                    action()
+                    cleanup[name] = True
+                except Exception as error:
+                    cleanup["errors"].append(name + ":" + type(error).__name__)
+        if server is not None:
+            server.should_exit = True
+        if thread is not None and thread.ident is not None:
+            try:
+                thread.join(timeout=10)
+            except Exception as error:
+                cleanup["errors"].append("server_join:" + type(error).__name__)
+        cleanup["server_stopped"] = thread is None or not thread.is_alive()
+        if cleanup["server_stopped"]:
+            if sock is not None:
+                try:
+                    sock.close()
+                except Exception as error:
+                    cleanup["errors"].append("socket_close:" + type(error).__name__)
+            try:
+                store.engine.dispose()
+                cleanup["store_disposed"] = True
+            except Exception as error:
+                cleanup["errors"].append("store_dispose:" + type(error).__name__)
+        else:
+            cleanup["errors"].append("server_thread_still_alive")
+        try:
+            record_property("dynamic_repeatable_select_cleanup", json.dumps(cleanup, sort_keys=True))
+        except Exception as error:
+            cleanup["errors"].append("cleanup_receipt:" + type(error).__name__)
+        if cleanup["errors"] and primary_error is None:
+            raise AssertionError("Owned repeated-select fixture cleanup failed: "
+                                 + ", ".join(cleanup["errors"]))
 
 
 if __name__ == "__main__":
