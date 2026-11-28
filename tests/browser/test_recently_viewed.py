@@ -1,4 +1,5 @@
 """Connected synthetic recent-history journey; no live browser profile or external requests."""
+import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
@@ -51,7 +52,13 @@ class RecentlyViewedBrowserTests(unittest.TestCase):
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            def serve_isolated_api():
+                # The Windows Proactor loop can strand a canceled HTTP transport
+                # during shutdown. Keep the fixture's existing strict join check.
+                with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                    runner.run(server.serve(sockets=[sock]))
+
+            thread = threading.Thread(target=serve_isolated_api, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10

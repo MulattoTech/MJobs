@@ -11,7 +11,7 @@ from sqlalchemy import update
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -78,7 +78,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
             app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
             server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
-            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={'sockets': [sock]}, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10
@@ -103,7 +103,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.set_default_timeout(5000)
                     page.goto(origin)
                     page.get_by_label('Active profile', exact=True).select_option('fixture')
-                    page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job', exact=True).check()
                     snapshot = self.preview_alignment(page, origin)
                     with page.expect_response(lambda response: response.url == origin + '/applications' and
@@ -133,7 +133,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         'No content omitted.')
 
                     page.get_by_role('navigation').get_by_role('button', name='Jobs', exact=False).click()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job', exact=True).check()
                     page.get_by_label('Choose resume facts', exact=True).check()
                     page.get_by_label('Include Python', exact=True).uncheck()
@@ -201,7 +201,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
             sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
             app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
             server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
-            thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+            thread=threading.Thread(target=run_owned_browser_server, args=(server,),kwargs={'sockets':[sock]},daemon=True);thread.start()
             try:
                 deadline=time.monotonic()+10
                 while not server.started:
@@ -217,7 +217,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     context.route('**/*',local_only)
                     page=context.new_page();page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     opt=page.get_by_label('Order approved skills for this job',exact=True)
                     expect(opt).not_to_be_checked();opt.check()
                     snapshot = self.preview_alignment(page, origin)
@@ -351,7 +351,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     self.assertEqual(application_documents(store,application_id),history_before_cancel)
                     before=store.profile('fixture')
                     page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job',exact=True).check()
                     page.get_by_label('Choose resume facts',exact=True).check()
                     expect(page.get_by_label('Include SQL',exact=True)).to_be_checked()
@@ -381,7 +381,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
                     self.assertEqual(store.profile('fixture'),before)
                     page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     contact_option=page.get_by_label('Include saved resume contact details',exact=True)
                     expect(contact_option).not_to_be_checked();contact_option.check()
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
@@ -397,7 +397,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     self.assertIn('Phone: 555 0100',Path(contact_download.value.path()).read_text(encoding='utf-8'))
                     self.assertEqual(store.profile('fixture'),before)
                     page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job',exact=True).set_checked(True)
                     page.get_by_label('Choose resume facts',exact=True).set_checked(True)
                     duty='Built Python APIs for internal teams.'
@@ -468,7 +468,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
             sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
             app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
             server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
-            thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+            thread=threading.Thread(target=run_owned_browser_server, args=(server,),kwargs={'sockets':[sock]},daemon=True);thread.start()
             try:
                 deadline=time.monotonic()+10
                 while not server.started:
@@ -484,7 +484,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     context.route('**/*',local_only)
                     page=context.new_page();page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job',exact=True).check()
                     page.get_by_label('Choose resume facts',exact=True).check()
                     rewrites=[
@@ -565,7 +565,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
             sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
             app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
             server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
-            thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+            thread=threading.Thread(target=run_owned_browser_server, args=(server,),kwargs={'sockets':[sock]},daemon=True);thread.start()
             try:
                 deadline=time.monotonic()+10
                 while not server.started:
@@ -581,7 +581,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     context.route('**/*',local_only)
                     page=context.new_page();page.set_default_timeout(5000);page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
-                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.locator(".job-list").get_by_role("button", name=f"{job['company']} {job['title']}", exact=True).click()
                     page.get_by_label('Order approved skills for this job',exact=True).check()
                     snapshot = self.preview_alignment(page, origin)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and

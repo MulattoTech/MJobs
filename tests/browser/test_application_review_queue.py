@@ -1,4 +1,5 @@
 """Connected browser acceptance for actionable unresolved application questions."""
+import asyncio
 from pathlib import Path
 import tempfile
 import threading
@@ -77,7 +78,13 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            def serve_isolated_api():
+                # Use the owned browser fixture's selector loop so aborted HTTP
+                # error bodies cannot strand Windows Proactor transports.
+                with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                    runner.run(server.serve(sockets=[sock]))
+
+            thread = threading.Thread(target=serve_isolated_api, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10
@@ -131,10 +138,46 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
 
                     # Existing suggestion provenance remains visible and the review stays per-job.
                     answer_review = page.get_by_role("region", name="Application answers", exact=True).get_by_role("group", name="Question 1", exact=True)
+                    # Lookup is deliberately explicit and advisory, never a save.
+                    expect(answer_review.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
+                    expect(answer_review.get_by_role("button", name="Save to Answer Bank")).to_be_disabled()
+                    bank_before = store.profile("fixture")
+                    app_before_lookup = store.application(application_id)
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == f"/profiles/fixture/applications/{application_id}/answers/match") as lookup:
+                        answer_review.get_by_role("button", name="Find saved answer matches", exact=True).click()
+                    self.assertEqual(lookup.value.status, 200)
+                    match_response = lookup.value.json()
+                    self.assertEqual(match_response["profile_id"], "fixture")
+                    self.assertEqual(match_response["application_id"], application_id)
+                    self.assertEqual(match_response["question"], QUESTION)
+                    self.assertEqual(store.profile("fixture"), bank_before)
+                    self.assertEqual(store.application(application_id), app_before_lookup)
+                    expect(answer_review.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
+                    expect(answer_review.get_by_label("I reviewed this exact answer for this job")).not_to_be_checked()
+                    self.assertEqual(match_response["candidates"], [])
+                    self.assertTrue(match_response["review_gate"]["review_required"])
+                    self.assertEqual(match_response["review_gate"]["reason"], "CONFLICTING_ANSWERS")
+                    expect(answer_review).to_contain_text("No eligible saved answer matches")
+                    expect(answer_review.get_by_role("button", name="Select answer as draft", exact=False)).to_have_count(0)
+                    # Simulate an independent explicit resolution of the conflicting
+                    # bank entries; the old application preflight remains historical.
+                    bank = store.profile("fixture")
+                    store.save_profile({**bank, "answers": [
+                        {**item, "verified": False, "user_approved": False}
+                        if item["id"] == "azure-alternate-answer" else item
+                        for item in bank["answers"]
+                    ]})
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST" and response.url.endswith("/answers/match")) as resolved_lookup:
+                        answer_review.get_by_role("button", name="Find saved answer matches", exact=True).click()
+                    self.assertEqual(resolved_lookup.value.status, 200)
+                    self.assertEqual([item["answer_id"] for item in resolved_lookup.value.json()["candidates"]], ["azure-answer"])
                     expect(answer_review).to_contain_text("Exact normalized match")
                     expect(answer_review).to_contain_text("match score 100%")
                     expect(answer_review).to_contain_text("Synthetic profile")
-                    answer_review.get_by_role("button", name="Use saved answer (review required)").first.click()
+                    answer_review.get_by_role("button", name="Select answer as draft: I managed Azure subscriptions in a fictional lab.", exact=True).click()
                     answer_review.get_by_role("textbox", name="Answer", exact=True).fill(
                         "In a synthetic lab, I managed Azure subscriptions and reviewed access scopes.")
                     page.get_by_label("I reviewed this exact answer for this job", exact=True).check()
@@ -152,8 +195,22 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     answer_review.get_by_label("I reviewed this exact answer for this job").check()
                     answer_review.get_by_label("I confirm this answer is accurate and may be reused", exact=True).check()
 
+                    # Switch the independently reviewed bank choice before selecting
+                    # the alternate. Never select two conflicting approved values.
+                    bank = store.profile("fixture")
+                    store.save_profile({**bank, "answers": [
+                        {**item, "verified": item["id"] == "azure-alternate-answer",
+                         "user_approved": item["id"] == "azure-alternate-answer"}
+                        for item in bank["answers"]
+                    ]})
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST" and response.url.endswith("/answers/match")) as alternate_lookup:
+                        answer_review.get_by_role("button", name="Find saved answer matches", exact=True).click()
+                    self.assertEqual(alternate_lookup.value.status, 200)
+                    self.assertEqual([item["answer_id"] for item in alternate_lookup.value.json()["candidates"]],
+                                     ["azure-alternate-answer"])
                     # Switching to another saved answer must discard prior text-specific reuse consent.
-                    answer_review.get_by_role("button", name="Use saved answer (review required)").nth(1).click()
+                    answer_review.get_by_role("button", name="Select answer as draft: An alternate synthetic answer from the profile bank.", exact=True).click()
                     expect(answer_review.get_by_label("I reviewed this exact answer for this job")).not_to_be_checked()
                     expect(answer_review.get_by_role("button", name="Confirm and save to Answer Bank", exact=True)).to_have_count(0)
                     expect(answer_review.get_by_role("button", name="Save to Answer Bank", exact=True)).to_be_disabled()
@@ -203,25 +260,47 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Applications", exact=False).click()
                     page.get_by_role("region", name="Not tracked", exact=True).get_by_role(
                         "button", name=job["title"], exact=False).click()
-                    expect(page.get_by_role("region", name="ATS question preflight")).to_be_visible()
+                    historical = latest_preflight(store, application_id)
+                    self.assertEqual(historical["reason"], "UNRESOLVED_REQUIRED_QUESTIONS")
+                    self.assertIn(QUESTION, [item["question"] for item in historical["missing"]])
+                    self.assertFalse(historical["is_current"])
+                    expect(page.get_by_role("region", name="ATS question preflight")).to_contain_text(
+                        "older profile or document revision")
                     page.get_by_role("button", name="Review Queue", exact=False).click()
                     persisted_queue = page.get_by_role("region", name="Application review queue")
-                    expect(persisted_queue).to_contain_text("UNRESOLVED_REQUIRED_QUESTIONS")
-                    expect(persisted_queue).to_contain_text(QUESTION)
-                    persisted_queue.get_by_role("button", name=f"Review application: {job['title']} at {job['company']}").click()
-                    page.get_by_role("button", name="Review this question").first.click()
-                    expect(page.get_by_text("saved-answer confidence 88%", exact=False)).to_be_visible()
-                    expect(page.get_by_text("Provenance: Reviewed for Example Systems Inc.", exact=False)).to_be_visible()
-
-                    # Sensitive/legal answers are application-only and never offered for reuse.
-                    page.get_by_role("button", name="Review this question").last.click()
-                    sensitive = page.get_by_role("group", name="Question 2")
-                    expect(page.get_by_label("Employer question").last).to_have_value(SENSITIVE_QUESTION)
+                    expect(persisted_queue).not_to_contain_text(QUESTION)
+                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("region", name="Not tracked", exact=True).get_by_role(
+                        "button", name=job["title"], exact=False).click()
+                    # Historical preflight cannot authorize new reviews. Manual
+                    # application-only drafts remain available for local export.
+                    answers_panel = page.get_by_role("region", name="Application answers", exact=True)
+                    answers_panel.get_by_role("button", name="Add question", exact=True).click()
+                    azure_review = answers_panel.get_by_role("group", name="Question 1", exact=True)
+                    azure_review.get_by_label("Employer question").fill(QUESTION)
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST" and response.url.endswith("/answers/match")) as saved_lookup:
+                        azure_review.get_by_role("button", name="Find saved answer matches", exact=True).click()
+                    self.assertEqual(saved_lookup.value.status, 200)
+                    current_candidate = next(item for item in saved_lookup.value.json()["candidates"]
+                                             if item["answer_id"] == azure["id"])
+                    self.assertEqual(current_candidate["confidence"], 88)
+                    self.assertEqual(current_candidate["source"], f"Reviewed for {job['company']} \u2014 {job['title']}")
+                    self.assertEqual(current_candidate["source"], azure["source"])
+                    saved_candidate = azure_review.get_by_role("list", name="Saved answer match candidates").get_by_role(
+                        "listitem").filter(has_text=current_candidate["source"])
+                    expect(saved_candidate).to_have_count(1)
+                    expect(saved_candidate).to_contain_text("88% confidence")
+                    saved_candidate.get_by_role("button", name="Select answer as draft: An alternate synthetic answer from the profile bank.", exact=True).click()
+                    expect(azure_review.get_by_label("I reviewed this exact answer for this job")).not_to_be_checked()
+                    azure_review.get_by_label("I reviewed this exact answer for this job").check()
+                    # Sensitive/legal answers stay application-only and cannot be reused.
+                    answers_panel.get_by_role("button", name="Add question", exact=True).click()
+                    sensitive = answers_panel.get_by_role("group", name="Question 2", exact=True)
+                    sensitive.get_by_label("Employer question").fill(SENSITIVE_QUESTION)
                     expect(sensitive).to_contain_text("Sensitive or legal question")
                     expect(sensitive.get_by_role("button", name="Save to Answer Bank", exact=True)).to_have_count(0)
-                    azure_review = page.get_by_role("group", name="Question 1")
-                    azure_review.get_by_role("button", name="Use saved answer (review required)").first.click()
-                    azure_review.get_by_label("I reviewed this exact answer for this job").check()
+                    expect(sensitive.get_by_role("button", name="Find saved answer matches", exact=True)).to_have_count(0)
                     sensitive.get_by_role("textbox", name="Answer", exact=True).fill(
                         "Synthetic application-only response, provided explicitly by the user.")
                     sensitive.get_by_label("I reviewed this exact answer for this job").check()

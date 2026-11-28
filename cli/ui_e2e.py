@@ -913,6 +913,15 @@ def create_fixture_us_remote_search(put, request, profile_id):
     return saved["id"]
 
 
+def assert_reprepare_notice(page):
+    """Require the visible app-level document revision notice, not a question hint."""
+    notice = page.locator("main > .notice[role=status]").filter(
+        has_text="Current application documents are revision")
+    expect(notice).to_be_visible()
+    expect(notice).to_contain_text(
+        "Run a local dry run to create a fresh ATS question preflight")
+
+
 def assert_reprepared_profile_pins(*, previous_profile_version, old_application_profile_version,
                                    current_profile_version, resumed_application_profile_version):
     """Compare opaque profile-version identities by equality, not lexical order."""
@@ -2623,8 +2632,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         and urlsplit(candidate.url).path.endswith("/reprepare")) as reprepare_response:
                     page.get_by_role("button", name="Resume and prepare current revision", exact=True).click()
                 assert reprepare_response.value.status == 200, reprepare_response.value.text()
-                expect(page.get_by_role("status").filter(
-                    has_text="Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
+                assert_reprepare_notice(page)
                 resumed = request("/profiles/" + profile_id + "/applications/" + identifier)
                 assert_reprepared_profile_pins(
                     previous_profile_version=previous_profile["version"],

@@ -58,8 +58,11 @@ class ManualAuthDepartedRecoveryTests(unittest.TestCase):
                     expect(page.get_by_label('Active profile', exact=True)).to_have_value('fixture')
                     page.get_by_role('navigation', name='Main navigation').get_by_role(
                         'button', name=re.compile('^Applications')).click()
-                    page.get_by_role('region', name='Application pipeline').get_by_role(
-                        'button', name=re.compile('AUTH_REQUIRED')).click()
+                    job = self.store.job(self.store.application(self.application_id)['job_id'], profile_id='fixture')
+                    card = page.get_by_role('region', name='Application pipeline').get_by_role(
+                        'button', name=f"{job['company']} {job['title']}", exact=True)
+                    expect(card).to_contain_text('AUTH_REQUIRED')
+                    card.click()
                     panel = page.get_by_role('region', name='Manual MOCK authentication')
                     expect(panel).to_be_visible()
                     expect(panel.get_by_role('button', name='Open MOCK sign-in', exact=True)).to_be_disabled()
@@ -73,8 +76,11 @@ class ManualAuthDepartedRecoveryTests(unittest.TestCase):
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('navigation', name='Main navigation').get_by_role(
                         'button', name=re.compile('^Applications')).click()
-                    page.get_by_role('region', name='Application pipeline').get_by_role(
-                        'button', name=re.compile('AUTH_REQUIRED')).click()
+                    job = self.store.job(self.store.application(self.application_id)['job_id'], profile_id='fixture')
+                    card = page.get_by_role('region', name='Application pipeline').get_by_role(
+                        'button', name=f"{job['company']} {job['title']}", exact=True)
+                    expect(card).to_contain_text('AUTH_REQUIRED')
+                    card.click()
                     expect(panel.get_by_role('button', name='Open MOCK sign-in', exact=True)).to_be_enabled()
                     with patch('services.applications.manual_auth_isolated.BrowserTreeJob', controlled_job(self.root)):
                         with page.expect_response(lambda r: r.url == origin + self.url and r.request.method == 'POST') as retry:

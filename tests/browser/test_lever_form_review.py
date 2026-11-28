@@ -14,7 +14,7 @@ import uvicorn
 from sqlalchemy import update
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -78,7 +78,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
             server = uvicorn.Server(uvicorn.Config(
                 app, log_level="error", access_log=False))
             thread = threading.Thread(
-                target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+                target=run_owned_browser_server, args=(server,), kwargs={"sockets": [sock]}, daemon=True)
             thread.start()
             deadline = time.monotonic() + 10
             external_requests, browser_writes, request_bodies, errors = [], [], [], []

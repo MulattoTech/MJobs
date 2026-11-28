@@ -100,9 +100,13 @@ class FleetT11OperationRecoveryProgressBrowserTests(unittest.TestCase):
                         # the previous profile's recovered operations.
                         held = []
                         context.route("**" + progress_path, lambda route: held.append(route), times=1)
-                        panel.get_by_role("button", name="Refresh progress", exact=True).click()
-                        expect(panel.get_by_text("Loading operations…", exact=True)).to_be_visible()
+                        with page.expect_request(lambda request:
+                                urlsplit(request.url).path == progress_path and request.method == "GET"):
+                            panel.get_by_role("button", name="Refresh progress", exact=True).click()
                         self.assertEqual(len(held), 1)
+                        # Same-profile refresh preserves previously verified cards.
+                        assert_pending(panel)
+                        expect(panel.get_by_text("Loading operations", exact=False)).to_have_count(0)
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == "/profiles/other/operations/progress"):
                             page.get_by_label("Active profile", exact=True).select_option("other")

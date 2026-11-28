@@ -17,7 +17,7 @@ from sqlalchemy import select
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -43,7 +43,7 @@ class MockRunBrowserHarness(unittest.TestCase):
         self.socket = bound_browser_socket()
         self.origin = f"http://127.0.0.1:{self.socket.getsockname()[1]}"
         self.server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-        self.thread = threading.Thread(target=self.server.run, kwargs={"sockets":[self.socket]}, daemon=True)
+        self.thread = threading.Thread(target=run_owned_browser_server, args=(self.server,), kwargs={"sockets":[self.socket]}, daemon=True)
         self.thread.start(); self.addCleanup(self.stop_server)
         deadline = time.monotonic()+10
         while not self.server.started:

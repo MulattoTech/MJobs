@@ -18,7 +18,7 @@ from pypdf import PdfReader
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
@@ -65,7 +65,7 @@ class FactReviewBrowserTests(unittest.TestCase):
 
             app.middleware('http')(delay_demo_profile_read)
             server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
-            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={'sockets': [sock]}, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10
@@ -160,7 +160,7 @@ class FactReviewBrowserTests(unittest.TestCase):
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
             app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
             server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
-            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={'sockets': [sock]}, daemon=True)
             thread.start()
             try:
                 deadline = time.monotonic() + 10

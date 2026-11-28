@@ -371,7 +371,8 @@ def test_default_readiness_performs_only_one_read_and_no_fixture_writes(tmp_path
             pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), ReadinessServer)
-    thread = Thread(target=server.serve_forever, daemon=True)
+    # This controls idle listener shutdown polling, not request deadlines.
+    thread = Thread(target=server.serve_forever, kwargs={"poll_interval": .02}, daemon=True)
     thread.start()
     sentinel = tmp_path / "private.db"
     sentinel.write_bytes(b"untouched private data")

@@ -13,7 +13,7 @@ from sqlalchemy import update
 import uvicorn
 
 from apps.api.main import create_app
-from fixtures.browser_ports import bound_browser_socket
+from fixtures.browser_ports import bound_browser_socket, run_owned_browser_server
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -53,7 +53,7 @@ class FleetT14ReviewBindingTests(unittest.TestCase):
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error", access_log=False))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread = threading.Thread(target=run_owned_browser_server, args=(server,), kwargs={"sockets": [sock]}, daemon=True)
             thread.start()
             review_path = f"/profiles/fixture/applications/{application_id}/form-reviews"
             writes, external, errors, substitutions = [], [], [], []
