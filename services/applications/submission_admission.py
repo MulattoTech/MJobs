@@ -17,6 +17,7 @@ from packages.domain.safety import Decision, Policy, SubmissionContext, evaluate
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.applications.configuration import configured_submission_policy
+from services.applications.submission_windows import company_submission_reserves_capacity
 from services.company_discovery.public_client import _parse_url
 from services.dedupe.route_redirects import (
     ROUTE_CHECK_TIMEOUT_SECONDS, _domain, qualified_ats_tenant, resolve_aggregator_redirect,
@@ -471,8 +472,26 @@ def _authorize_transaction(
         daily = connection.execute(submitted.where(
             m.applications.c.submitted_at >= (
                 timestamp - timedelta(days=1)).isoformat())).scalar_one()
-        company = connection.execute(submitted.where(
-            m.jobs.c.company_id == job["company_id"])).scalar_one()
+        company = 0
+        if policy.company_limit:
+            # Stored timestamps are strings and can include offsets or unknown
+            # restore values. Only proven old confirmations release this cap;
+            # unresolved outcomes retain their conservative reservation.
+            company_rows = submitted.with_only_columns(
+                m.applications.c.state, m.applications.c.submitted_at,
+            ).where(m.jobs.c.company_id == job["company_id"]).execution_options(
+                yield_per=100)
+            with connection.execute(company_rows) as rows:
+                for state, submitted_at in rows:
+                    if check:
+                        check()
+                    if company_submission_reserves_capacity(
+                            state, submitted_at, evaluated_at=timestamp):
+                        company += 1
+                        # The policy needs only whether the cap is reached; do
+                        # not fetch more history or private application fields.
+                        if company >= policy.company_limit:
+                            break
         intent = None
         intent_error = None
         if application["target"] == "REAL":

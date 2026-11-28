@@ -1,0 +1,585 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-151",
+  "issue": 152,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/152",
+  "run_id": "web-20261109T031055Z-f61f749bf2d7",
+  "recorded_utc": "2026-11-09T03:39:10.425230+00:00",
+  "implementation_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+  "implementation_tree": "8843cb13655531ed037cae1a9259a10a15acb041",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "integration_authority": "PR_ONLY",
+  "slice": "Rolling company submission limit with conservative unresolved reservations",
+  "canonical_state_changed": false,
+  "whole_requirement_acceptance": "NOT_ESTABLISHED",
+  "behavior": {
+    "confirmed_expiry": "Only an aware confirmed timestamp strictly older than the inclusive rolling 24-hour cutoff releases company capacity.",
+    "uncertain_reservations": "SUBMITTING and SUBMISSION_UNCONFIRMED never expire by age; missing, malformed, naive, oversized or future confirmed timestamps continue to count.",
+    "scope_and_concurrency": "Existing profile/company/state predicates and profile lock or SQLite immediate transaction remain in force. Only state and timestamp are streamed; counting stops at the enforced cap.",
+    "configuration": "Existing MJOBS_SUBMISSION_COMPANY_LIMIT remains configurable with default1 and range0..10000; zero still denies.",
+    "external_actions": "External submission remains disabled in configured policy. All executed fixtures are synthetic MOCK admissions; no employer request or submission occurred."
+  },
+  "criteria": [
+    {
+      "criterion": "Confirmed company usage becomes available after rolling24h",
+      "result": "PASS",
+      "evidence": "SQLite admission boundary, offset and expired-history concurrency tests"
+    },
+    {
+      "criterion": "Unresolved or unknown outcomes retain conservative capacity",
+      "result": "PASS",
+      "evidence": "Unit and SQLite cases for age, missing, malformed, naive and future timestamps"
+    },
+    {
+      "criterion": "Profile/company isolation, durable serialization and cancellation",
+      "result": "PASS",
+      "evidence": "SQLite race, reopen, rollback/reuse and isolation tests"
+    },
+    {
+      "criterion": "PostgreSQL SQL/transaction parity",
+      "result": "NOT_RUN",
+      "reason": "No isolated PostgreSQL URL locally; hosted exact-head checks required"
+    },
+    {
+      "criterion": "Complete MJ-REQ-151 application limits",
+      "result": "NOT_RUN",
+      "reason": "This slice does not establish configurable canonical-route caps, minimum-match configuration or full acceptance."
+    }
+  ],
+  "tests": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-rs",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_company_submission_window_152.py",
+        "tests/integration/test_company_submission_window_152.py"
+      ],
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "started_utc": "2026-11-09T03:37:22.023230+00:00",
+      "finished_utc": "2026-11-09T03:37:23.936895+00:00",
+      "exit_code": 0,
+      "passed": 18,
+      "subtests_passed": 49,
+      "skipped": 10,
+      "skipped_reason": "PostgreSQL database not configured",
+      "environment": "Linux scratch Python3.12.14 with isolated exact pinned dependencies; real SQLite/Store; no stubs",
+      "source_unchanged": true
+    },
+    {
+      "command": "Load original exact-main admission module under its canonical module name in an isolated process, then pytest the listed regression selections",
+      "selections": [
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_confirmed_submission_expires_strictly_before_inclusive_cutoff",
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_aware_offsets_are_compared_as_instants_not_strings",
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_expired_confirmed_capacity_does_not_enable_external_submission"
+      ],
+      "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "original_admission_blob": "2aa1a6ab7da09097f7ab34937b3ff711ea3091df",
+      "regression_test_blob": "a35ba85fcfa127ae887cbeb430c45f9f9a3f2ea7",
+      "started_utc": "2026-11-09T03:33:04.097033+00:00",
+      "finished_utc": "2026-11-09T03:33:05.311004+00:00",
+      "exit_code": 1,
+      "result": "EXPECTED_BASELINE_FAILURE",
+      "failed": 3,
+      "subtests_passed": 3,
+      "reason": "Each assertion exposes COMPANY_LIMIT_REACHED remaining on expired confirmed history; no import or environment error."
+    },
+    {
+      "command": "python -B -m tools.verification.commit_provenance --commit HEAD --strict",
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "result": "PASS",
+      "details": "Provenance complete for5 source files"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.agent_context bootstrap --task MJ-REQ-151",
+      "source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.agent_context validate --task MJ-REQ-151",
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-c",
+        "import os,sys,runpy; path=sys.argv.pop(1); sys.argv[0]='pytest'; stream=open(path,'x',encoding='utf-8',buffering=1); os.dup2(stream.fileno(),1); os.dup2(stream.fileno(),2); runpy.run_module('pytest',run_name='__main__')",
+        "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\pytest.log",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "-rs",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\pytest.xml",
+        "tests/unit/test_company_submission_window_152.py",
+        "tests/integration/test_company_submission_window_152.py",
+        "tests/integration/test_configured_submission_limits.py"
+      ],
+      "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "started_utc": "2026-11-13T12:59:14.788568+00:00",
+      "finished_utc": "2026-11-13T12:59:18.783120+00:00",
+      "result": "FAIL",
+      "controller_result": "FAIL_LOCAL_QUALIFICATION",
+      "controller_error_type": "FileNotFoundError",
+      "elapsed_seconds": 4,
+      "test_completion": "INCOMPLETE",
+      "exit_code": null,
+      "junit": "NOT_PRODUCED",
+      "no_complete_pass_count_established": true,
+      "cleanup": {
+        "status": "PASS",
+        "retained_job_active_members": 0,
+        "original_host_signaled": true,
+        "method": "OwnedProcess.finalize"
+      },
+      "resource_status": "RELEASED",
+      "source_unchanged": true,
+      "dependencies_unchanged": true,
+      "actual_result_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\result.json",
+        "bytes": 25855,
+        "sha256": "c2b6e1549ee2787498cd34326bd2b9ca42cbdc569af3682fc150ab3d51991392"
+      },
+      "actual_completion_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\completion.json",
+        "bytes": 597,
+        "sha256": "b8729b1815d8c433127b99f0383a561deb944661857335f91e47c43902c22ff9"
+      }
+    },
+    {
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-c",
+        "import os,sys,runpy; path=sys.argv.pop(1); sys.argv[0]='pytest'; stream=open(path,'x',encoding='utf-8',buffering=1); os.dup2(stream.fileno(),1); os.dup2(stream.fileno(),2); runpy.run_module('pytest',run_name='__main__')",
+        "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.log",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "-rs",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.xml",
+        "tests/unit/test_company_submission_window_152.py",
+        "tests/integration/test_company_submission_window_152.py",
+        "tests/integration/test_configured_submission_limits.py"
+      ],
+      "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "started_utc": "2026-11-13T13:50:40.570594+00:00",
+      "finished_utc": "2026-11-13T13:50:55.357606+00:00",
+      "result": "PASS_LOCAL_UNIT_SQLITE_PG_NOT_RUN",
+      "exit_code": 0,
+      "passed_primary_method_groups": 23,
+      "subtests_passed": 55,
+      "skipped": 15,
+      "skipped_reason": "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database",
+      "pytest_elapsed_seconds": 12.87,
+      "controller_elapsed_seconds": 14.781,
+      "raw_junit_suite_totals": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 15
+      },
+      "raw_junit_case_rows": 38,
+      "source_unchanged": true,
+      "dependencies_unchanged": true,
+      "cleanup": {
+        "status": "PASS",
+        "retained_job_active_members": 0,
+        "original_host_signaled": true,
+        "method": "OwnedProcess.finalize"
+      },
+      "resource_status": "RELEASED",
+      "actual_result_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\result.json",
+        "bytes": 41131,
+        "sha256": "e52629601d4fa2fd9fffa401d9e48109e35ac834687443e86a3b33d8085e797d"
+      },
+      "actual_completion_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\completion.json",
+        "bytes": 606,
+        "sha256": "6a5c4fbf399b2509d0e95ee76c05ac2624e03ed0a7337dbba7a76d0b09deb372"
+      },
+      "log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.log",
+        "bytes": 2441,
+        "sha256": "aa4543c85714b119f46160288fe9953d2170fd006ee1b2025b3940497bb9b6f4"
+      },
+      "junit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.xml",
+        "bytes": 12321,
+        "sha256": "041069954f2d9be1a1cb327d628b80301b5bb42c6988f1f55b8cd91752fcb021"
+      },
+      "independent_actual_audit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-2032023f-integration.json",
+        "bytes": 21550,
+        "sha256": "0d51e783dca068abfff28c92228f8b0e666f99a91960406e63fc6701cf5260ea"
+      }
+    }
+  ],
+  "git_blobs": {
+    ".env.example": "c89801e6c2b51687d50a4f64f93590cb5e805434",
+    "services/applications/submission_admission.py": "6d2c4af1f17b1273dbbe6d78315470bbc64c8499",
+    "services/applications/submission_windows.py": "198174b57537324b4f6f4f8587f0d71d42d84c6c",
+    "tests/integration/test_configured_submission_limits.py": "cc983660fb29aa84da4feeb71b3905931a180293",
+    "tests/integration/test_company_submission_window_152.py": "a35ba85fcfa127ae887cbeb430c45f9f9a3f2ea7",
+    "tests/unit/test_company_submission_window_152.py": "22a81e7181e3cd58c45fa632d289da0da5cc568d"
+  },
+  "environment": {
+    "platform": "linux",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "packages": {
+      "SQLAlchemy": "2.1.1",
+      "alembic": "1.20.0",
+      "greenlet": "3.5.6",
+      "Mako": "1.4.3",
+      "MarkupSafe": "3.0.3",
+      "typing_extensions": "4.16.0",
+      "pytest": "9.0.3",
+      "pluggy": "1.7.0",
+      "iniconfig": "2.3.1",
+      "pydantic": "2.13.5",
+      "pydantic_core": "2.46.5",
+      "annotated-types": "0.8.0",
+      "typing-inspection": "0.4.4",
+      "httpx": "0.28.1"
+    },
+    "isolated_dependency_install": true,
+    "workstation_compute_slots_consumed": 0
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT-Web independent pr_recon subagent",
+    "method": "Separate production and final integration-test source review; exact content hashes checked",
+    "outcome": "No scoped blocking finding",
+    "limits": "AI review is not human approval, protected merge authorization or full-requirement acceptance; reviewer did not rerun Python suite."
+  },
+  "not_run": [
+    "Existing configured-limit integration suite locally because its skipped PostgreSQL fixture loads the full API dependency graph",
+    "Local PostgreSQL variants",
+    "Full repository validation/catalogue/dashboard suites in sparse checkout",
+    "Connected browser and deployed-runtime acceptance",
+    "Entire MJ-REQ-151 and downstream MJ-REF-048 acceptance"
+  ],
+  "remaining_limits": [
+    "Hourly/daily counters retain existing lexical timestamp comparisons; this repair changes company counting only.",
+    "Unknown or unresolved company reservations can continue blocking until proper reconciliation.",
+    "PostgreSQL fixture uses metadata.create_all; transaction tests do not verify migrations.",
+    "MJ-REF-048 remains blocked by other original prerequisites; no parent requirement was promoted."
+  ],
+  "rollback": "Protected revert of this isolated change; no schema or data migration.",
+  "continuations": [
+    {
+      "recorded_at_utc": "2026-11-13T13:12:06Z",
+      "continuation_run_id": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "state": "LOCAL_QUALIFICATION_RECORDED_HOSTED_AND_INTEGRATION_PENDING",
+      "purpose": "Complete the existing company-window PR985 on its actual current-main composition while retaining the original implementation and history.",
+      "original_publication": {
+        "pr": 985,
+        "head": "ae42060013ef37c897835bc9cc594cff542e89b6",
+        "tree": "58fb49b0f023959b0058700d6d018e8f8a1c000e",
+        "branch": "web/web-20261109T031055Z-f61f749bf2d7/MJ-REQ-151-company-window"
+      },
+      "source": {
+        "head": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+        "tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+        "parents": [
+          "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+          "ae42060013ef37c897835bc9cc594cff542e89b6"
+        ],
+        "branch": "web/p4-company-window-20261113-4dae",
+        "worktree": "C:\\Tools\\Dev\\MJobs-Web\\p4-company-window-20261113-4dae",
+        "original_six_blobs": {
+          ".env.example": "c89801e6c2b51687d50a4f64f93590cb5e805434",
+          "services/applications/submission_admission.py": "6d2c4af1f17b1273dbbe6d78315470bbc64c8499",
+          "services/applications/submission_windows.py": "198174b57537324b4f6f4f8587f0d71d42d84c6c",
+          "tests/integration/test_configured_submission_limits.py": "cc983660fb29aa84da4feeb71b3905931a180293",
+          "tests/integration/test_company_submission_window_152.py": "a35ba85fcfa127ae887cbeb430c45f9f9a3f2ea7",
+          "tests/unit/test_company_submission_window_152.py": "22a81e7181e3cd58c45fa632d289da0da5cc568d"
+        },
+        "six_code_test_environment_blobs_unchanged": true,
+        "every_other_entry_equals_main": {
+          "main_sha": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+          "excluded_feature_paths": [
+            ".env.example",
+            "docs/evidence/2026-11-09-company-submission-window-f61f749bf2d7.json",
+            "planning/agent_handoffs/MJ-REQ-151.json",
+            "services/applications/submission_admission.py",
+            "services/applications/submission_windows.py",
+            "tests/integration/test_company_submission_window_152.py",
+            "tests/integration/test_configured_submission_limits.py",
+            "tests/unit/test_company_submission_window_152.py"
+          ],
+          "all_entries_outside_these_eight_paths_equal_main": true,
+          "proof": "Actual source merge completion38b97744 and independent source audit0be3cb49; no claim of equality for either metadata feature path is made."
+        },
+        "actual_merge": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-worktree-merge-daae16dc-0725-4f68-bbe4-8d16fc2185da\\completion.json",
+          "bytes": 11231,
+          "sha256": "38b97744fe468d3f3b3f62a35107e22a9d8dc0a32920159329d19d883bfe2fab"
+        },
+        "independent_git_audit": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-merge-477052c1-campaign.json",
+          "bytes": 16208,
+          "sha256": "0be3cb49fb923f69298d27b722081b09dcddb7e1a4c76a075f909adda8179b7b"
+        },
+        "filetime_evidence": "The original raw merge completion is authoritative. No numeric FILETIME value from the independently rounded audit is copied here."
+      },
+      "native_source_checkpoint": {
+        "result": "SOURCE_HEAD_CHECKPOINTED_RUNTIME_NOT_RUN",
+        "at_utc": "2026-11-13T12:49:03.379319+00:00",
+        "head": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+        "tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+        "source_after_sha256": "cabe255ae59025936b31391b7ee2784485734db5cfe8c142a8926f93ca3277be",
+        "p6_after_sha256": "f6621109261ea96ff0ce0cf39d565d3621dbb67c93c9d4d7d7344445d4d07eae",
+        "full_native_private_equal": true,
+        "claim_status_snapshot": "ACTIVE",
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-source-head-checkpoint-735684db-13ef-4438-b15e-0b812b1b44cf\\completion.json",
+          "bytes": 1715,
+          "sha256": "bf752ad3b9954db09ebad9016c90b235f7cbb4db53ced0d1221443acc9481e91"
+        },
+        "scope": "Native source ownership/materialization only; task-data stock transfer remains a separate real operation."
+      },
+      "component_history": "All pre-existing evidence fields and array entries retain their original source/time scope. Historical3254eb4/ae420 results do not qualify changed Storeab3a in this composition.",
+      "first_current_main_attempt": {
+        "attempt_id": "a65f294e-435c-4002-aaf9-cc16af5c254e",
+        "result": "FAIL_LOCAL_QUALIFICATION",
+        "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+        "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+        "runner_sha256": "55d3c03c18cd6890a791b3491dfa7da63e7f5bb11ba001e4e3d5d15de43ec677",
+        "approved_config_sha256": "a7885b1849e73bf5cae93bfb415a24c84ec3953d71a383fe730926899b6519b8",
+        "started_at_utc": "2026-11-13T12:59:14.788568+00:00",
+        "finished_at_utc": "2026-11-13T12:59:18.783120+00:00",
+        "elapsed_seconds": 4,
+        "controller_error_type": "FileNotFoundError",
+        "cause": "Not established by this metadata preparation; retain the failed controller and actual receipts for the separately owned correction.",
+        "test_completion": "INCOMPLETE",
+        "test_pass_count": null,
+        "postgres_qualification": "NOT_RUN",
+        "child_returncode": "NOT_RECORDED",
+        "junit": "NOT_PRODUCED",
+        "progress_log": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\pytest.log",
+          "bytes": 42,
+          "sha256": "d5392e18f86b6992e2de00ed9e24a77a3d363e9753605f55693ee630014e4420",
+          "interpretation": "Partial42-byte progress only; no completed-test count is inferred."
+        },
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "method": "OwnedProcess.finalize"
+        },
+        "terminal_resource_status": "RELEASED",
+        "source_unchanged": true,
+        "dependencies_unchanged": true,
+        "private_inputs_unchanged": true,
+        "owner_records_unchanged": true,
+        "actual_result": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\result.json",
+          "bytes": 25855,
+          "sha256": "c2b6e1549ee2787498cd34326bd2b9ca42cbdc569af3682fc150ab3d51991392"
+        },
+        "actual_completion": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\completion.json",
+          "bytes": 597,
+          "sha256": "b8729b1815d8c433127b99f0383a561deb944661857335f91e47c43902c22ff9"
+        },
+        "independent_failed_run_audit": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-a65f294e-campaign.json",
+          "bytes": 28953,
+          "sha256": "4164e410bb45a0373f622d8b70023ae6fe976c57dc562550cf8aa24b620718b7",
+          "verification": "Independently opened complete29KB audit and matched exact4164e410 digest; audit PASS does not change the actual runFAIL."
+        }
+      },
+      "successor_local_qualification": {
+        "status": "PASS_LOCAL_UNIT_SQLITE_PG_NOT_RUN",
+        "attempt_id": "2032023f-c8c7-4afa-9136-41ab57f216c8",
+        "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+        "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+        "runner_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-runner-v2.py",
+        "runner_sha256": "d67a0117e92dfc6b94e431b77b330839e32d9ccd4a7efc4131a2c9f56c28d6e4",
+        "independent_runner_review": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-review-local-qualification-d67a0117.json",
+          "bytes": 13350,
+          "sha256": "27131ea315e49a2412ec9991548af92ca019928df7885cd27dde916523db9e85"
+        },
+        "approved_config": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-config-v2-approved-2032023f.json",
+          "bytes": 2072,
+          "sha256": "bc7118eb5c5a4ce19a2cbc5f9984be809341f5b76cc8151e4e2cd57ddd951548"
+        },
+        "actual_result_receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\result.json",
+          "bytes": 41131,
+          "sha256": "e52629601d4fa2fd9fffa401d9e48109e35ac834687443e86a3b33d8085e797d"
+        },
+        "actual_completion_receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\completion.json",
+          "bytes": 606,
+          "sha256": "6a5c4fbf399b2509d0e95ee76c05ac2624e03ed0a7337dbba7a76d0b09deb372"
+        },
+        "log": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.log",
+          "bytes": 2441,
+          "sha256": "aa4543c85714b119f46160288fe9953d2170fd006ee1b2025b3940497bb9b6f4"
+        },
+        "junit": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.xml",
+          "bytes": 12321,
+          "sha256": "041069954f2d9be1a1cb327d628b80301b5bb42c6988f1f55b8cd91752fcb021"
+        },
+        "independent_actual_audit": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-2032023f-integration.json",
+          "bytes": 21550,
+          "sha256": "0d51e783dca068abfff28c92228f8b0e666f99a91960406e63fc6701cf5260ea"
+        },
+        "local_passed_primary_method_groups": 23,
+        "unit_passed_method_groups": 8,
+        "sqlite_passed_method_groups": 15,
+        "subtests_passed_from_actual_log": 55,
+        "postgres_skipped_methods": 15,
+        "raw_junit_rows": 38,
+        "raw_junit_suite_totals": {
+          "tests": 93,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 15
+        },
+        "actual_counts_scope": "Actual log: 23 passed, 15 skipped, 55 subtests passed. XML contains 38 testcase rows with suite tests=93; 93 is not relabelled as primary tests.",
+        "pytest_elapsed_seconds": 12.87,
+        "junit_suite_elapsed_seconds": 12.873,
+        "elapsed_seconds": 14.781,
+        "started_at_utc": "2026-11-13T13:50:40.570594+00:00",
+        "finished_at_utc": "2026-11-13T13:50:55.357606+00:00",
+        "completed_at_utc": "2026-11-13T13:50:56.865219+00:00",
+        "returncode": 0,
+        "postgres_qualification": "NOT_RUN",
+        "postgres_skip_reason": "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database",
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "method": "OwnedProcess.finalize"
+        },
+        "terminal_resource_status": "RELEASED",
+        "terminal_resource": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\resource-claim.json",
+          "bytes": 2484,
+          "sha256": "66028beee3bb85fe17f86680c24b04b3d8ab03dc05b4367c1b9701ba06a0d559"
+        },
+        "source_unchanged": true,
+        "dependencies_unchanged": true,
+        "private_inputs_unchanged": true,
+        "owner_records_unchanged": true,
+        "targeted_current_source_pins": 27,
+        "targeted_installed_dependency_files": 21,
+        "dependency_scope": "Selected files and source composition are pinned; this is not a complete dependency-closure claim.",
+        "actual_process_identity": {
+          "supervisor": {
+            "pid": 15020,
+            "creation_filetime": "134390514377469531"
+          },
+          "child": {
+            "pid": 9584,
+            "creation_filetime": "134390514419205499",
+            "ownership": "Retained original host HANDLE and atomically assigned Job"
+          }
+        },
+        "original_process_generation_absence_observed_at_utc": "2026-11-13T13:55:44.052635+00:00",
+        "original_process_generations_absent": true,
+        "filetime_encoding": "Exact 64-bit creation values are decimal strings in this metadata; original raw runtime JSON remains unchanged.",
+        "runner_correction": {
+          "receipt": {
+            "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-repair-v2.json",
+            "bytes": 10137,
+            "sha256": "f185edbfc6470f7d193e69fe7b6d415416bb0c59c37354c2b845eaffddf0d020"
+          },
+          "scope": "Private controller accounting tolerates only missing ephemeral descendants of its owned tmp subtree and retains other errors, limits, ownership and cleanup; sanitized diagnostics are bounded.",
+          "historical_failure_limit": "This successful successor does not prove the precise site/path/actor of the prior FileNotFoundError. No product source or test was changed."
+        },
+        "evidence_provenance": "Populated from the completed source-bound result and terminal release after independent review; no expected count is substituted for execution."
+      },
+      "hosted_postgresql": {
+        "status": "NOT_RUN_FOR_NEW_COMPOSITION",
+        "required": "All10 CompanySubmissionWindowPostgresTests and5 ConfiguredSubmissionLimitPostgresTests must actually execute and pass without skips at the resulting-head hosted checkout; retain raw JUnit and exact checkout source equivalence."
+      },
+      "current_required_checks": {
+        "status": "NOT_RUN_FOR_NEW_COMPOSITION",
+        "scope": "All current required contexts at the resulting publication head, under freshly read rules; old ae420 checks and source-level scanner dispositions are historical."
+      },
+      "metadata_and_publication": {
+        "snapshot_scope": "State at this private preparation; later actual metadata commit/stock transfer/publication must be recorded by their own execution receipts.",
+        "as_of_utc": "2026-11-13T13:12:06Z",
+        "metadata_commit": "NOT_CREATED_AT_PREPARATION",
+        "stock_handoff_transfer": "NOT_EXECUTED_AT_PREPARATION",
+        "existing_pr_update": "NOT_RUN_AT_PREPARATION",
+        "protected_integration": "NOT_RUN_AT_PREPARATION",
+        "canonical_state_changed": false,
+        "whole_requirement_acceptance": "NOT_ESTABLISHED"
+      },
+      "remaining_limits": [
+        "Hourly/daily counters retain existing lexical timestamp comparisons; this repair changes company counting only.",
+        "Unknown or unresolved company reservations can continue blocking until proper reconciliation.",
+        "PostgreSQL fixture uses metadata.create_all; transaction tests do not verify migrations.",
+        "MJ-REF-048 remains blocked by other original prerequisites; no parent requirement was promoted.",
+        "LocalSQLite proof cannot substitute for PostgreSQL execution. Exact current-head hosted checks, metadata source equivalence, authorized ordinary existing-PR update and protected integration remain separate gates."
+      ],
+      "next_action": "Publish the reviewed metadata successor through one ordinary update of existing PR985, then verify its exact-head hosted PostgreSQL and required checks before steward integration; broader MJ-REQ-151 acceptance remains incomplete.",
+      "qualification_recorded_at_utc": "2026-11-13T14:00:54Z",
+      "metadata_successor_source_equivalence": {
+        "status": "REQUIRED_AT_ACTUAL_METADATA_COMMIT",
+        "tested_source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+        "tested_source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+        "allowed_changed_paths": [
+          "docs/evidence/2026-11-09-company-submission-window-f61f749bf2d7.json",
+          "planning/agent_handoffs/MJ-REQ-151.json"
+        ],
+        "required": "The metadata successor must preserve every Git tree entry outside these two paths, including the six original code/test/environment blobs. Its actual head/tree and stock transfer must be established by separate execution receipts.",
+        "actual_metadata_successor_head": null,
+        "actual_metadata_successor_tree": null
+      },
+      "private_preparation_history": {
+        "previous_manifest": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-metadata-continuation-manifest-v1.json",
+          "bytes": 9504,
+          "sha256": "709cf076d1c1d23e517b9a134e60d6de776dcb5bff6b1a158462446cd6457192"
+        },
+        "pending_evidence_payload": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-company-window-evidence-proposed-v1.json",
+          "bytes": 20754,
+          "sha256": "1d1e7dc5d6e85496f1137ebd16bff58fc8f5ecced6a23b3d79d91bcf16c062a7"
+        },
+        "pending_handoff_payload": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-company-window-handoff-proposed-v1.json",
+          "bytes": 9431,
+          "sha256": "caa87f21f7c9f1930f4e21db85dd6dd92a679075eb94161454c89246303167d4"
+        },
+        "prior_state": "SOURCE_MATERIALIZED_LOCAL_QUALIFICATION_INCOMPLETE",
+        "source_and_native_checkpoint_history_preserved": true,
+        "actual_first_failed_attempt_preserved": true,
+        "next_action_correction": "Publication precedes exact resulting-head hosted checks. This changes the prior private preparation order, not an executed operation.",
+        "metadata_commit_and_stock_transfer": "Remain actual next operations. Historical preparation-time NOT_CREATED/NOT_EXECUTED snapshots above retain their dated scope."
+      }
+    }
+  ]
+}

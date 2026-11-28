@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-151",
+  "objective": "Enforce the company daily cap while retaining uncertain durable reservations",
+  "owner": "ChatGPT-Web WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p4-company-window-20261113-4dae",
+  "head_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the reviewed metadata successor through one ordinary update of existing PR985, then verify its exact-head hosted PostgreSQL and required checks before steward integration; broader MJ-REQ-151 acceptance remains incomplete.",
+  "created_at": "2026-11-09T03:38:08.247569+00:00",
+  "requirements": [
+    "MJ-REQ-151"
+  ],
+  "tests": [
+    {
+      "command": "At 3254eb40079725d213129a8f71c12731ee4f6b1e: focused company-window pytest 18 passed, 49 subtests; real SQLite, no stubs",
+      "result": "PASS"
+    },
+    {
+      "command": "Baseline 971ba931418fc271e7a652e27c288e1776448b6d: three expiry regressions fail as expected, without collection/import errors",
+      "result": "PASS"
+    },
+    {
+      "command": "Strict commit provenance and git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "10 PostgreSQL variants: no isolated PostgreSQL URL configured locally",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Existing configured-limit integration suite locally: broad API import closure; hosted CI pending",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Full repository suites, connected browser, deployed runtime and complete MJ-REQ-151 acceptance",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Actual 477052c1 ordinary merge source/materialization audit: exact fd4a tree, ordered aa941 + ae420 parents, eight feature paths and six original code/test/environment blobs retained; audit receipt 0be3cb49 and original merge receipt 38b97744.",
+      "result": "PASS"
+    },
+    {
+      "command": "Actual 477052c1 local qualification attempt a65f294e: controller FileNotFoundError after 4 seconds; incomplete tests, no JUnit or recorded child returncode, 42-byte progress only. Result c2b6e154 and terminal b8729b18 preserve retained Job cleanup PASS/resource RELEASED and unchanged source/dependencies.",
+      "result": "FAIL"
+    },
+    {
+      "command": "PENDING actual source-bound successor local unit/SQLite qualification: expected 23 local primary method groups plus 15 explicit missing-PostgreSQL-URL skips; these are expectations, not completed counts.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Resulting publication-head hosted PostgreSQL 15-method execution, all current required checks, protected integration and complete MJ-REQ-151 acceptance.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Actual 477052c1/fd4a local unit and SQLite qualification2032023f: 23 primary methods passed,55 subtests passed,15 explicit missing-PostgreSQL-URL skips; pytest12.87s/controller14.781s. Result e5262960,terminal6a5c4fbf and independent audit0d51e783 bind unchanged source/dependencies and released resource with retained Job zero/original host signaled. PostgreSQL remains NOT_RUN.",
+      "result": "PASS"
+    }
+  ],
+  "blockers": [
+    "MJ-REQ-151 still needs complete configurable route-per-canonical-job and minimum-match acceptance; MJ-REF-048 remains dependency blocked"
+  ],
+  "continuation_history": [
+    {
+      "recorded_at_utc": "2026-11-13T13:12:06Z",
+      "recorded_by": "/root/integration_coordination",
+      "continuation_run_id": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "prior_checkpoint": {
+        "owner": "ChatGPT-Web web-20261109T031055Z-f61f749bf2d7",
+        "branch": "web/web-20261109T031055Z-f61f749bf2d7/MJ-REQ-151-company-window",
+        "head_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+        "created_at": "2026-11-09T03:38:08.247569+00:00",
+        "routing_state": "VERIFY",
+        "next_action": "Observe exact publication-head hosted checks, obtain PostgreSQL and existing configured-limit evidence, then hand off for authorized protected integration; broader MJ-REQ-151 remains incomplete.",
+        "tests_prefix_length": 6,
+        "blockers": [
+          "MJ-REQ-151 still needs complete configurable route-per-canonical-job and minimum-match acceptance; MJ-REF-048 remains dependency blocked"
+        ]
+      },
+      "source_head": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "ownership_note": "This prepared payload preserves the original owner/branch/head/created_at and any transfer_history. Only a subsequent actual stock transfer_ownership invocation may update task-data ownership/history.",
+      "historical_fields_and_test_prefix_preserved": true
+    },
+    {
+      "recorded_at_utc": "2026-11-13T14:00:54Z",
+      "recorded_by": "/root/integration_coordination",
+      "action": "Recorded actual local qualification and publication-first continuation; no task-data ownership transfer performed by this payload.",
+      "prior_preparation_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-metadata-continuation-manifest-v1.json",
+        "bytes": 9504,
+        "sha256": "709cf076d1c1d23e517b9a134e60d6de776dcb5bff6b1a158462446cd6457192"
+      },
+      "prior_next_action": "VERIFY the actual 477052c1 current-main composition after the preserved failed first local attempt; obtain a complete successor result, finalize owned metadata, perform the real stock handoff transfer and update existing PR985 through ordinary fast-forward publication. PostgreSQL, exact-head hosted gates and broader MJ-REQ-151 acceptance remain pending.",
+      "source_head": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "actual_qualification_result": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\result.json",
+        "bytes": 41131,
+        "sha256": "e52629601d4fa2fd9fffa401d9e48109e35ac834687443e86a3b33d8085e797d"
+      },
+      "independent_actual_audit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-2032023f-integration.json",
+        "bytes": 21550,
+        "sha256": "0d51e783dca068abfff28c92228f8b0e666f99a91960406e63fc6701cf5260ea"
+      },
+      "historical_fields_and_test_prefix_preserved": true,
+      "stock_transfer_requirement": "Apply the reviewed literal payload to its exact original preimage, then execute the genuine stock transfer_ownership under full current native ownership. Do not replace later operational owner/branch/head/transfer history with this pre-transfer payload."
+    }
+  ],
+  "qualification_continuation": {
+    "recorded_at_utc": "2026-11-13T13:12:06Z",
+    "state": "LOCAL_QUALIFICATION_RECORDED_HOSTED_AND_INTEGRATION_PENDING",
+    "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+    "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+    "actual_merge": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-worktree-merge-daae16dc-0725-4f68-bbe4-8d16fc2185da\\completion.json",
+      "bytes": 11231,
+      "sha256": "38b97744fe468d3f3b3f62a35107e22a9d8dc0a32920159329d19d883bfe2fab"
+    },
+    "native_source_checkpoint": {
+      "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-source-head-checkpoint-735684db-13ef-4438-b15e-0b812b1b44cf\\completion.json",
+      "bytes": 1715,
+      "sha256": "bf752ad3b9954db09ebad9016c90b235f7cbb4db53ced0d1221443acc9481e91"
+    },
+    "first_current_main_attempt": {
+      "attempt_id": "a65f294e-435c-4002-aaf9-cc16af5c254e",
+      "result": "FAIL_LOCAL_QUALIFICATION",
+      "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "runner_sha256": "55d3c03c18cd6890a791b3491dfa7da63e7f5bb11ba001e4e3d5d15de43ec677",
+      "approved_config_sha256": "a7885b1849e73bf5cae93bfb415a24c84ec3953d71a383fe730926899b6519b8",
+      "started_at_utc": "2026-11-13T12:59:14.788568+00:00",
+      "finished_at_utc": "2026-11-13T12:59:18.783120+00:00",
+      "elapsed_seconds": 4,
+      "controller_error_type": "FileNotFoundError",
+      "cause": "Not established by this metadata preparation; retain the failed controller and actual receipts for the separately owned correction.",
+      "test_completion": "INCOMPLETE",
+      "test_pass_count": null,
+      "postgres_qualification": "NOT_RUN",
+      "child_returncode": "NOT_RECORDED",
+      "junit": "NOT_PRODUCED",
+      "progress_log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\pytest.log",
+        "bytes": 42,
+        "sha256": "d5392e18f86b6992e2de00ed9e24a77a3d363e9753605f55693ee630014e4420",
+        "interpretation": "Partial42-byte progress only; no completed-test count is inferred."
+      },
+      "cleanup": {
+        "status": "PASS",
+        "retained_job_active_members": 0,
+        "original_host_signaled": true,
+        "method": "OwnedProcess.finalize"
+      },
+      "terminal_resource_status": "RELEASED",
+      "source_unchanged": true,
+      "dependencies_unchanged": true,
+      "private_inputs_unchanged": true,
+      "owner_records_unchanged": true,
+      "actual_result": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\result.json",
+        "bytes": 25855,
+        "sha256": "c2b6e1549ee2787498cd34326bd2b9ca42cbdc569af3682fc150ab3d51991392"
+      },
+      "actual_completion": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-a65f294e-435c-4002-aaf9-cc16af5c254e\\completion.json",
+        "bytes": 597,
+        "sha256": "b8729b1815d8c433127b99f0383a561deb944661857335f91e47c43902c22ff9"
+      },
+      "independent_failed_run_audit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-a65f294e-campaign.json",
+        "bytes": 28953,
+        "sha256": "4164e410bb45a0373f622d8b70023ae6fe976c57dc562550cf8aa24b620718b7",
+        "verification": "Independently opened complete29KB audit and matched exact4164e410 digest; audit PASS does not change the actual runFAIL."
+      }
+    },
+    "successor_local_qualification": {
+      "status": "PASS_LOCAL_UNIT_SQLITE_PG_NOT_RUN",
+      "attempt_id": "2032023f-c8c7-4afa-9136-41ab57f216c8",
+      "source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "runner_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-runner-v2.py",
+      "runner_sha256": "d67a0117e92dfc6b94e431b77b330839e32d9ccd4a7efc4131a2c9f56c28d6e4",
+      "independent_runner_review": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-review-local-qualification-d67a0117.json",
+        "bytes": 13350,
+        "sha256": "27131ea315e49a2412ec9991548af92ca019928df7885cd27dde916523db9e85"
+      },
+      "approved_config": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-config-v2-approved-2032023f.json",
+        "bytes": 2072,
+        "sha256": "bc7118eb5c5a4ce19a2cbc5f9984be809341f5b76cc8151e4e2cd57ddd951548"
+      },
+      "actual_result_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\result.json",
+        "bytes": 41131,
+        "sha256": "e52629601d4fa2fd9fffa401d9e48109e35ac834687443e86a3b33d8085e797d"
+      },
+      "actual_completion_receipt": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\completion.json",
+        "bytes": 606,
+        "sha256": "6a5c4fbf399b2509d0e95ee76c05ac2624e03ed0a7337dbba7a76d0b09deb372"
+      },
+      "log": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.log",
+        "bytes": 2441,
+        "sha256": "aa4543c85714b119f46160288fe9953d2170fd006ee1b2025b3940497bb9b6f4"
+      },
+      "junit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\pytest.xml",
+        "bytes": 12321,
+        "sha256": "041069954f2d9be1a1cb327d628b80301b5bb42c6988f1f55b8cd91752fcb021"
+      },
+      "independent_actual_audit": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-independent-audit-qualification-2032023f-integration.json",
+        "bytes": 21550,
+        "sha256": "0d51e783dca068abfff28c92228f8b0e666f99a91960406e63fc6701cf5260ea"
+      },
+      "local_passed_primary_method_groups": 23,
+      "unit_passed_method_groups": 8,
+      "sqlite_passed_method_groups": 15,
+      "subtests_passed_from_actual_log": 55,
+      "postgres_skipped_methods": 15,
+      "raw_junit_rows": 38,
+      "raw_junit_suite_totals": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 15
+      },
+      "actual_counts_scope": "Actual log: 23 passed, 15 skipped, 55 subtests passed. XML contains 38 testcase rows with suite tests=93; 93 is not relabelled as primary tests.",
+      "pytest_elapsed_seconds": 12.87,
+      "junit_suite_elapsed_seconds": 12.873,
+      "elapsed_seconds": 14.781,
+      "started_at_utc": "2026-11-13T13:50:40.570594+00:00",
+      "finished_at_utc": "2026-11-13T13:50:55.357606+00:00",
+      "completed_at_utc": "2026-11-13T13:50:56.865219+00:00",
+      "returncode": 0,
+      "postgres_qualification": "NOT_RUN",
+      "postgres_skip_reason": "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database",
+      "cleanup": {
+        "status": "PASS",
+        "retained_job_active_members": 0,
+        "original_host_signaled": true,
+        "method": "OwnedProcess.finalize"
+      },
+      "terminal_resource_status": "RELEASED",
+      "terminal_resource": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-2032023f-c8c7-4afa-9136-41ab57f216c8\\resource-claim.json",
+        "bytes": 2484,
+        "sha256": "66028beee3bb85fe17f86680c24b04b3d8ab03dc05b4367c1b9701ba06a0d559"
+      },
+      "source_unchanged": true,
+      "dependencies_unchanged": true,
+      "private_inputs_unchanged": true,
+      "owner_records_unchanged": true,
+      "targeted_current_source_pins": 27,
+      "targeted_installed_dependency_files": 21,
+      "dependency_scope": "Selected files and source composition are pinned; this is not a complete dependency-closure claim.",
+      "actual_process_identity": {
+        "supervisor": {
+          "pid": 15020,
+          "creation_filetime": "134390514377469531"
+        },
+        "child": {
+          "pid": 9584,
+          "creation_filetime": "134390514419205499",
+          "ownership": "Retained original host HANDLE and atomically assigned Job"
+        }
+      },
+      "original_process_generation_absence_observed_at_utc": "2026-11-13T13:55:44.052635+00:00",
+      "original_process_generations_absent": true,
+      "filetime_encoding": "Exact 64-bit creation values are decimal strings in this metadata; original raw runtime JSON remains unchanged.",
+      "runner_correction": {
+        "receipt": {
+          "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-local-qualification-repair-v2.json",
+          "bytes": 10137,
+          "sha256": "f185edbfc6470f7d193e69fe7b6d415416bb0c59c37354c2b845eaffddf0d020"
+        },
+        "scope": "Private controller accounting tolerates only missing ephemeral descendants of its owned tmp subtree and retains other errors, limits, ownership and cleanup; sanitized diagnostics are bounded.",
+        "historical_failure_limit": "This successful successor does not prove the precise site/path/actor of the prior FileNotFoundError. No product source or test was changed."
+      },
+      "evidence_provenance": "Populated from the completed source-bound result and terminal release after independent review; no expected count is substituted for execution."
+    },
+    "whole_requirement_acceptance": "NOT_ESTABLISHED",
+    "existing_pr": 985,
+    "external_submission": "OFF",
+    "qualification_recorded_at_utc": "2026-11-13T14:00:54Z",
+    "metadata_successor_source_equivalence": {
+      "status": "REQUIRED_AT_ACTUAL_METADATA_COMMIT",
+      "tested_source_sha": "477052c1cfd462cac1f0b2134ca5231f796bcfe9",
+      "tested_source_tree": "fd4a4edb9d918e22c42a43a8defeed2d95e96355",
+      "allowed_changed_paths": [
+        "docs/evidence/2026-11-09-company-submission-window-f61f749bf2d7.json",
+        "planning/agent_handoffs/MJ-REQ-151.json"
+      ],
+      "required": "The metadata successor must preserve every Git tree entry outside these two paths, including the six original code/test/environment blobs. Its actual head/tree and stock transfer must be established by separate execution receipts.",
+      "actual_metadata_successor_head": null,
+      "actual_metadata_successor_tree": null
+    },
+    "historical_test_row_scope": {
+      "scope": "All prior test rows are preserved as dated history. The pending-successor row at index8 describes private preparation at2026-11-13T13:12:06Z; the later actual PASS row and successor_local_qualification record replace that pending state for local qualification only.",
+      "prior_preparation_manifest": {
+        "path": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\pr985-metadata-continuation-manifest-v1.json",
+        "bytes": 9504,
+        "sha256": "709cf076d1c1d23e517b9a134e60d6de776dcb5bff6b1a158462446cd6457192"
+      },
+      "old_test_rows_preserved": 10
+    }
+  },
+  "transfer_history": [
+    {
+      "from_owner": "ChatGPT-Web web-20261109T031055Z-f61f749bf2d7",
+      "to_owner": "ChatGPT-Web WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "reason": "Continue the existing reviewed PR985 company-window slice under root4dae after actual native source admission and current-main materialization; preserve the original implementation authorship and all historical results.",
+      "transferred_at": "2026-11-13T14:09:21.830722+00:00"
+    }
+  ]
+}
