@@ -1,5 +1,4 @@
 """Bounded public Lever GET inventory, with instance-qualified source identity."""
-import math
 import re
 import time
 from urllib.parse import urlsplit
@@ -160,10 +159,14 @@ class Lever(Greenhouse):
         pay = raw.get('salaryRange')
         if isinstance(pay,dict):
             low,high = pay.get('min'),pay.get('max')
-            if (all(type(v) in (int,float) and math.isfinite(v) and 0<=v<1e9 for v in (low,high))
+            # Bound integers without coercing arbitrary-size values to float.
+            # Ordered comparisons also reject NaN and both infinities.
+            if (all(type(v) in (int,float) and 0<=v<1e9 for v in (low,high))
                     and low<=high):
-                salary.update(salary_min=low,salary_max=high,
-                    salary_period={'per-year':'YEAR','per-hour':'HOUR','year':'YEAR','hour':'HOUR'}.get(pay.get('interval'),'UNKNOWN'),
+                interval = pay.get('interval')
+                period = ({'per-year':'YEAR','per-hour':'HOUR','year':'YEAR','hour':'HOUR'}
+                          .get(interval,'UNKNOWN') if isinstance(interval,str) else 'UNKNOWN')
+                salary.update(salary_min=low,salary_max=high, salary_period=period,
                     currency=str(pay.get('currency') or 'Unknown')[:8],salary_raw=pay)
         attrs = dict(provider='lever',tenant=self.tenant,lever_site=self.site,lever_instance=self.instance,
             native_posting_id=identifier,native_job_id=identifier,lifecycle_claim='ACTIVE',

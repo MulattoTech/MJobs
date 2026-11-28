@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-954-INTEGRATION",
+  "objective": "Preserve reviewed Lever salary fix and verify protected integration of PR954",
+  "owner": "web-20261105T024508Z-59bece5f637e",
+  "branch": "web/web-20261105T024508Z-59bece5f637e/pr954-integration",
+  "head_sha": "8e83629387be86d876751afd9e86399c1c730552",
+  "routing_state": "RESUME",
+  "next_action": "Correct publication evidence schema; publish existing branch; verify fresh required gates and protected merge under fresh lock",
+  "created_at": "2026-11-05T02:52:48.315205+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "29 tests and 56 subtests; no failures/errors/skips at 8e83629387be86d876751afd9e86399c1c730552",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue, progress, dashboard, provenance and whitespace passed on tested merge",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted candidate checks, live provider, PostgreSQL/Redis locally, browser and production",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
