@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "kind": "windows_private_deployment_root_qualification",
+  "status": "PASS",
+  "recorded_at": "2026-11-13T08:24:30.238761+00:00",
+  "requirement_scope": [
+    "MJ-REQ-166",
+    "MJ-REQ-167",
+    "MJ-REQ-168"
+  ],
+  "formal_acceptance_changed": false,
+  "scope": "An explicit Windows updater root and its focused qualification; separate empty-placement preparation. This is not a production deployment or task/configuration relocation.",
+  "tested_source": {
+    "commit": "1524ba181f4b1e91aace279d588eb667acb4caec",
+    "tree": "1ce838e07cb6e3c4967f8b10cae5c3e515068393",
+    "parent": "1f1a578ee84554e81c76df59b28d88f008a93815",
+    "artifact_sha256": {
+      "infra/deploy/README.md": "ca58e8709198551f05b71dd7a02eec4145a6938c2effe71fb7aead4e39bb02c6",
+      "infra/deploy/windows/update_mjobs_micro.py": "b2bd68c265d7812d2ec84ba7a30830e6eef13a00a7787e9232856c455851a594",
+      "tests/unit/test_windows_micro_home.py": "5920d65394482fc92c4ce5bf86978dc1b8191eab2223b463ad428fe136232176"
+    },
+    "worktree_clean_before_and_after": true
+  },
+  "implementation": {
+    "setting": "MJOBS_MICRO_HOME",
+    "unset": "Existing legacy configuration remains.",
+    "explicit": "Existing drive-absolute root; BASE is HOME/config, with coherent state/log/lock/releases/backups.",
+    "invalid": "Fixed content-free refusal before mkdir/log/lock/Git/Docker; no legacy fallback.",
+    "old_source": "Exact HOME/releases/<old SHA>, validated by the existing independent-clone verifier before GitHub or migration inspection.",
+    "invocation_isolation": "main restores caller path bindings, preventing a prior explicit selection leaking into a later unset invocation.",
+    "preserved_helpers_ast_identical": 15,
+    "preserved_existing_test_modules_byte_identical": 3,
+    "ntfs_privacy_algorithm_changed": false
+  },
+  "focused_suite": {
+    "status": "PASS",
+    "command": "python -B -m pytest -q -p no:cacheprovider tests/unit/test_windows_micro_home.py tests/unit/test_windows_micro_cd.py tests/unit/test_windows_micro_backup_diagnostics.py tests/unit/test_windows_micro_command_bounds.py --junitxml=<private-receipt>",
+    "private_output_path_redacted": true,
+    "started_at": "2026-11-13T08:09:06.217360+00:00",
+    "finished_at": "2026-11-13T08:09:21.927860+00:00",
+    "primary_tests": 61,
+    "passed": 59,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "subtests_passed": 122,
+    "new_primary_tests_passed": 19,
+    "new_primary_tests_skipped": 0,
+    "junit_reported_tests_including_subtests": 183,
+    "junit_testcase_nodes": 61,
+    "junit_sha256": "9b32bbb18dd133294a3c57988840e3830bf9e9d95c0f6e928082ebfbe1e80c93",
+    "skip_details": [
+      {
+        "nodeid": "tests/unit/test_windows_micro_cd.py::CandidateReuseTests::test_overlay_symlink_is_rejected_without_touching_target",
+        "reason": "Existing test cannot create a Windows symbolic link with this token (WinError 1314).",
+        "counted_as_pass": false
+      },
+      {
+        "nodeid": "tests/unit/test_windows_micro_cd.py::CandidateReuseTests::test_symlinked_release_ancestor_is_rejected",
+        "reason": "Existing test cannot create a Windows symbolic link with this token (WinError 1314).",
+        "counted_as_pass": false
+      }
+    ],
+    "lock_test_scope": "Mocked Windows locking interface with real temporary files; actual scheduled-task competition was not exercised.",
+    "network_or_docker_test_services_used": false
+  },
+  "actual_windows_configuration_check": {
+    "actual_private_root_layout_check": true,
+    "actual_windows_fixed_drive_check": true,
+    "filesystem_entries_unchanged": true,
+    "network_or_docker_called": false,
+    "path_mapping_coherent": true,
+    "status": "PASS",
+    "updater_main_or_run_update_called": false,
+    "commit": "1524ba181f4b1e91aace279d588eb667acb4caec",
+    "selected_root": "C:\\MJobsMicroProtected",
+    "operation": "Load the hash-pinned candidate module and call configure_deployment_home only.",
+    "production_configuration_read_or_copied": false
+  },
+  "separate_empty_root_bootstrap": {
+    "status": "PASS",
+    "root": "C:\\MJobsMicroProtected",
+    "recorded_at": "2026-11-13T08:09:05.858394+00:00",
+    "atomic_private_creation": true,
+    "empty_subdirectories": [
+      "config",
+      "releases",
+      "backups",
+      "evidence",
+      "tmp"
+    ],
+    "stock_private_parent_checks": "PASS",
+    "stock_guard_sha256": "67617510e65c60a2e0c74415781f6947e44e268518ff24ae97f92ab48e8fe582",
+    "retained_directory_identity_unchanged": true,
+    "post_job_empty_directory_readback": true,
+    "configuration_copied": false,
+    "state_adopted": false,
+    "updater_installed": false,
+    "task_changed": false,
+    "production_runtime_changed": false,
+    "qualification_sha256": "5a82cbcf0df1d0efd83c2eea5fb086cb6e5e9eb79c27e1ead67f8746711dfec3",
+    "independent_bootstrap_static_review_sha256": "f6a6e42bbaa20e203e0a969600055b8ec46254dc6d4c7990e27ab6270d820a5c",
+    "scope": "EMPTY_PRIVATE_PLACEMENT_ONLY"
+  },
+  "independent_source_review": {
+    "status": "PASS",
+    "reviewer": "ChatGPT-Web independent reviewer /root/release_gate_inventory",
+    "commit": "1524ba181f4b1e91aace279d588eb667acb4caec",
+    "tree": "1ce838e07cb6e3c4967f8b10cae5c3e515068393",
+    "receipt_sha256": "ab436f5f2a1c84cbc30bc23fdb7155e7f04ec52d1e58764d3febfafb1b11e697",
+    "scope": "Static source readiness; no hosted or production approval.",
+    "human_or_cryptographic_attestation": false
+  },
+  "execution_chains": [
+    {
+      "name": "private-deployment-root-tests-attempt1",
+      "elapsed_seconds": 15.703,
+      "finished_at": "2026-11-13T08:09:21.927860+00:00",
+      "job_finalized_zero_members": true,
+      "job_sha256": "32f33bf6dc340e7519681996d51abc5dcd37ff08e6133fa7b647eb4bd10cac7a",
+      "launcher_sha256": "988e58a14634da561d616a3c9b67c660950f93a5ac63779c77ad605b14ebf925",
+      "log_sha256": "4cfbf9625a9fe8b6e1e82d1461ef973ca60b49d7a2156152e74e58a81f06a511",
+      "started_at": "2026-11-13T08:09:06.217360+00:00",
+      "worker_receipt_sha256": "5a25a79487f992be904c326cbb4e85fd84bab73c3523e2958f2cb9801ea04a79",
+      "intent_sha256": "874bddbbea29bedb8a95ce96733d042d2976116cd931691f469b3e913edc5606",
+      "command_returncode": 0,
+      "host_returncode": 0
+    },
+    {
+      "name": "private-root-actual-home-readonly-attempt1",
+      "elapsed_seconds": 0.266,
+      "finished_at": "2026-11-13T08:11:33.596522+00:00",
+      "job_finalized_zero_members": true,
+      "job_sha256": "e53ed0f3cd0669c25469873993a6310939567a47a516a2d4680ab3824db721ba",
+      "launcher_sha256": "ec25b6370e47a962515d0170f6a4e7e08aa8e9711db1717a58da861b40aaacc1",
+      "log_sha256": "582b08ee1dfe22851b6f8ccb06e8067a8ef15b3fc232bcfebcddba65d508db37",
+      "started_at": "2026-11-13T08:11:33.328305+00:00",
+      "worker_receipt_sha256": "eac05c515c8569fc33d8bfa24bfca0249d93d0f2e55213deea6b71501331a7da",
+      "intent_sha256": "477992300ad7e1a5607ba55f140015fe235a445194edaaac0c3fe0c2e2d03d3f",
+      "command_returncode": 0,
+      "host_returncode": 0
+    },
+    {
+      "name": "private-root-bootstrap-attempt1",
+      "elapsed_seconds": 7.375,
+      "finished_at": "2026-11-13T08:08:40.524179+00:00",
+      "job_finalized_zero_members": true,
+      "job_sha256": "8fa0d8dd1173889d56c8c1c49989e99de928496c7905f2949ebda0217de89dae",
+      "launcher_sha256": "7b97889723b243958998b69e25d87eb34b8b06cf87e27c96a8fc10ed1fc3a5c7",
+      "log_sha256": "1642cc23abad28a37b7d6b19dd86b436554c843a0475987e8ff157823044cc9c",
+      "started_at": "2026-11-13T08:08:33.161949+00:00",
+      "worker_receipt_sha256": "c2339f3988e91c279c3783c4efb1c47e84a23d5e9cb64d09d6705dc2d82f01ec",
+      "intent_sha256": "41bcb2fe0ef541549a7c5b90ccada936b1cf7530f12feb96a2958569edf8709e",
+      "command_returncode": 0,
+      "host_returncode": 0
+    }
+  ],
+  "private_receipts": [
+    {
+      "kind": "qualification",
+      "sha256": "b6e193f956d82be030b6e5ab9047b69ce5cc0aa88b94929bbf593f761f61ed6e"
+    },
+    {
+      "kind": "independent_source_review",
+      "sha256": "ab436f5f2a1c84cbc30bc23fdb7155e7f04ec52d1e58764d3febfafb1b11e697"
+    },
+    {
+      "kind": "empty_root_qualification",
+      "sha256": "5a82cbcf0df1d0efd83c2eea5fb086cb6e5e9eb79c27e1ead67f8746711dfec3"
+    }
+  ],
+  "related_guarded_rehearsal": {
+    "path": "docs/evidence/2026-11-13-web-e49a-guarded-migration.json",
+    "original_evidence_commit": "add961c149c0a438ef61e6687f3a772f6e9c0ce0",
+    "preserved_evidence_sha256": "4fb46b5dea5c53accf09bf8a4a98bf3d245b263a21aa8a315ef7fba079251bba",
+    "historical_target_source": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "interpretation": "Preserved historical synthetic upgrade/restore proof; not a rerun or production qualification on this updater candidate."
+  },
+  "limitations": [
+    "The two real symlink-creation tests were skipped for missing Windows privilege; they are not PASS.",
+    "Pure path/layout validation is not an NTFS privacy proof. Bootstrap-time stock ACL results do not establish per-invocation ACL validation.",
+    "GetDriveTypeW rejects network/removable/unknown roots; a local SUBST mapping may still report DRIVE_FIXED.",
+    "The actual candidate check selected an empty root only; it did not call main or run_update.",
+    "This qualification and the root-selection step did not install the updater, alter a scheduled task, adopt a baseline, copy configuration or rotate keys. Normal gated updater behavior is preserved; production cutover still requires current-head release gates, native runtime admission, protected backup, and guarded migration admission.",
+    "Legacy task/process/lock handoff, trusted original configuration and key reconciliation, state adoption, and exact production release admission remain separate.",
+    "Hosted candidate gates and final bundled-head metadata qualification were not run at this evidence-recording point.",
+    "Historical guarded-rehearsal source/image/schema bindings remain unchanged; do not relabel them as this candidate."
+  ],
+  "hosted_candidate_checks": "NOT_RUN",
+  "production_installation_or_task_change": false,
+  "production_runtime_change": false,
+  "external_application_actions_executed": false
+}
