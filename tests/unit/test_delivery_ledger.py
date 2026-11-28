@@ -242,6 +242,30 @@ def test_api_route_is_readonly_and_enforces_bounds(monkeypatch, repo, tmp_path):
         assert client.get("/api/delivery-ledger?kind=invalid").status_code == 422
         assert client.get("/api/delivery-ledger?limit=151").status_code == 422
 
+
+def test_capture_failure_does_not_expose_exception_text_in_ledger_api(monkeypatch, repo, tmp_path):
+    from tools.agent_dashboard import server
+
+    secret_marker = "synthetic-private-diagnostic-marker"
+    monkeypatch.setattr(ledger, "_issue_seeds", lambda _root: {})
+    monkeypatch.setattr(ledger, "_all_git_events", lambda _root: ([], {}))
+    monkeypatch.setattr(ledger, "_matrix_events", lambda _root, _seeds: ([], {}))
+    monkeypatch.setattr(ledger, "_workspace_inventory", lambda _root: ([], [], {}))
+    monkeypatch.setattr(ledger, "_github_events", lambda: ([], {}))
+    monkeypatch.setattr(ledger, "_remote_branch_events", lambda _heads: ([], {}))
+
+    def failed_capture(_history, _seeds):
+        raise OSError(secret_marker)
+
+    monkeypatch.setattr(ledger, "_captured_transitions", failed_capture)
+    app = server.create_app(repo, progress_history_db=tmp_path / "history.sqlite3")
+    with TestClient(app) as client:
+        response = client.get("/api/delivery-ledger?refresh=true")
+    assert response.status_code == 200
+    assert response.json()["coverage"]["captures"]["available"] is False
+    assert secret_marker not in response.text
+
+
 def test_remote_git_branch_commits_are_read_without_local_fetch(monkeypatch):
     calls = []
     remote_sha = "b" * 40
