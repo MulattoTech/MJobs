@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-224",
+  "related_requirements": [
+    "MJ-REQ-004"
+  ],
+  "run_id": "WEB-20261113T210232Z-ef1809b6-3d50-436d-8c85-fad755940520",
+  "recorded_at_utc": "2026-11-13T21:25:11.808594+00:00",
+  "result": "PASS_SCOPED",
+  "canonical_status": "PARTIAL_UNCHANGED",
+  "objective": "Restore Teamtailor and Breezy rendered-control analysis when a worker supplies remaining_seconds, without changing review or privacy policy.",
+  "base_sha": "268c5c9fb6d1016ebd79cf9366eababcaa4f0a80",
+  "source_test_revision": "ce133e3d0fff032bc01a2e47c4d6c86f6a83278c",
+  "source_tree": "a2093f926ce36513d728dcbfc1ef22c4d21a70b5",
+  "source_blobs": {
+    "services/applications/adapters/breezy.py": "0ac174f631bf6c44acc7a559f7478be67f3cc797",
+    "services/applications/adapters/teamtailor.py": "7410ef651d0a2dc662d05077719a9e9fde7da3b6",
+    "tests/browser/test_application_adapter_budget.py": "d4e57c62c7471ba4e11965c3725477359b121118",
+    "tests/unit/test_adapter_operation_control.py": "f3d46ef42930dba1a02142a37cba24f810d57a34",
+    "tests/unit/test_breezy_application_adapter.py": "e821dd125a569413d8507285b18160ba40fde802",
+    "tests/unit/test_teamtailor_application_adapter.py": "578fa0f241f5355746a6e925471e18ff4338f6c4"
+  },
+  "environment_readback": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "playwright": "1.63.0",
+    "pytest": "9.1.1",
+    "platform": "Windows native; Chromium launched by pinned Playwright; synthetic content only"
+  },
+  "defect": {
+    "api_evaluate_all": "(expression, arg=None) has no timeout keyword",
+    "api_evaluate": "(expression, arg=None, *, timeout=None) supports locator-resolution timeout",
+    "official_reference": "https://playwright.dev/python/docs/api/class-locator#locator-evaluate",
+    "teamtailor_observation": "UNKNOWN / CONTROL_STATE_UNAVAILABLE under budget callback",
+    "breezy_observation": "Rendered state omitted; human review remains required",
+    "impact": "Availability and qualification; no demonstrated permissive bypass"
+  },
+  "before_fix": {
+    "source_sha": "c1347eaf6b242a12cf3d87f6b224feca616aa9fb",
+    "source_tree": "dd5019dbcbc9b674c91d24b215b80fa7dd3a841f",
+    "test_blob": "a30029b3c123114bba9e33f77d0be42925acb687",
+    "application_blobs": {
+      "services/applications/adapters/teamtailor.py": "3bca8e6044450760aefc36a1c8c05ce66d1deb63",
+      "services/applications/adapters/breezy.py": "76697b935b919ced2cdbf5876f99da4aa700c11a"
+    },
+    "command": "python -m pytest -q -s tests/browser/test_application_adapter_budget.py --junitxml=<owned-run>/adapter-budget-baseline-c1347eaf.junit.xml",
+    "started_at_utc": "2026-11-13T21:17:13.063383+00:00",
+    "finished_at_utc": "2026-11-13T21:17:15.519208+00:00",
+    "exit_code": 1,
+    "counts": {
+      "total": 2,
+      "passed": 0,
+      "failure": 2,
+      "error": 0,
+      "skipped": 0
+    },
+    "failures": [
+      {
+        "name": "test_breezy_contact_analysis_accepts_worker_budget",
+        "details": "self = <tests.browser.test_application_adapter_budget.ApplicationAdapterBudgetBrowserTests testMethod=test_breezy_contact_analysis_accepts_worker_budget>\n\n    def test_breezy_contact_analysis_accepts_worker_budget(self):\n>       self._assert_budgeted_contact_analysis(BreezyApplicationAdapter())\n\ntests\\browser\\test_application_adapter_budget.py:103: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\ntests\\browser\\test_application_adapter_budget.py:88: in _assert_budgeted_contact_analysis\n    self.assertIs(analysis[\"fields\"][0].get(\"user_visible\"), True)\nE   AssertionError: None is not True"
+      },
+      {
+        "name": "test_teamtailor_contact_analysis_accepts_worker_budget",
+        "details": "self = <tests.browser.test_application_adapter_budget.ApplicationAdapterBudgetBrowserTests testMethod=test_teamtailor_contact_analysis_accepts_worker_budget>\n\n    def test_teamtailor_contact_analysis_accepts_worker_budget(self):\n>       self._assert_budgeted_contact_analysis(TeamtailorApplicationAdapter())\n\ntests\\browser\\test_application_adapter_budget.py:100: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\ntests\\browser\\test_application_adapter_budget.py:86: in _assert_budgeted_contact_analysis\n    self.assertEqual(analysis[\"status\"], \"PASS\")\nE   AssertionError: 'UNKNOWN' != 'PASS'\nE   - UNKNOWN\nE   + PASS"
+      }
+    ],
+    "receipt_file": "adapter-budget-baseline-c1347eaf.receipt.json",
+    "receipt_sha256": "b1fdce47af5207e59087a599875c0125d2ce31496e541bdb10636da67c665050",
+    "log_sha256": "2b7eccd1b0565f9edf59206579317112a3c426082f0c67b7224478694d86d822",
+    "junit_sha256": "d2c37ed140baafb48c297d53737ef92de8532d8d7d30603803f7c81e6da493cc",
+    "source_unchanged": true
+  },
+  "qualified": {
+    "source_sha": "ce133e3d0fff032bc01a2e47c4d6c86f6a83278c",
+    "source_tree": "a2093f926ce36513d728dcbfc1ef22c4d21a70b5",
+    "command": "python -m pytest -q -s tests/unit/test_teamtailor_application_adapter.py tests/unit/test_breezy_application_adapter.py tests/unit/test_adapter_operation_control.py tests/browser/test_application_adapter_budget.py --junitxml=<owned-run>/adapter-budget-qualified-ce133e3d.junit.xml",
+    "started_at_utc": "2026-11-13T21:21:44.767817+00:00",
+    "finished_at_utc": "2026-11-13T21:21:49.158842+00:00",
+    "exit_code": 0,
+    "counts": {
+      "total": 160,
+      "passed": 160,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "subtests_passed": 143,
+    "pytest_elapsed_seconds": 3.87,
+    "module_counts": {
+      "tests.unit.test_teamtailor_application_adapter.TeamtailorApplicationAdapterTests": 13,
+      "tests.unit.test_breezy_application_adapter.BreezyApplicationAdapterTests": 17,
+      "tests.unit.test_adapter_operation_control": 123,
+      "tests.browser.test_application_adapter_budget.ApplicationAdapterBudgetBrowserTests": 7
+    },
+    "receipt_file": "adapter-budget-qualified-ce133e3d.receipt.json",
+    "receipt_sha256": "b35e399d46bc8ab2a1872adff66a021fa202da409feb6f520fe4ca6af5db3973",
+    "log_sha256": "c9c8cbe20eb171b2d8e5de90e3d3093266b43764e922c8c53c1722339e1cc448",
+    "junit_sha256": "eb4cd254738e421d19c34a71cad10e0e84fa4ad67bad2ad0db3e7d6c3975a51b",
+    "source_unchanged": true
+  },
+  "verified_boundaries": [
+    "Budgeted visible standard contacts retain visibility/editability and can pass the existing review gate.",
+    "Hidden, invisible, disabled, readonly and clipped controls remain review-required.",
+    "Breezy occlusion remains review-required.",
+    "Missing/multiple forms and actual metadata-to-state form/count changes fail closed.",
+    "Cancellation, timeout and control-unavailable exception identities remain exact across ordinary and budget callbacks.",
+    "Private synthetic input values are absent from reports; instrumented input/change/submit counts stay zero; all browser requests are refused and none are observed."
+  ],
+  "independent_review": {
+    "reviewer": "Independent ChatGPT-Web helper /root/github_current",
+    "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+    "head": "ce133e3d0fff032bc01a2e47c4d6c86f6a83278c",
+    "tree": "a2093f926ce36513d728dcbfc1ef22c4d21a70b5",
+    "blobs": {
+      "services/applications/adapters/breezy.py": "0ac174f631bf6c44acc7a559f7478be67f3cc797",
+      "services/applications/adapters/teamtailor.py": "7410ef651d0a2dc662d05077719a9e9fde7da3b6",
+      "tests/browser/test_application_adapter_budget.py": "d4e57c62c7471ba4e11965c3725477359b121118",
+      "tests/unit/test_adapter_operation_control.py": "f3d46ef42930dba1a02142a37cba24f810d57a34",
+      "tests/unit/test_breezy_application_adapter.py": "e821dd125a569413d8507285b18160ba40fde802",
+      "tests/unit/test_teamtailor_application_adapter.py": "578fa0f241f5355746a6e925471e18ff4338f6c4"
+    },
+    "scope": "Immutable source and baseline evidence; no tests executed by reviewer",
+    "findings": [
+      "Supported strict single-form Locator.evaluate replaces unsupported evaluate_all timeout keyword.",
+      "Both pure control-state scripts are byte-identical to base268.",
+      "Existing operation exception identity, post-call checks, privacy and conservative human-review gates remain intact.",
+      "Real Chromium tests exercise positive budgeted analysis and adverse rendered/mutating-form boundaries.",
+      "Existing Greenhouse work in PR973 is not duplicated."
+    ],
+    "limitations": [
+      "Locator resolution is timed; renderer JavaScript execution remains cooperative.",
+      "Metadata and state are separate reads; same-count control replacement identity is not newly bound.",
+      "Synthetic local tests do not prove live ATS compatibility, form filling, uploads, submission, or whole MJ224/MJ004 acceptance."
+    ],
+    "state_script_sha256": {
+      "teamtailor": "fd7df5a1451f913c6c68515e8dd4ac43e7ca19df1d138f0416f103ba07b0da8a",
+      "breezy": "b7b61fffea99a2557187672d13f267e394e71760fcd42a0178568a50d7cd3b2d"
+    }
+  },
+  "independent_review_receipt_sha256": "b9f243080dd9cfaf76ccef2953b5a6ecb8ecd897c030752d80331b46f695027e",
+  "prior_work_preserved": {
+    "greenhouse_fix_commit": "b53ccd5cd660c1db6535dd477a96eca0dfc44ba8",
+    "deadline_documentation_commit": "fdf90113c04967a9a50b362f1dd42d4330d3fa8d",
+    "pull_request": "https://github.com/MulattoTech/MJobs/pull/973",
+    "relationship": "Existing Greenhouse/Lever repair is separately owned by the campaign; this change touches only Teamtailor/Breezy production code."
+  },
+  "execution_history": {
+    "baseline_harness_setup": "An initial optional psutil import failed before resource acquisition or pytest/browser launch; the standard-library process identity helper was reused instead.",
+    "interrupted_test_file_write": "One MTerm connection error; readback proved the original103-line file unchanged before the intended203-line write was applied."
+  },
+  "not_run": [
+    "Hosted required checks on eventual PR head",
+    "Protected integration",
+    "Guarded production rollout",
+    "Live provider/account validation",
+    "Preemptive renderer-hang termination",
+    "Full seven-dimension MJ-REQ-224 acceptance",
+    "Whole MJ-REQ-004 acceptance"
+  ],
+  "acceptance": {
+    "original_before": 185,
+    "original_after": 185,
+    "original_total": 366,
+    "reference_before": 19,
+    "reference_after": 19,
+    "reference_total": 59,
+    "decision": "No canonical acceptance files edited; this is a scoped prerequisite."
+  },
+  "resources": {
+    "local_compute": "RELEASED after targeted run and successful native browser/driver teardown",
+    "production_changed": false,
+    "external_submission": false
+  }
+}

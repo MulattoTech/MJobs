@@ -221,9 +221,14 @@ class TeamtailorApplicationAdapter:
                 remaining = getattr(check, "remaining_seconds", None)
                 if callable(remaining):
                     timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
-            control_states = page.locator(
-                "form input, form select, form textarea"
-            ).evaluate_all(_CONTROL_STATE_SCRIPT, **timeout_kwargs)
+            # Evaluate the strict single form with a supported locator timeout.
+            # The operation check below remains the cooperative deadline fence;
+            # this timeout does not bound JavaScript execution in the renderer.
+            control_states = page.locator("form").evaluate(
+                "form => (" + _CONTROL_STATE_SCRIPT + ")("
+                "Array.from(form.querySelectorAll('input, select, textarea')))",
+                **timeout_kwargs,
+            )
             if check is not None:
                 check()
         except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
