@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-118-acceptance-b40d54",
+  "objective": "Full original118priority acceptance using existingPR992 without duplicating runtime repair",
+  "owner": "web-20261109T154515Z-b40d54070a01",
+  "branch": "web/web-20261109T154515Z-b40d54070a01/original-acceptance-proofs",
+  "head_sha": "d67d61ca4d5acd57072a267d4814c245c6a2e433",
+  "routing_state": "INTEGRATE",
+  "next_action": "Canonical owner must integrate reviewedPR992 head7de4e60a through current protected gates, reconcile exactsource, then review118PASS proposal; broaderbrowser failures stay explicit",
+  "created_at": "2026-11-09T16:06:53.435122+00:00",
+  "requirements": [
+    "MJ-REQ-118-acceptance-b40d54"
+  ],
+  "tests": [
+    {
+      "command": "PR992 exact7de4e60a:50tests14subtestsPASS,1512comparisons8factorsensitivityprobesPASS,15hostedchecksPASS",
+      "result": "PASS"
+    },
+    {
+      "command": "No exactPR992browserPASS; main971browserrun42646926759 has stalejobselector andglobalnonGET assertion failures",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}

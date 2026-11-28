@@ -1,0 +1,601 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-118",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/119",
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/992",
+  "run_id": "web-20261109T154515Z-b40d54070a01",
+  "reviewer": "ChatGPT-Web /root/acceptance_core_audit",
+  "reviewed_utc": "2026-11-09T16:02:45.406711+00:00",
+  "result": "FULL_ORIGINAL_CRITERION_PASS_ON_EXACT_PR_HEAD",
+  "canonical_acceptance_changed": false,
+  "tested_revision": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+  "tested_tree": "ad9a0a4f552479f60858316b90dc7e1daa3a2b36",
+  "source_repair_commit": "ae28b8010ffce2731af5530b678f23287bb1fc7a",
+  "pr_base_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "worktree": "/workspace/scratch/11cf817acfbe/mjobs-review992-b40d54",
+  "worktree_status": "CLEAN_DETACHED_HEAD",
+  "source_edits_by_this_review": [],
+  "authority": {
+    "live_issue_read_utc_date": "2026-11-09",
+    "source": "Live issue119, consistent with docs/spec/areas/matching_ai.md section118 and originalsource lines3898-3916.",
+    "interpretation": "The original contract separates match score from handling priority and lists eight possible priority factors. This proof executes all eight, their connected profile/job read model, and their advisory nonmutation contract. It does not extend acceptance to queue execution, external application automation, or a whole-product release."
+  },
+  "criteria": [
+    {
+      "criterion_id": "118-1",
+      "criterion": "Match score and application priority are distinct.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_priority_explanation_composes_current_signals_without_changing_match_score",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority"
+      ],
+      "observed": "Deterministic priority81.5 differs from supplied match80; composed API exposes both and full database snapshots show no match, application or operation mutation."
+    },
+    {
+      "criterion_id": "118-2",
+      "criterion": "Priority may consider match.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 20,
+        "source_contract": "Stored matched profile/job score",
+        "independent_sensitivity": {
+          "signal": "match_score",
+          "base_priority": 81.5,
+          "changed_priority": 66.5,
+          "match_signal": 20
+        }
+      }
+    },
+    {
+      "criterion_id": "118-3",
+      "criterion": "Priority may consider posting age.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 15,
+        "source_contract": "Explicit reported posting timestamp",
+        "independent_sensitivity": {
+          "signal": "posted_at",
+          "base_priority": 81.5,
+          "changed_priority": 69.5,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-4",
+      "criterion": "Priority may consider salary.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 15,
+        "source_contract": "Persisted salary fit factor",
+        "independent_sensitivity": {
+          "signal": "salary_status",
+          "base_priority": 81.5,
+          "changed_priority": 69.5,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-5",
+      "criterion": "Priority may consider company preference.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 6,
+        "source_contract": "Explicit profile company preference or reviewed company-bound feedback",
+        "independent_sensitivity": {
+          "signal": "company_preference",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-6",
+      "criterion": "Priority may consider direct employer availability.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 7.5,
+        "source_contract": "Structured entity-bound recruiter/employer classification",
+        "independent_sensitivity": {
+          "signal": "direct_employer_availability",
+          "base_priority": 81.5,
+          "changed_priority": 80.0,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-7",
+      "criterion": "Priority may consider application complexity.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 6,
+        "source_contract": "Explicit stored complexity",
+        "independent_sensitivity": {
+          "signal": "application_complexity",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-8",
+      "criterion": "Priority may consider source freshness.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 8,
+        "source_contract": "Persisted source posting fetched_at",
+        "independent_sensitivity": {
+          "signal": "source_freshness_at",
+          "base_priority": 81.5,
+          "changed_priority": 75.5,
+          "match_signal": 80
+        }
+      }
+    },
+    {
+      "criterion_id": "118-9",
+      "criterion": "Priority may consider expiration risk.",
+      "result": "PASS",
+      "evidence": [
+        "tests/unit/test_application_priority.py::test_known_signals_produce_deterministic_weighted_explanations",
+        "tests/integration/test_application_priority_api.py::ApplicationPriorityApiTests::test_complete_persisted_evidence_with_work_arrangement_has_full_coverage",
+        "tests/integration/test_application_priority_app_mount.py::ApplicationPriorityAppMountTests::test_composed_app_mounts_profile_scoped_read_only_advisory_priority",
+        "mjreq118-pr992-review-probe.py"
+      ],
+      "observed": {
+        "canonical_known_fixture_contribution": 4,
+        "source_contract": "Explicit expiration timestamp",
+        "independent_sensitivity": {
+          "signal": "expires_at",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        }
+      }
+    }
+  ],
+  "validation": [
+    {
+      "type": "exact-head-focused-suite",
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_application_priority.py",
+        "tests/unit/test_matching_application_priority.py",
+        "tests/integration/test_application_priority_api.py",
+        "tests/integration/test_application_priority_app_mount.py",
+        "tests/integration/test_job_sorting.py",
+        "tests/integration/test_match_components_integration.py",
+        "--junitxml=/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-independent-junit.xml"
+      ],
+      "cwd": "/workspace/scratch/11cf817acfbe/mjobs-review992-b40d54",
+      "started_utc": "2026-11-09T16:00:01.728236+00:00",
+      "finished_utc": "2026-11-09T16:00:21.218510+00:00",
+      "exit_code": 0,
+      "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+      "log": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-independent.log",
+      "junit": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "64",
+        "time": "13.371",
+        "timestamp": "2026-11-09T10:00:01.945961-06:00",
+        "hostname": "3500872d9821"
+      },
+      "result": "PASS",
+      "test_methods_passed": 50,
+      "subtests_passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "pytest_seconds": 13.37
+    },
+    {
+      "type": "independent-baseline-comparison-and-original-factor-sensitivity",
+      "result": "PASS",
+      "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+      "baseline_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "comparison_cases": 1512,
+      "factor_sensitivity_cases": [
+        {
+          "signal": "match_score",
+          "base_priority": 81.5,
+          "changed_priority": 66.5,
+          "match_signal": 20
+        },
+        {
+          "signal": "posted_at",
+          "base_priority": 81.5,
+          "changed_priority": 69.5,
+          "match_signal": 80
+        },
+        {
+          "signal": "salary_status",
+          "base_priority": 81.5,
+          "changed_priority": 69.5,
+          "match_signal": 80
+        },
+        {
+          "signal": "company_preference",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        },
+        {
+          "signal": "direct_employer_availability",
+          "base_priority": 81.5,
+          "changed_priority": 80.0,
+          "match_signal": 80
+        },
+        {
+          "signal": "application_complexity",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        },
+        {
+          "signal": "source_freshness_at",
+          "base_priority": 81.5,
+          "changed_priority": 75.5,
+          "match_signal": 80
+        },
+        {
+          "signal": "expires_at",
+          "base_priority": 81.5,
+          "changed_priority": 77.5,
+          "match_signal": 80
+        }
+      ],
+      "command": [
+        "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+        "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-review-probe.py"
+      ],
+      "cwd": "/workspace/scratch/11cf817acfbe/mjobs-review992-b40d54",
+      "env_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/workspace/scratch/11cf817acfbe/mjobs-review992-b40d54"
+      },
+      "exit_code": 0,
+      "finished_utc": "2026-11-09T16:01:51.738096+00:00"
+    },
+    {
+      "type": "git-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/workspace/scratch/11cf817acfbe/mjobs-review992-b40d54",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "database": "Current-schema disposable SQLite fixtures, including Store disposal/reopen and complete table snapshots.",
+    "external_requests": "No real employer/provider calls or application submissions by this review."
+  },
+  "review_findings": {
+    "decision": "ACCEPT",
+    "blocking_findings": [],
+    "math": "Coverage divides known effective weight by all enabled effective weights. Optional factors and reviewed adjustments are included, preserving [0,100] percentage bounds. Relative-weight prose is accurate.",
+    "unknowns": "Invalid/missing admitted factors stay UNKNOWN, keep null score/contribution, and lower coverage proportionally. Absent optional factors retain prior admission semantics.",
+    "score_preservation": "1512 direct baseline comparisons preserve priority score/band and every factor score/contribution/status/source; only coverage and explanation wording change.",
+    "privacy_and_side_effects": "No added I/O, input mutation or persistence. Executed API tests preserve database tables, hard rules and saved match scores; reject cross-profile/missing/stale scope.",
+    "regression": "Executed exact-head tests include complete/incomplete coverage, increased/decreased reviewed weights, both optional factors, fractional API readback, configuration persistence, full API mounting, sorting and match-component regression coverage."
+  },
+  "hosted_checks": {
+    "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+    "total_count": 15,
+    "check_runs": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632060087/job/129222208435",
+        "completed_at": "2026-11-09T14:31:03Z"
+      },
+      {
+        "name": "CI / required",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059671/job/129213146001",
+        "completed_at": "2026-11-09T14:15:03Z"
+      },
+      {
+        "name": "CodeQL",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/runs/129210883292",
+        "completed_at": "2026-11-09T14:11:04Z"
+      },
+      {
+        "name": "Integration / shard 2",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632060087/job/129210575224",
+        "completed_at": "2026-11-09T14:27:10Z"
+      },
+      {
+        "name": "Integration / shard 0",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632060087/job/129210574971",
+        "completed_at": "2026-11-09T14:27:08Z"
+      },
+      {
+        "name": "Integration / shard 1",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632060087/job/129210574854",
+        "completed_at": "2026-11-09T14:30:58Z"
+      },
+      {
+        "name": "Web / Vitest and production build",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059671/job/129210573237",
+        "completed_at": "2026-11-09T14:11:12Z"
+      },
+      {
+        "name": "Security / secret scan",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059775/job/129210573203",
+        "completed_at": "2026-11-09T14:10:40Z"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059804/job/129210573106",
+        "completed_at": "2026-11-09T14:19:11Z"
+      },
+      {
+        "name": "Repository / policy and docs",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059671/job/129210573064",
+        "completed_at": "2026-11-09T14:10:43Z"
+      },
+      {
+        "name": "Python / unit and integrity",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059671/job/129210572520",
+        "completed_at": "2026-11-09T14:14:57Z"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632059709/job/129210572139",
+        "completed_at": "2026-11-09T14:10:34Z"
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632049381/job/129210545067",
+        "completed_at": "2026-11-09T14:11:11Z"
+      },
+      {
+        "name": "Analyze (python)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632049381/job/129210545003",
+        "completed_at": "2026-11-09T14:11:31Z"
+      },
+      {
+        "name": "Analyze (actions)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/42632049381/job/129210544735",
+        "completed_at": "2026-11-09T14:11:08Z"
+      }
+    ]
+  },
+  "source_and_test_hashes": {
+    "services/discovery/application_priority.py": {
+      "git_blob": "63377a3b4a19b5a9613de778d4b2d297be30d217",
+      "sha256": "abcb84685013642aca605fccc91433c9208df5d7866e1a283688a4529a9454fa"
+    },
+    "services/matching/application_priority.py": {
+      "git_blob": "2e371f9c928a0ad4e159b761910d0f059fa6c566",
+      "sha256": "7dc601b339f7f7289376c993a5d637c9677c2b218e00567972a8f2d283eea9f6"
+    },
+    "apps/api/application_priority.py": {
+      "git_blob": "1de587aee2f878d4f17eb4e7c9846297c8d380ac",
+      "sha256": "bb50dde6e15826cefe4f93ae2fb2c823e1f65c6a8502764bd5c462784de9a442"
+    },
+    "tests/unit/test_application_priority.py": {
+      "git_blob": "e5c5ade876a9d2ecadd6fc7fb8d33b057f0277a9",
+      "sha256": "b390155f16d7d9f34c3f74f43967ea32cff3d3d5aa0616b8231bdfc12e164e63"
+    },
+    "tests/unit/test_matching_application_priority.py": {
+      "git_blob": "1e3bfd590dd1c65802ba676ec30e04e8c885924f",
+      "sha256": "807315f43fd52c789d2bea565f36044bbc9728fdf99df650167ace0c3be33471"
+    },
+    "tests/integration/test_application_priority_api.py": {
+      "git_blob": "23bf28fa5bb30a95c81f093f50b0b1e76018da7c",
+      "sha256": "a953d69e8e5b4c9d23a3a8f2257e4d58fd7a44dcdb26568c1629fb4201fa8c04"
+    },
+    "tests/integration/test_application_priority_app_mount.py": {
+      "git_blob": "ca6abdaa222357f3b7bcec3a501cc6e435d5660e",
+      "sha256": "b9ab76fa5f17b14a788563a8d1f896985fc8d4ca35c1de1b7bc4a80ec25af446"
+    },
+    "tests/integration/test_job_sorting.py": {
+      "git_blob": "70dcce2321603e3b7f1e121fcbcbc181e00ea71f",
+      "sha256": "b38f45f6bccaf76894455430e9e341f7ba0ae15c57db14923cdf9fcdc0222348"
+    },
+    "tests/integration/test_match_components_integration.py": {
+      "git_blob": "2f7a181b49889825bff45b3a60646c49600de0d7",
+      "sha256": "15e9e23084afb8115755b2b577ff4eec02ae0881db97a2a382d6fdeeeb6e51aa"
+    }
+  },
+  "artifacts": {
+    "mjreq118-pr992-independent-run.json": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-independent-run.json",
+      "sha256": "a7d74612468e3ad99358768ebdfc0ce019ac109223ce3e5312801c4cc7c2c1ca"
+    },
+    "mjreq118-pr992-independent.log": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-independent.log",
+      "sha256": "f744c0e4768004c26571862ed118888e750723b6dee74983fbba01597fcebffa"
+    },
+    "mjreq118-pr992-independent-junit.xml": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-independent-junit.xml",
+      "sha256": "de621c6c33a7035396076743a2969f6f731e6095a4b70563d38408189df3b153"
+    },
+    "mjreq118-pr992-reproducible-probe.json": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-reproducible-probe.json",
+      "sha256": "370b229bb47b2fcedabe2e50e0ab41a788a38446f156c5a493552d8cd5613339"
+    },
+    "mjreq118-pr992-review-probe.py": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-review-probe.py",
+      "sha256": "88bfe6262171c501c9a4db723a773503c4687c029e92347fb284ffd8893cfcba"
+    },
+    "mjreq118-pr992-hosted-checks.json": {
+      "absolute_path": "/workspace/scratch/11cf817acfbe/run-b40d54/mjreq118-pr992-hosted-checks.json",
+      "sha256": "bf08c9361598adb27e34f282c1e04a2ab475000d2bb2a088f9c33c386a32e45e"
+    }
+  },
+  "limitations": [
+    "This full-criterion result applies only to PR992 head7de4e60acbd3f29b13aafd7e52120a2af9d66634. Protected merge/base freshness and canonical promotion must be rechecked by the single integration owner.",
+    "Requirement-specific local persistence proof used SQLite. The exact-head hosted PostgreSQL/Redis aggregate is green, but that is not relabeled as a separately executed priority-specific PostgreSQL test.",
+    "No fresh authenticated browser journey, deployment or live-employer acceptance was executed in this review. Exact-head hosted web/build and Compose checks are recorded as their actual gate scope.",
+    "The earlier unpublished b40d54 normalization patch is not the subject of this acceptance and must not be published as a duplicate.",
+    "Known browser regression run42646926759 on main971ba931 failed selected priority and sorting fixtures; see browser_regression_supplement. Broader browser acceptance remains FAIL/UNRESOLVED and no exact-PR992 browser PASS is inferred."
+  ],
+  "browser_regression_supplement": {
+    "recorded_utc": "2026-11-09T16:05:33.280172+00:00",
+    "observed_run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+    "observed_run_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "observed_overall_result": "FAIL",
+    "observation_provenance": "Root independently inspected the fresh peer browser run and supplied the failure facts. This reviewer independently inspected the corresponding fixture/product source and verified its Git blobs are identical on the run revision and PR992. This reviewer did not execute or relabel the browser run.",
+    "selected_cases": [
+      {
+        "test_file": "tests/browser/test_application_priority_mount.py",
+        "result": "FAIL",
+        "reported_failure": "The global assertion rejecting every non-GET request observed four explicit profile/job /view POSTs. Preceding priority-panel, mis-scoped-response hiding, and retry assertions were reached and passed.",
+        "source_corroboration": "Current showJob records explicit detail opens through recentlyViewedClient.record; that method POSTs /profiles/{profile}/jobs/{job}/view. The priority test still rejects all non-GET requests globally.",
+        "unreached_proof": "The global non-GET assertion precedes the remaining application/source-mutation assertions and final reopened database snapshot. Those later postconditions are not counted as executed browser PASS."
+      },
+      {
+        "test_file": "tests/browser/test_job_sorting.py",
+        "result": "FAIL",
+        "reported_failure": "The .job-card h2 selector no longer matches the rendered cards; the captured accessibility tree showed correctly named Alpha Older Role / Zulu Newest Role buttons.",
+        "source_corroboration": "SelectableCard renders a button with a span.job-card-title, while the browser fixture still locates .job-card h2. Accessible names do not establish completion of the remaining sort and reload assertions."
+      }
+    ],
+    "review_judgment": {
+      "original_mjreq118_recommendation": "UNCHANGED: full original literal criterion PASS on exact PR992 head, based on the executed 50 tests/14 subtests, 1512 independent comparisons and eight factor-sensitivity cases.",
+      "reason": "The reported failures concern a broader navigation no-write assumption and a stale rendering selector. They do not contradict the original separation of match score from priority or the eight-factor calculation verified on PR992. The read-only database claim in the original ledger is limited to its executed API tests; it is not expanded to the whole browser navigation journey.",
+      "broader_browser_acceptance": "FAIL / UNRESOLVED. Fixture and intended navigation contracts need reconciliation and a passing rerun before browser acceptance can be claimed.",
+      "exact_pr992_browser_status": "NOT_RUN; no exact-992 browser PASS is claimed.",
+      "canonical_promotion": "Single integration owner retains judgment over promotion and release gates with this known failing browser evidence visible."
+    },
+    "verified_unchanged_browser_source_blobs": {
+      "tests/browser/test_application_priority_mount.py": {
+        "base_and_pr992_git_blob": "7cc48f7f6f5278d9dc0713b2dcf0fe7e42562d21",
+        "identical_at_base_and_reviewed_head": true
+      },
+      "tests/browser/test_job_sorting.py": {
+        "base_and_pr992_git_blob": "147283adbb85edfea14e4464a4b5c70cc89c7858",
+        "identical_at_base_and_reviewed_head": true
+      },
+      "apps/web/src/main.tsx": {
+        "base_and_pr992_git_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "identical_at_base_and_reviewed_head": true
+      },
+      "apps/web/src/selectable-card.tsx": {
+        "base_and_pr992_git_blob": "4551ef5003579f8e0de9d8394729d0e3122468c2",
+        "identical_at_base_and_reviewed_head": true
+      },
+      "apps/web/src/recently-viewed-client.ts": {
+        "base_and_pr992_git_blob": "b3e798a88befb89efd17cbe190697fe6214f8ca3",
+        "identical_at_base_and_reviewed_head": true
+      }
+    }
+  },
+  "status": "FULL_CRITERION_PASS_PROPOSED_VIA_EXISTING_PR992_PENDING_PROTECTED_INTEGRATION",
+  "delivery_dependencies": {
+    "existing_repair_pr": 992,
+    "expected_repair_head": "7de4e60acbd3f29b13aafd7e52120a2af9d66634",
+    "canonical_owner": "web-20261109T132018Z-0d9f5a0511ab",
+    "canonical_transition_applied": false,
+    "note": "This evidence-only publication does not include or duplicate PR992 runtime changes. Promote118 only after protected integration of the reviewed repair, exact-source reconciliation, and canonical-owner judgment."
+  },
+  "reconciliation": {
+    "duplicate_detected_before_publication": true,
+    "duplicate_private_patch_published": false,
+    "existing_pr_reused": 992
+  }
+}
